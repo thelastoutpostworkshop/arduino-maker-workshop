@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
-import { ArduinoProject } from './ArduinoProject';
+import { ArduinoProject, cliCommandArduino } from './ArduinoProject';
 const cp = require('child_process');
 
-const cliCommandArduino: string = 'arduino-cli';
 
 const outputChannel = vscode.window.createOutputChannel('Arduino');
 
