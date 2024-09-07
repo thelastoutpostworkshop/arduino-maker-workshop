@@ -65,7 +65,7 @@ export class ArduinoProject {
         args.push(buildCachePathArduino, "\"" + this.getProjectPath() + "/" +  this.getOutput() + '/cache' + "\"");
         args.push(jobsOptionArduino, '0');
         args.push(fqbnOptionArduino, this.getBoard() + ":" + this.getConfiguration());
-        args.push("\"" + this.getProjectPath() + "\"");
+        args.push("\"" + this.getProjectPath() +"\"");
         return args;
     }
     public getOutput(): string {
