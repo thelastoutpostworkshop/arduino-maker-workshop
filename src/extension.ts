@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ArduinoProject, buildCachePathArduino, buildPathArduino, compileCommandArduino, fqbnOptionArduino, verboseOptionArduino } from './ArduinoProject';
+import { ArduinoProject } from './ArduinoProject';
 const cp = require('child_process');
 
 const cliCommandArduino: string = 'arduino-cli';
