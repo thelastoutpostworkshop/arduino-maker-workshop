@@ -24,6 +24,28 @@ function loadArduinoConfiguration() {
 	}
 
 }
+function vsCommandUpload():vscode.Disposable {
+	return vscode.commands.registerCommand('vscode-arduino.upload', () => {
+
+		if (!arduinoProject.getBoard()) {
+			vscode.window.showInformationMessage('Board info not found, cannot compile');
+		}
+		if (!arduinoProject.getConfiguration()) {
+			vscode.window.showInformationMessage('Board configuration not found, cannot compile');
+		}
+		if (!arduinoProject.getOutput()) {
+			vscode.window.showInformationMessage('Output not found, cannot compile');
+		}
+		if (!arduinoProject.getProjectPath()) {
+			vscode.window.showInformationMessage('Project path not found, cannot compile');
+		}
+
+		// Execute the Arduino CLI command
+		const compileCommand = arduinoProject.getCompileCommandArguments();
+		executeArduinoCommand(`${cliCommandArduino}`,compileCommand);
+
+	});
+}
 
 function vsCommandCompile():vscode.Disposable {
 	return vscode.commands.registerCommand('vscode-arduino.compile', () => {
@@ -40,7 +62,6 @@ function vsCommandCompile():vscode.Disposable {
 		if (!arduinoProject.getProjectPath()) {
 			vscode.window.showInformationMessage('Project path not found, cannot compile');
 		}
-
 
 		// Execute the Arduino CLI command
 		const compileCommand = arduinoProject.getCompileCommandArguments();

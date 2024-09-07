@@ -16,6 +16,11 @@
         "command": "vscode-arduino.compile",
         "title": "Compile",
         "category": "Arduino"
+      },
+      {
+        "command": "vscode-arduino.upload",
+        "title": "Upload",
+        "category": "Arduino"
       }
     ]
   },
