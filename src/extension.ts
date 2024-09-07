@@ -1,6 +1,10 @@
 import * as vscode from 'vscode';
 import { ArduinoProject } from './ArduinoProject';
 const cp = require('child_process');
+
+const cliCommandArduino: string = 'arduino-cli';
+
+
 let arduinoProject: ArduinoProject;
 
 export function activate(context: vscode.ExtensionContext) {
@@ -30,13 +34,14 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 
-		vscode.window.showInformationMessage('Compiling Arduino project...');
+		// vscode.window.showInformationMessage('Compiling Arduino project...');
 		outputChannel.clear();
 		outputChannel.appendLine('Running Arduino CLI compile...');
 		outputChannel.show(true);
 
 		// Execute the Arduino CLI command
-		const child = cp.spawn('arduino-cli', ['compile', '-v', '--fqbn', `${arduinoProject.getBoard()}:${arduinoProject.getConfiguration()}`, '--build-path', arduinoProject.getOutput(), arduinoProject.getProjectPath()]);
+		const compileArgs = arduinoProject.getCompileCommandArguments();
+		const child = cp.spawn(`${cliCommandArduino}`, compileArgs);
 
 		// Stream stdout to the output channel
 		child.stdout.on('data', (data: Buffer) => {
@@ -51,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Handle the process exit event
 		child.on('close', (code: number) => {
 			if (code === 0) {
-				vscode.window.showInformationMessage('Compilation successful.');
+				// vscode.window.showInformationMessage('Compilation successful.');
 			} else {
 				vscode.window.showErrorMessage(`Compilation failed with code ${code}. Check Output window for details.`);
 			}
