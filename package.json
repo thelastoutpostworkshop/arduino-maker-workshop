@@ -14,7 +14,8 @@
     "commands": [
       {
         "command": "vscode-arduino.compile",
-        "title": "Compile Arduino Project"
+        "title": "Compile",
+        "category": "Arduino"
       }
     ]
   },
