@@ -1,49 +1,32 @@
 import * as vscode from 'vscode';
+import { ArduinoProject } from './ArduinoProject';
 const cp = require('child_process');
-const path = require('path');
-const fs = require('fs');
+let arduinoProject: ArduinoProject;
 
 export function activate(context: vscode.ExtensionContext) {
 	// Create an output channel
 	const outputChannel = vscode.window.createOutputChannel('Arduino');
 
+	arduinoProject = new ArduinoProject();
+
+	if (!arduinoProject.readConfiguration()) {
+		vscode.window.showInformationMessage('Arduino Configuration Error');
+	}
+
 	// Register the compile command
 	let disposable = vscode.commands.registerCommand('vscode-arduino.compile', () => {
 
-		const workspaceFolders = vscode.workspace.workspaceFolders;
-		if (!workspaceFolders) {
-			vscode.window.showErrorMessage('No workspace folder is open.');
-			return;
+		if (!arduinoProject.getBoard()) {
+			vscode.window.showInformationMessage('Board info not found, cannot compile');
 		}
-
-		const workspacePath = workspaceFolders[0].uri.fsPath;
-		const configPath = path.join(workspacePath, '.vscode', 'arduino.json');
-
-		// Check if the arduino.json file exists
-		if (!fs.existsSync(configPath)) {
-			vscode.window.showErrorMessage('arduino.json file not found in .vscode folder.');
-			return;
+		if (!arduinoProject.getConfiguration()) {
+			vscode.window.showInformationMessage('Board configuration not found, cannot compile');
 		}
-
-		// Read the arduino.json file
-		const configContent = fs.readFileSync(configPath, 'utf-8');
-		let config;
-		try {
-			config = JSON.parse(configContent);
-		} catch (error) {
-			vscode.window.showErrorMessage('Error parsing arduino.json.');
-			return;
+		if (!arduinoProject.getOutput()) {
+			vscode.window.showInformationMessage('Output not found, cannot compile');
 		}
-
-		// Extract relevant fields from arduino.json
-		const configuration = config.configuration || '';
-		const board = config.board || '';
-		const output = config.output || 'build';
-		const port = config.port || '';
-
-		if (!board || !output || !port || !configuration) {
-			vscode.window.showErrorMessage('Missing required configuration in arduino.json (board, configuration, or port).');
-			return;
+		if (!arduinoProject.getProjectPath()) {
+			vscode.window.showInformationMessage('Project path not found, cannot compile');
 		}
 
 
@@ -52,22 +35,19 @@ export function activate(context: vscode.ExtensionContext) {
 		outputChannel.appendLine('Running Arduino CLI compile...');
 		outputChannel.show(true);
 
-		const sketchPath = path.join(workspacePath);
-        const compileCommand = `arduino-cli compile -v --fqbn ${board}:${configuration} --build-path ${output} \"${sketchPath}\"`;
-
 		// Execute the Arduino CLI command
-		const child = cp.spawn('arduino-cli', ['compile', '-v', '--fqbn', `${board}:${configuration}`, '--build-path', output, sketchPath]);
+		const child = cp.spawn('arduino-cli', ['compile', '-v', '--fqbn', `${arduinoProject.getBoard()}:${arduinoProject.getConfiguration()}`, '--build-path', arduinoProject.getOutput(), arduinoProject.getProjectPath()]);
 
 		// Stream stdout to the output channel
 		child.stdout.on('data', (data: Buffer) => {
 			outputChannel.appendLine(data.toString());
 		});
-		
+
 		// Stream stderr to the output channel
 		child.stderr.on('data', (data: Buffer) => {
 			outputChannel.appendLine(`Error: ${data.toString()}`);
 		});
-		
+
 		// Handle the process exit event
 		child.on('close', (code: number) => {
 			if (code === 0) {
