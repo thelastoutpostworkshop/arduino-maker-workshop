@@ -40,7 +40,6 @@ export function activate(context: vscode.ExtensionContext) {
 		const board = config.board || '';
 		const output = config.output || 'build';
 		const port = config.port || '';
-		const sketch = config.sketch || '';
 
 		if (!board || !output || !port || !configuration) {
 			vscode.window.showErrorMessage('Missing required configuration in arduino.json (board, configuration, or port).');
