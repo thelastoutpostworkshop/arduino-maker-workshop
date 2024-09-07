@@ -40,7 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Execute the Arduino CLI command
 		const compileCommand = arduinoProject.getCompileCommandArguments();
 		outputChannel.appendLine(`${cliCommandArduino}`);
-		outputChannel.appendLine(compileCommand.join(' ')); // Join for displaying the full command in the output
+		outputChannel.appendLine(compileCommand.join(' ')); 
 
 		const child = cp.spawn(`${cliCommandArduino}`, compileCommand);
 
