@@ -14,6 +14,7 @@ export const buildPathArduino: string = '--build-path';
 export const buildCachePathArduino: string = '--build-cache-path';
 export const jobsOptionArduino: string = '--jobs';
 export const fqbnOptionArduino: string = '--fqbn';
+export const noColorOptionArduino: string = '--no-color';
 
 export class ArduinoProject {
     private arduinoConfigurationPath: string = "";
@@ -61,6 +62,7 @@ export class ArduinoProject {
         const compileCommand = [
 			`${compileCommandArduino}`,
 			`${verboseOptionArduino}`,
+			`${noColorOptionArduino}`,
 			`${fqbnOptionArduino}`,
 			`${this.getBoard()}:${this.getConfiguration()}`,
 			`${buildPathArduino}`,
