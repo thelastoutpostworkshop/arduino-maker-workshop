@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ArduinoProject } from './ArduinoProject';
+import { ArduinoProject, buildCachePathArduino, buildPathArduino, compileCommandArduino, fqbnOptionArduino, verboseOptionArduino } from './ArduinoProject';
 const cp = require('child_process');
 
 const cliCommandArduino: string = 'arduino-cli';
@@ -40,11 +40,26 @@ export function activate(context: vscode.ExtensionContext) {
 		outputChannel.show(true);
 
 		// Execute the Arduino CLI command
-		const compileArgs = arduinoProject.getCompileCommandArguments();
-		outputChannel.appendLine(`${cliCommandArduino}`);
-		outputChannel.appendLine(compileArgs.join());
+		const compileCommand = [
+			`${compileCommandArduino}`,
+			`${verboseOptionArduino}`,
+			`${fqbnOptionArduino}`,
+			`${arduinoProject.getBoard()}:${arduinoProject.getConfiguration()}`,
+			`${buildPathArduino}`,
+			arduinoProject.getProjectPath() + '/' + arduinoProject.getOutput(),
+			`${buildCachePathArduino}`,
+			arduinoProject.getProjectPath()+ arduinoProject.getOutput() + '/cache/',
+			arduinoProject.getProjectPath()
+		];
 
-		const child = cp.spawn(`${cliCommandArduino}`, compileArgs);
+
+		outputChannel.appendLine(`${cliCommandArduino}`);
+		outputChannel.appendLine(compileCommand.join(' ')); // Join for displaying the full command in the output
+
+		const child = cp.spawn(`${cliCommandArduino}`, compileCommand);
+
+
+		// const child = cp.spawn(`${cliCommandArduino}`, compileArgs);
 
 		// Stream stdout to the output channel
 		child.stdout.on('data', (data: Buffer) => {

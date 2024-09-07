@@ -3,16 +3,16 @@ import * as vscode from 'vscode';
 const path = require('path');
 const fs = require('fs');
 
-const compileCommandArduino: string = 'compile';
+export const compileCommandArduino: string = 'compile';
 const uploadCommandArduino: string = 'upload';
 const boardCommandArduino: string = 'board';
 const listFunctionArduino: string = 'list';
 const jsonOutputArduino: string = '--json';
-const verboseOptionArduino: string = '-v';
-const buildPathArduino: string = '--build-path';
-const buildCachePathArduino: string = '--build-cache-path';
-const jobsOptionArduino: string = '--jobs';
-const fqbnOptionArduino: string = '--fqbn';
+export const verboseOptionArduino: string = '-v';
+export const buildPathArduino: string = '--build-path';
+export const buildCachePathArduino: string = '--build-cache-path';
+export const jobsOptionArduino: string = '--jobs';
+export const fqbnOptionArduino: string = '--fqbn';
 
 export class ArduinoProject {
     private arduinoConfigurationPath: string = "";
