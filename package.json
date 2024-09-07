@@ -21,6 +21,11 @@
         "command": "vscode-arduino.upload",
         "title": "Upload",
         "category": "Arduino"
+      },
+      {
+        "command": "vscode-arduino.port",
+        "title": "Set Port",
+        "category": "Arduino"
       }
     ]
   },

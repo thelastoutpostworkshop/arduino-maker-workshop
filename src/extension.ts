@@ -10,6 +10,7 @@ export function activate(context: vscode.ExtensionContext) {
 	loadArduinoConfiguration();
 	context.subscriptions.push(vsCommandCompile());
 	context.subscriptions.push(vsCommandUpload());
+	context.subscriptions.push(vsCommandPort());
 }
 
 function loadArduinoConfiguration() {
@@ -20,6 +21,29 @@ function loadArduinoConfiguration() {
 	}
 
 }
+function vsCommandPort():vscode.Disposable {
+	return vscode.commands.registerCommand('vscode-arduino.port', () => {
+
+		// if (!arduinoProject.getBoard()) {
+		// 	vscode.window.showInformationMessage('Board info not found, cannot compile');
+		// }
+		// if (!arduinoProject.getConfiguration()) {
+		// 	vscode.window.showInformationMessage('Board configuration not found, cannot compile');
+		// }
+		// if (!arduinoProject.getProjectPath()) {
+		// 	vscode.window.showInformationMessage('Project path not found, cannot compile');
+		// }
+		// if (!arduinoProject.getPort()) {
+		// 	vscode.window.showInformationMessage('Port not found, cannot compile');
+		// }
+
+		// // Execute the Arduino CLI command
+		// const uploadCommand = arduinoProject.getCompileUploadArguments();
+		// executeArduinoCommand(`${cliCommandArduino}`,uploadCommand);
+
+	});
+}
+
 function vsCommandUpload():vscode.Disposable {
 	return vscode.commands.registerCommand('vscode-arduino.upload', () => {
 
