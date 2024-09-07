@@ -9,13 +9,12 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
-  "main": "./out/extension.js",
+  "main": "./build/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "vscode-arduino.helloWorld",
-        "title": "Hello World"
+        "command": "vscode-arduino.compile",
+        "title": "Compile Arduino Project"
       }
     ]
   },
