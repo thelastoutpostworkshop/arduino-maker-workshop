@@ -4,17 +4,10 @@ const cp = require('child_process');
 
 
 const outputChannel = vscode.window.createOutputChannel('Arduino');
-
 let arduinoProject: ArduinoProject;
 
 export function activate(context: vscode.ExtensionContext) {
-	// Create an output channel
-
-	arduinoProject = new ArduinoProject();
-
-	if (!arduinoProject.readConfiguration()) {
-		vscode.window.showInformationMessage('Arduino Configuration Error');
-	}
+	loadArduinoConfiguration();
 
 	// Register the compile command
 	let compileDisposable = vscode.commands.registerCommand('vscode-arduino.compile', () => {
@@ -43,6 +36,14 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(compileDisposable);
 }
 
+function loadArduinoConfiguration() {
+	arduinoProject = new ArduinoProject();
+
+	if (!arduinoProject.readConfiguration()) {
+		vscode.window.showInformationMessage('Arduino Configuration Error');
+	}
+
+}
 
 function executeArduinoCommand(command: string, args: string[]) {
 
