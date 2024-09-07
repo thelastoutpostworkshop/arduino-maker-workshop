@@ -56,18 +56,25 @@ export function activate(context: vscode.ExtensionContext) {
         const compileCommand = `arduino-cli compile -v --fqbn ${board}:${configuration} --build-path ${output} \"${sketchPath}\"`;
 
 		// Execute the Arduino CLI command
-		cp.exec(compileCommand, (error: string, stdout: string, stderr: string) => {
-			if (error) {
-				outputChannel.appendLine(`Error: ${stderr}`);
-				vscode.window.showErrorMessage(`Compilation failed. Check Output window for details.`);
-				return;
+		const child = cp.spawn('arduino-cli', ['compile', '-v', '--fqbn', `${board}:${configuration}`, '--build-path', output, sketchPath]);
+
+		// Stream stdout to the output channel
+		child.stdout.on('data', (data: Buffer) => {
+			outputChannel.appendLine(data.toString());
+		});
+		
+		// Stream stderr to the output channel
+		child.stderr.on('data', (data: Buffer) => {
+			outputChannel.appendLine(`Error: ${data.toString()}`);
+		});
+		
+		// Handle the process exit event
+		child.on('close', (code: number) => {
+			if (code === 0) {
+				vscode.window.showInformationMessage('Compilation successful.');
+			} else {
+				vscode.window.showErrorMessage(`Compilation failed with code ${code}. Check Output window for details.`);
 			}
-
-			// Write stdout to the output channel
-			outputChannel.appendLine(stdout);
-
-			// Show a success message in the information box
-			vscode.window.showInformationMessage('Compilation successful.');
 		});
 	});
 
