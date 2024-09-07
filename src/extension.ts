@@ -18,7 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
 	}
 
 	// Register the compile command
-	let disposable = vscode.commands.registerCommand('vscode-arduino.compile', () => {
+	let compileDisposable = vscode.commands.registerCommand('vscode-arduino.compile', () => {
 
 		if (!arduinoProject.getBoard()) {
 			vscode.window.showInformationMessage('Board info not found, cannot compile');
@@ -65,7 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	// Push the disposable command to the context's subscriptions
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(compileDisposable);
 }
 
 export function deactivate() { }
