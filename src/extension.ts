@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
-const cp = require('child_process')
+const cp = require('child_process');
 
 export function activate(context: vscode.ExtensionContext) {
     // Create an output channel
-    const outputChannel = vscode.window.createOutputChannel('Arduino CLI');
+    const outputChannel = vscode.window.createOutputChannel('Arduino');
 
     // Register the compile command
     let disposable = vscode.commands.registerCommand('vscode-arduino.compile', () => {
@@ -19,7 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
         outputChannel.show(true);
 
         // Execute the Arduino CLI command
-        cp.exec('arduino-cli compile -v', (error, stdout, stderr) => {
+        cp.exec('arduino-cli compile -v', (error:string, stdout:string, stderr:string) => {
             if (error) {
                 outputChannel.appendLine(`Error: ${stderr}`);
                 vscode.window.showErrorMessage(`Compilation failed. Check Output window for details.`);
