@@ -33,33 +33,16 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showInformationMessage('Project path not found, cannot compile');
 		}
 
-
-		// vscode.window.showInformationMessage('Compiling Arduino project...');
 		outputChannel.clear();
 		outputChannel.appendLine('Running Arduino CLI compile...');
 		outputChannel.show(true);
 
 		// Execute the Arduino CLI command
-		const compileCommand = [
-			`${compileCommandArduino}`,
-			`${verboseOptionArduino}`,
-			`${fqbnOptionArduino}`,
-			`${arduinoProject.getBoard()}:${arduinoProject.getConfiguration()}`,
-			`${buildPathArduino}`,
-			arduinoProject.getProjectPath() + '/' + arduinoProject.getOutput(),
-			`${buildCachePathArduino}`,
-			arduinoProject.getProjectPath()+ arduinoProject.getOutput() + '/cache/',
-			arduinoProject.getProjectPath()
-		];
-
-
+		const compileCommand = arduinoProject.getCompileCommandArguments();
 		outputChannel.appendLine(`${cliCommandArduino}`);
 		outputChannel.appendLine(compileCommand.join(' ')); // Join for displaying the full command in the output
 
 		const child = cp.spawn(`${cliCommandArduino}`, compileCommand);
-
-
-		// const child = cp.spawn(`${cliCommandArduino}`, compileArgs);
 
 		// Stream stdout to the output channel
 		child.stdout.on('data', (data: Buffer) => {

@@ -57,16 +57,18 @@ export class ArduinoProject {
         return true;
     }
     public getCompileCommandArguments(): string[] {
-        const args: string[] = [];
-
-        args.push(compileCommandArduino);
-        args.push(verboseOptionArduino);
-        args.push(buildPathArduino, "\"" + this.getProjectPath() + "/" + this.getOutput() + "\"");
-        args.push(buildCachePathArduino, "\"" + this.getProjectPath() + "/" +  this.getOutput() + '/cache' + "\"");
-        args.push(jobsOptionArduino, '0');
-        args.push(fqbnOptionArduino, this.getBoard() + ":" + this.getConfiguration());
-        args.push("\"" + this.getProjectPath() +"\"");
-        return args;
+        const compileCommand = [
+			`${compileCommandArduino}`,
+			`${verboseOptionArduino}`,
+			`${fqbnOptionArduino}`,
+			`${this.getBoard()}:${this.getConfiguration()}`,
+			`${buildPathArduino}`,
+			this.getProjectPath() + '/' + this.getOutput(),
+			`${buildCachePathArduino}`,
+			this.getProjectPath()+ '/' +  this.getOutput() + '/cache',
+			this.getProjectPath()
+		];
+        return compileCommand;
     }
     public getOutput(): string {
         return this.output;
