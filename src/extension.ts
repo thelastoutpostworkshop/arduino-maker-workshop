@@ -8,12 +8,8 @@ let arduinoProject: ArduinoProject;
 
 export function activate(context: vscode.ExtensionContext) {
 	loadArduinoConfiguration();
-
-	// Register the compile command
-
-
-	// Push the disposable command to the context's subscriptions
 	context.subscriptions.push(vsCommandCompile());
+	context.subscriptions.push(vsCommandUpload());
 }
 
 function loadArduinoConfiguration() {
@@ -33,16 +29,16 @@ function vsCommandUpload():vscode.Disposable {
 		if (!arduinoProject.getConfiguration()) {
 			vscode.window.showInformationMessage('Board configuration not found, cannot compile');
 		}
-		if (!arduinoProject.getOutput()) {
-			vscode.window.showInformationMessage('Output not found, cannot compile');
-		}
 		if (!arduinoProject.getProjectPath()) {
 			vscode.window.showInformationMessage('Project path not found, cannot compile');
 		}
+		if (!arduinoProject.getPort()) {
+			vscode.window.showInformationMessage('Port not found, cannot compile');
+		}
 
 		// Execute the Arduino CLI command
-		const compileCommand = arduinoProject.getCompileCommandArguments();
-		executeArduinoCommand(`${cliCommandArduino}`,compileCommand);
+		const uploadCommand = arduinoProject.getCompileUploadArguments();
+		executeArduinoCommand(`${cliCommandArduino}`,uploadCommand);
 
 	});
 }
