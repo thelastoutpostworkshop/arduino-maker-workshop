@@ -10,7 +10,23 @@ export function activate(context: vscode.ExtensionContext) {
 	loadArduinoConfiguration();
 
 	// Register the compile command
-	let compileDisposable = vscode.commands.registerCommand('vscode-arduino.compile', () => {
+
+
+	// Push the disposable command to the context's subscriptions
+	context.subscriptions.push(vsCommandCompile());
+}
+
+function loadArduinoConfiguration() {
+	arduinoProject = new ArduinoProject();
+
+	if (!arduinoProject.readConfiguration()) {
+		vscode.window.showInformationMessage('Arduino Configuration Error');
+	}
+
+}
+
+function vsCommandCompile():vscode.Disposable {
+	return vscode.commands.registerCommand('vscode-arduino.compile', () => {
 
 		if (!arduinoProject.getBoard()) {
 			vscode.window.showInformationMessage('Board info not found, cannot compile');
@@ -31,18 +47,6 @@ export function activate(context: vscode.ExtensionContext) {
 		executeArduinoCommand(`${cliCommandArduino}`,compileCommand);
 
 	});
-
-	// Push the disposable command to the context's subscriptions
-	context.subscriptions.push(compileDisposable);
-}
-
-function loadArduinoConfiguration() {
-	arduinoProject = new ArduinoProject();
-
-	if (!arduinoProject.readConfiguration()) {
-		vscode.window.showInformationMessage('Arduino Configuration Error');
-	}
-
 }
 
 function executeArduinoCommand(command: string, args: string[]) {
