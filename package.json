@@ -26,6 +26,11 @@
         "command": "vscode-arduino.port",
         "title": "Set Port",
         "category": "Arduino"
+      },
+      {
+        "command": "vscode-arduino.boardconfig",
+        "title": "Configure Board",
+        "category": "Arduino"
       }
     ]
   },

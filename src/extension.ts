@@ -11,6 +11,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vsCommandCompile());
 	context.subscriptions.push(vsCommandUpload());
 	context.subscriptions.push(vsCommandPort());
+	context.subscriptions.push(vsCommandBoardConfiguration());
 }
 
 function loadArduinoConfiguration() {
@@ -20,6 +21,54 @@ function loadArduinoConfiguration() {
 		vscode.window.showInformationMessage('Arduino Configuration Error');
 	}
 
+}
+
+function vsCommandBoardConfiguration(): vscode.Disposable {
+	return vscode.commands.registerCommand('vscode-arduino.boardconfig', async () => {
+		if (!verifyArduinoProject()) {
+			return;
+		}
+	
+		if (!arduinoProject.getProjectPath()) {
+			vscode.window.showInformationMessage('Project path not found, cannot retrieve ports.');
+			return;
+		}
+
+		if (!arduinoProject.getBoard()) {
+			vscode.window.showInformationMessage('Board info not found, cannot upload');
+		}
+	
+		await vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			title: 'Retrieving board configuration options...',
+			cancellable: false
+		}, async (progress) => {
+			// Execute the Arduino CLI command to get the list of ports
+			const portListCommand = arduinoProject.getPortListArguments();
+	
+			// Use executeArduinoCommand and pass true to get the output as a string
+			try {
+				const result = await executeArduinoCommand(`${cliCommandArduino}`, portListCommand, true);
+				if (result) {
+					progress.report({ message: 'Ports have been successfully retrieved.',increment:100 });
+
+					// Parse the JSON result
+					const configuration = JSON.parse(result).detected_ports;
+	
+					if (configuration.length === 0) {
+						vscode.window.showInformationMessage('Unable to retrieve board configuration.');
+						return;
+					}
+	
+				} else {
+					vscode.window.showErrorMessage('Failed to retrieve board configuration.');
+				}
+			} catch (error) {
+				vscode.window.showErrorMessage(`Error retrieving board configuration: ${error}`);
+			}
+		});
+	});
+	
 }
 function vsCommandPort(): vscode.Disposable {
 	return vscode.commands.registerCommand('vscode-arduino.port', async () => {
