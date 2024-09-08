@@ -44,16 +44,16 @@ function vsCommandBoardConfiguration(): vscode.Disposable {
 			cancellable: false
 		}, async (progress) => {
 			// Execute the Arduino CLI command to get the list of ports
-			const portListCommand = arduinoProject.getPortListArguments();
+			const configBoardArgs = arduinoProject.getBoardConfigurationArguments();
 	
 			// Use executeArduinoCommand and pass true to get the output as a string
 			try {
-				const result = await executeArduinoCommand(`${cliCommandArduino}`, portListCommand, true);
+				const result = await executeArduinoCommand(`${cliCommandArduino}`, configBoardArgs, true);
 				if (result) {
-					progress.report({ message: 'Ports have been successfully retrieved.',increment:100 });
+					progress.report({ message: 'Board Configuration have been successfully retrieved.',increment:100 });
 
 					// Parse the JSON result
-					const configuration = JSON.parse(result).detected_ports;
+					const configuration = JSON.parse(result).config_options;
 	
 					if (configuration.length === 0) {
 						vscode.window.showInformationMessage('Unable to retrieve board configuration.');
