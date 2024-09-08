@@ -87,8 +87,26 @@ function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.D
 						message => {
 							switch (message.command) {
 								case 'updateConfig':
-									// Update configuration in the project
-									arduinoProject.updateBoardConfiguration(message.config);
+									// Merge the incoming config change with the existing configuration
+									const currentConfig = arduinoProject.getConfiguration()
+										.split(',')
+										.reduce((configObj: any, item: string) => {
+											const [key, value] = item.split('=');
+											configObj[key] = value;
+											return configObj;
+										}, {});
+
+									// Update only the changed field
+									const updatedConfig = { ...currentConfig, ...message.config };
+
+									// Convert updated config object back to string format "key=value,key=value"
+									const updatedConfigString = Object.entries(updatedConfig)
+										.map(([key, value]) => `${key}=${value}`)
+										.join(',');
+
+									// Update the configuration in the project
+									arduinoProject.updateBoardConfiguration({ configuration: updatedConfigString });
+
 									vscode.window.showInformationMessage('Configuration updated!');
 									return;
 							}
@@ -96,6 +114,7 @@ function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.D
 						undefined,
 						context.subscriptions
 					);
+
 					// Reset when the current panel is closed
 					boardConfigWebViewPanel.onDidDispose(
 						() => {
@@ -133,7 +152,7 @@ function getWebviewContent(boardName: string, configuration: any[]): string {
 	// Iterate over configuration options and create a select input for each
 	configuration.forEach(option => {
 		html += `<label for="${option.option}">${option.option_label}</label>
-        <select id="${option.option}" name="${option.option}">`;
+        <select id="${option.option}" name="${option.option}" class="config-select">`;
 
 		option.values.forEach(value => {
 			// Check if the value matches the current config value for this option
@@ -145,11 +164,24 @@ function getWebviewContent(boardName: string, configuration: any[]): string {
 	});
 
 	html += `
-        <button type="submit">Update Configuration</button>
         </form>
 
         <script>
             const vscode = acquireVsCodeApi();
+
+            // Add change event listeners to all select elements to update configuration in real time
+            document.querySelectorAll('.config-select').forEach(select => {
+                select.addEventListener('change', function(e) {
+                    const config = {};
+                    config[this.name] = this.value;
+
+                    // Send the updated config back to the extension
+                    vscode.postMessage({
+                        command: 'updateConfig',
+                        config: config
+                    });
+                });
+            });
 
             // Handle form submission
             document.getElementById('configForm').addEventListener('submit', function(e) {
@@ -174,8 +206,6 @@ function getWebviewContent(boardName: string, configuration: any[]): string {
 
 	return html;
 }
-
-
 
 function vsCommandPort(): vscode.Disposable {
 	return vscode.commands.registerCommand('vscode-arduino.port', async () => {
