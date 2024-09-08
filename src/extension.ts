@@ -149,18 +149,6 @@ function getWebviewContent(boardName: string, configuration: any[]): string {
         </form>
 
         <script>
-            const vscode = acquireVsCodeApi();
-
-            // Restore previous state if available
-            const previousState = vscode.getState();
-            if (previousState) {
-                for (let key in previousState) {
-                    const element = document.getElementById(key);
-                    if (element) {
-                        element.value = previousState[key];
-                    }
-                }
-            }
 
             // Handle form submission
             document.getElementById('configForm').addEventListener('submit', function(e) {
@@ -172,9 +160,6 @@ function getWebviewContent(boardName: string, configuration: any[]): string {
                 formData.forEach((value, key) => {
                     config[key] = value;
                 });
-
-                // Persist the state of the form in case the user returns later
-                vscode.setState(config);
 
                 // Send the updated config back to the extension
                 vscode.postMessage({
