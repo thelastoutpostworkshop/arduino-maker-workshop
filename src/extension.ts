@@ -90,35 +90,56 @@ function vsCommandCompile():vscode.Disposable {
 	});
 }
 
-function executeArduinoCommand(command: string, args: string[]) {
+function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false): Promise<string | void> {
+    outputChannel.clear();
+    outputChannel.show(true);
+    outputChannel.appendLine('Running Arduino CLI...');
+    outputChannel.appendLine(`${command}`);
+    outputChannel.appendLine(args.join(' '));
 
-	outputChannel.clear();
-	outputChannel.show(true);
-	outputChannel.appendLine('Running Arduino CLI...');
-	outputChannel.appendLine(`${cliCommandArduino}`);
-	outputChannel.appendLine(args.join(' '));
+    const child = cp.spawn(`${command}`, args);
+    let outputBuffer = '';  // String buffer to store output
 
-	const child = cp.spawn(`${command}`, args);
+    return new Promise((resolve, reject) => {
+        // Stream stdout to the output channel and optionally to the buffer
+        child.stdout.on('data', (data: Buffer) => {
+            const output = data.toString();
+            outputChannel.appendLine(output);
 
-	// Stream stdout to the output channel
-	child.stdout.on('data', (data: Buffer) => {
-		outputChannel.appendLine(data.toString());
-	});
+            if (returnOutput) {
+                outputBuffer += output;
+            }
+        });
 
-	// Stream stderr to the output channel
-	child.stderr.on('data', (data: Buffer) => {
-		outputChannel.appendLine(`Error: ${data.toString()}`);
-	});
+        // Stream stderr to the output channel and optionally to the buffer
+        child.stderr.on('data', (data: Buffer) => {
+            const error = `Error: ${data.toString()}`;
+            outputChannel.appendLine(error);
 
-	// Handle the process exit event
-	child.on('close', (code: number) => {
-		if (code === 0) {
-			// vscode.window.showInformationMessage('Compilation successful.');
-		} else {
-			vscode.window.showErrorMessage(`Compilation failed with code ${code}. Check Output window for details.`);
-		}
-	});
+            if (returnOutput) {
+                outputBuffer += error;
+            }
+        });
 
+        // Handle the process exit event
+        child.on('close', (code: number) => {
+            if (code === 0) {
+                // Successful completion
+                vscode.window.showInformationMessage('Command executed successfully.');
+                resolve(returnOutput ? outputBuffer : undefined);
+            } else {
+                // Command failed
+                vscode.window.showErrorMessage(`Command failed with code ${code}. Check Output window for details.`);
+                reject(`Command failed with code ${code}`);
+            }
+        });
+
+        // Handle error event in case the command fails to start
+        child.on('error', (err) => {
+            vscode.window.showErrorMessage(`Failed to run command: ${err.message}`);
+            reject(`Failed to run command: ${err.message}`);
+        });
+    });
 }
 
 export function deactivate() { }
