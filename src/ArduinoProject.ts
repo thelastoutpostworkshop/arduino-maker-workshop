@@ -139,16 +139,18 @@ export class ArduinoProject {
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
     public updateBoardConfiguration(newConfig: any): void {
-        // Update the configJson object with new values
-        for (let key in newConfig) {
-            if (newConfig.hasOwnProperty(key) && this.configJson.hasOwnProperty(key)) {
-                this.configJson[key] = newConfig[key];
-            }
-        }
+        // Step 1: Build the new configuration string directly from newConfig
+        const updatedConfigString = Object.entries(newConfig)
+            .map(([key, value]) => `${key}=${value}`)
+            .join(',');
     
-        // Write the updated configuration back to the arduino.json file
+        // Step 2: Replace the configuration in configJson with the new configuration string
+        this.configJson.configuration = updatedConfigString;
+    
+        // Step 3: Write the updated configuration back to the arduino.json file
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
+    
     public getOutput(): string {
         return this.output;
     }
