@@ -101,13 +101,24 @@ function getWebviewContent(configuration: any[]): string {
         <h1>Board Configuration</h1>
         <form id="configForm">`;
 
+    // Parse the current configuration string into an object
+    const currentConfig = arduinoProject.getConfiguration()
+        .split(',')
+        .reduce((configObj: any, item: string) => {
+            const [key, value] = item.split('=');
+            configObj[key] = value;
+            return configObj;
+        }, {});
+
     // Iterate over configuration options and create a select input for each
     configuration.forEach(option => {
         html += `<label for="${option.option}">${option.option_label}</label>
         <select id="${option.option}" name="${option.option}">`;
 
         option.values.forEach(value => {
-            html += `<option value="${value.value}" ${value.selected ? 'selected' : ''}>${value.value_label}</option>`;
+            // Check if the value matches the current config value for this option
+            const isSelected = currentConfig[option.option] === value.value ? 'selected' : '';
+            html += `<option value="${value.value}" ${isSelected}>${value.value_label}</option>`;
         });
 
         html += `</select><br/><br/>`;
@@ -116,9 +127,22 @@ function getWebviewContent(configuration: any[]): string {
     html += `
         <button type="submit">Update Configuration</button>
         </form>
+
         <script>
             const vscode = acquireVsCodeApi();
 
+            // Restore previous state if available
+            const previousState = vscode.getState();
+            if (previousState) {
+                for (let key in previousState) {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.value = previousState[key];
+                    }
+                }
+            }
+
+            // Handle form submission
             document.getElementById('configForm').addEventListener('submit', function(e) {
                 e.preventDefault();
 
@@ -129,6 +153,10 @@ function getWebviewContent(configuration: any[]): string {
                     config[key] = value;
                 });
 
+                // Persist the state of the form in case the user returns later
+                vscode.setState(config);
+
+                // Send the updated config back to the extension
                 vscode.postMessage({
                     command: 'updateConfig',
                     config: config
@@ -140,6 +168,7 @@ function getWebviewContent(configuration: any[]): string {
 
     return html;
 }
+
 
 
 function vsCommandPort(): vscode.Disposable {
