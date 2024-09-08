@@ -105,7 +105,7 @@ function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.D
 										.join(',');
 
 									// Update the configuration in the project
-									arduinoProject.updateBoardConfiguration({ configuration: updatedConfigString });
+									arduinoProject.updateBoardConfiguration(updatedConfigString);
 
 									vscode.window.showInformationMessage('Configuration updated!');
 									return;
@@ -119,6 +119,13 @@ function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.D
 					boardConfigWebViewPanel.onDidDispose(
 						() => {
 							boardConfigWebViewPanel = undefined;
+						},
+						null,
+						context.subscriptions
+					);
+					boardConfigWebViewPanel.onDidChangeViewState(
+						() => {
+							console.log("view changed");
 						},
 						null,
 						context.subscriptions
