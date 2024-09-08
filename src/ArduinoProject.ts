@@ -118,6 +118,15 @@ export class ArduinoProject {
             return false;
         }
     }
+    public setPort(port: string): void {
+        this.port = port;
+    
+        // Update the configJson object
+        this.configJson.port = port;
+    
+        // Write the updated configuration back to the arduino.json file
+        fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
+    }
     public getOutput(): string {
         return this.output;
     }

@@ -62,7 +62,7 @@ function vsCommandPort(): vscode.Disposable {
                 if (selectedPort) {
                     vscode.window.showInformationMessage(`Selected port: ${selectedPort.label}`);
                     // Set the selected port in your project settings or wherever needed
-                    // arduinoProject.setPort(selectedPort.label);
+                    arduinoProject.setPort(selectedPort.label);
                 } else {
                     vscode.window.showInformationMessage('No port selected.');
                 }
