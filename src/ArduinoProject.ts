@@ -77,6 +77,7 @@ export class ArduinoProject {
         return compileCommand;
     }
     public getCompileUploadArguments(): string[] {
+        this.readConfiguration();
         const compileCommand = [
             `${uploadCommandArduino}`,
             `${verboseOptionArduino}`,
