@@ -43,8 +43,9 @@ function vsCommandPort(): vscode.Disposable {
 			// Use executeArduinoCommand and pass true to get the output as a string
 			try {
 				const result = await executeArduinoCommand(`${cliCommandArduino}`, portListCommand, true);
-				
 				if (result) {
+					progress.report({ message: 'Ports have been successfully retrieved.',increment:100 });
+
 					// Parse the JSON result
 					const ports = JSON.parse(result).detected_ports;
 	
