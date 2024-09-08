@@ -96,6 +96,14 @@ function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.D
 						undefined,
 						context.subscriptions
 					);
+					// Reset when the current panel is closed
+					boardConfigWebViewPanel.onDidDispose(
+						() => {
+							boardConfigWebViewPanel = undefined;
+						},
+						null,
+						context.subscriptions
+					);
 				} else {
 					vscode.window.showErrorMessage('Failed to retrieve board configuration.');
 				}
