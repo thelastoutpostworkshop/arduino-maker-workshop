@@ -149,6 +149,7 @@ function getWebviewContent(boardName: string, configuration: any[]): string {
         </form>
 
         <script>
+            const vscode = acquireVsCodeApi();
 
             // Handle form submission
             document.getElementById('configForm').addEventListener('submit', function(e) {
