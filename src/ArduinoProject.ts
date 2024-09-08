@@ -8,6 +8,7 @@ export const compileCommandArduino: string = 'compile';
 const uploadCommandArduino: string = 'upload';
 const boardCommandArduino: string = 'board';
 const listFunctionArduino: string = 'list';
+const detailsFunctionArduino:string = 'details';
 const jsonOutputArduino: string = '--json';
 export const verboseOptionArduino: string = '-v';
 export const portOptionArduino: string = '-p';
@@ -94,6 +95,16 @@ export class ArduinoProject {
         const compileCommand = [
             `${boardCommandArduino}`,
             `${listFunctionArduino}`,
+            `${jsonOutputArduino}`
+        ];
+        return compileCommand;
+    }
+    public getBoardConfigurationArguments(): string[] {
+        const compileCommand = [
+            `${boardCommandArduino}`,
+            `${detailsFunctionArduino}`,
+            `${fqbnOptionArduino}`,
+            `${this.getBoard()}:${this.getConfiguration()}`,
             `${jsonOutputArduino}`
         ];
         return compileCommand;
