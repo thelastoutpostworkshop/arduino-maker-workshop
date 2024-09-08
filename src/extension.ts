@@ -52,8 +52,10 @@ function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.D
                     progress.report({ message: 'Board Configuration retrieved.', increment: 100 });
 
                     // Parse the JSON result
-                    const configuration = JSON.parse(result).config_options;
-                    
+					const configData = JSON.parse(result);
+					const configuration = configData.config_options;
+					const boardName = configData.name; // Extract the board name
+										
                     if (configuration.length === 0) {
                         vscode.window.showInformationMessage('Unable to retrieve board configuration.');
                         return;
@@ -68,7 +70,7 @@ function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.D
                     );
 
                     // Set the HTML content with the configuration options
-                    panel.webview.html = getWebviewContent(configuration);
+                    panel.webview.html = getWebviewContent(boardName,configuration);
 
                     // Handle messages from the webview
                     panel.webview.onDidReceiveMessage(
@@ -94,11 +96,11 @@ function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.D
     });
 }
 
-function getWebviewContent(configuration: any[]): string {
+function getWebviewContent(boardName: string,configuration: any[]): string {
     let html = `
     <html>
     <body>
-        <h1>Board Configuration</h1>
+        <h1>${boardName} - Board Configuration</h1> <!-- Show board name -->
         <form id="configForm">`;
 
     // Parse the current configuration string into an object
