@@ -23,6 +23,9 @@ function loadArduinoConfiguration() {
 }
 function vsCommandPort():vscode.Disposable {
 	return vscode.commands.registerCommand('vscode-arduino.port', () => {
+		if(!verifyArduinoProject()) {
+			return;
+		}
 
 		// if (!arduinoProject.getBoard()) {
 		// 	vscode.window.showInformationMessage('Board info not found, cannot compile');
@@ -46,6 +49,9 @@ function vsCommandPort():vscode.Disposable {
 
 function vsCommandUpload():vscode.Disposable {
 	return vscode.commands.registerCommand('vscode-arduino.upload', () => {
+		if(!verifyArduinoProject()) {
+			return;
+		}
 
 		if (!arduinoProject.getBoard()) {
 			vscode.window.showInformationMessage('Board info not found, cannot compile');
@@ -69,7 +75,9 @@ function vsCommandUpload():vscode.Disposable {
 
 function vsCommandCompile():vscode.Disposable {
 	return vscode.commands.registerCommand('vscode-arduino.compile', () => {
-
+		if(!verifyArduinoProject()) {
+			return;
+		}
 		if (!arduinoProject.getBoard()) {
 			vscode.window.showInformationMessage('Board info not found, cannot compile');
 		}
@@ -88,6 +96,14 @@ function vsCommandCompile():vscode.Disposable {
 		executeArduinoCommand(`${cliCommandArduino}`,compileCommand);
 
 	});
+}
+
+function verifyArduinoProject():boolean {
+	if(!arduinoProject.isFolderArduinoProject()) {
+		vscode.window.showErrorMessage(`Not an Arduino Project.`);	
+		return false;
+	}
+	return true;
 }
 
 function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false): Promise<string | void> {

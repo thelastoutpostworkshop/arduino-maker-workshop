@@ -62,33 +62,53 @@ export class ArduinoProject {
     }
     public getCompileCommandArguments(): string[] {
         const compileCommand = [
-			`${compileCommandArduino}`,
-			`${verboseOptionArduino}`,
-			`${noColorOptionArduino}`,
-			`${fqbnOptionArduino}`,
-			`${this.getBoard()}:${this.getConfiguration()}`,
-			`${buildPathArduino}`,
-			this.getProjectPath() + '/' + this.getOutput(),
-			`${buildCachePathArduino}`,
-			this.getProjectPath()+ '/' +  this.getOutput() + '/cache',
-			this.getProjectPath()
-		];
+            `${compileCommandArduino}`,
+            `${verboseOptionArduino}`,
+            `${noColorOptionArduino}`,
+            `${fqbnOptionArduino}`,
+            `${this.getBoard()}:${this.getConfiguration()}`,
+            `${buildPathArduino}`,
+            this.getProjectPath() + '/' + this.getOutput(),
+            `${buildCachePathArduino}`,
+            this.getProjectPath() + '/' + this.getOutput() + '/cache',
+            this.getProjectPath()
+        ];
         return compileCommand;
     }
     public getCompileUploadArguments(): string[] {
         const compileCommand = [
-			`${uploadCommandArduino}`,
-			`${verboseOptionArduino}`,
-			`${noColorOptionArduino}`,
-			`${portOptionArduino}`,
-			`${this.getPort()}`,
-			`${fqbnOptionArduino}`,
-			`${this.getBoard()}:${this.getConfiguration()}`,
+            `${uploadCommandArduino}`,
+            `${verboseOptionArduino}`,
+            `${noColorOptionArduino}`,
+            `${portOptionArduino}`,
+            `${this.getPort()}`,
+            `${fqbnOptionArduino}`,
+            `${this.getBoard()}:${this.getConfiguration()}`,
             `${inputDirOptionArduino}`,
-			this.getProjectPath() + '/' + this.getOutput(),
-			this.getProjectPath()
-		];
+            this.getProjectPath() + '/' + this.getOutput(),
+            this.getProjectPath()
+        ];
         return compileCommand;
+    }
+    public isFolderArduinoProject(): boolean {
+        try {
+            // Read the contents of the folder
+            const files = fs.readdirSync(this.getProjectPath());
+
+            // Check if any files have the .ino extension
+            const hasInoFile = files.some((file) => {
+                // Get the full path of the file
+                const filePath = path.join(this.getProjectPath(), file);
+
+                // Check if it's a file and has a .ino extension
+                return fs.statSync(filePath).isFile() && path.extname(file).toLowerCase() === '.ino';
+            });
+
+            return hasInoFile;
+        } catch (error) {
+            console.error('Error reading folder:', error);
+            return false;
+        }
     }
     public getOutput(): string {
         return this.output;
