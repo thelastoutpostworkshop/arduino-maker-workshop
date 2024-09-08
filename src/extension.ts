@@ -11,7 +11,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vsCommandCompile());
 	context.subscriptions.push(vsCommandUpload());
 	context.subscriptions.push(vsCommandPort());
-	context.subscriptions.push(vsCommandBoardConfiguration());
+	context.subscriptions.push(vsCommandBoardConfiguration(context));
 }
 
 function loadArduinoConfiguration() {
@@ -23,7 +23,7 @@ function loadArduinoConfiguration() {
 
 }
 
-function vsCommandBoardConfiguration(): vscode.Disposable {
+function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.Disposable {
     return vscode.commands.registerCommand('vscode-arduino.boardconfig', async () => {
         if (!verifyArduinoProject()) {
             return;
