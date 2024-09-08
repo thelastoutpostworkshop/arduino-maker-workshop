@@ -21,23 +21,60 @@ function loadArduinoConfiguration() {
 	}
 
 }
-function vsCommandPort():vscode.Disposable {
-	return vscode.commands.registerCommand('vscode-arduino.port', () => {
-		if(!verifyArduinoProject()) {
-			return;
-		}
+function vsCommandPort(): vscode.Disposable {
+    return vscode.commands.registerCommand('vscode-arduino.port', async () => {
+        if (!verifyArduinoProject()) {
+            return;
+        }
 
-		if (!arduinoProject.getProjectPath()) {
-			vscode.window.showInformationMessage('Project path not found, cannot compile');
-		}
+        if (!arduinoProject.getProjectPath()) {
+            vscode.window.showInformationMessage('Project path not found, cannot retrieve ports.');
+            return;
+        }
 
+        // Execute the Arduino CLI command to get the list of ports
+        const portListCommand = arduinoProject.getPortListArguments();
 
-		// Execute the Arduino CLI command
-		const uploadCommand = arduinoProject.getPortListArguments();
-		executeArduinoCommand(`${cliCommandArduino}`,uploadCommand);
+        // Use executeArduinoCommand and pass true to get the output as a string
+        try {
+            const result = await executeArduinoCommand(`${cliCommandArduino}`, portListCommand, true);
+            
+            if (result) {
+                // Parse the JSON result
+                const ports = JSON.parse(result).detected_ports;
 
-	});
+                if (ports.length === 0) {
+                    vscode.window.showInformationMessage('No ports detected.');
+                    return;
+                }
+
+                // Create QuickPick items from the list of detected ports
+                const portItems = ports.map((port: any) => ({
+                    label: port.port.label,
+                    description: port.port.address
+                }));
+
+                // Show the QuickPick to the user
+                const selectedPort = await vscode.window.showQuickPick(portItems, {
+                    placeHolder: 'Select a port to use for uploading'
+                });
+
+                if (selectedPort) {
+                    vscode.window.showInformationMessage(`Selected port: ${selectedPort.label}`);
+                    // Set the selected port in your project settings or wherever needed
+                    // arduinoProject.setPort(selectedPort.label);
+                } else {
+                    vscode.window.showInformationMessage('No port selected.');
+                }
+            } else {
+                vscode.window.showErrorMessage('Failed to retrieve port list.');
+            }
+        } catch (error) {
+            vscode.window.showErrorMessage(`Error retrieving port list: ${error}`);
+        }
+    });
 }
+
 
 function vsCommandUpload():vscode.Disposable {
 	return vscode.commands.registerCommand('vscode-arduino.upload', () => {
@@ -60,7 +97,7 @@ function vsCommandUpload():vscode.Disposable {
 
 		// Execute the Arduino CLI command
 		const uploadCommand = arduinoProject.getCompileUploadArguments();
-		executeArduinoCommand(`${cliCommandArduino}`,uploadCommand);
+		const output = executeArduinoCommand(`${cliCommandArduino}`,uploadCommand,true);
 
 	});
 }
