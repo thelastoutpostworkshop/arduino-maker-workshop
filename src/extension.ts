@@ -27,22 +27,14 @@ function vsCommandPort():vscode.Disposable {
 			return;
 		}
 
-		// if (!arduinoProject.getBoard()) {
-		// 	vscode.window.showInformationMessage('Board info not found, cannot compile');
-		// }
-		// if (!arduinoProject.getConfiguration()) {
-		// 	vscode.window.showInformationMessage('Board configuration not found, cannot compile');
-		// }
-		// if (!arduinoProject.getProjectPath()) {
-		// 	vscode.window.showInformationMessage('Project path not found, cannot compile');
-		// }
-		// if (!arduinoProject.getPort()) {
-		// 	vscode.window.showInformationMessage('Port not found, cannot compile');
-		// }
+		if (!arduinoProject.getProjectPath()) {
+			vscode.window.showInformationMessage('Project path not found, cannot compile');
+		}
 
-		// // Execute the Arduino CLI command
-		// const uploadCommand = arduinoProject.getCompileUploadArguments();
-		// executeArduinoCommand(`${cliCommandArduino}`,uploadCommand);
+
+		// Execute the Arduino CLI command
+		const uploadCommand = arduinoProject.getPortListArguments();
+		executeArduinoCommand(`${cliCommandArduino}`,uploadCommand);
 
 	});
 }
@@ -54,16 +46,16 @@ function vsCommandUpload():vscode.Disposable {
 		}
 
 		if (!arduinoProject.getBoard()) {
-			vscode.window.showInformationMessage('Board info not found, cannot compile');
+			vscode.window.showInformationMessage('Board info not found, cannot upload');
 		}
 		if (!arduinoProject.getConfiguration()) {
-			vscode.window.showInformationMessage('Board configuration not found, cannot compile');
+			vscode.window.showInformationMessage('Board configuration not found, cannot upload');
 		}
 		if (!arduinoProject.getProjectPath()) {
-			vscode.window.showInformationMessage('Project path not found, cannot compile');
+			vscode.window.showInformationMessage('Project path not found, cannot upload');
 		}
 		if (!arduinoProject.getPort()) {
-			vscode.window.showInformationMessage('Port not found, cannot compile');
+			vscode.window.showInformationMessage('Port not found, cannot upload');
 		}
 
 		// Execute the Arduino CLI command

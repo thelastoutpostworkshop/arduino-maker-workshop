@@ -90,6 +90,14 @@ export class ArduinoProject {
         ];
         return compileCommand;
     }
+    public getPortListArguments(): string[] {
+        const compileCommand = [
+            `${boardCommandArduino}`,
+            `${listFunctionArduino}`,
+            `${jsonOutputArduino}`
+        ];
+        return compileCommand;
+    }
     public isFolderArduinoProject(): boolean {
         try {
             // Read the contents of the folder
