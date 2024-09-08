@@ -51,7 +51,7 @@ function vsCommandPort(): vscode.Disposable {
                 // Create QuickPick items from the list of detected ports
                 const portItems = ports.map((port: any) => ({
                     label: port.port.label,
-                    description: port.port.address
+                    description: port.port.protocol_label
                 }));
 
                 // Show the QuickPick to the user
