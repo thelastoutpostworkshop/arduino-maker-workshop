@@ -45,14 +45,17 @@
   },
   "devDependencies": {
     "@types/mocha": "^10.0.7",
-    "@types/node": "20.x",
+    "@types/node": "^22.5.4",
     "@types/vscode": "^1.93.0",
     "@typescript-eslint/eslint-plugin": "^7.14.1",
     "@typescript-eslint/parser": "^7.11.0",
-    "@vscode/test-cli": "^0.0.9",
+    "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.0",
     "eslint": "^8.57.0",
     "typescript": "^5.4.5",
     "vite": "^5.4.3"
+  },
+  "dependencies": {
+    "latest": "^0.2.0"
   }
 }
