@@ -143,6 +143,48 @@ function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.D
 function getWebviewContent(boardName: string, configuration: any[]): string {
 	let html = `
     <html>
+    <head>
+        <style>
+            body {
+                color: var(--vscode-foreground);
+                background-color: var(--vscode-editor-background);
+                font-family: var(--vscode-font-family);
+                font-size: var(--vscode-font-size);
+                padding: 10px;
+            }
+
+            h1 {
+                color: var(--vscode-editor-foreground);
+            }
+
+            label {
+                color: var(--vscode-foreground);
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            select {
+                background-color: var(--vscode-input-background);
+                color: var(--vscode-input-foreground);
+                border: 1px solid var(--vscode-input-border);
+                padding: 5px;
+                margin-bottom: 10px;
+                width: 100%;
+            }
+
+            button {
+                background-color: var(--vscode-button-background);
+                color: var(--vscode-button-foreground);
+                border: none;
+                padding: 10px;
+                cursor: pointer;
+            }
+
+            button:hover {
+                background-color: var(--vscode-button-hoverBackground);
+            }
+        </style>
+    </head>
     <body>
         <h1>${boardName} - Board Configuration</h1> <!-- Show board name -->
         <form id="configForm">`;
@@ -213,6 +255,7 @@ function getWebviewContent(boardName: string, configuration: any[]): string {
 
 	return html;
 }
+
 
 function vsCommandPort(): vscode.Disposable {
 	return vscode.commands.registerCommand('vscode-arduino.port', async () => {
