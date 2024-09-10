@@ -204,7 +204,7 @@ function getWebviewContent(boardName: string, configuration: any[]): string {
 			html += `<option value="${value.value}" ${isSelected}>${value.value_label}</option>`;
 		});
 
-		html += `</select><br/><br/>`;
+		html += `</select><br/>`;
 	});
 
 	html += `
