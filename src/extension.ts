@@ -74,7 +74,9 @@ function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.D
 							'boardConfig',
 							'Arduino Board Configuration',
 							columnToShowIn || vscode.ViewColumn.One,
-							{ enableScripts: true }
+							{
+								enableScripts: true, retainContextWhenHidden: true
+							}
 						);
 
 					}
