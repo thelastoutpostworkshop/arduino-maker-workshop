@@ -22,10 +22,6 @@ export const noColorOptionArduino: string = '--no-color';
 export class ArduinoProject {
     private arduinoConfigurationPath: string = "";
     private configJson: any;
-    private configuration: string = "";
-    private board: string = "";
-    private output: string = "";
-    private port: string = "";
     private projectFullPath: string = "";
 
     constructor() {
@@ -51,13 +47,6 @@ export class ArduinoProject {
         } catch (error) {
             return false;
         }
-
-
-        // Extract relevant fields from arduino.json
-        this.configuration = this.configJson.configuration || '';
-        this.board = this.configJson.board || '';
-        this.output = this.configJson.output || 'build';
-        this.port = this.configJson.port || '';
 
         return true;
     }
@@ -131,8 +120,6 @@ export class ArduinoProject {
         }
     }
     public setPort(port: string): void {
-        this.port = port;
-    
         // Update the configJson object
         this.configJson.port = port;
     
@@ -149,16 +136,16 @@ export class ArduinoProject {
     }
     
     public getOutput(): string {
-        return this.output;
+        return this.configJson.output || 'build';
     }
     public getConfiguration(): string {
-        return this.configuration;
+        return this.configJson.configuration || '';
     }
     public getPort(): string {
-        return this.port;
+        return this.configJson.port || '';
     }
     public getBoard(): string {
-        return this.board;
+        return this.configJson.board || '';
     }
     public getProjectPath(): string {
         return this.projectFullPath;
