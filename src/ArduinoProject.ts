@@ -138,40 +138,35 @@ export class ArduinoProject {
         }
     }
     public generateCppPropertiesFromCompileOutput(output: string) {
-        const includePaths = new Set<string>();  // Use Set to avoid duplicates
-        const defines = new Set<string>();  // Use Set to avoid duplicates
+        const includePaths: string[] = [];
+        const defines: string[] = [];
     
         // Regular expressions to match include paths and defines
-        const includeRegex = /-I([^\s"]+|"[^"]+")/g;  // Match paths with spaces in quotes
+        const includeRegex = /-I([^\s]+|"[^"]+")/g; // Match paths, including those in quotes
         const defineRegex = /-D([^\s]+)/g;
     
         let match;
         while ((match = includeRegex.exec(output)) !== null) {
-            let cleanedPath = match[1]
-                .replace(/\\\\/g, '\\')  // Replace quadruple backslashes with double
-                .replace(/\\$/, '\\\\')  // Escape trailing backslashes
-                .replace(/"$/, '');      // Remove trailing double quotes if any
+            let path = match[1];
     
-            // Remove starting and ending quotes from paths, if they exist
-            cleanedPath = cleanedPath.replace(/^"(.*)"$/, '$1');
+            // If the path is wrapped in quotes, remove the quotes
+            if (path.startsWith('"') && path.endsWith('"')) {
+                path = path.slice(1, -1);
+            }
     
-            includePaths.add(cleanedPath);
+            includePaths.push(path);
         }
     
         while ((match = defineRegex.exec(output)) !== null) {
-            defines.add(match[1].replace(/\\\\/g, '\\'));  // Ensure proper path format
+            defines.push(match[1]);
         }
-    
-        // Convert Sets back to arrays
-        const includePathsArray = Array.from(includePaths);
-        const definesArray = Array.from(defines);
     
         // Create c_cpp_properties.json
         const cppProperties = {
             configurations: [{
                 name: "Arduino",
-                includePath: includePathsArray,  // Use the array
-                defines: definesArray,  // Use the array
+                includePath: includePaths,
+                defines: defines,
                 compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
                 cStandard: "c11",
                 cppStandard: "c++17",
@@ -187,9 +182,6 @@ export class ArduinoProject {
         vscode.window.showInformationMessage('Generated c_cpp_properties.json for IntelliSense.');
     }
     
-    
-    
-
     public setPort(port: string): void {
         // Update the configJson object
         this.configJson.port = port;
