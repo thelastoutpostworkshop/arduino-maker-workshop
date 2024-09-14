@@ -10,14 +10,13 @@ let boardConfigWebViewPanel: vscode.WebviewPanel | undefined = undefined;
 
 export function activate(context: vscode.ExtensionContext) {
 
-	loadArduinoConfiguration();
 	context.subscriptions.push(vsCommandCompile());
 	context.subscriptions.push(vsCommandUpload());
 	context.subscriptions.push(vsCommandPort());
 	context.subscriptions.push(vsCommandBoardConfiguration(context));
 }
 
-function loadArduinoConfiguration() {
+function loadArduinoConfiguration(): boolean {
 	arduinoProject = new ArduinoProject();
 
 	const res = arduinoProject.isFolderArduinoProject();
@@ -33,20 +32,22 @@ function loadArduinoConfiguration() {
 			default:
 				break;
 		}
-		vscode.window.showInformationMessage(message);
+		vscode.window.showErrorMessage(message);
+		return false;
 	} else {
 		if (!arduinoProject.readConfiguration()) {
-			vscode.window.showInformationMessage('Arduino Configuration Error');
+			vscode.window.showErrorMessage('Arduino Configuration Error');
+			return false;
 		}
 	}
+	return true;
 }
 
 function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.Disposable {
 	return vscode.commands.registerCommand('vscode-arduino.boardconfig', async () => {
-		if (!verifyArduinoProject()) {
-			return;
+		if (!loadArduinoConfiguration()) {
+			return false;
 		}
-
 		if (!arduinoProject.getProjectPath()) {
 			vscode.window.showInformationMessage('Project path not found, cannot retrieve board configuration.');
 			return;
@@ -270,10 +271,9 @@ function getWebviewContent(boardName: string, configuration: any[]): string {
 
 function vsCommandPort(): vscode.Disposable {
 	return vscode.commands.registerCommand('vscode-arduino.port', async () => {
-		if (!verifyArduinoProject()) {
+		if (!loadArduinoConfiguration()) {
 			return;
 		}
-
 		if (!arduinoProject.getProjectPath()) {
 			vscode.window.showInformationMessage('Project path not found, cannot retrieve ports.');
 			return;
@@ -333,10 +333,9 @@ function vsCommandPort(): vscode.Disposable {
 
 function vsCommandUpload(): vscode.Disposable {
 	return vscode.commands.registerCommand('vscode-arduino.upload', () => {
-		if (!verifyArduinoProject()) {
+		if (!loadArduinoConfiguration()) {
 			return;
 		}
-
 		if (!arduinoProject.getBoard()) {
 			vscode.window.showInformationMessage('Board info not found, cannot upload');
 		}
@@ -359,9 +358,9 @@ function vsCommandUpload(): vscode.Disposable {
 
 function vsCommandCompile(): vscode.Disposable {
 	return vscode.commands.registerCommand('vscode-arduino.compile', () => {
-		if (!verifyArduinoProject()) {
+		if (!loadArduinoConfiguration()) {
 			return;
-		}
+		} 
 		if (!arduinoProject.getBoard()) {
 			vscode.window.showInformationMessage('Board info not found, cannot compile');
 		}
@@ -389,14 +388,6 @@ function vsCommandCompile(): vscode.Disposable {
 			});
 
 	});
-}
-
-function verifyArduinoProject(): boolean {
-	if (!arduinoProject.isFolderArduinoProject()) {
-		vscode.window.showErrorMessage(`Not an Arduino Project.`);
-		return false;
-	}
-	return true;
 }
 
 function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false): Promise<string | void> {
