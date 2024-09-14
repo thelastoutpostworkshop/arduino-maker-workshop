@@ -366,7 +366,7 @@ function vsCommandCompile(): vscode.Disposable {
 			.then(output => {
 				if (output) {
 					// Parse the output and generate c_cpp_properties.json
-					generateCppPropertiesFromCompileOutput(output, arduinoProject.getProjectPath());
+					arduinoProject.generateCppPropertiesFromCompileOutput(output);
 				}
 			})
 			.catch(error => {
