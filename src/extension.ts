@@ -85,6 +85,7 @@ function vsCommandBoardSelection(context: vscode.ExtensionContext): vscode.Dispo
 							}
 						});
 					});
+					showBoardSelectionWebview(context, boardStructure);
 				}
 
 			} catch (error) {
@@ -93,6 +94,82 @@ function vsCommandBoardSelection(context: vscode.ExtensionContext): vscode.Dispo
 		});
 
 	});
+}
+
+function showBoardSelectionWebview(context: vscode.ExtensionContext, boardStructure: { [platform: string]: { name: string, fqbn: string }[] }) {
+    const panel = vscode.window.createWebviewPanel(
+        'boardSelect', // Identifies the type of the webview
+        'Select Arduino Board', // Title of the webview panel
+        vscode.ViewColumn.One, // Editor column to show the new webview panel in
+        {
+            enableScripts: true // Enable JavaScript in the webview
+        }
+    );
+
+    // Construct the HTML content for the webview
+    panel.webview.html = getBoardSelectionHtml(boardStructure);
+
+    // Handle messages from the webview
+    panel.webview.onDidReceiveMessage(message => {
+        switch (message.command) {
+            case 'selectBoard':
+                vscode.window.showInformationMessage(`Board Selected: ${message.fqbn}`);
+                panel.dispose(); // Close the webview
+                return;
+        }
+    });
+}
+
+function getBoardSelectionHtml(boardStructure: { [platform: string]: { name: string, fqbn: string }[] }) {
+    let htmlContent = `
+        <html>
+        <head>
+            <style>
+                body {
+                    font-family: sans-serif;
+                    padding: 10px;
+                }
+                .platform {
+                    margin-bottom: 20px;
+                }
+                .board {
+                    margin-left: 20px;
+                    cursor: pointer;
+                    padding: 5px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                }
+                .board:hover {
+                    background-color: #f0f0f0;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Select Arduino Board</h1>`;
+
+    for (const platform in boardStructure) {
+        htmlContent += `
+            <div class="platform">
+                <h2>${platform}</h2>
+                <ul>`;
+        boardStructure[platform].forEach(board => {
+            htmlContent += `<li class="board" onclick="selectBoard('${board.fqbn}')">${board.name} (${board.fqbn})</li>`;
+        });
+        htmlContent += `</ul></div>`;
+    }
+
+    htmlContent += `
+        <script>
+            function selectBoard(fqbn) {
+                vscode.postMessage({ command: 'selectBoard', fqbn: fqbn });
+            }
+            const vscode = acquireVsCodeApi();
+        </script>
+        </body>
+        </html>
+    `;
+
+    return htmlContent;
 }
 
 function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.Disposable {
