@@ -274,10 +274,6 @@ function vsCommandPort(): vscode.Disposable {
 		if (!loadArduinoConfiguration()) {
 			return;
 		}
-		if (!arduinoProject.getProjectPath()) {
-			vscode.window.showInformationMessage('Project path not found, cannot retrieve ports.');
-			return;
-		}
 
 		await vscode.window.withProgress({
 			location: vscode.ProgressLocation.Notification,
@@ -342,9 +338,6 @@ function vsCommandUpload(): vscode.Disposable {
 		if (!arduinoProject.getConfiguration()) {
 			vscode.window.showInformationMessage('Board configuration not found, cannot upload');
 		}
-		if (!arduinoProject.getProjectPath()) {
-			vscode.window.showInformationMessage('Project path not found, cannot upload');
-		}
 		if (!arduinoProject.getPort()) {
 			vscode.window.showInformationMessage('Port not found, cannot upload');
 		}
@@ -369,9 +362,6 @@ function vsCommandCompile(): vscode.Disposable {
 		}
 		if (!arduinoProject.getOutput()) {
 			vscode.window.showInformationMessage('Output not found, cannot compile');
-		}
-		if (!arduinoProject.getProjectPath()) {
-			vscode.window.showInformationMessage('Project path not found, cannot compile');
 		}
 
 		// Execute the Arduino CLI command

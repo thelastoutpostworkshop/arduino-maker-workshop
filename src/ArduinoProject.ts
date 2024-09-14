@@ -249,7 +249,7 @@ export class ArduinoProject {
     public getBoard(): string {
         return this.configJson.board || '';
     }
-    public getProjectPath(): string {
+    private getProjectPath(): string {
         return this.projectFullPath;
     }
 }
