@@ -142,16 +142,18 @@ export class ArduinoProject {
         const defines = new Set<string>();  // Use Set to avoid duplicates
     
         // Regular expressions to match include paths and defines
-        const includeRegex = /-I([^\s]+)/g;
+        const includeRegex = /-I([^\s"]+|"[^"]+")/g;  // Match paths with spaces in quotes
         const defineRegex = /-D([^\s]+)/g;
     
         let match;
         while ((match = includeRegex.exec(output)) !== null) {
-            // Clean up the path by removing any trailing double quotes
-            const cleanedPath = match[1]
+            let cleanedPath = match[1]
                 .replace(/\\\\/g, '\\')  // Replace quadruple backslashes with double
                 .replace(/\\$/, '\\\\')  // Escape trailing backslashes
-                .replace(/"$/, '');      // Remove trailing double quotes
+                .replace(/"$/, '');      // Remove trailing double quotes if any
+    
+            // Remove starting and ending quotes from paths, if they exist
+            cleanedPath = cleanedPath.replace(/^"(.*)"$/, '$1');
     
             includePaths.add(cleanedPath);
         }
@@ -184,6 +186,7 @@ export class ArduinoProject {
     
         vscode.window.showInformationMessage('Generated c_cpp_properties.json for IntelliSense.');
     }
+    
     
     
 
