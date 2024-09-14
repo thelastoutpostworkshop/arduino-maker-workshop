@@ -119,30 +119,42 @@ export class ArduinoProject {
     }
     public isFolderArduinoProject(): boolean {
         try {
+            // Get the folder name
+            const folderName = path.basename(this.getProjectPath());
+
             // Read the contents of the folder
             const files = fs.readdirSync(this.getProjectPath());
 
-            // Check if any files have the .ino extension
-            const hasInoFile = files.some((file) => {
+            // Check if any files have the .ino extension and match the folder name
+            const hasMatchingInoFile = files.some((file) => {
                 // Get the full path of the file
                 const filePath = path.join(this.getProjectPath(), file);
 
                 // Check if it's a file and has a .ino extension
-                return fs.statSync(filePath).isFile() && path.extname(file).toLowerCase() === ARDUINO_SKETCH_EXTENSION;
+                if (fs.statSync(filePath).isFile() && path.extname(file).toLowerCase() === ARDUINO_SKETCH_EXTENSION) {
+                    // Get the sketch file name without extension
+                    const sketchFileName = path.basename(file, ARDUINO_SKETCH_EXTENSION);
+
+                    // Return true only if the sketch file name matches the folder name
+                    return sketchFileName === folderName;
+                }
+
+                return false;
             });
 
-            return hasInoFile;
+            return hasMatchingInoFile;
         } catch (error) {
             console.error('Error reading folder:', error);
             return false;
         }
     }
+
     public generateCppPropertiesFromCompileOutput(output: string) {
         const defines: string[] = [];
 
         // Regular expressions to match include paths and defines
         const defineRegex = /-D([^\s]+)/g;
-        const includeRegex = /"-I([^"]+)"/g; 
+        const includeRegex = /"-I([^"]+)"/g;
 
         const includePaths = new Set();
 
@@ -150,24 +162,24 @@ export class ArduinoProject {
 
         while ((match = includeRegex.exec(output)) !== null) {
             let path = match[1]; // Capture the path inside the quotes
-    
+
             // Normalize the path (handle backslashes, especially on Windows)
             path = path.replace(/\\\\/g, "\\"); // Convert backslashes to forward slashes for consistency
-    
-            includePaths.add(path+"\\**"); // Use a Set to avoid duplicates
+
+            includePaths.add(path + "\\**"); // Use a Set to avoid duplicates
         }
 
         while ((match = defineRegex.exec(output)) !== null) {
             defines.push(match[1]);
         }
 
-        includePaths.add(this.getProjectPath()+"\\**");
+        includePaths.add(this.getProjectPath() + "\\**");
         try {
             const includeDataPath = path.join(this.getProjectPath(), this.getOutput(), "includes.cache");
             const includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
             includeData.forEach(entry => {
                 if (entry.Includepath) {
-                    includePaths.add(entry.Includepath+"\\**");
+                    includePaths.add(entry.Includepath + "\\**");
                 }
             });
 
