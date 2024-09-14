@@ -163,7 +163,7 @@ export class ArduinoProject {
 
         } catch (error) {
             vscode.window.showErrorMessage('Cannot generate IntelliSense includes.cache not found');
-
+            return;
         }
 
         // Create c_cpp_properties.json
@@ -172,7 +172,7 @@ export class ArduinoProject {
                 name: "Arduino",
                 includePath: Array.from(includePaths),
                 defines: defines,
-                compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
+                // compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
                 cStandard: "c11",
                 cppStandard: "c++17",
                 intelliSenseMode: "gcc-x86"
