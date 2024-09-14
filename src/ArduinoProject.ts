@@ -138,50 +138,55 @@ export class ArduinoProject {
         }
     }
     public generateCppPropertiesFromCompileOutput(output: string) {
-        const includePaths: string[] = [];
         const defines: string[] = [];
-    
+
         // Regular expressions to match include paths and defines
-        const includeRegex = /-I([^\s]+|"[^"]+")/g; // Match paths, including those in quotes
         const defineRegex = /-D([^\s]+)/g;
-    
+
         let match;
-        while ((match = includeRegex.exec(output)) !== null) {
-            let path = match[1];
-    
-            // If the path is wrapped in quotes, remove the quotes
-            if (path.startsWith('"') && path.endsWith('"')) {
-                path = path.slice(1, -1);
-            }
-    
-            includePaths.push(path);
-        }
-    
+
         while ((match = defineRegex.exec(output)) !== null) {
             defines.push(match[1]);
         }
-    
+
+        let includeData;
+        const includePaths = new Set();
+        includePaths.add(this.getProjectPath()+"\\**");
+        try {
+            const includeDataPath = path.join(this.getProjectPath(), this.getOutput(), "includes.cache");
+            includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
+            includeData.forEach(entry => {
+                if (entry.Includepath) {
+                    includePaths.add(entry.Includepath+"\\**");
+                }
+            });
+
+        } catch (error) {
+            vscode.window.showErrorMessage('Cannot generate IntelliSense includes.cache not found');
+
+        }
+
         // Create c_cpp_properties.json
         const cppProperties = {
             configurations: [{
                 name: "Arduino",
-                includePath: includePaths,
+                includePath: Array.from(includePaths),
                 defines: defines,
                 compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
                 cStandard: "c11",
                 cppStandard: "c++17",
-                intelliSenseMode: "gcc-x64"
+                intelliSenseMode: "gcc-x86"
             }],
             version: 4
         };
-    
+
         // Write the c_cpp_properties.json file
         const cppPropertiesPath = path.join(this.getProjectPath(), VSCODE_FOLDER, CPP_PROPERTIES);
         fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
-    
+
         vscode.window.showInformationMessage('Generated c_cpp_properties.json for IntelliSense.');
     }
-    
+
     public setPort(port: string): void {
         // Update the configJson object
         this.configJson.port = port;
