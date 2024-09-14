@@ -138,42 +138,47 @@ export class ArduinoProject {
         }
     }
     public generateCppPropertiesFromCompileOutput(output: string) {
-        const includePaths: string[] = [];
-        const defines: string[] = [];
-
+        const includePaths = new Set<string>();  // Use Set to avoid duplicates
+        const defines = new Set<string>();  // Use Set to avoid duplicates
+    
         // Regular expressions to match include paths and defines
         const includeRegex = /-I([^\s]+)/g;
         const defineRegex = /-D([^\s]+)/g;
-
+    
         let match;
         while ((match = includeRegex.exec(output)) !== null) {
-            includePaths.push(match[1]);
+            includePaths.add(match[1]);  // Add to Set
         }
-
+    
         while ((match = defineRegex.exec(output)) !== null) {
-            defines.push(match[1]);
+            defines.add(match[1]);  // Add to Set
         }
-
+    
+        // Convert Sets back to arrays
+        const includePathsArray = Array.from(includePaths);
+        const definesArray = Array.from(defines);
+    
         // Create c_cpp_properties.json
         const cppProperties = {
             configurations: [{
                 name: "Arduino",
-                includePath: includePaths,
-                defines: defines,
+                includePath: includePathsArray,  // Use the array
+                defines: definesArray,  // Use the array
                 compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
                 cStandard: "c11",
                 cppStandard: "c++17",
-                intelliSenseMode: "gcc-x64"
+                intelliSenseMode: "gcc-x86"
             }],
             version: 4
         };
-
+    
         // Write the c_cpp_properties.json file
         const cppPropertiesPath = path.join(this.getProjectPath(), VSCODE_FOLDER, CPP_PROPERTIES);
         fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
-
+    
         vscode.window.showInformationMessage('Generated c_cpp_properties.json for IntelliSense.');
     }
+    
 
     public setPort(port: string): void {
         // Update the configJson object

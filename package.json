@@ -31,11 +31,6 @@
         "command": "vscode-arduino.boardconfig",
         "title": "Configure Board",
         "category": "Arduino"
-      },
-      {
-        "command": "vscode-arduino.intellisense",
-        "title": "Generate intellisense",
-        "category": "Arduino"
       }
     ]
   },
