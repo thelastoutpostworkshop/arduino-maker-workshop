@@ -31,14 +31,16 @@ export class ArduinoProject {
     private projectFullPath: string = "";
 
     constructor() {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if(workspaceFolders) {
+            this.projectFullPath = workspaceFolders[0].uri.fsPath;
+        }
     }
     public readConfiguration(): boolean {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders) {
+        if (!this.projectFullPath) {
             return false;
         }
 
-        this.projectFullPath = workspaceFolders[0].uri.fsPath;
         this.arduinoConfigurationPath = path.join(this.projectFullPath, VSCODE_FOLDER, ARDUINO_SETTINGS);
 
         // Check if the arduino.json file exists

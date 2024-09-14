@@ -10,20 +10,27 @@ let boardConfigWebViewPanel: vscode.WebviewPanel | undefined = undefined;
 
 export function activate(context: vscode.ExtensionContext) {
 
-	loadArduinoConfiguration();
-	context.subscriptions.push(vsCommandCompile());
-	context.subscriptions.push(vsCommandUpload());
-	context.subscriptions.push(vsCommandPort());
-	context.subscriptions.push(vsCommandBoardConfiguration(context));
+	if (loadArduinoConfiguration()) {
+		context.subscriptions.push(vsCommandCompile());
+		context.subscriptions.push(vsCommandUpload());
+		context.subscriptions.push(vsCommandPort());
+		context.subscriptions.push(vsCommandBoardConfiguration(context));
+	}
 }
 
-function loadArduinoConfiguration() {
+function loadArduinoConfiguration(): boolean {
 	arduinoProject = new ArduinoProject();
 
-	if (!arduinoProject.readConfiguration()) {
+	if (!arduinoProject.isFolderArduinoProject()) {
 		vscode.window.showInformationMessage('Arduino Configuration Error');
+		return false;
+	} else {
+		if (!arduinoProject.readConfiguration()) {
+			vscode.window.showInformationMessage('Arduino Configuration Error');
+			return false;
+		}
 	}
-
+	return true;
 }
 
 function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.Disposable {
