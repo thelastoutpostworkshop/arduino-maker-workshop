@@ -8,7 +8,7 @@ export const compileCommandArduino: string = 'compile';
 const uploadCommandArduino: string = 'upload';
 const boardCommandArduino: string = 'board';
 const listFunctionArduino: string = 'list';
-const detailsFunctionArduino:string = 'details';
+const detailsFunctionArduino: string = 'details';
 const jsonOutputArduino: string = '--json';
 export const verboseOptionArduino: string = '-v';
 export const portOptionArduino: string = '-p';
@@ -18,6 +18,11 @@ export const jobsOptionArduino: string = '--jobs';
 export const fqbnOptionArduino: string = '--fqbn';
 export const inputDirOptionArduino: string = '--input-dir';
 export const noColorOptionArduino: string = '--no-color';
+
+const CPP_PROPERTIES: string = "c_cpp_properties.json";
+const VSCODE_FOLDER: string = ".vscode";
+const ARDUINO_SETTINGS: string = "arduino.json";
+const ARDUINO_SKETCH_EXTENSION: string = ".ino";
 
 export class ArduinoProject {
     private arduinoConfigurationPath: string = "";
@@ -33,7 +38,7 @@ export class ArduinoProject {
         }
 
         this.projectFullPath = workspaceFolders[0].uri.fsPath;
-        this.arduinoConfigurationPath = path.join(this.projectFullPath, '.vscode', 'arduino.json');
+        this.arduinoConfigurationPath = path.join(this.projectFullPath, VSCODE_FOLDER, ARDUINO_SETTINGS);
 
         // Check if the arduino.json file exists
         if (!fs.existsSync(this.arduinoConfigurationPath)) {
@@ -110,7 +115,7 @@ export class ArduinoProject {
                 const filePath = path.join(this.getProjectPath(), file);
 
                 // Check if it's a file and has a .ino extension
-                return fs.statSync(filePath).isFile() && path.extname(file).toLowerCase() === '.ino';
+                return fs.statSync(filePath).isFile() && path.extname(file).toLowerCase() === ARDUINO_SKETCH_EXTENSION;
             });
 
             return hasInoFile;
@@ -119,10 +124,48 @@ export class ArduinoProject {
             return false;
         }
     }
+    public generateCppPropertiesFromCompileOutput(output: string) {
+        const includePaths: string[] = [];
+        const defines: string[] = [];
+
+        // Regular expressions to match include paths and defines
+        const includeRegex = /-I([^\s]+)/g;
+        const defineRegex = /-D([^\s]+)/g;
+
+        let match;
+        while ((match = includeRegex.exec(output)) !== null) {
+            includePaths.push(match[1]);
+        }
+
+        while ((match = defineRegex.exec(output)) !== null) {
+            defines.push(match[1]);
+        }
+
+        // Create c_cpp_properties.json
+        const cppProperties = {
+            configurations: [{
+                name: "Arduino",
+                includePath: includePaths,
+                defines: defines,
+                compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
+                cStandard: "c11",
+                cppStandard: "c++17",
+                intelliSenseMode: "gcc-x64"
+            }],
+            version: 4
+        };
+
+        // Write the c_cpp_properties.json file
+        const cppPropertiesPath = path.join(this.getProjectPath(), VSCODE_FOLDER, CPP_PROPERTIES);
+        fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
+
+        vscode.window.showInformationMessage('Generated c_cpp_properties.json for IntelliSense.');
+    }
+
     public setPort(port: string): void {
         // Update the configJson object
         this.configJson.port = port;
-    
+
         // Write the updated configuration back to the arduino.json file
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
@@ -130,11 +173,11 @@ export class ArduinoProject {
 
         // Step 2: Replace the configuration in configJson with the new configuration string
         this.configJson.configuration = newConfig;
-    
+
         // Step 3: Write the updated configuration back to the arduino.json file
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
-    
+
     public getOutput(): string {
         return this.configJson.output || 'build';
     }

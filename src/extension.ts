@@ -376,44 +376,6 @@ function vsCommandCompile(): vscode.Disposable {
 	});
 }
 
-function generateCppPropertiesFromCompileOutput(output: string, projectPath: string) {
-	const includePaths: string[] = [];
-	const defines: string[] = [];
-
-	// Regular expressions to match include paths and defines
-	const includeRegex = /-I([^\s]+)/g;
-	const defineRegex = /-D([^\s]+)/g;
-
-	let match;
-	while ((match = includeRegex.exec(output)) !== null) {
-		includePaths.push(match[1]);
-	}
-
-	while ((match = defineRegex.exec(output)) !== null) {
-		defines.push(match[1]);
-	}
-
-	// Create c_cpp_properties.json
-	const cppProperties = {
-		configurations: [{
-			name: "Arduino",
-			includePath: includePaths,
-			defines: defines,
-			compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
-			cStandard: "c11",
-			cppStandard: "c++17",
-			intelliSenseMode: "gcc-x64"
-		}],
-		version: 4
-	};
-
-	// Write the c_cpp_properties.json file
-	const cppPropertiesPath = path.join(projectPath, '.vscode', 'c_cpp_properties.json');
-	fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
-
-	vscode.window.showInformationMessage('Generated c_cpp_properties.json for IntelliSense.');
-}
-
 function verifyArduinoProject(): boolean {
 	if (!arduinoProject.isFolderArduinoProject()) {
 		vscode.window.showErrorMessage(`Not an Arduino Project.`);
