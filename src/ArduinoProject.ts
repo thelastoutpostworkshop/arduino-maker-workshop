@@ -142,14 +142,25 @@ export class ArduinoProject {
 
         // Regular expressions to match include paths and defines
         const defineRegex = /-D([^\s]+)/g;
+        const includeRegex = /"-I([^"]+)"/g; 
+
+        const includePaths = new Set();
 
         let match;
+
+        while ((match = includeRegex.exec(output)) !== null) {
+            let path = match[1]; // Capture the path inside the quotes
+    
+            // Normalize the path (handle backslashes, especially on Windows)
+            path = path.replace(/\\\\/g, "\\"); // Convert backslashes to forward slashes for consistency
+    
+            includePaths.add(path+"\\**"); // Use a Set to avoid duplicates
+        }
 
         while ((match = defineRegex.exec(output)) !== null) {
             defines.push(match[1]);
         }
 
-        const includePaths = new Set();
         includePaths.add(this.getProjectPath()+"\\**");
         try {
             const includeDataPath = path.join(this.getProjectPath(), this.getOutput(), "includes.cache");
