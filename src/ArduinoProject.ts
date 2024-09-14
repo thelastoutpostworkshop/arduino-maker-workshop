@@ -24,6 +24,7 @@ const CPP_PROPERTIES: string = "c_cpp_properties.json";
 const VSCODE_FOLDER: string = ".vscode";
 const ARDUINO_SETTINGS: string = "arduino.json";
 const ARDUINO_SKETCH_EXTENSION: string = ".ino";
+const ARDUINO_DEFAULT_OUTPUT:string = "build";
 
 export enum ARDUINO_ERRORS {
     NO_ERRORS,
@@ -55,7 +56,7 @@ export class ArduinoProject {
             return false;
         } else {
             // Set defaults values if file do not exist
-            
+
         }
 
         // Read the arduino.json file
@@ -241,7 +242,10 @@ export class ArduinoProject {
     }
 
     public getOutput(): string {
-        return this.configJson.output || 'build';
+        return this.configJson.output || ARDUINO_DEFAULT_OUTPUT;
+    }
+    private setOutput(output:string) {
+        this.configJson.output = ARDUINO_DEFAULT_OUTPUT;
     }
     public getConfiguration(): string {
         return this.configJson.configuration || '';
