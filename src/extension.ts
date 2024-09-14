@@ -48,10 +48,6 @@ function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.D
 		if (!loadArduinoConfiguration()) {
 			return false;
 		}
-		if (!arduinoProject.getProjectPath()) {
-			vscode.window.showInformationMessage('Project path not found, cannot retrieve board configuration.');
-			return;
-		}
 
 		if (!arduinoProject.getBoard()) {
 			vscode.window.showInformationMessage('Board info not found, cannot retrieve board configuration.');
