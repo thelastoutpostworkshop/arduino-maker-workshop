@@ -14,7 +14,6 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vsCommandCompile());
 	context.subscriptions.push(vsCommandUpload());
 	context.subscriptions.push(vsCommandPort());
-	context.subscriptions.push(vsGenerateIntellisense());
 	context.subscriptions.push(vsCommandBoardConfiguration(context));
 }
 
@@ -364,33 +363,6 @@ function vsCommandCompile(): vscode.Disposable {
 		// Execute the Arduino CLI command
 		const compileCommand = arduinoProject.getCompileCommandArguments();
 		executeArduinoCommand(`${cliCommandArduino}`, compileCommand, true)
-			.then(output => {
-				if (output) {
-					// Parse the output and generate c_cpp_properties.json
-					arduinoProject.generateCppPropertiesFromCompileOutput(output);
-				}
-			})
-			.catch(error => {
-				vscode.window.showErrorMessage(`Failed to generate c_cpp_properties.json: ${error}`);
-			});
-
-	});
-}
-function vsGenerateIntellisense(): vscode.Disposable {
-	return vscode.commands.registerCommand('vscode-arduino.intellisense', () => {
-		if (!verifyArduinoProject()) {
-			return;
-		}
-		if (!arduinoProject.getBoard()) {
-			vscode.window.showInformationMessage('Board info not found, cannot compile');
-		}
-		if (!arduinoProject.getConfiguration()) {
-			vscode.window.showInformationMessage('Board configuration not found, cannot compile');
-		}
-
-		// Execute the Arduino CLI command
-		const preprocessCommand = arduinoProject.getPreprocessCommandArguments();
-		executeArduinoCommand(`${cliCommandArduino}`, preprocessCommand, true)
 			.then(output => {
 				if (output) {
 					// Parse the output and generate c_cpp_properties.json
