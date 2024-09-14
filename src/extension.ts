@@ -46,6 +46,52 @@ function loadArduinoConfiguration(): boolean {
 
 function vsCommandBoardSelection(context: vscode.ExtensionContext): vscode.Disposable {
 	return vscode.commands.registerCommand('vscode-arduino.boardselect', async () => {
+		if (!loadArduinoConfiguration()) {
+			return false;
+		}
+
+		await vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			title: 'Retrieving board list...',
+			cancellable: false
+		}, async (progress) => {
+			const listBoardArgs = arduinoProject.getBoardsListArguments();
+			try {
+				const result = await executeArduinoCommand(`${cliCommandArduino}`, listBoardArgs, true);
+				if (result) {
+					progress.report({ message: 'Board list retrieved.', increment: 100 });
+					const boardList = JSON.parse(result).boards;
+					// Initialize an empty object to hold the structured board data
+					const boardStructure = {};
+
+					// Create a Set to track unique fqbn values
+					const uniqueFqbnSet = new Set();
+					boardList.forEach((board) => {
+						const platformName = board.platform.release.name; // Get the platform release name (e.g., "Arduino AVR Boards")
+
+						// Initialize the platform in the structure if it doesn't exist
+						if (!boardStructure[platformName]) {
+							boardStructure[platformName] = [];
+						}
+
+						// Loop through each board under this platform
+						board.platform.release.boards.forEach((boardInfo) => {
+							const { name, fqbn } = boardInfo;
+
+							// Only add if the fqbn is not a duplicate
+							if (!uniqueFqbnSet.has(fqbn)) {
+								uniqueFqbnSet.add(fqbn);
+								boardStructure[platformName].push({ name, fqbn });
+							}
+						});
+					});
+				}
+
+			} catch (error) {
+				vscode.window.showErrorMessage(`Error retrieving board list: ${error}`);
+			}
+		});
+
 	});
 }
 
@@ -355,7 +401,7 @@ function vsCommandCompile(): vscode.Disposable {
 	return vscode.commands.registerCommand('vscode-arduino.compile', () => {
 		if (!loadArduinoConfiguration()) {
 			return;
-		} 
+		}
 		if (!arduinoProject.getBoard()) {
 			vscode.window.showInformationMessage('Board info not found, cannot compile');
 		}
