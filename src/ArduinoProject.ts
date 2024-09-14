@@ -18,6 +18,7 @@ export const jobsOptionArduino: string = '--jobs';
 export const fqbnOptionArduino: string = '--fqbn';
 export const inputDirOptionArduino: string = '--input-dir';
 export const noColorOptionArduino: string = '--no-color';
+export const preprocessCompileOptionArduino: string = '--preprocess';
 
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
 const VSCODE_FOLDER: string = ".vscode";
@@ -70,7 +71,7 @@ export class ArduinoProject {
         ];
         return compileCommand;
     }
-    public getCompileUploadArguments(): string[] {
+    public getUploadArguments(): string[] {
         this.readConfiguration();
         const compileCommand = [
             `${uploadCommandArduino}`,

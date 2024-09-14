@@ -336,7 +336,7 @@ function vsCommandUpload(): vscode.Disposable {
 		}
 
 		// Execute the Arduino CLI command
-		const uploadCommand = arduinoProject.getCompileUploadArguments();
+		const uploadCommand = arduinoProject.getUploadArguments();
 		const output = executeArduinoCommand(`${cliCommandArduino}`, uploadCommand, true);
 
 	});
