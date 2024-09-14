@@ -149,12 +149,11 @@ export class ArduinoProject {
             defines.push(match[1]);
         }
 
-        let includeData;
         const includePaths = new Set();
         includePaths.add(this.getProjectPath()+"\\**");
         try {
             const includeDataPath = path.join(this.getProjectPath(), this.getOutput(), "includes.cache");
-            includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
+            const includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
             includeData.forEach(entry => {
                 if (entry.Includepath) {
                     includePaths.add(entry.Includepath+"\\**");
