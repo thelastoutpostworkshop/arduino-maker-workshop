@@ -14,6 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vsCommandUpload());
 	context.subscriptions.push(vsCommandPort());
 	context.subscriptions.push(vsCommandBoardConfiguration(context));
+	context.subscriptions.push(vsCommandBoardSelection(context));
 }
 
 function loadArduinoConfiguration(): boolean {
@@ -41,6 +42,11 @@ function loadArduinoConfiguration(): boolean {
 		}
 	}
 	return true;
+}
+
+function vsCommandBoardSelection(context: vscode.ExtensionContext): vscode.Disposable {
+	return vscode.commands.registerCommand('vscode-arduino.boardselect', async () => {
+	});
 }
 
 function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.Disposable {
