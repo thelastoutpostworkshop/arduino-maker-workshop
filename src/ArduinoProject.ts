@@ -39,7 +39,7 @@ export class ArduinoProject {
 
     constructor() {
         const workspaceFolders = vscode.workspace.workspaceFolders;
-        if(workspaceFolders) {
+        if (workspaceFolders) {
             this.projectFullPath = workspaceFolders[0].uri.fsPath;
         }
     }
@@ -128,6 +128,7 @@ export class ArduinoProject {
     }
     public isFolderArduinoProject(): ARDUINO_ERRORS {
         try {
+            let error: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_INO_FILES;
             // Get the folder name
             const folderName = path.basename(this.getProjectPath());
 
@@ -145,17 +146,15 @@ export class ArduinoProject {
                     const sketchFileName = path.basename(file, ARDUINO_SKETCH_EXTENSION);
 
                     // Return true only if the sketch file name matches the folder name
-                    if(sketchFileName === folderName) {
-                        return ARDUINO_ERRORS.NO_ERRORS;
+                    if (sketchFileName === folderName) {
+                        error = ARDUINO_ERRORS.NO_ERRORS;
                     } else {
-                        return ARDUINO_ERRORS.WRONG_FOLDER_NAME;
+                        error = ARDUINO_ERRORS.WRONG_FOLDER_NAME;
                     }
                 }
-
-                return ARDUINO_ERRORS.NO_INO_FILES;
             });
 
-            return hasMatchingInoFile;
+            return error;
         } catch (error) {
             console.error('Error reading folder:', error);
             return ARDUINO_ERRORS.INTERNAL;

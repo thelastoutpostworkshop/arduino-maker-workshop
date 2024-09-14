@@ -10,39 +10,35 @@ let boardConfigWebViewPanel: vscode.WebviewPanel | undefined = undefined;
 
 export function activate(context: vscode.ExtensionContext) {
 
-	if (loadArduinoConfiguration()) {
-		context.subscriptions.push(vsCommandCompile());
-		context.subscriptions.push(vsCommandUpload());
-		context.subscriptions.push(vsCommandPort());
-		context.subscriptions.push(vsCommandBoardConfiguration(context));
-	}
+	loadArduinoConfiguration();
+	context.subscriptions.push(vsCommandCompile());
+	context.subscriptions.push(vsCommandUpload());
+	context.subscriptions.push(vsCommandPort());
+	context.subscriptions.push(vsCommandBoardConfiguration(context));
 }
 
-function loadArduinoConfiguration(): boolean {
+function loadArduinoConfiguration() {
 	arduinoProject = new ArduinoProject();
 
 	const res = arduinoProject.isFolderArduinoProject();
-	if (res != ARDUINO_ERRORS.NO_ERRORS) {
-		let message:string="";
+	if (res !== ARDUINO_ERRORS.NO_ERRORS) {
+		let message: string = "";
 		switch (res) {
 			case ARDUINO_ERRORS.NO_INO_FILES:
 				message = "No sketch file (.ino) found";
 				break;
-				case ARDUINO_ERRORS.WRONG_FOLDER_NAME:
+			case ARDUINO_ERRORS.WRONG_FOLDER_NAME:
 				message = "Folder and sketch name mismatch";
 				break;
 			default:
 				break;
 		}
 		vscode.window.showInformationMessage(message);
-		return false;
 	} else {
 		if (!arduinoProject.readConfiguration()) {
 			vscode.window.showInformationMessage('Arduino Configuration Error');
-			return false;
 		}
 	}
-	return true;
 }
 
 function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.Disposable {
