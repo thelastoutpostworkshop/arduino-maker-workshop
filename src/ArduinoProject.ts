@@ -25,6 +25,13 @@ const VSCODE_FOLDER: string = ".vscode";
 const ARDUINO_SETTINGS: string = "arduino.json";
 const ARDUINO_SKETCH_EXTENSION: string = ".ino";
 
+export enum ARDUINO_ERRORS {
+    NO_ERRORS,
+    NO_INO_FILES,
+    WRONG_FOLDER_NAME,
+    INTERNAL
+}
+
 export class ArduinoProject {
     private arduinoConfigurationPath: string = "";
     private configJson: any;
@@ -119,7 +126,7 @@ export class ArduinoProject {
         ];
         return compileCommand;
     }
-    public isFolderArduinoProject(): boolean {
+    public isFolderArduinoProject(): ARDUINO_ERRORS {
         try {
             // Get the folder name
             const folderName = path.basename(this.getProjectPath());
@@ -138,16 +145,20 @@ export class ArduinoProject {
                     const sketchFileName = path.basename(file, ARDUINO_SKETCH_EXTENSION);
 
                     // Return true only if the sketch file name matches the folder name
-                    return sketchFileName === folderName;
+                    if(sketchFileName === folderName) {
+                        return ARDUINO_ERRORS.NO_ERRORS;
+                    } else {
+                        return ARDUINO_ERRORS.WRONG_FOLDER_NAME;
+                    }
                 }
 
-                return false;
+                return ARDUINO_ERRORS.NO_INO_FILES;
             });
 
             return hasMatchingInoFile;
         } catch (error) {
             console.error('Error reading folder:', error);
-            return false;
+            return ARDUINO_ERRORS.INTERNAL;
         }
     }
 

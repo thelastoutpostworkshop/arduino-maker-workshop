@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ArduinoProject, cliCommandArduino } from './ArduinoProject';
+import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
 const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -21,8 +21,20 @@ export function activate(context: vscode.ExtensionContext) {
 function loadArduinoConfiguration(): boolean {
 	arduinoProject = new ArduinoProject();
 
-	if (!arduinoProject.isFolderArduinoProject()) {
-		vscode.window.showInformationMessage('Arduino Configuration Error');
+	const res = arduinoProject.isFolderArduinoProject();
+	if (res != ARDUINO_ERRORS.NO_ERRORS) {
+		let message:string="";
+		switch (res) {
+			case ARDUINO_ERRORS.NO_INO_FILES:
+				message = "No sketch file (.ino) found";
+				break;
+				case ARDUINO_ERRORS.WRONG_FOLDER_NAME:
+				message = "Folder and sketch name mismatch";
+				break;
+			default:
+				break;
+		}
+		vscode.window.showInformationMessage(message);
 		return false;
 	} else {
 		if (!arduinoProject.readConfiguration()) {
