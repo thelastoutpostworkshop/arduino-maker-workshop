@@ -147,11 +147,17 @@ export class ArduinoProject {
     
         let match;
         while ((match = includeRegex.exec(output)) !== null) {
-            includePaths.add(match[1]);  // Add to Set
+            // Clean up the path by removing any trailing double quotes
+            const cleanedPath = match[1]
+                .replace(/\\\\/g, '\\')  // Replace quadruple backslashes with double
+                .replace(/\\$/, '\\\\')  // Escape trailing backslashes
+                .replace(/"$/, '');      // Remove trailing double quotes
+    
+            includePaths.add(cleanedPath);
         }
     
         while ((match = defineRegex.exec(output)) !== null) {
-            defines.add(match[1]);  // Add to Set
+            defines.add(match[1].replace(/\\\\/g, '\\'));  // Ensure proper path format
         }
     
         // Convert Sets back to arrays
@@ -167,7 +173,7 @@ export class ArduinoProject {
                 compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
                 cStandard: "c11",
                 cppStandard: "c++17",
-                intelliSenseMode: "gcc-x86"
+                intelliSenseMode: "gcc-x64"
             }],
             version: 4
         };
@@ -178,6 +184,7 @@ export class ArduinoProject {
     
         vscode.window.showInformationMessage('Generated c_cpp_properties.json for IntelliSense.');
     }
+    
     
 
     public setPort(port: string): void {
