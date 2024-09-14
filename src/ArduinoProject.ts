@@ -71,6 +71,18 @@ export class ArduinoProject {
         ];
         return compileCommand;
     }
+    public getPreprocessCommandArguments(): string[] {
+        const compileCommand = [
+            `${compileCommandArduino}`,
+            `${verboseOptionArduino}`,
+            `${preprocessCompileOptionArduino}`,
+            `${noColorOptionArduino}`,
+            `${fqbnOptionArduino}`,
+            `${this.getBoard()}:${this.getConfiguration()}`,
+            this.getProjectPath()
+        ];
+        return compileCommand;
+    }
     public getUploadArguments(): string[] {
         this.readConfiguration();
         const compileCommand = [
