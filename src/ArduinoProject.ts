@@ -33,9 +33,16 @@ export enum ARDUINO_ERRORS {
     INTERNAL
 }
 
+type ArduinoConfiguration = {
+    port: string
+    configuration: string
+    output: string
+    board: string
+};
+
 export class ArduinoProject {
     private arduinoConfigurationPath: string = "";
-    private configJson: any;
+    private configJson: ArduinoConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "" };
     private projectFullPath: string = "";
 
     constructor() {
@@ -54,9 +61,7 @@ export class ArduinoProject {
         // Check if the arduino.json file exists
         if (!fs.existsSync(this.arduinoConfigurationPath)) {
             // Set defaults values if file do not exist
-            this.setBoard("");
             this.setOutput(ARDUINO_DEFAULT_OUTPUT);
-            this.updateBoardConfiguration("");
         }
 
         // Read the arduino.json file
@@ -245,7 +250,7 @@ export class ArduinoProject {
         return this.configJson.output || ARDUINO_DEFAULT_OUTPUT;
     }
     private setOutput(output: string) {
-        this.configJson.output = ARDUINO_DEFAULT_OUTPUT;
+        this.configJson.output = output;
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
     public getConfiguration(): string {
@@ -258,7 +263,7 @@ export class ArduinoProject {
         return this.configJson.board || '';
     }
     private setBoard(board: string) {
-        this.configJson.board = "";
+        this.configJson.board = board;
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
     private getProjectPath(): string {
