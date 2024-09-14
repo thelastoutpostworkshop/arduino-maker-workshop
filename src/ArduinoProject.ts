@@ -24,7 +24,7 @@ const CPP_PROPERTIES: string = "c_cpp_properties.json";
 const VSCODE_FOLDER: string = ".vscode";
 const ARDUINO_SETTINGS: string = "arduino.json";
 const ARDUINO_SKETCH_EXTENSION: string = ".ino";
-const ARDUINO_DEFAULT_OUTPUT:string = "build";
+const ARDUINO_DEFAULT_OUTPUT: string = "build";
 
 export enum ARDUINO_ERRORS {
     NO_ERRORS,
@@ -53,10 +53,10 @@ export class ArduinoProject {
 
         // Check if the arduino.json file exists
         if (!fs.existsSync(this.arduinoConfigurationPath)) {
-            return false;
-        } else {
             // Set defaults values if file do not exist
-
+            this.setBoard("");
+            this.setOutput(ARDUINO_DEFAULT_OUTPUT);
+            this.updateBoardConfiguration("");
         }
 
         // Read the arduino.json file
@@ -244,8 +244,9 @@ export class ArduinoProject {
     public getOutput(): string {
         return this.configJson.output || ARDUINO_DEFAULT_OUTPUT;
     }
-    private setOutput(output:string) {
+    private setOutput(output: string) {
         this.configJson.output = ARDUINO_DEFAULT_OUTPUT;
+        fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
     public getConfiguration(): string {
         return this.configJson.configuration || '';
@@ -255,6 +256,10 @@ export class ArduinoProject {
     }
     public getBoard(): string {
         return this.configJson.board || '';
+    }
+    private setBoard(board: string) {
+        this.configJson.board = "";
+        fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
     private getProjectPath(): string {
         return this.projectFullPath;
