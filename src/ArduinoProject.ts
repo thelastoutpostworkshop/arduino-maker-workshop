@@ -53,6 +53,9 @@ export class ArduinoProject {
         // Check if the arduino.json file exists
         if (!fs.existsSync(this.arduinoConfigurationPath)) {
             return false;
+        } else {
+            // Set defaults values if file do not exist
+            
         }
 
         // Read the arduino.json file
