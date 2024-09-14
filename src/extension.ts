@@ -50,7 +50,7 @@ function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.D
 		}
 
 		if (!arduinoProject.getBoard()) {
-			vscode.window.showInformationMessage('Board info not found, cannot retrieve board configuration.');
+			vscode.window.showErrorMessage('Select a board first');
 			return;
 		}
 
