@@ -40,6 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('comPortExplorer.selectPort', (item: ComPortItem) => {
 			if (loadArduinoConfiguration()) {
+				arduinoProject.setPort(item.label);
 				vscode.window.showInformationMessage(`Selected COM Port: ${arduinoProject.getPort()}`);
 
 				// Refresh the tree view to update the display
