@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { arduinoProject, executeArduinoCommand, loadArduinoConfiguration } from './extension';
 import { cliCommandArduino } from './ArduinoProject';
-import { isErrored } from 'stream';
 
 export class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<ComPortItem | undefined | null | void> = new vscode.EventEmitter<ComPortItem | undefined | null | void>();
