@@ -22,10 +22,10 @@
       ]
     },
     "views": {
-      "arduinoBoards": [
+      "comPortExplorer": [
         {
-          "id": "currentBoardView",
-          "name": "Current Board"
+          "id": "comPortView",
+          "name": "Com Ports"
         }
       ]
     },
