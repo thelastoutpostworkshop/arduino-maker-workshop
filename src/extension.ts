@@ -52,11 +52,13 @@ export function activate(context: vscode.ExtensionContext) {
 	 const boardProvider = new BoardProvider();
 	 vscode.window.registerTreeDataProvider('boardSelectorView', boardProvider);
    
-	 // Register commands for board selection
+	 // Register the selectBoard command
 	 context.subscriptions.push(
-	   vscode.commands.registerCommand('boardSelector.selectOption', (item: BoardItem) => {
-		 vscode.window.showInformationMessage(`Selected Option: ${item.label}`);
-		 // Implement your logic for when an option is selected
+	   vscode.commands.registerCommand('boardSelector.selectBoard', (item: BoardItem) => {
+		 if (loadArduinoConfiguration()) {
+		//    arduinoProject.setBoard(item.fqbn || '');
+		   vscode.window.showInformationMessage(`Selected Board: ${item.label}`);
+		 }
 	   })
 	 );
    

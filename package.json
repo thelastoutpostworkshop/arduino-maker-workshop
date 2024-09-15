@@ -46,8 +46,8 @@
           "group": "inline"
         },
         {
-          "command": "boardSelector.selectOption",
-          "when": "viewItem == boardSelectorView && viewItemContext == option",
+          "command": "boardSelector.selectBoard",
+          "when": "viewItem == boardSelectorView && viewItemContext == board",
           "group": "navigation"
         }
       ],
@@ -108,8 +108,8 @@
         "title": "Execute Command 2"
       },
       {
-        "command": "boardSelector.selectOption",
-        "title": "Select Option"
+        "command": "boardSelector.selectBoard",
+        "title": "Select Board"
       },
       {
         "command": "boardSelector.refresh",
