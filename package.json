@@ -24,13 +24,13 @@
     "views": {
       "arduinoBoards": [
         {
-          "id": "portSettingView",
-          "name": "Select Port"
+          "id": "currentBoardView",
+          "name": "Current Board"
         }
       ]
     },
     "activationEvents": [
-      "onView:portSettingView"
+      "onView:currentBoardView"
     ],
     "commands": [
       {
