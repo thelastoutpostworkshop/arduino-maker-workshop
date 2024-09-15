@@ -61,6 +61,16 @@
           "command": "boardSelector.refresh",
           "when": "view == boardSelectorView",
           "group": "navigation"
+        },
+        {
+          "command": "boardSelector.filterBoards",
+          "when": "view == boardSelectorView",
+          "group": "navigation"
+        },
+        {
+          "command": "boardSelector.clearFilter",
+          "when": "view == boardSelectorView",
+          "group": "navigation"
         }
       ]
     },
@@ -115,6 +125,16 @@
         "command": "boardSelector.refresh",
         "title": "Refresh Boards",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "boardSelector.filterBoards",
+        "title": "Filter Boards",
+        "icon": "$(search)"
+      },
+      {
+        "command": "boardSelector.clearFilter",
+        "title": "Clear Filter",
+        "icon": "$(close)"
       }
     ]
   },

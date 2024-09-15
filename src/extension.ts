@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
 import { ComPortProvider } from './ComPortProvider';
-import { BoardProvider,BoardItem } from './BoardProvider';
+import { BoardProvider, BoardItem } from './BoardProvider';
 
 const cp = require('child_process');
 const fs = require('fs');
@@ -48,27 +48,39 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	);
 
-	 // Register the BoardProvider
-	 const boardProvider = new BoardProvider();
-	 vscode.window.registerTreeDataProvider('boardSelectorView', boardProvider);
-   
-	 // Register the selectBoard command
-	 context.subscriptions.push(
-	   vscode.commands.registerCommand('boardSelector.selectBoard', (item: BoardItem) => {
-		 if (loadArduinoConfiguration()) {
-		//    arduinoProject.setBoard(item.fqbn || '');
-		   vscode.window.showInformationMessage(`Selected Board: ${item.label}`);
-		 }
-	   })
-	 );
-   
-	 // Optional: Command to refresh the board view
-	 context.subscriptions.push(
-	   vscode.commands.registerCommand('boardSelector.refresh', () => {
-		 boardProvider.refresh();
-	   })
-	 );
-   
+	// Register the BoardProvider
+	const boardProvider = new BoardProvider();
+	vscode.window.registerTreeDataProvider('boardSelectorView', boardProvider);
+
+	// Register the selectBoard command
+	context.subscriptions.push(
+		vscode.commands.registerCommand('boardSelector.selectBoard', (item: BoardItem) => {
+			if (loadArduinoConfiguration()) {
+				//    arduinoProject.setBoard(item.fqbn || '');
+				vscode.window.showInformationMessage(`Selected Board: ${item.label}`);
+			}
+		})
+	);
+
+	// Optional: Command to refresh the board view
+	context.subscriptions.push(
+		vscode.commands.registerCommand('boardSelector.refresh', () => {
+			boardProvider.refresh();
+		})
+	);
+
+	// Register the filterBoards command
+	context.subscriptions.push(
+		vscode.commands.registerCommand('boardSelector.filterBoards', () => {
+			boardProvider.showFilterInput();
+		})
+	);
+	context.subscriptions.push(
+		vscode.commands.registerCommand('boardSelector.clearFilter', () => {
+			boardProvider.clearFilter();
+		})
+	);
+
 }
 
 export function loadArduinoConfiguration(): boolean {
@@ -422,7 +434,7 @@ function getWebviewContent(boardName: string, configuration: any[]): string {
 		html += `<label for="${option.option}">${option.option_label}</label>
         <select id="${option.option}" name="${option.option}" class="config-select">`;
 
-		option.values.forEach((value:any) => {
+		option.values.forEach((value: any) => {
 			// Check if the value matches the current config value for this option
 			const isSelected = currentConfig[option.option] === value.value ? 'selected' : '';
 			html += `<option value="${value.value}" ${isSelected}>${value.value_label}</option>`;
@@ -634,7 +646,7 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 		});
 
 		// Handle error event in case the command fails to start
-		child.on('error', (err:any) => {
+		child.on('error', (err: any) => {
 			vscode.window.showErrorMessage(`Failed to run command: ${err.message}`);
 			reject(`Failed to run command: ${err.message}`);
 		});
