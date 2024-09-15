@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const outputChannel = vscode.window.createOutputChannel('Arduino');
-let arduinoProject: ArduinoProject;
+export let arduinoProject: ArduinoProject;
 let boardConfigWebViewPanel: vscode.WebviewPanel | undefined = undefined;
 
 export function activate(context: vscode.ExtensionContext) {
@@ -533,7 +533,7 @@ function vsCommandCompile(): vscode.Disposable {
 	});
 }
 
-function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false): Promise<string | void> {
+export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false): Promise<string | void> {
 	outputChannel.clear();
 	outputChannel.show(true);
 	outputChannel.appendLine('Running Arduino CLI...');
