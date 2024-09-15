@@ -154,7 +154,7 @@ export class ArduinoProject {
             const files = fs.readdirSync(this.getProjectPath());
 
             // Check if any files have the .ino extension and match the folder name
-            const hasMatchingInoFile = files.some((file) => {
+            const hasMatchingInoFile = files.some((file:any) => {
                 // Get the full path of the file
                 const filePath = path.join(this.getProjectPath(), file);
 
@@ -207,7 +207,7 @@ export class ArduinoProject {
         try {
             const includeDataPath = path.join(this.getProjectPath(), this.getOutput(), "includes.cache");
             const includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
-            includeData.forEach(entry => {
+            includeData.forEach((entry:any) => {
                 if (entry.Includepath) {
                     includePaths.add(entry.Includepath + "\\**");
                 }

@@ -398,7 +398,7 @@ function getWebviewContent(boardName: string, configuration: any[]): string {
 		html += `<label for="${option.option}">${option.option_label}</label>
         <select id="${option.option}" name="${option.option}" class="config-select">`;
 
-		option.values.forEach(value => {
+		option.values.forEach((value:any) => {
 			// Check if the value matches the current config value for this option
 			const isSelected = currentConfig[option.option] === value.value ? 'selected' : '';
 			html += `<option value="${value.value}" ${isSelected}>${value.value_label}</option>`;

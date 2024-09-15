@@ -25,22 +25,6 @@ export class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
         return element;
       }
 
-    // public setSelectedPort(port: string) {
-    //     const previousPort = this.selectedPort;
-    //     this.selectedPort = port;
-
-    //     // Notify that the previous and new selected items have changed
-    //     if (previousPort) {
-    //         this._onDidChangeTreeData.fire(this.createComPortItem(previousPort));
-    //     }
-    //     this._onDidChangeTreeData.fire(this.createComPortItem(port));
-    // }
-
-    // Helper method to create a ComPortItem
-    private createComPortItem(portPath: string): ComPortItem {
-        return new ComPortItem(portPath, portPath, vscode.TreeItemCollapsibleState.None);
-    }
-
     async getChildren(element?: ComPortItem): Promise<ComPortItem[]> {
         if (element) {
             // No child elements
@@ -61,7 +45,7 @@ export class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
                         return [];
                     }
 
-                    return ports.map(port => {
+                    return ports.map((port:any) => {
                         const label = port.port.label;
                         return new ComPortItem(label, port.path, vscode.TreeItemCollapsibleState.None);
                     });
