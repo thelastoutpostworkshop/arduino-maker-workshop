@@ -119,15 +119,23 @@ export class BoardProvider implements vscode.TreeDataProvider<BoardItem> {
 
     private getPlatforms(): BoardItem[] {
         const platformNames = Object.keys(this.boardStructure);
-
+      
         // Sort platform names alphabetically
         platformNames.sort((a, b) => a.localeCompare(b));
-
-        return platformNames.map(
-            (platformName) =>
-                new BoardItem(platformName, vscode.TreeItemCollapsibleState.Collapsed, 'platform')
-        );
-    }
+      
+        return platformNames.map((platformName) => {
+          const hasMatchingBoards = this.boardStructure[platformName].some((boardInfo) =>
+            boardInfo.name.toLowerCase().includes(this.filterString.toLowerCase())
+          );
+      
+          const collapsibleState = hasMatchingBoards
+            ? vscode.TreeItemCollapsibleState.Expanded
+            : vscode.TreeItemCollapsibleState.Collapsed;
+      
+          return new BoardItem(platformName, collapsibleState, 'platform');
+        });
+      }
+      
 
     private getBoardsUnderPlatform(platformName: string): BoardItem[] {
         const boards = this.boardStructure[platformName] || [];
