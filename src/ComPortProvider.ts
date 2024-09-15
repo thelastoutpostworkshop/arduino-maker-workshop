@@ -72,7 +72,7 @@ class ComPortItem extends vscode.TreeItem {
         this.contextValue = 'comPortItem';
         // Assign a command to the tree item to handle selection
         this.command = {
-            command: 'comPortExplorer.selectPort',
+            command: 'comPortSelector.selectPort',
             title: 'Select COM Port',
             arguments: [this]
         };

@@ -22,23 +22,23 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Register refresh command
 	context.subscriptions.push(
-		vscode.commands.registerCommand('comPortExplorer.refresh', () => comPortProvider.refresh())
+		vscode.commands.registerCommand('comPortSelector.refresh', () => comPortProvider.refresh())
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('comPortExplorer.command1', () => {
+		vscode.commands.registerCommand('comPortSelector.command1', () => {
 			vscode.window.showInformationMessage(`Command 1 executed on `);
 		})
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('comPortExplorer.command2', () => {
+		vscode.commands.registerCommand('comPortSelector.command2', () => {
 			vscode.window.showInformationMessage(`Command 2 executed on }`);
 		})
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('comPortExplorer.selectPort', (item) => {
+		vscode.commands.registerCommand('comPortSelector.selectPort', (item) => {
 			if (loadArduinoConfiguration()) {
 				arduinoProject.setPort(item.label);
 				comPortProvider.refresh();

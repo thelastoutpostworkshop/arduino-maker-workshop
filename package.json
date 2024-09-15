@@ -15,14 +15,14 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "comPortExplorer",
+          "id": "arduino",
           "title": "Arduino",
-          "icon": "src/images/arduino.svg"
+          "icon": "resources/arduino.svg"
         }
       ]
     },
     "views": {
-      "comPortExplorer": [
+      "arduino": [
         {
           "id": "comPortView",
           "name": "Com Ports"
@@ -32,19 +32,19 @@
     "menus": {
       "view/item/context": [
         {
-          "command": "comPortExplorer.command1",
+          "command": "comPortSelector.command1",
           "when": "viewItem == comPortView && viewItemContext == comPortItem",
           "group": "inline"
         },
         {
-          "command": "comPortExplorer.command2",
+          "command": "comPortSelector.command2",
           "when": "viewItem == comPortView && viewItemContext == comPortItem",
           "group": "inline"
         }
       ],
       "view/title": [
         {
-          "command": "comPortExplorer.refresh",
+          "command": "comPortSelector.refresh",
           "when": "view == comPortView",
           "group": "navigation"
         }
@@ -77,20 +77,20 @@
         "category": "Arduino"
       },
       {
-        "command": "comPortExplorer.refresh",
+        "command": "comPortSelector.refresh",
         "title": "Refresh COM Ports",
         "icon": "$(refresh)"
       },
       {
-        "command": "comPortExplorer.selectPort",
+        "command": "comPortSelector.selectPort",
         "title": "Select COM Port"
       },
       {
-        "command": "comPortExplorer.command1",
+        "command": "comPortSelector.command1",
         "title": "Execute Command 1"
       },
       {
-        "command": "comPortExplorer.command2",
+        "command": "comPortSelector.command2",
         "title": "Execute Command 2"
       }
     ]
