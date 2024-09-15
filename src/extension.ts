@@ -41,10 +41,12 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('comPortExplorer.selectPort', (item: ComPortItem) => {
 			if (loadArduinoConfiguration()) {
 				arduinoProject.setPort(item.label);
-				vscode.window.showInformationMessage(`Selected COM Port: ${arduinoProject.getPort()}`);
+				item.iconPath = new vscode.ThemeIcon('check');
+
+				// vscode.window.showInformationMessage(`Selected COM Port: ${arduinoProject.getPort()}`);
 
 				// Refresh the tree view to update the display
-				comPortProvider.refresh();
+				// comPortProvider.refresh();
 			}
 		})
 	);
