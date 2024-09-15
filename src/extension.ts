@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
+import { ComPortProvider,ComPortItem } from './ComPortProvider';
 const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -15,6 +16,26 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vsCommandPort());
 	context.subscriptions.push(vsCommandBoardConfiguration(context));
 	context.subscriptions.push(vsCommandBoardSelection(context));
+
+	const comPortProvider = new ComPortProvider();
+	vscode.window.registerTreeDataProvider('comPortView', comPortProvider);
+
+	// Register refresh command
+	context.subscriptions.push(
+		vscode.commands.registerCommand('comPortExplorer.refresh', () => comPortProvider.refresh())
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('comPortExplorer.command1', (item: ComPortItem) => {
+			vscode.window.showInformationMessage(`Command 1 executed on ${item.label}`);
+		})
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('comPortExplorer.command2', (item: ComPortItem) => {
+			vscode.window.showInformationMessage(`Command 2 executed on ${item.label}`);
+		})
+	);
 }
 
 function loadArduinoConfiguration(): boolean {
@@ -45,85 +66,85 @@ function loadArduinoConfiguration(): boolean {
 }
 
 function vsCommandBoardSelection(context: vscode.ExtensionContext): vscode.Disposable {
-    return vscode.commands.registerCommand('vscode-arduino.boardselect', async () => {
-        if (!loadArduinoConfiguration()) {
-            return false;
-        }
+	return vscode.commands.registerCommand('vscode-arduino.boardselect', async () => {
+		if (!loadArduinoConfiguration()) {
+			return false;
+		}
 
-        await vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: 'Retrieving board list...',
-            cancellable: false
-        }, async (progress) => {
-            const listBoardArgs = arduinoProject.getBoardsListArguments();
-            try {
-                const result = await executeArduinoCommand(`${cliCommandArduino}`, listBoardArgs, true);
-                if (result) {
-                    progress.report({ message: 'Board list retrieved.', increment: 100 });
-                    const boardList = JSON.parse(result).boards;
+		await vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			title: 'Retrieving board list...',
+			cancellable: false
+		}, async (progress) => {
+			const listBoardArgs = arduinoProject.getBoardsListArguments();
+			try {
+				const result = await executeArduinoCommand(`${cliCommandArduino}`, listBoardArgs, true);
+				if (result) {
+					progress.report({ message: 'Board list retrieved.', increment: 100 });
+					const boardList = JSON.parse(result).boards;
 
-                    // Initialize an empty object to hold the structured board data
-                    const boardStructure: { [platform: string]: { name: string, fqbn: string }[] } = {};
+					// Initialize an empty object to hold the structured board data
+					const boardStructure: { [platform: string]: { name: string, fqbn: string }[] } = {};
 
-                    // Create a Set to track unique fqbn values
-                    const uniqueFqbnSet = new Set<string>();
+					// Create a Set to track unique fqbn values
+					const uniqueFqbnSet = new Set<string>();
 
-                    boardList.forEach((board: any) => {
-                        const platformName = board.platform.release.name; // Get the platform release name (e.g., "Arduino AVR Boards")
+					boardList.forEach((board: any) => {
+						const platformName = board.platform.release.name; // Get the platform release name (e.g., "Arduino AVR Boards")
 
-                        // Initialize the platform in the structure if it doesn't exist
-                        if (!boardStructure[platformName]) {
-                            boardStructure[platformName] = [];
-                        }
+						// Initialize the platform in the structure if it doesn't exist
+						if (!boardStructure[platformName]) {
+							boardStructure[platformName] = [];
+						}
 
-                        // Loop through each board under this platform
-                        board.platform.release.boards.forEach((boardInfo: any) => {
-                            const { name, fqbn } = boardInfo;
+						// Loop through each board under this platform
+						board.platform.release.boards.forEach((boardInfo: any) => {
+							const { name, fqbn } = boardInfo;
 
-                            // Only add if the fqbn is not a duplicate
-                            if (!uniqueFqbnSet.has(fqbn)) {
-                                uniqueFqbnSet.add(fqbn);
-                                boardStructure[platformName].push({ name, fqbn });
-                            }
-                        });
-                    });
+							// Only add if the fqbn is not a duplicate
+							if (!uniqueFqbnSet.has(fqbn)) {
+								uniqueFqbnSet.add(fqbn);
+								boardStructure[platformName].push({ name, fqbn });
+							}
+						});
+					});
 
-                    // Show the board selection webview
-                    showBoardSelectionWebview(context, boardStructure);
-                }
-            } catch (error) {
-                vscode.window.showErrorMessage(`Error retrieving board list: ${error}`);
-            }
-        });
-    });
+					// Show the board selection webview
+					showBoardSelectionWebview(context, boardStructure);
+				}
+			} catch (error) {
+				vscode.window.showErrorMessage(`Error retrieving board list: ${error}`);
+			}
+		});
+	});
 }
 
 function showBoardSelectionWebview(context: vscode.ExtensionContext, boardStructure: { [platform: string]: { name: string, fqbn: string }[] }) {
-    const panel = vscode.window.createWebviewPanel(
-        'boardSelect', // Identifies the type of the webview
-        'Select Arduino Board', // Title of the webview panel
-        vscode.ViewColumn.One, // Editor column to show the new webview panel in
-        {
-            enableScripts: true // Enable JavaScript in the webview
-        }
-    );
+	const panel = vscode.window.createWebviewPanel(
+		'boardSelect', // Identifies the type of the webview
+		'Select Arduino Board', // Title of the webview panel
+		vscode.ViewColumn.One, // Editor column to show the new webview panel in
+		{
+			enableScripts: true // Enable JavaScript in the webview
+		}
+	);
 
-    // Construct the HTML content for the webview with dropdown
-    panel.webview.html = getBoardSelectionHtml(boardStructure);
+	// Construct the HTML content for the webview with dropdown
+	panel.webview.html = getBoardSelectionHtml(boardStructure);
 
-    // Handle messages from the webview
-    panel.webview.onDidReceiveMessage(message => {
-        switch (message.command) {
-            case 'selectBoard':
-                vscode.window.showInformationMessage(`Board Selected: ${message.fqbn}`);
-                panel.dispose(); // Close the webview
-                return;
-        }
-    });
+	// Handle messages from the webview
+	panel.webview.onDidReceiveMessage(message => {
+		switch (message.command) {
+			case 'selectBoard':
+				vscode.window.showInformationMessage(`Board Selected: ${message.fqbn}`);
+				panel.dispose(); // Close the webview
+				return;
+		}
+	});
 }
 
 function getBoardSelectionHtml(boardStructure: { [platform: string]: { name: string, fqbn: string }[] }) {
-    let htmlContent = `
+	let htmlContent = `
         <html>
         <head>
             <style>
@@ -157,20 +178,20 @@ function getBoardSelectionHtml(boardStructure: { [platform: string]: { name: str
             <form id="boardForm">
     `;
 
-    // Loop through the platforms and add a dropdown for each one
-    for (const platform in boardStructure) {
-        htmlContent += `
+	// Loop through the platforms and add a dropdown for each one
+	for (const platform in boardStructure) {
+		htmlContent += `
             <h2>${platform}</h2>
             <select id="select-${platform.replace(/\s+/g, '-')}" onchange="onBoardSelect('${platform}')">
                 <option value="">Select a board...</option>
         `;
-        boardStructure[platform].forEach(board => {
-            htmlContent += `<option value="${board.fqbn}">${board.name} (${board.fqbn})</option>`;
-        });
-        htmlContent += `</select>`;
-    }
+		boardStructure[platform].forEach(board => {
+			htmlContent += `<option value="${board.fqbn}">${board.name} (${board.fqbn})</option>`;
+		});
+		htmlContent += `</select>`;
+	}
 
-    htmlContent += `
+	htmlContent += `
             <button type="button" onclick="submitBoardSelection()">Submit</button>
             </form>
 
@@ -196,7 +217,7 @@ function getBoardSelectionHtml(boardStructure: { [platform: string]: { name: str
         </html>
     `;
 
-    return htmlContent;
+	return htmlContent;
 }
 
 

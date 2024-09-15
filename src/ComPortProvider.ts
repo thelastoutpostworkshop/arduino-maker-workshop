@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { arduinoProject, executeArduinoCommand } from './extension';
 import { cliCommandArduino } from './ArduinoProject';
 
-class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
+export class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<ComPortItem | undefined | null | void> = new vscode.EventEmitter<ComPortItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<ComPortItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
@@ -47,7 +47,7 @@ class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
     }
 }
 
-class ComPortItem extends vscode.TreeItem {
+export class ComPortItem extends vscode.TreeItem {
     constructor(
         public readonly label: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState

@@ -29,9 +29,27 @@
         }
       ]
     },
-    "activationEvents": [
-      "onView:currentBoardView"
-    ],
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "comPortExplorer.command1",
+          "when": "viewItem == comPortView && viewItemContext == comPortItem",
+          "group": "inline"
+        },
+        {
+          "command": "comPortExplorer.command2",
+          "when": "viewItem == comPortView && viewItemContext == comPortItem",
+          "group": "inline"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "comPortExplorer.refresh",
+          "when": "view == comPortView",
+          "group": "navigation"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "vscode-arduino.compile",
@@ -57,6 +75,18 @@
         "command": "vscode-arduino.boardselect",
         "title": "Select a Board",
         "category": "Arduino"
+      },
+      {
+        "command": "comPortExplorer.refresh",
+        "title": "Refresh COM Ports"
+      },
+      {
+        "command": "comPortExplorer.command1",
+        "title": "Execute Command 1"
+      },
+      {
+        "command": "comPortExplorer.command2",
+        "title": "Execute Command 2"
       }
     ]
   },
