@@ -41,7 +41,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('comPortExplorer.selectPort', (item: ComPortItem) => {
 			if (loadArduinoConfiguration()) {
 				arduinoProject.setPort(item.label);
-				comPortProvider.setSelectedPort(item.portPath);
+				comPortProvider.setSelectedPort(item.label);
 			}
 		})
 	);

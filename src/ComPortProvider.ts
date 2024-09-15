@@ -7,7 +7,7 @@ export class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<ComPortItem | undefined | null | void> = new vscode.EventEmitter<ComPortItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<ComPortItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
-    private selectedPort: string | undefined;
+    private selectedPort: string | undefined = undefined;
 
     constructor() { }
 
@@ -16,8 +16,7 @@ export class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
     }
 
     getTreeItem(element: ComPortItem): vscode.TreeItem {
-        // Update the icon based on whether this is the selected port
-        if (element.portPath === this.selectedPort) {
+        if (this.selectedPort && element.label === this.selectedPort) {
           element.iconPath = new vscode.ThemeIcon('check');
         } else {
           element.iconPath = undefined;
@@ -86,7 +85,6 @@ class ComPortItem extends vscode.TreeItem {
         public readonly collapsibleState: vscode.TreeItemCollapsibleState
     ) {
         super(label, collapsibleState);
-
         this.contextValue = 'comPortItem';
         // Assign a command to the tree item to handle selection
         this.command = {
