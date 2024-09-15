@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { arduinoProject, executeArduinoCommand } from './extension';
+import { arduinoProject, executeArduinoCommand, loadArduinoConfiguration } from './extension';
 import { cliCommandArduino } from './ArduinoProject';
 
 export class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
@@ -22,6 +22,9 @@ export class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
             return [];
         } else {
             // Root elements: list COM ports
+            if(!loadArduinoConfiguration()) {
+              return[];  
+            }
             const portListCommand = arduinoProject.getPortListArguments();
             try {
                 const result = await executeArduinoCommand(`${cliCommandArduino}`, portListCommand, true);

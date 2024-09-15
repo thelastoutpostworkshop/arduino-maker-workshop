@@ -15,9 +15,9 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "arduinoBoards",
+          "id": "comPortExplorer",
           "title": "Arduino",
-          "icon": "images/arduino.svg"
+          "icon": "src/images/arduino.svg"
         }
       ]
     },

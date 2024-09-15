@@ -38,7 +38,7 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 }
 
-function loadArduinoConfiguration(): boolean {
+export function loadArduinoConfiguration(): boolean {
 	arduinoProject = new ArduinoProject();
 
 	const res = arduinoProject.isFolderArduinoProject();
