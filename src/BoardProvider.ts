@@ -13,18 +13,20 @@ export class BoardProvider implements vscode.TreeDataProvider<BoardItem> {
     private boardStructure: { [platform: string]: { name: string; fqbn: string }[] } = {};
     private dataFetched: boolean = false;
     private filterString: string = '';
+
     private _view: vscode.TreeView<BoardItem>;
 
     constructor() {
         this._view = vscode.window.createTreeView('boardSelectorView', {
             treeDataProvider: this,
-            showCollapseAll: true
+            showCollapseAll: true,
         });
     }
 
     public refresh(): void {
-        this._onDidChangeTreeData.fire();
-        // Optionally update the view title
+        this._onDidChangeTreeData.fire(undefined);
+
+        // Update the view title to show the filter (optional)
         if (this._view) {
             this._view.title = this.filterString
                 ? `Board Selector (Filter: ${this.filterString})`
@@ -32,35 +34,19 @@ export class BoardProvider implements vscode.TreeDataProvider<BoardItem> {
         }
     }
 
-
     getTreeItem(element: BoardItem): vscode.TreeItem {
-        return element;
-    }
+        // Create a new TreeItem with the updated collapsibleState
+        const treeItem = new vscode.TreeItem(
+            element.label,
+            element.collapsibleState
+        );
 
-    public clearFilter(): void {
-        this.filterString = '';
-        this.refresh();
-    }
+        treeItem.contextValue = element.contextValue;
+        treeItem.command = element.command;
+        treeItem.iconPath = element.iconPath;
+        treeItem.id = element.id;
 
-    public showFilterInput(): void {
-        const inputBox = vscode.window.createInputBox();
-        inputBox.placeholder = 'Type to filter boards';
-        inputBox.value = this.filterString;
-
-        inputBox.onDidChangeValue((value) => {
-            this.filterString = value;
-            this.refresh();
-        });
-
-        inputBox.onDidAccept(() => {
-            inputBox.dispose();
-        });
-
-        inputBox.onDidHide(() => {
-            inputBox.dispose();
-        });
-
-        inputBox.show();
+        return treeItem;
     }
 
     async getChildren(element?: BoardItem): Promise<BoardItem[]> {
@@ -119,23 +105,26 @@ export class BoardProvider implements vscode.TreeDataProvider<BoardItem> {
 
     private getPlatforms(): BoardItem[] {
         const platformNames = Object.keys(this.boardStructure);
-      
+
         // Sort platform names alphabetically
         platformNames.sort((a, b) => a.localeCompare(b));
-      
+
         return platformNames.map((platformName) => {
-          const hasMatchingBoards = this.boardStructure[platformName].some((boardInfo) =>
-            boardInfo.name.toLowerCase().includes(this.filterString.toLowerCase())
-          );
-      
-          const collapsibleState = hasMatchingBoards
-            ? vscode.TreeItemCollapsibleState.Expanded
-            : vscode.TreeItemCollapsibleState.Collapsed;
-      
-          return new BoardItem(platformName, collapsibleState, 'platform');
+            let collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+
+            if (this.filterString.trim() !== '') {
+                const hasMatchingBoards = this.boardStructure[platformName].some((boardInfo) =>
+                    boardInfo.name.toLowerCase().includes(this.filterString.toLowerCase())
+                );
+
+                if (!hasMatchingBoards) {
+                    collapsibleState = vscode.TreeItemCollapsibleState.None;
+                }
+            }
+
+            return new BoardItem(platformName, collapsibleState, 'platform');
         });
-      }
-      
+    }
 
     private getBoardsUnderPlatform(platformName: string): BoardItem[] {
         const boards = this.boardStructure[platformName] || [];
@@ -158,6 +147,58 @@ export class BoardProvider implements vscode.TreeDataProvider<BoardItem> {
         );
     }
 
+    public showFilterInput(): void {
+        const inputBox = vscode.window.createInputBox();
+        inputBox.placeholder = 'Type to filter boards';
+        inputBox.value = this.filterString;
+
+        inputBox.onDidChangeValue(async (value) => {
+            this.filterString = value;
+            this.refresh();
+
+            // Expand matching platforms after a brief delay
+            setTimeout(() => {
+                this.expandMatchingPlatforms();
+            }, 100);
+        });
+
+        inputBox.onDidAccept(() => {
+            inputBox.dispose();
+        });
+
+        inputBox.onDidHide(() => {
+            inputBox.dispose();
+        });
+
+        inputBox.show();
+    }
+
+    private expandMatchingPlatforms(): void {
+        if (this.filterString.trim() === '') {
+            // Do not expand platforms when the filter is empty
+            return;
+        }
+
+        const platformItems = this.getPlatforms();
+
+        for (const platformItem of platformItems) {
+            const hasMatchingBoards = this.boardStructure[platformItem.label].some((boardInfo) =>
+                boardInfo.name.toLowerCase().includes(this.filterString.toLowerCase())
+            );
+
+            if (hasMatchingBoards) {
+                // Programmatically expand the platform
+                this._view.reveal(platformItem, { expand: true }).catch((error) => {
+                    // Handle any errors (e.g., item not found)
+                });
+            }
+        }
+    }
+
+    public clearFilter(): void {
+        this.filterString = '';
+        this.refresh();
+    }
 }
 
 export class BoardItem extends vscode.TreeItem {
@@ -174,8 +215,27 @@ export class BoardItem extends vscode.TreeItem {
             this.command = {
                 command: 'boardSelector.selectBoard',
                 title: 'Select Board',
-                arguments: [this]
+                arguments: [this],
             };
         }
+
+        // Optionally set an icon
+        if (this.contextValue === 'platform') {
+            this.iconPath = new vscode.ThemeIcon('layers');
+        } else if (this.contextValue === 'board') {
+            this.iconPath = new vscode.ThemeIcon('circuit-board');
+        }
+
+        // Assign a unique ID
+        this.id = this.getId();
+    }
+
+    private getId(): string {
+        if (this.contextValue === 'platform') {
+            return `platform_${this.label}`;
+        } else if (this.contextValue === 'board') {
+            return `board_${this.fqbn}`;
+        }
+        return `item_${this.label}`;
     }
 }
