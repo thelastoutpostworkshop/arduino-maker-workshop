@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { arduinoProject, executeArduinoCommand, loadArduinoConfiguration } from './extension';
 import { cliCommandArduino } from './ArduinoProject';
+import { isErrored } from 'stream';
 
 export class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<ComPortItem | undefined | null | void> = new vscode.EventEmitter<ComPortItem | undefined | null | void>();
@@ -27,7 +28,7 @@ export class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
             }
             const portListCommand = arduinoProject.getPortListArguments();
             try {
-                const result = await executeArduinoCommand(`${cliCommandArduino}`, portListCommand, true);
+                const result = await executeArduinoCommand(`${cliCommandArduino}`, portListCommand, true,false);
                 if (result) {
                     const ports = JSON.parse(result).detected_ports;
 
@@ -65,7 +66,9 @@ class ComPortItem extends vscode.TreeItem {
       super(label, collapsibleState);
   
       this.contextValue = 'comPortItem';
-      this.iconPath = new vscode.ThemeIcon('check');
+      if(isSelected) {
+          this.iconPath = new vscode.ThemeIcon('check');
+      }
       // Assign a command to the tree item to handle selection
       this.command = {
         command: 'comPortExplorer.selectPort',

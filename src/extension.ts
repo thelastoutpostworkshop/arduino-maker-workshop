@@ -39,9 +39,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('comPortExplorer.selectPort', (item: ComPortItem) => {
-			if(loadArduinoConfiguration()) {
+			if (loadArduinoConfiguration()) {
 				vscode.window.showInformationMessage(`Selected COM Port: ${arduinoProject.getPort()}`);
-	
+
 				// Refresh the tree view to update the display
 				comPortProvider.refresh();
 			}
@@ -565,9 +565,11 @@ function vsCommandCompile(): vscode.Disposable {
 	});
 }
 
-export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false): Promise<string | void> {
+export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true): Promise<string | void> {
 	outputChannel.clear();
-	outputChannel.show(true);
+	if (showOutput) {
+		outputChannel.show(true);
+	}
 	outputChannel.appendLine('Running Arduino CLI...');
 	outputChannel.appendLine(`${command}`);
 	outputChannel.appendLine(args.join(' '));
@@ -600,7 +602,7 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 		child.on('close', (code: number) => {
 			if (code === 0) {
 				// Successful completion
-				vscode.window.showInformationMessage('Command executed successfully.');
+				// vscode.window.showInformationMessage('Command executed successfully.');
 				resolve(returnOutput ? outputBuffer : undefined);
 			} else {
 				// Command failed
