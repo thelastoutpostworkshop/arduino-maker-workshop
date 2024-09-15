@@ -113,7 +113,8 @@
       },
       {
         "command": "boardSelector.refresh",
-        "title": "Refresh Boards"
+        "title": "Refresh Boards",
+        "icon": "$(refresh)"
       }
     ]
   },
