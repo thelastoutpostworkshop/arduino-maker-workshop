@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
-import { ComPortProvider,ComPortItem } from './ComPortProvider';
+import { ComPortProvider, ComPortItem } from './ComPortProvider';
 const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -34,6 +34,17 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('comPortExplorer.command2', (item: ComPortItem) => {
 			vscode.window.showInformationMessage(`Command 2 executed on ${item.label}`);
+		})
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('comPortExplorer.selectPort', (item: ComPortItem) => {
+			if(loadArduinoConfiguration()) {
+				vscode.window.showInformationMessage(`Selected COM Port: ${arduinoProject.getPort()}`);
+	
+				// Refresh the tree view to update the display
+				comPortProvider.refresh();
+			}
 		})
 	);
 }

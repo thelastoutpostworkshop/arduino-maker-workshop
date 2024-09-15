@@ -35,7 +35,12 @@ export class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
                         vscode.window.showInformationMessage('No ports detected.');
                         return [];
                     }
-                    return ports.map(port => new ComPortItem(port.port.label, vscode.TreeItemCollapsibleState.None));
+ 
+                    return ports.map(port => {
+                        const isSelected = port.port.label === arduinoProject.getPort();
+                        const label = port.port.label;
+                        return new ComPortItem(label, port.path,isSelected, vscode.TreeItemCollapsibleState.None);
+                      });
                 } else {
                     vscode.window.showErrorMessage('Failed to retrieve port list.');
                     return [];
@@ -50,12 +55,22 @@ export class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
     }
 }
 
-export class ComPortItem extends vscode.TreeItem {
+class ComPortItem extends vscode.TreeItem {
     constructor(
-        public readonly label: string,
-        public readonly collapsibleState: vscode.TreeItemCollapsibleState
+      public readonly label: string,
+      public readonly portPath: string,
+      public readonly isSelected:boolean,
+      public readonly collapsibleState: vscode.TreeItemCollapsibleState
     ) {
-        super(label, collapsibleState);
-        this.contextValue = 'comPortItem';
+      super(label, collapsibleState);
+  
+      this.contextValue = 'comPortItem';
+      this.iconPath = new vscode.ThemeIcon('check');
+      // Assign a command to the tree item to handle selection
+      this.command = {
+        command: 'comPortExplorer.selectPort',
+        title: 'Select COM Port',
+        arguments: [this]
+      };
     }
-}
+  }

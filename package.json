@@ -81,6 +81,10 @@
         "title": "Refresh COM Ports"
       },
       {
+        "command": "comPortExplorer.selectPort",
+        "title": "Select COM Port"
+      },
+      {
         "command": "comPortExplorer.command1",
         "title": "Execute Command 1"
       },
