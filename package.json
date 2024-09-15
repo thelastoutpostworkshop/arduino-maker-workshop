@@ -3,7 +3,7 @@
   "displayName": "VSCode Arduino",
   "description": "",
   "version": "0.0.3",
-  "icon": "icon.png",
+  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -12,6 +12,26 @@
   ],
   "main": "./build/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "arduinoBoards",
+          "title": "Arduino",
+          "icon": "images/arduino.svg"
+        }
+      ]
+    },
+    "views": {
+      "arduinoBoards": [
+        {
+          "id": "portSettingView",
+          "name": "Select Port"
+        }
+      ]
+    },
+    "activationEvents": [
+      "onView:portSettingView"
+    ],
     "commands": [
       {
         "command": "vscode-arduino.compile",

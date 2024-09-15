@@ -15,6 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vsCommandPort());
 	context.subscriptions.push(vsCommandBoardConfiguration(context));
 	context.subscriptions.push(vsCommandBoardSelection(context));
+	
 }
 
 function loadArduinoConfiguration(): boolean {
