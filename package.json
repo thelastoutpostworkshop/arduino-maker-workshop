@@ -78,7 +78,8 @@
       },
       {
         "command": "comPortExplorer.refresh",
-        "title": "Refresh COM Ports"
+        "title": "Refresh COM Ports",
+        "icon": "$(refresh)"
       },
       {
         "command": "comPortExplorer.selectPort",
