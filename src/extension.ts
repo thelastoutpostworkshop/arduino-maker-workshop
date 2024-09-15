@@ -15,63 +15,6 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vsCommandPort());
 	context.subscriptions.push(vsCommandBoardConfiguration(context));
 	context.subscriptions.push(vsCommandBoardSelection(context));
-    const provider = new BoardSelectionViewProvider(context);
-
-    // Register the Webview view provider
-    context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider('currentBoardView', provider)
-    );
-}
-
-class BoardSelectionViewProvider implements vscode.WebviewViewProvider {
-
-    constructor(private readonly context: vscode.ExtensionContext) {}
-
-    async resolveWebviewView(webviewView: vscode.WebviewView) {
-        webviewView.webview.options = {
-            enableScripts: true,
-        };
-
-        // Call your initialization process here
-        const selectedBoard = await this.initializeAndGetBoard();
-
-        // Render HTML that shows the current selected board
-        webviewView.webview.html = this.getBoardHtml(selectedBoard);
-
-        // Handle any messages sent from the webview
-        webviewView.webview.onDidReceiveMessage(message => {
-            // Handle commands/messages here
-        });
-    }
-
-    // Simulate the initialization process and return the selected board
-    async initializeAndGetBoard(): Promise<string> {
-        try {
-            const configLoaded = loadArduinoConfiguration();
-            if (!configLoaded) {
-                vscode.window.showErrorMessage("Failed to load Arduino configuration.");
-                return "No board selected.";
-            }
-
-            // Simulating fetching selected board
-            const selectedBoard = arduinoProject.getBoard(); // Replace with actual method
-            return selectedBoard ? selectedBoard : "No board selected.";
-        } catch (error) {
-            vscode.window.showErrorMessage(`Error during initialization: ${error}`);
-            return "Initialization failed.";
-        }
-    }
-
-    // Generate simple HTML showing the selected board
-    getBoardHtml(selectedBoard: string): string {
-        return `
-            <html>
-                <body>
-                    <h1>Selected Board</h1>
-                    <p>${selectedBoard}</p>
-                </body>
-            </html>`;
-    }
 }
 
 function loadArduinoConfiguration(): boolean {
