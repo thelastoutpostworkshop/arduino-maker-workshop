@@ -26,6 +26,10 @@
         {
           "id": "comPortView",
           "name": "Com Ports"
+        },
+        {
+          "id": "boardSelectorView",
+          "name": "Board Selector"
         }
       ]
     },
@@ -40,12 +44,22 @@
           "command": "comPortSelector.command2",
           "when": "viewItem == comPortView && viewItemContext == comPortItem",
           "group": "inline"
+        },
+        {
+          "command": "boardSelector.selectOption",
+          "when": "viewItem == boardSelectorView && viewItemContext == option",
+          "group": "navigation"
         }
       ],
       "view/title": [
         {
           "command": "comPortSelector.refresh",
           "when": "view == comPortView",
+          "group": "navigation"
+        },
+        {
+          "command": "boardSelector.refresh",
+          "when": "view == boardSelectorView",
           "group": "navigation"
         }
       ]
@@ -92,6 +106,14 @@
       {
         "command": "comPortSelector.command2",
         "title": "Execute Command 2"
+      },
+      {
+        "command": "boardSelector.selectOption",
+        "title": "Select Option"
+      },
+      {
+        "command": "boardSelector.refresh",
+        "title": "Refresh Boards"
       }
     ]
   },

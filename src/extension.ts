@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
 import { ComPortProvider } from './ComPortProvider';
+import { BoardProvider,BoardItem } from './BoardProvider';
+
 const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -45,6 +47,26 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		})
 	);
+
+	 // Register the BoardProvider
+	 const boardProvider = new BoardProvider();
+	 vscode.window.registerTreeDataProvider('boardSelectorView', boardProvider);
+   
+	 // Register commands for board selection
+	 context.subscriptions.push(
+	   vscode.commands.registerCommand('boardSelector.selectOption', (item: BoardItem) => {
+		 vscode.window.showInformationMessage(`Selected Option: ${item.label}`);
+		 // Implement your logic for when an option is selected
+	   })
+	 );
+   
+	 // Optional: Command to refresh the board view
+	 context.subscriptions.push(
+	   vscode.commands.registerCommand('boardSelector.refresh', () => {
+		 boardProvider.refresh();
+	   })
+	 );
+   
 }
 
 export function loadArduinoConfiguration(): boolean {
@@ -610,7 +632,7 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 		});
 
 		// Handle error event in case the command fails to start
-		child.on('error', (err) => {
+		child.on('error', (err:any) => {
 			vscode.window.showErrorMessage(`Failed to run command: ${err.message}`);
 			reject(`Failed to run command: ${err.message}`);
 		});
