@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
-import { ComPortProvider, ComPortItem } from './ComPortProvider';
+import { ComPortProvider } from './ComPortProvider';
 const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -26,22 +26,22 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('comPortExplorer.command1', (item: ComPortItem) => {
-			vscode.window.showInformationMessage(`Command 1 executed on ${item.label}`);
+		vscode.commands.registerCommand('comPortExplorer.command1', () => {
+			vscode.window.showInformationMessage(`Command 1 executed on `);
 		})
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('comPortExplorer.command2', (item: ComPortItem) => {
-			vscode.window.showInformationMessage(`Command 2 executed on ${item.label}`);
+		vscode.commands.registerCommand('comPortExplorer.command2', () => {
+			vscode.window.showInformationMessage(`Command 2 executed on }`);
 		})
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('comPortExplorer.selectPort', (item: ComPortItem) => {
+		vscode.commands.registerCommand('comPortExplorer.selectPort', (item) => {
 			if (loadArduinoConfiguration()) {
 				arduinoProject.setPort(item.label);
-				comPortProvider.setSelectedPort(item.label);
+				comPortProvider.refresh();
 			}
 		})
 	);

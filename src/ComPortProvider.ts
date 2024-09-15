@@ -7,8 +7,6 @@ export class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<ComPortItem | undefined | null | void> = new vscode.EventEmitter<ComPortItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<ComPortItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
-    private selectedPort: string | undefined = undefined;
-
     constructor() { }
 
     refresh(): void {
@@ -16,7 +14,10 @@ export class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
     }
 
     getTreeItem(element: ComPortItem): vscode.TreeItem {
-        if (this.selectedPort && element.label === this.selectedPort) {
+        if (!loadArduinoConfiguration()) {
+            return element;;
+        }
+        if (element.label === arduinoProject.getPort()) {
           element.iconPath = new vscode.ThemeIcon('check');
         } else {
           element.iconPath = undefined;
@@ -24,16 +25,16 @@ export class ComPortProvider implements vscode.TreeDataProvider<ComPortItem> {
         return element;
       }
 
-    public setSelectedPort(port: string) {
-        const previousPort = this.selectedPort;
-        this.selectedPort = port;
+    // public setSelectedPort(port: string) {
+    //     const previousPort = this.selectedPort;
+    //     this.selectedPort = port;
 
-        // Notify that the previous and new selected items have changed
-        if (previousPort) {
-            this._onDidChangeTreeData.fire(this.createComPortItem(previousPort));
-        }
-        this._onDidChangeTreeData.fire(this.createComPortItem(port));
-    }
+    //     // Notify that the previous and new selected items have changed
+    //     if (previousPort) {
+    //         this._onDidChangeTreeData.fire(this.createComPortItem(previousPort));
+    //     }
+    //     this._onDidChangeTreeData.fire(this.createComPortItem(port));
+    // }
 
     // Helper method to create a ComPortItem
     private createComPortItem(portPath: string): ComPortItem {
