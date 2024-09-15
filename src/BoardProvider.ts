@@ -1,4 +1,6 @@
 // BoardProvider.ts
+import { loadArduinoConfiguration } from './extension';
+import { arduinoProject } from './extension';
 import * as vscode from 'vscode';
 
 export class BoardProvider implements vscode.TreeDataProvider<BoardItem> {
@@ -17,7 +19,7 @@ export class BoardProvider implements vscode.TreeDataProvider<BoardItem> {
     return element;
   }
 
-  getChildren(element?: BoardItem): Thenable<BoardItem[]> {
+   getChildren(element?: BoardItem): Thenable<BoardItem[]> {
     if (element) {
       // Return children of the given element
       return Promise.resolve(this.getBoardChildren(element));
@@ -29,6 +31,9 @@ export class BoardProvider implements vscode.TreeDataProvider<BoardItem> {
 
   private getBoards(): BoardItem[] {
     // Replace with actual logic to retrieve boards
+    if (!loadArduinoConfiguration()) {
+        return [];
+    }
     return [
       new BoardItem('Arduino Uno', vscode.TreeItemCollapsibleState.Collapsed, 'board'),
       new BoardItem('Arduino Mega', vscode.TreeItemCollapsibleState.Collapsed, 'board'),
