@@ -22,10 +22,16 @@ export class BoardProvider implements vscode.TreeDataProvider<BoardItem> {
         });
     }
 
-    refresh(): void {
-        this._view.title = this.filterString ? `Board Selector (Filtered)` : `Board Selector`;
+    public refresh(): void {
         this._onDidChangeTreeData.fire();
-      }
+        // Optionally update the view title
+        if (this._view) {
+            this._view.title = this.filterString
+                ? `Board Selector (Filter: ${this.filterString})`
+                : 'Board Selector';
+        }
+    }
+
 
     getTreeItem(element: BoardItem): vscode.TreeItem {
         return element;
@@ -65,11 +71,13 @@ export class BoardProvider implements vscode.TreeDataProvider<BoardItem> {
 
         if (element) {
             if (element.contextValue === 'platform') {
+                // Return boards under the platform
                 return this.getBoardsUnderPlatform(element.label);
             } else {
                 return [];
             }
         } else {
+            // Return root elements (platforms)
             return this.getPlatforms();
         }
     }
@@ -112,19 +120,14 @@ export class BoardProvider implements vscode.TreeDataProvider<BoardItem> {
     private getPlatforms(): BoardItem[] {
         const platformNames = Object.keys(this.boardStructure);
 
-        // Filter and sort platforms
-        const filteredPlatforms = platformNames
-            .filter((platformName) =>
-                platformName.toLowerCase().includes(this.filterString.toLowerCase())
-            )
-            .sort((a, b) => a.localeCompare(b));
+        // Sort platform names alphabetically
+        platformNames.sort((a, b) => a.localeCompare(b));
 
-        return filteredPlatforms.map(
+        return platformNames.map(
             (platformName) =>
                 new BoardItem(platformName, vscode.TreeItemCollapsibleState.Collapsed, 'platform')
         );
     }
-
 
     private getBoardsUnderPlatform(platformName: string): BoardItem[] {
         const boards = this.boardStructure[platformName] || [];
@@ -146,6 +149,7 @@ export class BoardProvider implements vscode.TreeDataProvider<BoardItem> {
                 )
         );
     }
+
 }
 
 export class BoardItem extends vscode.TreeItem {
