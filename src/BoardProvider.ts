@@ -82,58 +82,33 @@ export class BoardProvider implements vscode.TreeDataProvider<BoardItem> {
 
     private getPlatforms(): BoardItem[] {
         const platformNames = Object.keys(this.boardStructure);
+      
+        // Sort platform names alphabetically
+        platformNames.sort((a, b) => a.localeCompare(b));
+      
         return platformNames.map(
-            (platformName) =>
-                new BoardItem(platformName, vscode.TreeItemCollapsibleState.Collapsed, 'platform')
+          (platformName) =>
+            new BoardItem(platformName, vscode.TreeItemCollapsibleState.Collapsed, 'platform')
         );
-    }
+      }
+      
 
-    private getBoardsUnderPlatform(platformName: string): BoardItem[] {
+      private getBoardsUnderPlatform(platformName: string): BoardItem[] {
         const boards = this.boardStructure[platformName] || [];
+      
+        // Sort boards alphabetically by name
+        boards.sort((a, b) => a.name.localeCompare(b.name));
+      
         return boards.map(
-            (boardInfo) =>
-                new BoardItem(
-                    boardInfo.name,
-                    vscode.TreeItemCollapsibleState.None,
-                    'board',
-                    boardInfo.fqbn
-                )
+          (boardInfo) =>
+            new BoardItem(
+              boardInfo.name,
+              vscode.TreeItemCollapsibleState.None,
+              'board',
+              boardInfo.fqbn
+            )
         );
-    }
-    private getBoards(): BoardItem[] {
-        // Replace with actual logic to retrieve boards
-        if (!loadArduinoConfiguration()) {
-            return [];
-        }
-        return [
-            new BoardItem('Arduino Uno', vscode.TreeItemCollapsibleState.Collapsed, 'board'),
-            new BoardItem('Arduino Mega', vscode.TreeItemCollapsibleState.Collapsed, 'board'),
-            new BoardItem('ESP32', vscode.TreeItemCollapsibleState.Collapsed, 'board')
-        ];
-    }
-
-    private getBoardChildren(element: BoardItem): BoardItem[] {
-        // Replace with actual logic to retrieve children based on the board
-        if (element.label === 'Arduino Uno') {
-            return [
-                new BoardItem('Option A', vscode.TreeItemCollapsibleState.None, 'option'),
-                new BoardItem('Option B', vscode.TreeItemCollapsibleState.None, 'option')
-            ];
-        }
-        if (element.label === 'Arduino Mega') {
-            return [
-                new BoardItem('Option C', vscode.TreeItemCollapsibleState.None, 'option'),
-                new BoardItem('Option D', vscode.TreeItemCollapsibleState.None, 'option')
-            ];
-        }
-        if (element.label === 'ESP32') {
-            return [
-                new BoardItem('Option E', vscode.TreeItemCollapsibleState.None, 'option'),
-                new BoardItem('Option F', vscode.TreeItemCollapsibleState.None, 'option')
-            ];
-        }
-        return [];
-    }
+      }
 }
 
 export class BoardItem extends vscode.TreeItem {
