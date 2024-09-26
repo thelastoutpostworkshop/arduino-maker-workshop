@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
 import { ComPortProvider } from './ComPortProvider';
 import { BoardProvider, BoardItem } from './BoardProvider';
+import { VueWebviewPanel } from './VueWebviewPanel';
+
 
 const cp = require('child_process');
 const fs = require('fs');
@@ -47,6 +49,12 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		})
 	);
+
+	context.subscriptions.push(
+        vscode.commands.registerCommand('extension.openVueWebview', () => {
+            VueWebviewPanel.createOrShow(context);
+        })
+    );
 
 	// Register the BoardProvider
 	const boardProvider = new BoardProvider();

@@ -33,6 +33,9 @@
         }
       ]
     },
+    "activationEvents": [
+      "onCommand:extension.openVueWebview"
+    ],
     "menus": {
       "view/item/context": [
         {
@@ -75,6 +78,11 @@
       ]
     },
     "commands": [
+      {
+        "command": "extension.openVueWebview",
+        "title": "Open Vue Webview",
+        "category": "Arduino"
+      },
       {
         "command": "vscode-arduino.compile",
         "title": "Compile",
