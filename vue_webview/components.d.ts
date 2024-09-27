@@ -8,5 +8,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Arduino: typeof import('./src/components/Arduino.vue')['default']
+    Toolbar: typeof import('./src/components/toolbar.vue')['default']
   }
 }
