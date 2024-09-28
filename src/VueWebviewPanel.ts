@@ -27,7 +27,7 @@ export class VueWebviewPanel {
 
         // Dispose of resources when the panel is closed
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
-        this._panel.webview.html = this._getWebviewContent(this._panel.webview,extensionUri);
+        this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
     }
 
     public static render(extensionUri: Uri) {
@@ -45,9 +45,9 @@ export class VueWebviewPanel {
                     enableScripts: true,
                     // retainContextWhenHidden: true,
                     localResourceRoots: [
-                        Uri.joinPath(extensionUri,"build"),
-                        Uri.joinPath(extensionUri,"vue_webview/dist")
-                      ],
+                        Uri.joinPath(extensionUri, "build"),
+                        Uri.joinPath(extensionUri, "vue_webview/dist")
+                    ],
                 }
             );
 
@@ -84,16 +84,9 @@ export class VueWebviewPanel {
             <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'nonce-${nonce}'; font-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
             <link rel="stylesheet" type="text/css" href="${stylesUri}">
             <title>Arduino</title>
-            <!-- <style nonce="${nonce}">
-              @font-face {
-                font-family: "codicon";
-                font-display: block;
-                src: url("${codiconFontUri}") format("truetype");
-              }
-            </style> -->
-          </head>
-          <body>
-            <div id="root"></div>
+        </head>
+        <body>
+            <div id="app"></div>
             <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
           </body>
         </html>
