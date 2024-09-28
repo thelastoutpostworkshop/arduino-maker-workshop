@@ -25,6 +25,8 @@ export class VueWebviewPanel {
                     enableScripts: true,
                     localResourceRoots: [
                         vscode.Uri.joinPath(extensionContext.extensionUri, 'vue_webview', 'dist'),
+                        vscode.Uri.joinPath(extensionContext.extensionUri, 'vue_webview', 'dist', 'assets'),
+
                     ],
                 }
             );
