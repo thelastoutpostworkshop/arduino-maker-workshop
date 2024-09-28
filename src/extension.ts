@@ -52,7 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
         vscode.commands.registerCommand('extension.openVueWebview', () => {
-            VueWebviewPanel.createOrShow(context);
+            VueWebviewPanel.render(context.extensionUri);
         })
     );
 

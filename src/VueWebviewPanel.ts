@@ -1,55 +1,20 @@
 // src/VueWebviewPanel.ts
 
-import * as vscode from 'vscode';
+import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vscode";
+import { getUri } from "./utilities/getUri";
+import { getNonce } from "./utilities/getNonce";
+
 const path = require('path');
 const fs = require('fs');
 
 export class VueWebviewPanel {
 
-    private readonly _panel: vscode.WebviewPanel;
-    private readonly _extensionContext: vscode.ExtensionContext;
-    private _disposables: vscode.Disposable[] = [];
+    private readonly _panel: WebviewPanel;
+    private _disposables: Disposable[] = [];
     public static currentPanel: VueWebviewPanel | undefined;
 
-
-    public static createOrShow(extensionContext: vscode.ExtensionContext) {
-        const column = vscode.window.activeTextEditor
-            ? vscode.window.activeTextEditor.viewColumn
-            : undefined;
-
-
-        // If we already have a panel, show it.
-        if (VueWebviewPanel.currentPanel) {
-            VueWebviewPanel.currentPanel._panel.reveal(column);
-        } else {
-            // Otherwise, create a new panel.
-            const panel = vscode.window.createWebviewPanel(
-                'vueWebview', // Identifies the type of the webview. Used internally
-                'Vue Webview', // Title of the panel displayed to the user
-                column || vscode.ViewColumn.One,
-                {
-                    enableScripts: true,
-                    retainContextWhenHidden: true,
-                    // localResourceRoots: [
-                    //     // vscode.Uri.joinPath(extensionContext.extensionUri),
-                    //     vscode.Uri.joinPath(extensionContext.extensionUri, 'vue_webview', 'dist','assets'),
-                    //     // vscode.Uri.joinPath(extensionContext.extensionUri, 'assets'),
-                    //   ],
-                }
-            );
-
-            VueWebviewPanel.currentPanel = new VueWebviewPanel(panel, extensionContext);
-        }
-    }
-
-
-
-    private constructor(panel: vscode.WebviewPanel, extensionContext: vscode.ExtensionContext) {
+    private constructor(panel: WebviewPanel, extensionUri: Uri) {
         this._panel = panel;
-        this._extensionContext = extensionContext;
-
-        // Set the webview's initial html content
-        this._panel.webview.html = this._getHtmlForWebview();
 
         // Handle messages from the webview
         this._panel.webview.onDidReceiveMessage(
@@ -62,6 +27,32 @@ export class VueWebviewPanel {
 
         // Dispose of resources when the panel is closed
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+        this._panel.webview.html = this._getWebviewContent(this._panel.webview,extensionUri);
+    }
+
+    public static render(extensionUri: Uri) {
+
+        // If we already have a panel, show it.
+        if (VueWebviewPanel.currentPanel) {
+            VueWebviewPanel.currentPanel._panel.reveal(ViewColumn.One);
+        } else {
+            // Otherwise, create a new panel.
+            const panel = window.createWebviewPanel(
+                'vueWebview', // Identifies the type of the webview. Used internally
+                'Vue Webview', // Title of the panel displayed to the user
+                ViewColumn.One,
+                {
+                    enableScripts: true,
+                    // retainContextWhenHidden: true,
+                    localResourceRoots: [
+                        Uri.joinPath(extensionUri,"build"),
+                        Uri.joinPath(extensionUri,"vue_webview/dist")
+                      ],
+                }
+            );
+
+            VueWebviewPanel.currentPanel = new VueWebviewPanel(panel, extensionUri);
+        }
     }
 
     public dispose() {
@@ -78,26 +69,38 @@ export class VueWebviewPanel {
         }
     }
 
-    private _getHtmlForWebview() {
-        const webview = this._panel.webview;
+    private _getWebviewContent(webview: Webview, extensionUri: Uri) {
+        const stylesUri = getUri(webview, extensionUri, ["vue_webview", "dist", "assets", "index.css"]);
+        const scriptUri = getUri(webview, extensionUri, ["vue_webview", "dist", "assets", "index.js"]);
 
-        // Path to the built index.html file
-        const indexPath = vscode.Uri.joinPath(
-            this._extensionContext.extensionUri,
-            'vue_webview',
-            'dist',
-            'index.html'
-        );
+        const nonce = getNonce();
 
-        let html = fs.readFileSync(indexPath.fsPath, 'utf8');
-
-        // Update the HTML to load resources correctly in the webview
-        html = this._updateHtmlForWebview(html, webview);
-
-        return html;
+        return /*html*/ `
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'nonce-${nonce}'; font-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+            <link rel="stylesheet" type="text/css" href="${stylesUri}">
+            <title>Arduino</title>
+            <!-- <style nonce="${nonce}">
+              @font-face {
+                font-family: "codicon";
+                font-display: block;
+                src: url("${codiconFontUri}") format("truetype");
+              }
+            </style> -->
+          </head>
+          <body>
+            <div id="root"></div>
+            <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
+          </body>
+        </html>
+      `;
     }
 
-    private _updateHtmlForWebview(html: string, webview: vscode.Webview): string {
+    private _updateHtmlForWebview(html: string, webview: Webview): string {
 
         const nonce = getNonce();
 
@@ -125,14 +128,4 @@ export class VueWebviewPanel {
         return html;
     }
 
-}
-
-export function getNonce() {
-    let text = '';
-    const possible =
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (let i = 0; i < 32; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
 }
