@@ -17,6 +17,7 @@ export class VueWebviewPanel {
             ? vscode.window.activeTextEditor.viewColumn
             : undefined;
 
+
         // If we already have a panel, show it.
         if (VueWebviewPanel.currentPanel) {
             VueWebviewPanel.currentPanel._panel.reveal(column);
@@ -29,10 +30,11 @@ export class VueWebviewPanel {
                 {
                     enableScripts: true,
                     retainContextWhenHidden: true,
-                    localResourceRoots: [
-                        vscode.Uri.joinPath(extensionContext.extensionUri,'dist','assets'),
-    
-                    ],
+                    // localResourceRoots: [
+                    //     // vscode.Uri.joinPath(extensionContext.extensionUri),
+                    //     vscode.Uri.joinPath(extensionContext.extensionUri, 'vue_webview', 'dist','assets'),
+                    //     // vscode.Uri.joinPath(extensionContext.extensionUri, 'assets'),
+                    //   ],
                 }
             );
 
@@ -95,35 +97,29 @@ export class VueWebviewPanel {
         return html;
     }
 
-    private _updateHtmlForWebview(html: string, webview: vscode.Webview): string {
-        // Replace resource paths
-        html = html.replace(/(["'])(\/?assets\/.+?\.(?:js|css|png|jpg|gif|svg))\1/g, (match, p1, p2) => {
-            const resourcePath = vscode.Uri.joinPath(
-                this._extensionContext.extensionUri,
-                'vue_webview',
-                'dist',
-                p2
-            );
-            const webviewUri = webview.asWebviewUri(resourcePath);
-            return `${p1}${webviewUri.toString()}${p1}`;
-        });
+    private  getUri(webview: vscode.Webview, pathList: string[]) {
+        return webview.asWebviewUri(this._extensionContext.extensionUri.joinPath(extensionUri, ...pathList));
+    }
 
-        // Generate a nonce
+    private _updateHtmlForWebview(html: string, webview: vscode.Webview): string {
+
+        const webviewUri = getUri(webview, extensionUri, ["out", "webview.js"]);
+        const styleUri = getUri(webview, extensionUri, ["out", "style.css"]);
         const nonce = getNonce();
 
         // Inject CSP meta tag
         html = html.replace(
-            /<meta charset="UTF-8">/,
+            /<meta charset="UTF-8"\s*\/?>/,
             `<meta charset="UTF-8">
-      <meta http-equiv="Content-Security-Policy" content="
-        default-src 'none';
-        img-src ${webview.cspSource} https:;
-        script-src 'nonce-${nonce}' ${webview.cspSource};
-        style-src 'nonce-${nonce}' ${webview.cspSource} 'unsafe-inline';
-        font-src ${webview.cspSource};
-        connect-src ${webview.cspSource};
-      ">
-      `
+        <meta http-equiv="Content-Security-Policy" content="
+            default-src 'none';
+            script-src 'nonce-${nonce}';
+            style-src ${webview.cspSource};
+            font-src ${webview.cspSource};
+            img-src ${webview.cspSource} https:;
+            connect-src ${webview.cspSource};
+        ">
+        `
         );
 
         // Add nonce to script and style tags
@@ -131,15 +127,13 @@ export class VueWebviewPanel {
             return match.replace('>', ` nonce="${nonce}">`);
         });
 
-        html = html.replace(/<link\b(?![^>]*\bnonce=)[^>]*rel=["']stylesheet["'][^>]*>/gi, (match) => {
-            return match.replace('>', ` nonce="${nonce}">`);
-        });
 
         return html;
     }
+
 }
 
-function getNonce() {
+export function getNonce() {
     let text = '';
     const possible =
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
