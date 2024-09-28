@@ -153,7 +153,9 @@
     "package": "vite build --mode production",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "build:vue": "cd vue_webview && npm run build"
+
   },
   "devDependencies": {
     "@types/mocha": "^10.0.7",

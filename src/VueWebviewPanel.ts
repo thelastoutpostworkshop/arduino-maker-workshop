@@ -97,14 +97,8 @@ export class VueWebviewPanel {
         return html;
     }
 
-    private  getUri(webview: vscode.Webview, pathList: string[]) {
-        return webview.asWebviewUri(this._extensionContext.extensionUri.joinPath(extensionUri, ...pathList));
-    }
-
     private _updateHtmlForWebview(html: string, webview: vscode.Webview): string {
 
-        const webviewUri = getUri(webview, extensionUri, ["out", "webview.js"]);
-        const styleUri = getUri(webview, extensionUri, ["out", "style.css"]);
         const nonce = getNonce();
 
         // Inject CSP meta tag
