@@ -5,7 +5,12 @@ const path = require('path');
 const fs = require('fs');
 
 export class VueWebviewPanel {
+
+    private readonly _panel: vscode.WebviewPanel;
+    private readonly _extensionContext: vscode.ExtensionContext;
+    private _disposables: vscode.Disposable[] = [];
     public static currentPanel: VueWebviewPanel | undefined;
+
 
     public static createOrShow(extensionContext: vscode.ExtensionContext) {
         const column = vscode.window.activeTextEditor
@@ -23,10 +28,10 @@ export class VueWebviewPanel {
                 column || vscode.ViewColumn.One,
                 {
                     enableScripts: true,
+                    retainContextWhenHidden: true,
                     localResourceRoots: [
-                        vscode.Uri.joinPath(extensionContext.extensionUri, 'vue_webview', 'dist'),
-                        vscode.Uri.joinPath(extensionContext.extensionUri, 'vue_webview', 'dist', 'assets'),
-
+                        vscode.Uri.joinPath(extensionContext.extensionUri,'dist','assets'),
+    
                     ],
                 }
             );
@@ -35,9 +40,7 @@ export class VueWebviewPanel {
         }
     }
 
-    private readonly _panel: vscode.WebviewPanel;
-    private readonly _extensionContext: vscode.ExtensionContext;
-    private _disposables: vscode.Disposable[] = [];
+
 
     private constructor(panel: vscode.WebviewPanel, extensionContext: vscode.ExtensionContext) {
         this._panel = panel;

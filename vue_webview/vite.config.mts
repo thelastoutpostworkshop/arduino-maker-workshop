@@ -17,7 +17,26 @@ export default defineConfig({
     // https://github.com/vuetifyjs/vuetify-loader/tree/master/packages/vite-plugin#readme
     Vuetify(),
     Components(),
+    ViteFonts({
+      google: {
+        families: [{
+          name: 'Roboto',
+          styles: 'wght@100;300;400;500;700;900',
+        }],
+      },
+    }),
   ],
+  build: {
+    rollupOptions: {
+      external: ['vscode'],
+      // produce predictable filenames without cache-busting SHA suffix
+      output: {
+        entryFileNames: `assets/[name].js`,
+        chunkFileNames: `assets/[name].js`,
+        assetFileNames: `assets/[name].[ext]`,
+      },
+    },
+  },
   define: { 'process.env': {} },
   resolve: {
     alias: {
@@ -36,4 +55,5 @@ export default defineConfig({
   server: {
     port: 3000,
   },
-})
+  base: '', 
+});

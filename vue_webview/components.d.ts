@@ -7,7 +7,6 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    Arduino: typeof import('./src/components/Arduino.vue')['default']
-    Toolbar: typeof import('./src/components/toolbar.vue')['default']
+    HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
   }
 }
