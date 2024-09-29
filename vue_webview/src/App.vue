@@ -2,7 +2,7 @@
 import Toolbox from './components/Toolbox.vue';
 import { onMounted, onUnmounted } from 'vue';
 import { vscode } from './utilities/vscode';
-import { ExtensionToWebviewMessage, MESSAGE_COMMANDS } from '@shared/messages';
+import { MESSAGE_COMMANDS } from '@shared/messages';
 
 function handleMessageFromVsCode(event: MessageEvent) {
   const message = event.data; // The message sent from the extension
@@ -21,7 +21,7 @@ function handleMessageFromVsCode(event: MessageEvent) {
 
 onMounted(() => {
   window.addEventListener('message', handleMessageFromVsCode);
-  vscode.postMessage()
+  vscode.postMessage({command:MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUT,payload:""})
 });
 
 onUnmounted(() => {

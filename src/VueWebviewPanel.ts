@@ -22,9 +22,11 @@ export class VueWebviewPanel {
             (message: WebviewToExtensionMessage) => {
                 switch (message.command) {
                     case MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUT:
+                        console.info("Message : ARDUINO_PROJECT_STATUT");
                         // Handle update data command
                         break;
-                    case MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO:
+                        case MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO:
+                        console.info("Message : ARDUINO_PROJECT_INFO");
                         // Handle show alert command
                         break;
                     default:
