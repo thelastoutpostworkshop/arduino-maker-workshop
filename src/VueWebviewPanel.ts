@@ -84,7 +84,7 @@ export class VueWebviewPanel {
     }
 
     private _getWebviewContent(webview: Webview, extensionUri: Uri) {
-        const stylesUri = getUri(webview, extensionUri, ["vue_webview", "dist", "assets", "index.css"]);
+        const stylesUri = getUri(webview, extensionUri, ["vue_webview", "dist", "assets", "style.css"]);
         const scriptUri = getUri(webview, extensionUri, ["vue_webview", "dist", "assets", "index.js"]);
 
         const nonce = getNonce();
