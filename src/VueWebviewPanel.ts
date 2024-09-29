@@ -41,6 +41,7 @@ export class VueWebviewPanel {
         // Dispose of resources when the panel is closed
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
         this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
+        arduinoExtensionChannel.appendLine("Arduino Web view ready");
     }
 
     public static render(extensionUri: Uri) {
