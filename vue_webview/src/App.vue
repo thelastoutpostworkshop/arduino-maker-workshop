@@ -34,7 +34,7 @@ onUnmounted(() => {
   <v-app>
     <Toolbox></Toolbox>
     <v-main>
-      <HelloWorld />
+      <Home />
     </v-main>
   </v-app>
 </template>
