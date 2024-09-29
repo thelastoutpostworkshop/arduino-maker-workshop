@@ -7,7 +7,8 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@shared/*": ["../src/shared/*"]
     },
     "resolveJsonModule": true,
     "types": [
@@ -25,7 +26,7 @@
   "include": [
     "src/**/*",
     "src/**/*.vue"
-  ],
+, "../src/shared/messages.ts"  ],
   "exclude": ["dist", "node_modules", "cypress"],
   "references": [{ "path": "./tsconfig.node.json" }],
 }

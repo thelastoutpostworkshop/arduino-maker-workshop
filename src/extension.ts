@@ -5,6 +5,7 @@ import { BoardProvider, BoardItem } from './BoardProvider';
 import { VueWebviewPanel } from './VueWebviewPanel';
 
 
+
 const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -51,10 +52,10 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-        vscode.commands.registerCommand('extension.openVueWebview', () => {
-            VueWebviewPanel.render(context.extensionUri);
-        })
-    );
+		vscode.commands.registerCommand('extension.openVueWebview', () => {
+			VueWebviewPanel.render(context.extensionUri);
+		})
+	);
 
 	// Register the BoardProvider
 	const boardProvider = new BoardProvider();

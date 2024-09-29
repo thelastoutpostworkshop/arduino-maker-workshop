@@ -3,6 +3,7 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
+import { MESSAGE_COMMANDS, WebviewToExtensionMessage, ExtensionToWebviewMessage } from './shared/messages';
 
 const path = require('path');
 const fs = require('fs');
@@ -18,8 +19,17 @@ export class VueWebviewPanel {
 
         // Handle messages from the webview
         this._panel.webview.onDidReceiveMessage(
-            (message) => {
-                // Handle messages received from the webview
+            (message: WebviewToExtensionMessage) => {
+                switch (message.command) {
+                    case MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUT:
+                        // Handle update data command
+                        break;
+                    case MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO:
+                        // Handle show alert command
+                        break;
+                    default:
+                        console.warn('Unknown command received from webview:', message.command);
+                }
             },
             null,
             this._disposables
