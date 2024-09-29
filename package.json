@@ -24,17 +24,16 @@
     "views": {
       "arduino": [
         {
-          "id": "comPortView",
-          "name": "Com Ports"
-        },
-        {
-          "id": "boardSelectorView",
-          "name": "Board Selector"
+          "id": "quickAccessView",
+          "name": "Quick Access"
         }
       ]
     },
     "activationEvents": [
-      "onCommand:extension.openVueWebview"
+      "onView:quickAccessView",
+      "onCommand:extension.openVueWebview",
+      "onCommand:vscode-arduino.compile",
+      "onCommand:vscode-arduino.upload"
     ],
     "menus": {
       "view/item/context": [
@@ -80,7 +79,7 @@
     "commands": [
       {
         "command": "extension.openVueWebview",
-        "title": "Open Vue Webview",
+        "title": "Arduino Home",
         "category": "Arduino"
       },
       {

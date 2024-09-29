@@ -1,21 +1,22 @@
-import * as vscode from 'vscode';
+import { window, WebviewPanel, ExtensionContext, commands, ProgressLocation, Disposable, ViewColumn } from "vscode";
 import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
 import { ComPortProvider } from './ComPortProvider';
 import { BoardProvider, BoardItem } from './BoardProvider';
 import { VueWebviewPanel } from './VueWebviewPanel';
+import { QuickAccessProvider } from './quickAccessProvider';
 
 const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const outputChannel = vscode.window.createOutputChannel('Arduino');
-export const arduinoExtensionChannel = vscode.window.createOutputChannel('Arduino.Extension');
+const outputChannel = window.createOutputChannel('Arduino');
+export const arduinoExtensionChannel = window.createOutputChannel('Arduino.Extension');
 arduinoExtensionChannel.appendLine("Arduino Extension started");
 
 export let arduinoProject: ArduinoProject;
-let boardConfigWebViewPanel: vscode.WebviewPanel | undefined = undefined;
+let boardConfigWebViewPanel: WebviewPanel | undefined = undefined;
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: ExtensionContext) {
 
 	context.subscriptions.push(vsCommandCompile());
 	context.subscriptions.push(vsCommandUpload());
@@ -23,28 +24,30 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vsCommandBoardConfiguration(context));
 	context.subscriptions.push(vsCommandBoardSelection(context));
 
+	const quickAccessProvider = new QuickAccessProvider();
+	window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
+
 	const comPortProvider = new ComPortProvider();
-	vscode.window.registerTreeDataProvider('comPortView', comPortProvider);
+	window.registerTreeDataProvider('comPortView', comPortProvider);
 
-	// Register refresh command
 	context.subscriptions.push(
-		vscode.commands.registerCommand('comPortSelector.refresh', () => comPortProvider.refresh())
+		commands.registerCommand('comPortSelector.refresh', () => comPortProvider.refresh())
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('comPortSelector.command1', () => {
-			vscode.window.showInformationMessage(`Command 1 executed on `);
+		commands.registerCommand('comPortSelector.command1', () => {
+			window.showInformationMessage(`Command 1 executed on `);
 		})
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('comPortSelector.command2', () => {
-			vscode.window.showInformationMessage(`Command 2 executed on }`);
+		commands.registerCommand('comPortSelector.command2', () => {
+			window.showInformationMessage(`Command 2 executed on }`);
 		})
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('comPortSelector.selectPort', (item) => {
+		commands.registerCommand('comPortSelector.selectPort', (item) => {
 			if (loadArduinoConfiguration()) {
 				arduinoProject.setPort(item.label);
 				comPortProvider.refresh();
@@ -53,40 +56,38 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('extension.openVueWebview', () => {
+		commands.registerCommand('extension.openVueWebview', () => {
 			VueWebviewPanel.render(context.extensionUri);
 		})
 	);
 
-	// Register the BoardProvider
 	const boardProvider = new BoardProvider();
-	vscode.window.registerTreeDataProvider('boardSelectorView', boardProvider);
+	window.registerTreeDataProvider('boardSelectorView', boardProvider);
 
 	// Register the selectBoard command
 	context.subscriptions.push(
-		vscode.commands.registerCommand('boardSelector.selectBoard', (item: BoardItem) => {
+		commands.registerCommand('boardSelector.selectBoard', (item: BoardItem) => {
 			if (loadArduinoConfiguration()) {
 				//    arduinoProject.setBoard(item.fqbn || '');
-				vscode.window.showInformationMessage(`Selected Board: ${item.label}`);
+				window.showInformationMessage(`Selected Board: ${item.label}`);
 			}
 		})
 	);
 
-	// Optional: Command to refresh the board view
 	context.subscriptions.push(
-		vscode.commands.registerCommand('boardSelector.refresh', () => {
+		commands.registerCommand('boardSelector.refresh', () => {
 			boardProvider.refresh();
 		})
 	);
 
 	// Register the filterBoards command
 	context.subscriptions.push(
-		vscode.commands.registerCommand('boardSelector.filterBoards', () => {
+		commands.registerCommand('boardSelector.filterBoards', () => {
 			boardProvider.showFilterInput();
 		})
 	);
 	context.subscriptions.push(
-		vscode.commands.registerCommand('boardSelector.clearFilter', () => {
+		commands.registerCommand('boardSelector.clearFilter', () => {
 			boardProvider.clearFilter();
 		})
 	);
@@ -109,25 +110,25 @@ export function loadArduinoConfiguration(): boolean {
 			default:
 				break;
 		}
-		vscode.window.showErrorMessage(message);
+		window.showErrorMessage(message);
 		return false;
 	} else {
 		if (!arduinoProject.readConfiguration()) {
-			vscode.window.showErrorMessage('Arduino Configuration Error');
+			window.showErrorMessage('Arduino Configuration Error');
 			return false;
 		}
 	}
 	return true;
 }
 
-function vsCommandBoardSelection(context: vscode.ExtensionContext): vscode.Disposable {
-	return vscode.commands.registerCommand('vscode-arduino.boardselect', async () => {
+function vsCommandBoardSelection(context: ExtensionContext): Disposable {
+	return commands.registerCommand('vscode-arduino.boardselect', async () => {
 		if (!loadArduinoConfiguration()) {
 			return false;
 		}
 
-		await vscode.window.withProgress({
-			location: vscode.ProgressLocation.Notification,
+		await window.withProgress({
+			location: ProgressLocation.Notification,
 			title: 'Retrieving board list...',
 			cancellable: false
 		}, async (progress) => {
@@ -168,17 +169,17 @@ function vsCommandBoardSelection(context: vscode.ExtensionContext): vscode.Dispo
 					showBoardSelectionWebview(context, boardStructure);
 				}
 			} catch (error) {
-				vscode.window.showErrorMessage(`Error retrieving board list: ${error}`);
+				window.showErrorMessage(`Error retrieving board list: ${error}`);
 			}
 		});
 	});
 }
 
-function showBoardSelectionWebview(context: vscode.ExtensionContext, boardStructure: { [platform: string]: { name: string, fqbn: string }[] }) {
-	const panel = vscode.window.createWebviewPanel(
+function showBoardSelectionWebview(context: ExtensionContext, boardStructure: { [platform: string]: { name: string, fqbn: string }[] }) {
+	const panel = window.createWebviewPanel(
 		'boardSelect', // Identifies the type of the webview
 		'Select Arduino Board', // Title of the webview panel
-		vscode.ViewColumn.One, // Editor column to show the new webview panel in
+		ViewColumn.One, // Editor column to show the new webview panel in
 		{
 			enableScripts: true // Enable JavaScript in the webview
 		}
@@ -191,7 +192,7 @@ function showBoardSelectionWebview(context: vscode.ExtensionContext, boardStruct
 	panel.webview.onDidReceiveMessage(message => {
 		switch (message.command) {
 			case 'selectBoard':
-				vscode.window.showInformationMessage(`Board Selected: ${message.fqbn}`);
+				window.showInformationMessage(`Board Selected: ${message.fqbn}`);
 				panel.dispose(); // Close the webview
 				return;
 		}
@@ -276,19 +277,19 @@ function getBoardSelectionHtml(boardStructure: { [platform: string]: { name: str
 }
 
 
-function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.Disposable {
-	return vscode.commands.registerCommand('vscode-arduino.boardconfig', async () => {
+function vsCommandBoardConfiguration(context: ExtensionContext): Disposable {
+	return commands.registerCommand('vscode-arduino.boardconfig', async () => {
 		if (!loadArduinoConfiguration()) {
 			return false;
 		}
 
 		if (!arduinoProject.getBoard()) {
-			vscode.window.showErrorMessage('Select a board first');
+			window.showErrorMessage('Select a board first');
 			return;
 		}
 
-		await vscode.window.withProgress({
-			location: vscode.ProgressLocation.Notification,
+		await window.withProgress({
+			location: ProgressLocation.Notification,
 			title: 'Retrieving board configuration options...',
 			cancellable: false
 		}, async (progress) => {
@@ -305,21 +306,21 @@ function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.D
 					const boardName = configData.name; // Extract the board name
 
 					if (configuration.length === 0) {
-						vscode.window.showInformationMessage('Unable to retrieve board configuration.');
+						window.showInformationMessage('Unable to retrieve board configuration.');
 						return;
 					}
 
-					const columnToShowIn = vscode.window.activeTextEditor
-						? vscode.window.activeTextEditor.viewColumn
+					const columnToShowIn = window.activeTextEditor
+						? window.activeTextEditor.viewColumn
 						: undefined;
 
 					if (boardConfigWebViewPanel) {
 						boardConfigWebViewPanel.reveal(columnToShowIn);
 					} else {
-						boardConfigWebViewPanel = vscode.window.createWebviewPanel(
+						boardConfigWebViewPanel = window.createWebviewPanel(
 							'boardConfig',
 							'Arduino Board Configuration',
-							columnToShowIn || vscode.ViewColumn.One,
+							columnToShowIn || ViewColumn.One,
 							{
 								enableScripts: true, retainContextWhenHidden: true
 							}
@@ -372,10 +373,10 @@ function vsCommandBoardConfiguration(context: vscode.ExtensionContext): vscode.D
 						context.subscriptions
 					);
 				} else {
-					vscode.window.showErrorMessage('Failed to retrieve board configuration.');
+					window.showErrorMessage('Failed to retrieve board configuration.');
 				}
 			} catch (error) {
-				vscode.window.showErrorMessage(`Error retrieving board configuration: ${error}`);
+				window.showErrorMessage(`Error retrieving board configuration: ${error}`);
 			}
 		});
 	});
@@ -498,14 +499,14 @@ function getWebviewContent(boardName: string, configuration: any[]): string {
 }
 
 
-function vsCommandPort(): vscode.Disposable {
-	return vscode.commands.registerCommand('vscode-arduino.port', async () => {
+function vsCommandPort(): Disposable {
+	return commands.registerCommand('vscode-arduino.port', async () => {
 		if (!loadArduinoConfiguration()) {
 			return;
 		}
 
-		await vscode.window.withProgress({
-			location: vscode.ProgressLocation.Notification,
+		await window.withProgress({
+			location: ProgressLocation.Notification,
 			title: 'Retrieving available ports...',
 			cancellable: false
 		}, async (progress) => {
@@ -522,7 +523,7 @@ function vsCommandPort(): vscode.Disposable {
 					const ports = JSON.parse(result).detected_ports;
 
 					if (ports.length === 0) {
-						vscode.window.showInformationMessage('No ports detected.');
+						window.showInformationMessage('No ports detected.');
 						return;
 					}
 
@@ -533,22 +534,22 @@ function vsCommandPort(): vscode.Disposable {
 					}));
 
 					// Show the QuickPick to the user
-					const selectedPort = await vscode.window.showQuickPick(portItems, {
+					const selectedPort = await window.showQuickPick(portItems, {
 						placeHolder: 'Select a port to use for uploading'
 					});
 
 					if (selectedPort) {
-						vscode.window.showInformationMessage(`Selected port: ${selectedPort.label}`);
+						window.showInformationMessage(`Selected port: ${selectedPort.label}`);
 						// Set the selected port in your project settings or wherever needed
 						arduinoProject.setPort(selectedPort.label);
 					} else {
-						vscode.window.showInformationMessage('No port selected.');
+						window.showInformationMessage('No port selected.');
 					}
 				} else {
-					vscode.window.showErrorMessage('Failed to retrieve port list.');
+					window.showErrorMessage('Failed to retrieve port list.');
 				}
 			} catch (error) {
-				vscode.window.showErrorMessage(`Error retrieving port list: ${error}`);
+				window.showErrorMessage(`Error retrieving port list: ${error}`);
 			}
 		});
 	});
@@ -556,19 +557,19 @@ function vsCommandPort(): vscode.Disposable {
 }
 
 
-function vsCommandUpload(): vscode.Disposable {
-	return vscode.commands.registerCommand('vscode-arduino.upload', () => {
+function vsCommandUpload(): Disposable {
+	return commands.registerCommand('vscode-arduino.upload', () => {
 		if (!loadArduinoConfiguration()) {
 			return;
 		}
 		if (!arduinoProject.getBoard()) {
-			vscode.window.showInformationMessage('Board info not found, cannot upload');
+			window.showInformationMessage('Board info not found, cannot upload');
 		}
 		if (!arduinoProject.getConfiguration()) {
-			vscode.window.showInformationMessage('Board configuration not found, cannot upload');
+			window.showInformationMessage('Board configuration not found, cannot upload');
 		}
 		if (!arduinoProject.getPort()) {
-			vscode.window.showInformationMessage('Port not found, cannot upload');
+			window.showInformationMessage('Port not found, cannot upload');
 		}
 
 		// Execute the Arduino CLI command
@@ -578,19 +579,19 @@ function vsCommandUpload(): vscode.Disposable {
 	});
 }
 
-function vsCommandCompile(): vscode.Disposable {
-	return vscode.commands.registerCommand('vscode-arduino.compile', () => {
+function vsCommandCompile(): Disposable {
+	return commands.registerCommand('vscode-arduino.compile', () => {
 		if (!loadArduinoConfiguration()) {
 			return;
 		}
 		if (!arduinoProject.getBoard()) {
-			vscode.window.showInformationMessage('Board info not found, cannot compile');
+			window.showInformationMessage('Board info not found, cannot compile');
 		}
 		if (!arduinoProject.getConfiguration()) {
-			vscode.window.showInformationMessage('Board configuration not found, cannot compile');
+			window.showInformationMessage('Board configuration not found, cannot compile');
 		}
 		if (!arduinoProject.getOutput()) {
-			vscode.window.showInformationMessage('Output not found, cannot compile');
+			window.showInformationMessage('Output not found, cannot compile');
 		}
 
 		// Execute the Arduino CLI command
@@ -603,7 +604,7 @@ function vsCommandCompile(): vscode.Disposable {
 				}
 			})
 			.catch(error => {
-				vscode.window.showErrorMessage(`Failed to generate c_cpp_properties.json: ${error}`);
+				window.showErrorMessage(`Failed to generate c_cpp_properties.json: ${error}`);
 			});
 
 	});
@@ -650,14 +651,14 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 				resolve(returnOutput ? outputBuffer : undefined);
 			} else {
 				// Command failed
-				vscode.window.showErrorMessage(`Command failed with code ${code}. Check Output window for details.`);
+				window.showErrorMessage(`Command failed with code ${code}. Check Output window for details.`);
 				reject(`Command failed with code ${code}`);
 			}
 		});
 
 		// Handle error event in case the command fails to start
 		child.on('error', (err: any) => {
-			vscode.window.showErrorMessage(`Failed to run command: ${err.message}`);
+			window.showErrorMessage(`Failed to run command: ${err.message}`);
 			reject(`Failed to run command: ${err.message}`);
 		});
 	});
