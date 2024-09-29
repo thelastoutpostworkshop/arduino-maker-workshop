@@ -154,7 +154,8 @@
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "vscode-test",
-    "build:vue": "cd vue_webview && npm run build"
+    "build:vue": "cd vue_webview && npm run build",
+    "vueapp": "cd vue_webview && npm run dev"
 
   },
   "devDependencies": {
