@@ -4,8 +4,6 @@ import { ComPortProvider } from './ComPortProvider';
 import { BoardProvider, BoardItem } from './BoardProvider';
 import { VueWebviewPanel } from './VueWebviewPanel';
 
-
-
 const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');

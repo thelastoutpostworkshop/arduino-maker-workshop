@@ -3,7 +3,7 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
-import { MESSAGE_COMMANDS, WebviewToExtensionMessage, ExtensionToWebviewMessage } from './shared/messages';
+import { MESSAGE_COMMANDS, WebviewToExtensionMessage } from './shared/messages';
 
 const path = require('path');
 const fs = require('fs');
