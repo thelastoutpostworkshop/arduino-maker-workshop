@@ -4,6 +4,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { MESSAGE_COMMANDS, WebviewToExtensionMessage } from './shared/messages';
+import { arduinoExtensionChannel } from "./extension";
 
 const path = require('path');
 const fs = require('fs');
@@ -22,15 +23,15 @@ export class VueWebviewPanel {
             (message: WebviewToExtensionMessage) => {
                 switch (message.command) {
                     case MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUT:
-                        console.info("Message : ARDUINO_PROJECT_STATUT");
+                        arduinoExtensionChannel.appendLine("Message : ARDUINO_PROJECT_STATUT");
                         // Handle update data command
                         break;
                         case MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO:
-                        console.info("Message : ARDUINO_PROJECT_INFO");
-                        // Handle show alert command
+                            arduinoExtensionChannel.appendLine("Message : ARDUINO_PROJECT_INFO");
+                            // Handle show alert command
                         break;
                     default:
-                        console.warn('Unknown command received from webview:', message.command);
+                        arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command} `);
                 }
             },
             null,

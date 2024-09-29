@@ -9,6 +9,9 @@ const fs = require('fs');
 const path = require('path');
 
 const outputChannel = vscode.window.createOutputChannel('Arduino');
+export const arduinoExtensionChannel = vscode.window.createOutputChannel('Arduino.Extension');
+arduinoExtensionChannel.appendLine("Arduino Extension started");
+
 export let arduinoProject: ArduinoProject;
 let boardConfigWebViewPanel: vscode.WebviewPanel | undefined = undefined;
 
