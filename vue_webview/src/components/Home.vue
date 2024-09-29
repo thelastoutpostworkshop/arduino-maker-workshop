@@ -2,14 +2,14 @@
   <v-container>
     <v-responsive>
       <div class="text-center">
-        <h1 class="text-h2 font-weight-bold">Arduino Home</h1>
+        <h1 class="text-h3 font-weight-bold">Arduino Home</h1>
       </div>
 
       <div class="py-4" />
 
       <v-row>
         <v-col cols="12">
-          <v-card class="py-4" color="surface-variant" prepend-icon="mdi-rocket-launch-outline" rounded="lg"
+          <v-card class="py-4" color="surface-variant" prepend-icon="mdi-cog" rounded="lg"
             variant="outlined">
             <template #title>
               <h2 class="text-h5 font-weight-bold">Sketch Configuration</h2>
@@ -17,9 +17,7 @@
 
             <template #subtitle>
               <div class="text-subtitle-1">
-                Change this page by updating <v-kbd>{{ `
-                  <HelloWorld />` }}
-                </v-kbd> in <v-kbd>components/HelloWorld.vue</v-kbd>.
+                This is your current configuration
               </div>
             </template>
 
