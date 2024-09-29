@@ -11,12 +11,8 @@
         <v-col cols="12">
           <v-card class="py-4" color="surface-variant" prepend-icon="mdi-rocket-launch-outline" rounded="lg"
             variant="outlined">
-            <template #image>
-              <v-img position="top right" />
-            </template>
-
             <template #title>
-              <h2 class="text-h5 font-weight-bold">Get started</h2>
+              <h2 class="text-h5 font-weight-bold">Sketch Configuration</h2>
             </template>
 
             <template #subtitle>
