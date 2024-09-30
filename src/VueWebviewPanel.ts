@@ -84,7 +84,7 @@ export class VueWebviewPanel {
     }
 
     private _getWebviewContent(webview: Webview, extensionUri: Uri) {
-        const stylesUri = getUri(webview, extensionUri, ["vue_webview", "dist", "assets", "style.css"]);
+        const stylesUri = getUri(webview, extensionUri, ["vue_webview", "dist", "assets", "index.css"]);
         const scriptUri = getUri(webview, extensionUri, ["vue_webview", "dist", "assets", "index.js"]);
 
         const nonce = getNonce();
@@ -95,7 +95,7 @@ export class VueWebviewPanel {
           <head>
             <meta charset="UTF-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'nonce-${nonce}'; font-src ${webview.cspSource}; img-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'nonce-test'; font-src ${webview.cspSource}; img-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
             <link rel="stylesheet"type="text/css" href="${stylesUri}">
             <title>Arduino</title>
         </head>
