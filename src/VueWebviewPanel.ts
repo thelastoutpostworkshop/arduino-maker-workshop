@@ -106,33 +106,4 @@ export class VueWebviewPanel {
         </html>
       `;
     }
-
-    private _updateHtmlForWebview(html: string, webview: Webview): string {
-
-        const nonce = getNonce();
-
-        // Inject CSP meta tag
-        html = html.replace(
-            /<meta charset="UTF-8"\s*\/?>/,
-            `<meta charset="UTF-8">
-        <meta http-equiv="Content-Security-Policy" content="
-            default-src 'none';
-            script-src 'nonce-${nonce}';
-            style-src ${webview.cspSource};
-            font-src ${webview.cspSource};
-            img-src ${webview.cspSource} https:;
-            connect-src ${webview.cspSource};
-        ">
-        `
-        );
-
-        // Add nonce to script and style tags
-        html = html.replace(/<script\b(?![^>]*\bnonce=)[^>]*>/gi, (match) => {
-            return match.replace('>', ` nonce="${nonce}">`);
-        });
-
-
-        return html;
-    }
-
 }
