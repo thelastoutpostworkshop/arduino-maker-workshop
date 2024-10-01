@@ -26,9 +26,9 @@ export class VueWebviewPanel {
                         arduinoExtensionChannel.appendLine("Message : ARDUINO_PROJECT_STATUT");
                         // Handle update data command
                         break;
-                        case MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO:
-                            arduinoExtensionChannel.appendLine("Message : ARDUINO_PROJECT_INFO");
-                            // Handle show alert command
+                    case MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO:
+                        arduinoExtensionChannel.appendLine("Message : ARDUINO_PROJECT_INFO");
+                        // Handle show alert command
                         break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command} `);
@@ -88,8 +88,9 @@ export class VueWebviewPanel {
         const scriptUri = getUri(webview, extensionUri, ["vue_webview", "dist", "assets", "index.js"]);
 
         const nonce = getNonce();
+        arduinoExtensionChannel.appendLine(nonce);
 
-        return /*html*/ `
+        const hmltcontent= /*html*/ `
         <!DOCTYPE html>
         <html lang="en">
           <head>
@@ -101,9 +102,13 @@ export class VueWebviewPanel {
         </head>
         <body>
             <div id="app"></div>
+            <script nonce="${nonce}">
+                window.cspNonce = '${nonce}';
+            </script>
             <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
           </body>
         </html>
       `;
+      return hmltcontent;
     }
 }

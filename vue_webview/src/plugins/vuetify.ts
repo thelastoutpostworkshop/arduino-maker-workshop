@@ -11,10 +11,13 @@ import 'vuetify/styles'
 // Composables
 import { createVuetify } from 'vuetify'
 
+const nonce = (window as any).cspNonce;
+console.log('Nonce from window.cspNonce:', nonce); // Add this line
+
 // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 export default createVuetify({
   theme: {
-    cspNonce:'test',
+    cspNonce:nonce,
     defaultTheme: 'dark',
   },
 })
