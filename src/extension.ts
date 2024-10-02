@@ -1,4 +1,4 @@
-import { window, WebviewPanel, ExtensionContext, commands, ProgressLocation, Disposable, ViewColumn } from "vscode";
+import { window, WebviewPanel, ExtensionContext, commands, ProgressLocation, Disposable, ViewColumn,workspace } from "vscode";
 import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
 import { ComPortProvider } from './ComPortProvider';
 import { BoardProvider, BoardItem } from './BoardProvider';
@@ -17,6 +17,11 @@ export let arduinoProject: ArduinoProject;
 let boardConfigWebViewPanel: WebviewPanel | undefined = undefined;
 
 export function activate(context: ExtensionContext) {
+
+	// Read the arduino-cli path setting
+	const config = workspace.getConfiguration();
+	let arduinoCliPath = config.get<string>('arduino-cli.path', '');
+	arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${arduinoCliPath}`);
 
 	context.subscriptions.push(vsCommandCompile());
 	context.subscriptions.push(vsCommandUpload());

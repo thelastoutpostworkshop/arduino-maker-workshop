@@ -12,6 +12,18 @@
   ],
   "main": "./build/extension.js",
   "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "Arduino CLI Settings",
+      "properties": {
+        "arduino-cli.path": {
+          "type": "string",
+          "default": "",
+          "description": "The path to the arduino-cli command line utility.",
+          "scope": "window"
+        }
+      }
+    },
     "viewsContainers": {
       "activitybar": [
         {
