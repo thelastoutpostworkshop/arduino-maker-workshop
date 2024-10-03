@@ -1,6 +1,7 @@
 {
   "name": "vscode-arduino",
   "displayName": "VSCode Arduino",
+  "publisher": "TheLastOutpostWorkshop",
   "description": "",
   "version": "0.0.3",
   "icon": "images/icon.png",
@@ -13,10 +14,11 @@
   "main": "./build/extension.js",
   "contributes": {
     "configuration": {
+      "id":"arduinoclipath",
       "type": "object",
       "title": "Arduino CLI Settings",
       "properties": {
-        "arduino-cli.path": {
+        "cli.path": {
           "type": "string",
           "default": "",
           "description": "The path to the arduino-cli command line utility.",

@@ -1,4 +1,4 @@
-import { window, WebviewPanel, ExtensionContext, commands, ProgressLocation, Disposable, ViewColumn,workspace } from "vscode";
+import { window, WebviewPanel, ExtensionContext, commands, ProgressLocation, Disposable, ViewColumn, workspace } from "vscode";
 import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
 import { ComPortProvider } from './ComPortProvider';
 import { BoardProvider, BoardItem } from './BoardProvider';
@@ -14,14 +14,25 @@ export const arduinoExtensionChannel = window.createOutputChannel('Arduino.Exten
 arduinoExtensionChannel.appendLine("Arduino Extension started");
 
 export let arduinoProject: ArduinoProject;
+let cliCommandArduinoPath: string="";
 let boardConfigWebViewPanel: WebviewPanel | undefined = undefined;
 
 export function activate(context: ExtensionContext) {
 
 	// Read the arduino-cli path setting
 	const config = workspace.getConfiguration();
-	let arduinoCliPath = config.get<string>('arduino-cli.path', '');
-	arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${arduinoCliPath}`);
+	cliCommandArduinoPath = config.get<string>('cli.path',"");
+	arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${cliCommandArduinoPath}`);
+
+
+	context.subscriptions.push(
+		workspace.onDidChangeConfiguration((e) => {
+			if (e.affectsConfiguration('cli.path')) {
+				cliCommandArduinoPath = workspace.getConfiguration().get<string>('cli.path', '');
+				arduinoExtensionChannel.appendLine(`Arduino CLI Path Changed: ${cliCommandArduinoPath}`);
+			}
+		})
+	);
 
 	context.subscriptions.push(vsCommandCompile());
 	context.subscriptions.push(vsCommandUpload());
@@ -96,7 +107,6 @@ export function activate(context: ExtensionContext) {
 			boardProvider.clearFilter();
 		})
 	);
-
 }
 
 export function loadArduinoConfiguration(): boolean {
