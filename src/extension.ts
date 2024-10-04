@@ -11,17 +11,17 @@ const outputChannel = window.createOutputChannel('Arduino');
 export const arduinoExtensionChannel = window.createOutputChannel('Arduino.Extension');
 arduinoExtensionChannel.appendLine("Arduino Extension started");
 
-export const arduinoProject:ArduinoProject =  new ArduinoProject();
-let cliCommandArduinoPath: string="";
+export const arduinoProject: ArduinoProject = new ArduinoProject();
+let cliCommandArduinoPath: string = "";
 let boardConfigWebViewPanel: WebviewPanel | undefined = undefined;
 
 export function activate(context: ExtensionContext) {
 
 	// Read the arduino-cli path setting
 	const config = workspace.getConfiguration();
-	cliCommandArduinoPath = config.get<string>('cli.path',"");
+	cliCommandArduinoPath = config.get<string>('cli.path', "");
 	arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${cliCommandArduinoPath}`);
-	
+
 	context.subscriptions.push(
 		workspace.onDidChangeConfiguration((e) => {
 			if (e.affectsConfiguration('cli.path')) {
@@ -60,42 +60,42 @@ export function activate(context: ExtensionContext) {
 }
 
 export function checkArduinoCLICommand(): Promise<boolean> {
-    return new Promise((resolve) => {
-        if (cliCommandArduinoPath === '') {
-            window.showErrorMessage('Arduino CLI Path not set in your settings');
-            resolve(false);
-            return;
-        }
+	return new Promise((resolve) => {
+		if (cliCommandArduinoPath === '') {
+			window.showErrorMessage('Arduino CLI Path not set in your settings');
+			resolve(false);
+			return;
+		}
 
-        const arduinoVersionArgs = arduinoProject.getVersionArguments();
+		const arduinoVersionArgs = arduinoProject.getVersionArguments();
 
-        executeArduinoCommand(`${cliCommandArduinoPath}`, arduinoVersionArgs, true)
-            .then((result) => {
-                if (result) {
-                    try {
-                        const cliInfo = JSON.parse(result as string);
-                        const version = cliInfo.VersionString;
-                        const commit = cliInfo.Commit;
-                        const date = new Date(cliInfo.Date).toLocaleDateString();
+		executeArduinoCommand(`${cliCommandArduinoPath}`, arduinoVersionArgs, true, false)
+			.then((result) => {
+				if (result) {
+					try {
+						const cliInfo = JSON.parse(result as string);
+						const version = cliInfo.VersionString;
+						const commit = cliInfo.Commit;
+						const date = new Date(cliInfo.Date).toLocaleDateString();
 
-                        const versionMessage = `Arduino CLI version: ${version}, Commit: ${commit}, Date: ${date}`;
-                        window.showInformationMessage(versionMessage);
-                        arduinoExtensionChannel.appendLine(versionMessage);
+						const versionMessage = `Arduino CLI version: ${version}, Commit: ${commit}, Date: ${date}`;
+						window.showInformationMessage(versionMessage);
+						arduinoExtensionChannel.appendLine(versionMessage);
 
-                        resolve(true);
-                    } catch (parseError) {
-                        arduinoExtensionChannel.appendLine('Failed to parse Arduino CLI version information.');
-                        resolve(false);
-                    }
-                } else {
-                    resolve(false);
-                }
-            })
-            .catch((error) => {
-                window.showErrorMessage(`Failed to execute Arduino CLI command: ${error}`);
-                resolve(false);
-            });
-    });
+						resolve(true);
+					} catch (parseError) {
+						arduinoExtensionChannel.appendLine('Failed to parse Arduino CLI version information.');
+						resolve(false);
+					}
+				} else {
+					resolve(false);
+				}
+			})
+			.catch((error) => {
+				window.showErrorMessage(`Failed to execute Arduino CLI command: ${error}`);
+				resolve(false);
+			});
+	});
 }
 
 
