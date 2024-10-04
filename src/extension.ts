@@ -42,13 +42,6 @@ export function activate(context: ExtensionContext) {
 	const quickAccessProvider = new QuickAccessProvider();
 	window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
 
-	const comPortProvider = new ComPortProvider();
-	window.registerTreeDataProvider('comPortView', comPortProvider);
-
-	context.subscriptions.push(
-		commands.registerCommand('comPortSelector.refresh', () => comPortProvider.refresh())
-	);
-
 	context.subscriptions.push(
 		commands.registerCommand('comPortSelector.command1', () => {
 			window.showInformationMessage(`Command 1 executed on `);
@@ -76,9 +69,6 @@ export function activate(context: ExtensionContext) {
 		})
 	);
 
-	const boardProvider = new BoardProvider();
-	window.registerTreeDataProvider('boardSelectorView', boardProvider);
-
 	// Register the selectBoard command
 	context.subscriptions.push(
 		commands.registerCommand('boardSelector.selectBoard', (item: BoardItem) => {
@@ -86,24 +76,6 @@ export function activate(context: ExtensionContext) {
 				//    arduinoProject.setBoard(item.fqbn || '');
 				window.showInformationMessage(`Selected Board: ${item.label}`);
 			}
-		})
-	);
-
-	context.subscriptions.push(
-		commands.registerCommand('boardSelector.refresh', () => {
-			boardProvider.refresh();
-		})
-	);
-
-	// Register the filterBoards command
-	context.subscriptions.push(
-		commands.registerCommand('boardSelector.filterBoards', () => {
-			boardProvider.showFilterInput();
-		})
-	);
-	context.subscriptions.push(
-		commands.registerCommand('boardSelector.clearFilter', () => {
-			boardProvider.clearFilter();
 		})
 	);
 }

@@ -49,47 +49,6 @@
       "onCommand:vscode-arduino.compile",
       "onCommand:vscode-arduino.upload"
     ],
-    "menus": {
-      "view/item/context": [
-        {
-          "command": "comPortSelector.command1",
-          "when": "viewItem == comPortView && viewItemContext == comPortItem",
-          "group": "inline"
-        },
-        {
-          "command": "comPortSelector.command2",
-          "when": "viewItem == comPortView && viewItemContext == comPortItem",
-          "group": "inline"
-        },
-        {
-          "command": "boardSelector.selectBoard",
-          "when": "viewItem == boardSelectorView && viewItemContext == board",
-          "group": "navigation"
-        }
-      ],
-      "view/title": [
-        {
-          "command": "comPortSelector.refresh",
-          "when": "view == comPortView",
-          "group": "navigation"
-        },
-        {
-          "command": "boardSelector.refresh",
-          "when": "view == boardSelectorView",
-          "group": "navigation"
-        },
-        {
-          "command": "boardSelector.filterBoards",
-          "when": "view == boardSelectorView",
-          "group": "navigation"
-        },
-        {
-          "command": "boardSelector.clearFilter",
-          "when": "view == boardSelectorView",
-          "group": "navigation"
-        }
-      ]
-    },
     "commands": [
       {
         "command": "extension.openVueWebview",
