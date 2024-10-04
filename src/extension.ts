@@ -111,12 +111,13 @@ export function activate(context: ExtensionContext) {
 	);
 }
 
-export function checkArduinoCLICommand():boolean {
-	if(cliCommandArduinoPath === '') {
-		window.showErrorMessage('Arduino CLI Path not set in your settings');
-		return false;
-	}
-	return true;
+export function checkArduinoCLICommand(): Promise<boolean> {
+	return new Promise((resolve) => {
+		if(cliCommandArduinoPath === '') {
+			window.showErrorMessage('Arduino CLI Path not set in your settings');
+			resolve(false);
+		}
+    });
 }
 
 export function loadArduinoConfiguration(): boolean {

@@ -5,6 +5,7 @@ const fs = require('fs');
 
 export const cliCommandArduino: string = 'arduino-cli';
 export const compileCommandArduino: string = 'compile';
+const versionCommandArduino:string = 'version';
 const uploadCommandArduino: string = 'upload';
 const boardCommandArduino: string = 'board';
 const listFunctionArduino: string = 'list';
@@ -125,6 +126,14 @@ export class ArduinoProject {
             `${jsonOutputArduino}`
         ];
         return compileCommand;
+    }
+    public getVersionArguments(): string[] {
+        const versionCommand = [
+            `${boardCommandArduino}`,
+            `${versionCommandArduino}`,
+            `${jsonOutputArduino}`
+        ];
+        return versionCommand;
     }
     public getBoardsListArguments(): string[] {
         const compileCommand = [
