@@ -1,7 +1,5 @@
 import { window, WebviewPanel, ExtensionContext, commands, ProgressLocation, Disposable, ViewColumn, workspace } from "vscode";
 import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
-import { ComPortProvider } from './ComPortProvider';
-import { BoardProvider, BoardItem } from './BoardProvider';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { QuickAccessProvider } from './quickAccessProvider';
 
@@ -55,27 +53,8 @@ export function activate(context: ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		commands.registerCommand('comPortSelector.selectPort', (item) => {
-			if (loadArduinoConfiguration()) {
-				arduinoProject.setPort(item.label);
-				comPortProvider.refresh();
-			}
-		})
-	);
-
-	context.subscriptions.push(
 		commands.registerCommand('extension.openVueWebview', () => {
 			VueWebviewPanel.render(context.extensionUri);
-		})
-	);
-
-	// Register the selectBoard command
-	context.subscriptions.push(
-		commands.registerCommand('boardSelector.selectBoard', (item: BoardItem) => {
-			if (loadArduinoConfiguration()) {
-				//    arduinoProject.setBoard(item.fqbn || '');
-				window.showInformationMessage(`Selected Board: ${item.label}`);
-			}
 		})
 	);
 }
