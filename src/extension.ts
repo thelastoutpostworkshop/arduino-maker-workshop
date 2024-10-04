@@ -24,7 +24,8 @@ export function activate(context: ExtensionContext) {
 	cliCommandArduinoPath = config.get<string>('cli.path',"");
 	arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${cliCommandArduinoPath}`);
 
-
+	checkArduinoCLICommand();
+	
 	context.subscriptions.push(
 		workspace.onDidChangeConfiguration((e) => {
 			if (e.affectsConfiguration('cli.path')) {
@@ -73,6 +74,7 @@ export function activate(context: ExtensionContext) {
 
 	context.subscriptions.push(
 		commands.registerCommand('extension.openVueWebview', () => {
+			checkArduinoCLICommand();
 			VueWebviewPanel.render(context.extensionUri);
 		})
 	);
@@ -107,6 +109,14 @@ export function activate(context: ExtensionContext) {
 			boardProvider.clearFilter();
 		})
 	);
+}
+
+export function checkArduinoCLICommand():boolean {
+	if(cliCommandArduinoPath === '') {
+		window.showErrorMessage('Arduino CLI Path not set in your settings');
+		return false;
+	}
+	return true;
 }
 
 export function loadArduinoConfiguration(): boolean {
