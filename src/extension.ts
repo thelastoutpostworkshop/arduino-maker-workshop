@@ -11,7 +11,7 @@ const outputChannel = window.createOutputChannel('Arduino');
 export const arduinoExtensionChannel = window.createOutputChannel('Arduino.Extension');
 arduinoExtensionChannel.appendLine("Arduino Extension started");
 
-export let arduinoProject: ArduinoProject;
+export const arduinoProject:ArduinoProject =  new ArduinoProject();
 let cliCommandArduinoPath: string="";
 let boardConfigWebViewPanel: WebviewPanel | undefined = undefined;
 
@@ -100,7 +100,6 @@ export function checkArduinoCLICommand(): Promise<boolean> {
 
 
 export function loadArduinoConfiguration(): boolean {
-	arduinoProject = new ArduinoProject();
 
 	const res = arduinoProject.isFolderArduinoProject();
 	if (res !== ARDUINO_ERRORS.NO_ERRORS) {
