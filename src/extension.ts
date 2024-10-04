@@ -84,7 +84,7 @@ export function checkArduinoCLICommand(): Promise<boolean> {
 
                         resolve(true);
                     } catch (parseError) {
-                        window.showErrorMessage('Failed to parse Arduino CLI version information.');
+                        arduinoExtensionChannel.appendLine('Failed to parse Arduino CLI version information.');
                         resolve(false);
                     }
                 } else {
@@ -619,9 +619,9 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 	if (showOutput) {
 		outputChannel.show(true);
 	}
-	outputChannel.appendLine('Running Arduino CLI...');
-	outputChannel.appendLine(`${command}`);
-	outputChannel.appendLine(args.join(' '));
+	arduinoExtensionChannel.appendLine('Running Arduino CLI...');
+	arduinoExtensionChannel.appendLine(`${command}`);
+	arduinoExtensionChannel.appendLine(args.join(' '));
 
 	const child = cp.spawn(`${command}`, args);
 	let outputBuffer = '';  // String buffer to store output
@@ -655,14 +655,14 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 				resolve(returnOutput ? outputBuffer : undefined);
 			} else {
 				// Command failed
-				window.showErrorMessage(`Command failed with code ${code}. Check Output window for details.`);
+				arduinoExtensionChannel.appendLine(`Command failed with code ${code}. Check Output window for details.`);
 				reject(`Command failed with code ${code}`);
 			}
 		});
 
 		// Handle error event in case the command fails to start
 		child.on('error', (err: any) => {
-			window.showErrorMessage(`Failed to run command: ${err.message}`);
+			arduinoExtensionChannel.appendLine(`Failed to run command: ${err.message}`);
 			reject(`Failed to run command: ${err.message}`);
 		});
 	});
