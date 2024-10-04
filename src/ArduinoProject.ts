@@ -129,7 +129,6 @@ export class ArduinoProject {
     }
     public getVersionArguments(): string[] {
         const versionCommand = [
-            `${boardCommandArduino}`,
             `${versionCommandArduino}`,
             `${jsonOutputArduino}`
         ];

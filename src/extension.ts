@@ -79,7 +79,6 @@ export function checkArduinoCLICommand(): Promise<boolean> {
 						const date = new Date(cliInfo.Date).toLocaleDateString();
 
 						const versionMessage = `Arduino CLI version: ${version}, Commit: ${commit}, Date: ${date}`;
-						window.showInformationMessage(versionMessage);
 						arduinoExtensionChannel.appendLine(versionMessage);
 
 						resolve(true);
