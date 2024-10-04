@@ -23,8 +23,6 @@ export function activate(context: ExtensionContext) {
 	const config = workspace.getConfiguration();
 	cliCommandArduinoPath = config.get<string>('cli.path',"");
 	arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${cliCommandArduinoPath}`);
-
-	checkArduinoCLICommand();
 	
 	context.subscriptions.push(
 		workspace.onDidChangeConfiguration((e) => {
@@ -74,7 +72,6 @@ export function activate(context: ExtensionContext) {
 
 	context.subscriptions.push(
 		commands.registerCommand('extension.openVueWebview', () => {
-			checkArduinoCLICommand();
 			VueWebviewPanel.render(context.extensionUri);
 		})
 	);
@@ -112,13 +109,44 @@ export function activate(context: ExtensionContext) {
 }
 
 export function checkArduinoCLICommand(): Promise<boolean> {
-	return new Promise((resolve) => {
-		if(cliCommandArduinoPath === '') {
-			window.showErrorMessage('Arduino CLI Path not set in your settings');
-			resolve(false);
-		}
+    return new Promise((resolve) => {
+        if (cliCommandArduinoPath === '') {
+            window.showErrorMessage('Arduino CLI Path not set in your settings');
+            resolve(false);
+            return;
+        }
+
+        const arduinoVersionArgs = arduinoProject.getVersionArguments();
+
+        executeArduinoCommand(`${cliCommandArduinoPath}`, arduinoVersionArgs, true)
+            .then((result) => {
+                if (result) {
+                    try {
+                        const cliInfo = JSON.parse(result as string);
+                        const version = cliInfo.VersionString;
+                        const commit = cliInfo.Commit;
+                        const date = new Date(cliInfo.Date).toLocaleDateString();
+
+                        const versionMessage = `Arduino CLI version: ${version}, Commit: ${commit}, Date: ${date}`;
+                        window.showInformationMessage(versionMessage);
+                        arduinoExtensionChannel.appendLine(versionMessage);
+
+                        resolve(true);
+                    } catch (parseError) {
+                        window.showErrorMessage('Failed to parse Arduino CLI version information.');
+                        resolve(false);
+                    }
+                } else {
+                    resolve(false);
+                }
+            })
+            .catch((error) => {
+                window.showErrorMessage(`Failed to execute Arduino CLI command: ${error}`);
+                resolve(false);
+            });
     });
 }
+
 
 export function loadArduinoConfiguration(): boolean {
 	arduinoProject = new ArduinoProject();

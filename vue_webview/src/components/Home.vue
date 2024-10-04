@@ -1,16 +1,28 @@
+<script setup lang="ts">
+import { useVsCodeStore } from '../stores/useVsCodeStore';
+import { storeToRefs } from 'pinia';
+
+const vsCodeStore = useVsCodeStore();
+const { cliStatus, projectInfo, projectStatus } = storeToRefs(vsCodeStore);
+</script>
+
+
 <template>
   <v-container>
     <v-responsive>
       <div class="text-center">
         <h1 class="text-h3 font-weight-bold">Arduino Home</h1>
       </div>
-
+      <div>
+        <p>CLI Status: {{ cliStatus }}</p>
+        <p>Project Status: {{ projectStatus }}</p>
+        <p>Project Info: {{ projectInfo }}</p>
+      </div>
       <div class="py-4" />
 
       <v-row>
         <v-col cols="12">
-          <v-card class="py-4" color="surface-variant" prepend-icon="mdi-cog" rounded="lg"
-            variant="outlined">
+          <v-card class="py-4" color="surface-variant" prepend-icon="mdi-cog" rounded="lg" variant="outlined">
             <template #title>
               <h2 class="text-h5 font-weight-bold">Sketch Configuration</h2>
             </template>
@@ -63,7 +75,3 @@
     </v-responsive>
   </v-container>
 </template>
-
-<script setup lang="ts">
-//
-</script>

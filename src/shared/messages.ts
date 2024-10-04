@@ -2,11 +2,6 @@
 
 // Define the types of messages your extension and webview can exchange
 
-export interface ExtensionToWebviewMessage {
-    command: string;
-    payload?: any;
-}
-
 export interface WebviewToExtensionMessage {
     command: string;
     payload?: any;
@@ -20,3 +15,6 @@ export const MESSAGE_COMMANDS = {
     ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
     // Add more commands as needed
 };
+
+export type MessageCommand = typeof MESSAGE_COMMANDS[keyof typeof MESSAGE_COMMANDS];
+

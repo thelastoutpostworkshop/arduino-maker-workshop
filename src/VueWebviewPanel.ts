@@ -4,7 +4,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { MESSAGE_COMMANDS, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoExtensionChannel } from "./extension";
+import { arduinoExtensionChannel, checkArduinoCLICommand } from "./extension";
 
 const path = require('path');
 const fs = require('fs');
@@ -22,6 +22,17 @@ export class VueWebviewPanel {
         this._panel.webview.onDidReceiveMessage(
             (message: WebviewToExtensionMessage) => {
                 switch (message.command) {
+                    case MESSAGE_COMMANDS.ARDUINO_CLI_STATUS:
+                        checkArduinoCLICommand().then((cliIsValid) => {
+                            const cliStatusMessage: WebviewToExtensionMessage = {
+                                command: MESSAGE_COMMANDS.ARDUINO_CLI_STATUS,
+                                payload: {
+                                    status: cliIsValid ? "Arduino CLI is valid" : "Arduino CLI is not set up properly"
+                                }
+                            };
+                            this._panel.webview.postMessage(cliStatusMessage);
+                        });
+                        break;
                     case MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUT:
                         arduinoExtensionChannel.appendLine("Message : ARDUINO_PROJECT_STATUT");
                         // Handle update data command
@@ -90,7 +101,7 @@ export class VueWebviewPanel {
         const nonce = getNonce();
         arduinoExtensionChannel.appendLine(nonce);
 
-        const hmltcontent= /*html*/ `
+        const hmltcontent = /*html*/ `
         <!DOCTYPE html>
         <html lang="en">
           <head>
@@ -109,6 +120,6 @@ export class VueWebviewPanel {
           </body>
         </html>
       `;
-      return hmltcontent;
+        return hmltcontent;
     }
 }
