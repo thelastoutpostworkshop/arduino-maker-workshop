@@ -14,10 +14,10 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.cliStatus = message;
                     break;
                 case MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO:
-                    this.projectInfo = message.payload;
+                    this.projectInfo = message;
                     break;
                 case MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUT:
-                    this.projectStatus = message.payload;
+                    this.projectStatus = message;
                     break;
                 default:
                     console.warn('Unknown command received:', message.command);
