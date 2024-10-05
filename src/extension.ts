@@ -15,7 +15,7 @@ arduinoExtensionChannel.appendLine("Arduino Extension started");
 export const arduinoProject: ArduinoProject = new ArduinoProject();
 let cliCommandArduinoPath: string = "";
 let boardConfigWebViewPanel: WebviewPanel | undefined = undefined;
-let arduinoConfigurationLastError:ARDUINO_ERRORS = ARDUINO_ERRORS.NO_ERRORS;
+let arduinoConfigurationLastError: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_ERRORS;
 
 export function activate(context: ExtensionContext) {
 
@@ -64,7 +64,7 @@ export function activate(context: ExtensionContext) {
 	);
 }
 
-export function processArduinoCLICommandCheck(commandResult:string):WebviewToExtensionMessage {
+export function processArduinoCLICommandCheck(commandResult: string): WebviewToExtensionMessage {
 	let message: string = "";
 	if (commandResult === "") {
 		message = "Arduino CLI Path wrong or not set in settings";
@@ -350,7 +350,7 @@ function vsCommandBoardConfiguration(context: ExtensionContext): Disposable {
 							switch (message.command) {
 								case 'updateConfig':
 									// Merge the incoming config change with the existing configuration
-									const currentConfig = arduinoProject.getConfiguration()
+									const currentConfig = arduinoProject.getBoardConfiguration()
 										.split(',')
 										.reduce((configObj: any, item: string) => {
 											const [key, value] = item.split('=');
@@ -445,7 +445,7 @@ function getWebviewContent(boardName: string, configuration: any[]): string {
         <form id="configForm">`;
 
 	// Parse the current configuration string into an object
-	const currentConfig = arduinoProject.getConfiguration()
+	const currentConfig = arduinoProject.getBoardConfiguration()
 		.split(',')
 		.reduce((configObj: any, item: string) => {
 			const [key, value] = item.split('=');
@@ -578,7 +578,7 @@ function vsCommandUpload(): Disposable {
 		if (!arduinoProject.getBoard()) {
 			window.showInformationMessage('Board info not found, cannot upload');
 		}
-		if (!arduinoProject.getConfiguration()) {
+		if (!arduinoProject.getBoardConfiguration()) {
 			window.showInformationMessage('Board configuration not found, cannot upload');
 		}
 		if (!arduinoProject.getPort()) {
@@ -600,7 +600,7 @@ function vsCommandCompile(): Disposable {
 		if (!arduinoProject.getBoard()) {
 			window.showInformationMessage('Board info not found, cannot compile');
 		}
-		if (!arduinoProject.getConfiguration()) {
+		if (!arduinoProject.getBoardConfiguration()) {
 			window.showInformationMessage('Board configuration not found, cannot compile');
 		}
 		if (!arduinoProject.getOutput()) {

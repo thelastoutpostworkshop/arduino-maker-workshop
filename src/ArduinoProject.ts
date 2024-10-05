@@ -5,7 +5,7 @@ const fs = require('fs');
 
 export const cliCommandArduino: string = 'arduino-cli';
 export const compileCommandArduino: string = 'compile';
-const versionCommandArduino:string = 'version';
+const versionCommandArduino: string = 'version';
 const uploadCommandArduino: string = 'upload';
 const boardCommandArduino: string = 'board';
 const listFunctionArduino: string = 'list';
@@ -82,7 +82,7 @@ export class ArduinoProject {
             `${verboseOptionArduino}`,
             `${noColorOptionArduino}`,
             `${fqbnOptionArduino}`,
-            `${this.getBoard()}:${this.getConfiguration()}`,
+            `${this.getBoard()}:${this.getBoardConfiguration()}`,
             `${buildPathArduino}`,
             this.getProjectPath() + '/' + this.getOutput(),
             `${buildCachePathArduino}`,
@@ -98,7 +98,7 @@ export class ArduinoProject {
             `${preprocessCompileOptionArduino}`,
             `${noColorOptionArduino}`,
             `${fqbnOptionArduino}`,
-            `${this.getBoard()}:${this.getConfiguration()}`,
+            `${this.getBoard()}:${this.getBoardConfiguration()}`,
             this.getProjectPath()
         ];
         return compileCommand;
@@ -112,7 +112,7 @@ export class ArduinoProject {
             `${portOptionArduino}`,
             `${this.getPort()}`,
             `${fqbnOptionArduino}`,
-            `${this.getBoard()}:${this.getConfiguration()}`,
+            `${this.getBoard()}:${this.getBoardConfiguration()}`,
             `${inputDirOptionArduino}`,
             this.getProjectPath() + '/' + this.getOutput(),
             this.getProjectPath()
@@ -147,7 +147,7 @@ export class ArduinoProject {
             `${boardCommandArduino}`,
             `${detailsFunctionArduino}`,
             `${fqbnOptionArduino}`,
-            `${this.getBoard()}:${this.getConfiguration()}`,
+            `${this.getBoard()}:${this.getBoardConfiguration()}`,
             `${jsonOutputArduino}`
         ];
         return compileCommand;
@@ -162,7 +162,7 @@ export class ArduinoProject {
             const files = fs.readdirSync(this.getProjectPath());
 
             // Check if any files have the .ino extension and match the folder name
-            const hasMatchingInoFile = files.some((file:any) => {
+            const hasMatchingInoFile = files.some((file: any) => {
                 // Get the full path of the file
                 const filePath = path.join(this.getProjectPath(), file);
 
@@ -215,7 +215,7 @@ export class ArduinoProject {
         try {
             const includeDataPath = path.join(this.getProjectPath(), this.getOutput(), "includes.cache");
             const includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
-            includeData.forEach((entry:any) => {
+            includeData.forEach((entry: any) => {
                 if (entry.Includepath) {
                     includePaths.add(entry.Includepath + "\\**");
                 }
@@ -263,6 +263,7 @@ export class ArduinoProject {
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
 
+
     public getOutput(): string {
         return this.configJson.output || ARDUINO_DEFAULT_OUTPUT;
     }
@@ -270,8 +271,11 @@ export class ArduinoProject {
         this.configJson.output = output;
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
-    public getConfiguration(): string {
+    public getBoardConfiguration(): string {
         return this.configJson.configuration || '';
+    }
+    public getArduinoArduinoConfiguration(): ArduinoConfiguration {
+        return this.configJson;
     }
     public getPort(): string {
         return this.configJson.port || '';
