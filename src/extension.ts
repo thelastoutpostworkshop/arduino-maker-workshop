@@ -2,6 +2,7 @@ import { window, WebviewPanel, ExtensionContext, commands, ProgressLocation, Dis
 import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { QuickAccessProvider } from './quickAccessProvider';
+import { MESSAGE_COMMANDS, WebviewToExtensionMessage } from "./shared/messages";
 
 const cp = require('child_process');
 const fs = require('fs');
@@ -27,6 +28,9 @@ export function activate(context: ExtensionContext) {
 			if (e.affectsConfiguration('cli.path')) {
 				cliCommandArduinoPath = workspace.getConfiguration().get<string>('cli.path', '');
 				arduinoExtensionChannel.appendLine(`Arduino CLI Path Changed: ${cliCommandArduinoPath}`);
+				checkArduinoCLICommand().then((result) => {
+					VueWebviewPanel.sendMessage(processArduinoCLICommandCheck(result));
+				});
 			}
 		})
 	);
@@ -59,6 +63,19 @@ export function activate(context: ExtensionContext) {
 	);
 }
 
+export function processArduinoCLICommandCheck(commandResult:string):WebviewToExtensionMessage {
+	let message: string = "";
+	if (commandResult === "") {
+		message = "Arduino CLI Path wrong or not set in settings";
+	}
+	const cliStatusMessage: WebviewToExtensionMessage = {
+		command: MESSAGE_COMMANDS.ARDUINO_CLI_STATUS,
+		errorMessage: message,
+		payload: commandResult
+	};
+	return cliStatusMessage
+}
+
 export function checkArduinoCLICommand(): Promise<string> {
 	return new Promise((resolve) => {
 		if (cliCommandArduinoPath === '') {
@@ -83,7 +100,7 @@ export function checkArduinoCLICommand(): Promise<string> {
 				}
 			})
 			.catch((error) => {
-				window.showErrorMessage(`Failed to execute Arduino CLI command: ${error}`);
+				window.showErrorMessage(`Arduino CLI path is wrong in your settings: ${error}`);
 				resolve("");
 			});
 	});

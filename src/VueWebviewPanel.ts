@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { MESSAGE_COMMANDS, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoExtensionChannel, checkArduinoCLICommand } from "./extension";
+import { arduinoExtensionChannel, checkArduinoCLICommand, processArduinoCLICommandCheck } from "./extension";
 
 const path = require('path');
 const fs = require('fs');
@@ -22,16 +22,7 @@ export class VueWebviewPanel {
                 switch (message.command) {
                     case MESSAGE_COMMANDS.ARDUINO_CLI_STATUS:
                         checkArduinoCLICommand().then((result) => {
-                            let message: string = "";
-                            if (result === "") {
-                                message = "Arduino CLI Path not set in settings";
-                            }
-                            const cliStatusMessage: WebviewToExtensionMessage = {
-                                command: MESSAGE_COMMANDS.ARDUINO_CLI_STATUS,
-                                errorMessage: message,
-                                payload: result
-                            };
-                            VueWebviewPanel.sendMessage(cliStatusMessage);
+                            VueWebviewPanel.sendMessage(processArduinoCLICommandCheck(result));
                         });
                         break;
                     case MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUT:
