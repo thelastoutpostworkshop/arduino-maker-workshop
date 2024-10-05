@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, loadArduinoConfiguration, processArduinoCLICommandCheck } from "./extension";
+import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, loadArduinoConfiguration, processArduinoCLICommandCheck } from "./extension";
 import { ARDUINO_ERRORS } from "./ArduinoProject";
 
 const path = require('path');
@@ -61,6 +61,30 @@ export class VueWebviewPanel {
                             projectInfo.errorMessage = "Not an Arduino Project";
                         }
                         VueWebviewPanel.sendMessage(projectInfo);
+                        break;
+                    case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
+                        getBoardConfiguration(message.payload).then((result) => {
+                            const boardConfiguration: WebviewToExtensionMessage = {
+                                command: ARDUINO_MESSAGES.BOARD_CONFIGURATION,
+                                errorMessage: "",
+                                payload: ""
+                            };
+                            if (result !== "") {
+                                try {
+                                    const configData = JSON.parse(result);
+                                    boardConfiguration.payload = {
+                                        configuration:configData.config_options,
+                                        boardName:configData.name
+                                    };
+
+                                } catch (error) {
+                                    boardConfiguration.errorMessage = "Cannot parse Board configuration";
+                                }
+                            } else {
+                                boardConfiguration.errorMessage = "Cannot get Board configuration";
+                            }
+                            VueWebviewPanel.sendMessage(boardConfiguration);
+                        });
                         break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);

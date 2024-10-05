@@ -106,7 +106,7 @@ export function checkArduinoCLICommand(): Promise<string> {
 	});
 }
 
-function getBoardConfiguration(context: ExtensionContext): Promise<string> {
+export function getBoardConfiguration(context: ExtensionContext): Promise<string> {
 
 	return new Promise((resolve) => {
 		if (!loadArduinoConfiguration()) {
@@ -139,9 +139,7 @@ function getBoardConfiguration(context: ExtensionContext): Promise<string> {
 			});
 	});
 
-	// const configData = JSON.parse(result);
-	// const configuration = configData.config_options;
-	// const boardName = configData.name; 
+
 }
 
 
