@@ -3,14 +3,22 @@
 export interface WebviewToExtensionMessage {
     command: string;
     errorMessage: string,
-    payload: any | ArduinoBoardConfigurationPayload;
+    payload: any | ArduinoBoardConfigurationPayload | ArduinoProjectInfoPayload;
 }
 
 export interface ArduinoBoardConfigurationPayload {
     configuration: string;
     boardName: string;
-  }
-  
+}
+
+export interface ArduinoProjectInfoPayload {
+    configuration: string;
+    board: string;
+    sketch:string;
+    output:string;
+    port:string;
+}
+
 export const ARDUINO_MESSAGES = {
     CLI_STATUS: 'getArduinoCLIStatus',
     ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
