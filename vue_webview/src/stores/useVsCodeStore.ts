@@ -16,7 +16,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO:
                     this.projectInfo = message;
                     break;
-                case MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUT:
+                case MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUS:
                     this.projectStatus = message;
                     break;
                 default:

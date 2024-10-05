@@ -2,7 +2,8 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { MESSAGE_COMMANDS, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoExtensionChannel, checkArduinoCLICommand, processArduinoCLICommandCheck } from "./extension";
+import { arduinoConfigurationLastError, arduinoExtensionChannel, checkArduinoCLICommand, loadArduinoConfiguration, processArduinoCLICommandCheck } from "./extension";
+import { ARDUINO_ERRORS } from "./ArduinoProject";
 
 const path = require('path');
 const fs = require('fs');
@@ -25,9 +26,28 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(processArduinoCLICommandCheck(result));
                         });
                         break;
-                    case MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUT:
-                        arduinoExtensionChannel.appendLine("Message : ARDUINO_PROJECT_STATUT");
-                        // Handle update data command
+                    case MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUS:
+                        const projectStatus: WebviewToExtensionMessage = {
+                            command: MESSAGE_COMMANDS.ARDUINO_CLI_STATUS,
+                            errorMessage: "",
+                            payload: ""
+                        };
+                        if (!loadArduinoConfiguration()) {
+                            switch (arduinoConfigurationLastError) {
+                                case ARDUINO_ERRORS.NO_INO_FILES:
+                                    projectStatus.errorMessage = "No sketch file (.ino) found";
+                                    break;
+                                case ARDUINO_ERRORS.WRONG_FOLDER_NAME:
+                                    projectStatus.errorMessage = "Folder and sketch name mismatch";
+                                    break;
+                                default:
+                                    projectStatus.errorMessage = "Unknown error in Arduino Project Configuration";
+                                    break;
+                            }
+                        } else {
+                            projectStatus.errorMessage = "";
+                        }
+                        VueWebviewPanel.sendMessage(projectStatus);
                         break;
                     case MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO:
                         arduinoExtensionChannel.appendLine("Message : ARDUINO_PROJECT_INFO");

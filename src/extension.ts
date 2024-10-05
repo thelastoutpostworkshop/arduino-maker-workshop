@@ -15,7 +15,7 @@ arduinoExtensionChannel.appendLine("Arduino Extension started");
 export const arduinoProject: ArduinoProject = new ArduinoProject();
 let cliCommandArduinoPath: string = "";
 let boardConfigWebViewPanel: WebviewPanel | undefined = undefined;
-let arduinoConfigurationLastError: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_ERRORS;
+export let arduinoConfigurationLastError: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_ERRORS;
 
 export function activate(context: ExtensionContext) {
 
