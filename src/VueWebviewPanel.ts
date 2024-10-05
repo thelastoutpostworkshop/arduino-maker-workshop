@@ -1,7 +1,7 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
-import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from './shared/messages';
+import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, loadArduinoConfiguration, processArduinoCLICommandCheck } from "./extension";
 import { ARDUINO_ERRORS } from "./ArduinoProject";
 
@@ -72,9 +72,9 @@ export class VueWebviewPanel {
                             if (result !== "") {
                                 try {
                                     const configData = JSON.parse(result);
-                                    boardConfiguration.payload = {
-                                        configuration:configData.config_options,
-                                        boardName:configData.name
+                                    boardConfiguration.payload = <ArduinoBoardConfigurationPayload>{
+                                        configuration: configData.config_options,
+                                        boardName: configData.name
                                     };
 
                                 } catch (error) {

@@ -3,11 +3,14 @@
 export interface WebviewToExtensionMessage {
     command: string;
     errorMessage: string,
-    payload: any;
+    payload: any | ArduinoBoardConfigurationPayload;
 }
 
-// Define constants for your message commands
-
+export interface ArduinoBoardConfigurationPayload {
+    configuration: string;
+    boardName: string;
+  }
+  
 export const ARDUINO_MESSAGES = {
     CLI_STATUS: 'getArduinoCLIStatus',
     ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
