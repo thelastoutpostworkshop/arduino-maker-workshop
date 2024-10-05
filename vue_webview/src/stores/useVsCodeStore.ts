@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoCLIStatusPayload, ArduinoProjectInfoPayload, WebviewToExtensionMessage } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatusPayload, ArduinoProjectInfoPayload, WebviewToExtensionMessage } from '@shared/messages';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
         cliStatus: null as ArduinoCLIStatusPayload | null,
         projectInfo: null as ArduinoProjectInfoPayload | null,
         projectStatus: null as WebviewToExtensionMessage | null,
-        boardConfiguration: null as WebviewToExtensionMessage | null,
+        boardConfiguration: null as ArduinoBoardConfigurationPayload | null,
     }),
     actions: {
         handleMessage(message: WebviewToExtensionMessage) {
@@ -49,8 +49,15 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.projectStatus = message;
                     break;
                 case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
-                    this.boardConfiguration = message;
-                    break;
+                    try {
+                        this.boardConfiguration = {
+                            errorMessage: message.errorMessage,
+                            configuration: message.payload.configuration,
+                            boardName:message.payload.boardName
+                        }
+                    } catch (error) {
+                        return "Failed to parse Board Configuration information.";
+                    } break;
                 default:
                     console.warn('Unknown command received:', message.command);
             }
