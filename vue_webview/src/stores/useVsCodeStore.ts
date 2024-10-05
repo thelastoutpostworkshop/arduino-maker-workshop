@@ -27,7 +27,6 @@ export const useVsCodeStore = defineStore('vsCode', {
                     } catch (error) {
                         return "Failed to parse Project Configuration information.";
                     }
-                    this.projectInfo = message;
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                     this.projectStatus = message;

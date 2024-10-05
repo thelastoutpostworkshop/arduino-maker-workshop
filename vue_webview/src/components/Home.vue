@@ -45,23 +45,6 @@ const projectStatusInfo = computed(() => {
   }
 });
 
-// const projectInfoDetails = computed(() => {
-//   if (projectInfo.value) {
-//     try {
-//       if (projectInfo.value.errorMessage !== "") {
-//         return projectInfo.value.errorMessage;
-//       } else {
-//         console.log(projectInfo.value.payload);
-//         return projectInfo.value.payload;
-//       }
-//     } catch (error) {
-//       return "Failed to parse Project Configuration information.";
-//     }
-//   } else {
-//     return "Project Configuration failed. No data available.";
-//   }
-// });
-
 // watch([() => vsCodeStore.projectStatus, () => store.freeSketch], () => {}, { immediate: true });
 watch([() => vsCodeStore.projectInfo], () => {}, { immediate: true });
 
