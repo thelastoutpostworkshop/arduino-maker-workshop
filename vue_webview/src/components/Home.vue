@@ -59,8 +59,18 @@ watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { },
               </div>
             </template>
 
-            <v-text-field label="Board" :model-value="vsCodeStore.boardConfiguration?.boardName" readonly></v-text-field>
-            <v-text-field label="Port" :model-value="vsCodeStore.projectInfo?.port" readonly></v-text-field>
+            <v-text-field label="Board" :model-value="vsCodeStore.boardConfiguration?.boardName" readonly>
+              <template v-slot:loader>
+                <v-progress-linear :active="!vsCodeStore.boardConfiguration?.boardName" height="2"
+                  indeterminate></v-progress-linear>
+              </template>
+            </v-text-field>
+            <v-text-field label="Port" :model-value="vsCodeStore.projectInfo?.port" readonly>
+              <template v-slot:loader>
+                <v-progress-linear :active="!vsCodeStore.projectInfo?.port" height="2"
+                  indeterminate></v-progress-linear>
+              </template>
+            </v-text-field>
 
             <v-overlay opacity=".12" scrim="primary" contained model-value persistent />
           </v-card>
