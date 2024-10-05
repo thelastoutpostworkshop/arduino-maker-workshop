@@ -64,57 +64,6 @@
         "command": "vscode-arduino.upload",
         "title": "Upload",
         "category": "Arduino"
-      },
-      {
-        "command": "vscode-arduino.port",
-        "title": "Set Port",
-        "category": "Arduino"
-      },
-      {
-        "command": "vscode-arduino.boardconfig",
-        "title": "Configure Board",
-        "category": "Arduino"
-      },
-      {
-        "command": "vscode-arduino.boardselect",
-        "title": "Select a Board",
-        "category": "Arduino"
-      },
-      {
-        "command": "comPortSelector.refresh",
-        "title": "Refresh COM Ports",
-        "icon": "$(refresh)"
-      },
-      {
-        "command": "comPortSelector.selectPort",
-        "title": "Select COM Port"
-      },
-      {
-        "command": "comPortSelector.command1",
-        "title": "Execute Command 1"
-      },
-      {
-        "command": "comPortSelector.command2",
-        "title": "Execute Command 2"
-      },
-      {
-        "command": "boardSelector.selectBoard",
-        "title": "Select Board"
-      },
-      {
-        "command": "boardSelector.refresh",
-        "title": "Refresh Boards",
-        "icon": "$(refresh)"
-      },
-      {
-        "command": "boardSelector.filterBoards",
-        "title": "Filter Boards",
-        "icon": "$(search)"
-      },
-      {
-        "command": "boardSelector.clearFilter",
-        "title": "Clear Filter",
-        "icon": "$(close)"
       }
     ]
   },

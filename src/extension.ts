@@ -38,23 +38,9 @@ export function activate(context: ExtensionContext) {
 
 	context.subscriptions.push(vsCommandCompile());
 	context.subscriptions.push(vsCommandUpload());
-	context.subscriptions.push(vsCommandPort());
-	context.subscriptions.push(vsCommandBoardSelection(context));
 
 	const quickAccessProvider = new QuickAccessProvider();
 	window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
-
-	context.subscriptions.push(
-		commands.registerCommand('comPortSelector.command1', () => {
-			window.showInformationMessage(`Command 1 executed on `);
-		})
-	);
-
-	context.subscriptions.push(
-		commands.registerCommand('comPortSelector.command2', () => {
-			window.showInformationMessage(`Command 2 executed on }`);
-		})
-	);
 
 	context.subscriptions.push(
 		commands.registerCommand('extension.openVueWebview', () => {
