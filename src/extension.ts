@@ -39,7 +39,6 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(vsCommandCompile());
 	context.subscriptions.push(vsCommandUpload());
 	context.subscriptions.push(vsCommandPort());
-	context.subscriptions.push(vsCommandBoardConfiguration(context));
 	context.subscriptions.push(vsCommandBoardSelection(context));
 
 	const quickAccessProvider = new QuickAccessProvider();
