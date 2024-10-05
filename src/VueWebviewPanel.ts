@@ -103,7 +103,7 @@ export class VueWebviewPanel {
     public static sendMessage(message: WebviewToExtensionMessage) {
         if (VueWebviewPanel.currentPanel) {
             VueWebviewPanel.currentPanel._panel.webview.postMessage(message);
-            arduinoExtensionChannel.appendLine(`Message to vue app: ${message.payload}`);
+            // arduinoExtensionChannel.appendLine(`Message to vue app: ${message.payload}`);
         } else {
             arduinoExtensionChannel.appendLine("Attempted to send message, but the webview panel is not active.");
         }
