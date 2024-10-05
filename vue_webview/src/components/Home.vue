@@ -25,7 +25,6 @@ const projectStatusInfo = computed(() => {
 
 watch(() => vsCodeStore.projectInfo, (newProjectInfo, oldProjectInfo) => {
   if (newProjectInfo) {
-    console.log(newProjectInfo);
     vscode.postMessage({ command: ARDUINO_MESSAGES.BOARD_CONFIGURATION, errorMessage: "", payload: vsCodeStore.projectInfo?.board });
   }
 }, { immediate: true });
@@ -44,7 +43,6 @@ watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { },
       <div>
         <p>Arduino CLI: v{{ vsCodeStore.cliStatus?.version }} ({{ vsCodeStore.cliStatus?.date }})</p>
         <p>Project Status: {{ projectStatusInfo }}</p>
-        <p>Project Info: {{ vsCodeStore.projectInfo }}</p>
       </div>
       <div class="py-4" />
 
