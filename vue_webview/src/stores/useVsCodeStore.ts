@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoProjectInfoPayload, WebviewToExtensionMessage } from '@shared/messages';
+import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from '@shared/messages';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
         cliStatus: null as WebviewToExtensionMessage | null,
-        projectInfo: null as ArduinoProjectInfoPayload | null,
-        projectStatus: null as any,
-        boardConfiguration: null as ArduinoBoardConfigurationPayload | null,
+        projectInfo: null as WebviewToExtensionMessage | null,
+        projectStatus: null as WebviewToExtensionMessage | null,
+        boardConfiguration: null as WebviewToExtensionMessage | null,
     }),
     actions: {
         handleMessage(message: any) {
