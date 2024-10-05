@@ -7,11 +7,13 @@ export interface WebviewToExtensionMessage {
 }
 
 export interface ArduinoBoardConfigurationPayload {
+    errorMessage:string;
     configuration: string;
     boardName: string;
 }
 
 export interface ArduinoProjectInfoPayload {
+    errorMessage:string;
     configuration: string;
     board: string;
     sketch:string;
