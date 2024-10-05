@@ -45,22 +45,22 @@ const projectStatusInfo = computed(() => {
   }
 });
 
-const projectInfoDetails = computed(() => {
-  if (projectInfo.value) {
-    try {
-      if (projectInfo.value.errorMessage !== "") {
-        return projectInfo.value.errorMessage;
-      } else {
-        console.log(projectInfo.value.payload);
-        return projectInfo.value.payload;
-      }
-    } catch (error) {
-      return "Failed to parse Project Configuration information.";
-    }
-  } else {
-    return "Project Configuration failed. No data available.";
-  }
-});
+// const projectInfoDetails = computed(() => {
+//   if (projectInfo.value) {
+//     try {
+//       if (projectInfo.value.errorMessage !== "") {
+//         return projectInfo.value.errorMessage;
+//       } else {
+//         console.log(projectInfo.value.payload);
+//         return projectInfo.value.payload;
+//       }
+//     } catch (error) {
+//       return "Failed to parse Project Configuration information.";
+//     }
+//   } else {
+//     return "Project Configuration failed. No data available.";
+//   }
+// });
 
 // Watch the cliStatus to handle empty results
 watch(cliStatus, (newStatus) => {
@@ -90,7 +90,7 @@ watch(projectInfo, (newProjectInfo) => {
       <div>
         <p>Arduino CLI: {{ cliVersionInfo }}</p>
         <p>Project Status: {{ projectStatusInfo }}</p>
-        <p>Project Info: {{ projectInfoDetails }}</p>
+        <p>Project Info: {{ vsCodeStore.projectInfo }}</p>
       </div>
       <div class="py-4" />
 
@@ -107,8 +107,8 @@ watch(projectInfo, (newProjectInfo) => {
               </div>
             </template>
 
-            <v-text-field label="Board" :model-value="projectInfoDetails.board" readonly></v-text-field>
-            <v-text-field label="Port" :model-value="projectInfoDetails.port" readonly></v-text-field>
+            <v-text-field label="Board" :model-value="vsCodeStore.projectInfo?.board" readonly></v-text-field>
+            <v-text-field label="Port" :model-value="vsCodeStore.projectInfo?.port" readonly></v-text-field>
 
             <v-overlay opacity=".12" scrim="primary" contained model-value persistent />
           </v-card>
