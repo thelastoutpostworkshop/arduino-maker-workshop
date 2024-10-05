@@ -108,7 +108,7 @@ watch(projectInfo, (newProjectInfo) => {
             </template>
 
             <v-text-field label="Board" :model-value="projectInfoDetails.board" readonly></v-text-field>
-            <v-text-field label="Port" model-value="John Doe" readonly></v-text-field>
+            <v-text-field label="Port" :model-value="projectInfoDetails.port" readonly></v-text-field>
 
             <v-overlay opacity=".12" scrim="primary" contained model-value persistent />
           </v-card>
