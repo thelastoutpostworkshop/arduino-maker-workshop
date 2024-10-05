@@ -48,7 +48,7 @@ watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { },
 
       <v-row>
         <v-col cols="12">
-          <v-card class="pa-4"  prepend-icon="mdi-cog" rounded="lg" variant="flat">
+          <v-card class="pa-4" color="blue-grey-darken-4"  prepend-icon="mdi-cog" rounded="lg">
             <template #title>
               <h2 class="text-h5 font-weight-bold">Sketch Configuration</h2>
             </template>
