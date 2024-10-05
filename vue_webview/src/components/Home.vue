@@ -48,7 +48,7 @@ watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { },
 
       <v-row>
         <v-col cols="12">
-          <v-card class="py-4" color="surface-variant" prepend-icon="mdi-cog" rounded="lg" variant="outlined">
+          <v-card class="pa-4" color="surface-variant" prepend-icon="mdi-cog" rounded="lg" variant="outlined">
             <template #title>
               <h2 class="text-h5 font-weight-bold">Sketch Configuration</h2>
             </template>
@@ -59,7 +59,7 @@ watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { },
               </div>
             </template>
 
-            <v-text-field label="Board" :model-value="vsCodeStore.boardConfiguration?.boardName" readonly>
+            <v-text-field label="Board" :model-value="vsCodeStore.boardConfiguration?.boardName" readonly  append-icon="mdi-pencil"> 
               <template v-slot:loader>
                 <v-progress-linear :active="!vsCodeStore.boardConfiguration?.boardName" height="2"
                   indeterminate></v-progress-linear>
