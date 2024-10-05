@@ -59,11 +59,11 @@ export function activate(context: ExtensionContext) {
 	);
 }
 
-export function checkArduinoCLICommand(): Promise<boolean> {
+export function checkArduinoCLICommand(): Promise<string> {
 	return new Promise((resolve) => {
 		if (cliCommandArduinoPath === '') {
 			window.showErrorMessage('Arduino CLI Path not set in your settings');
-			resolve(false);
+			resolve("");
 			return;
 		}
 
@@ -73,26 +73,20 @@ export function checkArduinoCLICommand(): Promise<boolean> {
 			.then((result) => {
 				if (result) {
 					try {
-						const cliInfo = JSON.parse(result as string);
-						const version = cliInfo.VersionString;
-						const commit = cliInfo.Commit;
-						const date = new Date(cliInfo.Date).toLocaleDateString();
 
-						const versionMessage = `Arduino CLI version: ${version}, Commit: ${commit}, Date: ${date}`;
-						arduinoExtensionChannel.appendLine(versionMessage);
 
-						resolve(true);
+						resolve(result);
 					} catch (parseError) {
 						arduinoExtensionChannel.appendLine('Failed to parse Arduino CLI version information.');
-						resolve(false);
+						resolve("");
 					}
 				} else {
-					resolve(false);
+					resolve("");
 				}
 			})
 			.catch((error) => {
 				window.showErrorMessage(`Failed to execute Arduino CLI command: ${error}`);
-				resolve(false);
+				resolve("");
 			});
 	});
 }

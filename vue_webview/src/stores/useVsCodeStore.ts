@@ -11,7 +11,7 @@ export const useVsCodeStore = defineStore('vsCode', {
     handleMessage(message: any) {
       switch (message.command) {
         case MESSAGE_COMMANDS.ARDUINO_CLI_STATUS:
-          this.cliStatus = message.payload.status;
+          this.cliStatus = message.payload;
           break;
         case MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO:
           this.projectInfo = message.payload;

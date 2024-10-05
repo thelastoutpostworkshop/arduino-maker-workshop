@@ -21,12 +21,10 @@ export class VueWebviewPanel {
             (message: WebviewToExtensionMessage) => {
                 switch (message.command) {
                     case MESSAGE_COMMANDS.ARDUINO_CLI_STATUS:
-                        checkArduinoCLICommand().then((cliIsValid) => {
+                        checkArduinoCLICommand().then((result) => {
                             const cliStatusMessage: WebviewToExtensionMessage = {
                                 command: MESSAGE_COMMANDS.ARDUINO_CLI_STATUS,
-                                payload: {
-                                    status: cliIsValid ? "Arduino CLI is valid" : "Arduino CLI is not set up properly"
-                                }
+                                payload: result
                             };
                             this._panel.webview.postMessage(cliStatusMessage);
                         });

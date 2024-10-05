@@ -1,5 +1,3 @@
-// src/shared/messages.ts
-
 // Define the types of messages your extension and webview can exchange
 
 export interface WebviewToExtensionMessage {

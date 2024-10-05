@@ -1,9 +1,34 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { storeToRefs } from 'pinia';
+import { computed, watch } from 'vue';
 
 const vsCodeStore = useVsCodeStore();
 const { cliStatus, projectInfo, projectStatus } = storeToRefs(vsCodeStore);
+
+// Computed property to extract and display CLI info
+const cliVersionInfo = computed(() => {
+  if (cliStatus.value) {
+    try {
+      const cliInfo = JSON.parse(cliStatus.value);
+      const version = cliInfo.VersionString;
+      const commit = cliInfo.Commit;
+      const date = new Date(cliInfo.Date).toLocaleDateString();
+      return `Version: ${version}, Commit: ${commit}, Date: ${date}`;
+    } catch (error) {
+      return "Failed to parse CLI information.";
+    }
+  } else {
+    return "CLI command failed. No data available.";
+  }
+});
+
+// Watch the cliStatus to handle empty results
+watch(cliStatus, (newStatus) => {
+  if (!newStatus) {
+    console.error("CLI command failed or returned an empty result.");
+  }
+});
 </script>
 
 
@@ -14,7 +39,7 @@ const { cliStatus, projectInfo, projectStatus } = storeToRefs(vsCodeStore);
         <h1 class="text-h3 font-weight-bold">Arduino Home</h1>
       </div>
       <div>
-        <p>CLI Status: {{ cliStatus }}</p>
+        <p>Arduino CLI: {{ cliVersionInfo }}</p>
         <p>Project Status: {{ projectStatus }}</p>
         <p>Project Info: {{ projectInfo }}</p>
       </div>
