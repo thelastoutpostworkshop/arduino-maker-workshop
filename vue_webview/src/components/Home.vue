@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { storeToRefs } from 'pinia';
 import { computed, watch } from 'vue';
+import { MESSAGE_COMMANDS } from '@shared/messages';
 
 const vsCodeStore = useVsCodeStore();
 const { cliStatus, projectInfo, projectStatus } = storeToRefs(vsCodeStore);
@@ -32,7 +34,24 @@ const projectStatusInfo = computed(() => {
       if(projectStatus.value.errorMessage !== "") {
         return projectStatus.value.errorMessage;
       } else {
+        vscode.postMessage({ command: MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO,errorMessage:"", payload: "" });
         return `Ready`;
+      }
+    } catch (error) {
+      return "Failed to parse Project Status information.";
+    }
+  } else {
+    return "Project Status failed. No data available.";
+  }
+});
+
+const projectInfoDetails = computed(() => {
+  if (projectInfo.value) {
+    try {
+      if(projectInfo.value.errorMessage !== "") {
+        return projectInfo.value.errorMessage;
+      } else {
+        return `${projectInfo.value.payload}`;
       }
     } catch (error) {
       return "Failed to parse Project Status information.";
@@ -53,6 +72,11 @@ watch(projectStatus, (newProjectStatus) => {
     console.error("Project Status failed or returned an empty result.");
   }
 });
+watch(projectInfo, (newProjectInfo) => {
+  if (!newProjectInfo) {
+    console.error("Project Info failed or returned an empty result.");
+  }
+});
 </script>
 
 
@@ -65,7 +89,7 @@ watch(projectStatus, (newProjectStatus) => {
       <div>
         <p>Arduino CLI: {{ cliVersionInfo }}</p>
         <p>Project Status: {{ projectStatusInfo }}</p>
-        <p>Project Info: {{ projectInfo }}</p>
+        <p>Project Info: {{ projectInfoDetails }}</p>
       </div>
       <div class="py-4" />
 
