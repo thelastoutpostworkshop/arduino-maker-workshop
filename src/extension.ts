@@ -110,10 +110,10 @@ export function checkArduinoCLICommand(): Promise<string> {
 
 export function loadArduinoConfiguration(): boolean {
 
-	const res = arduinoProject.isFolderArduinoProject();
-	if (res !== ARDUINO_ERRORS.NO_ERRORS) {
+	arduinoConfigurationLastError = arduinoProject.isFolderArduinoProject();
+	if (arduinoConfigurationLastError !== ARDUINO_ERRORS.NO_ERRORS) {
 		let message: string = "";
-		switch (res) {
+		switch (arduinoConfigurationLastError) {
 			case ARDUINO_ERRORS.NO_INO_FILES:
 				message = "No sketch file (.ino) found";
 				break;
