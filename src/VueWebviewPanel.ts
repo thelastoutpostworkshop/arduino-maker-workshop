@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { MESSAGE_COMMANDS, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoConfigurationLastError, arduinoExtensionChannel, checkArduinoCLICommand, loadArduinoConfiguration, processArduinoCLICommandCheck } from "./extension";
+import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, loadArduinoConfiguration, processArduinoCLICommandCheck } from "./extension";
 import { ARDUINO_ERRORS } from "./ArduinoProject";
 
 const path = require('path');
@@ -50,8 +50,17 @@ export class VueWebviewPanel {
                         VueWebviewPanel.sendMessage(projectStatus);
                         break;
                     case MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO:
-                        arduinoExtensionChannel.appendLine("Message : ARDUINO_PROJECT_INFO");
-                        // Handle show alert command
+                        const projectInfo: WebviewToExtensionMessage = {
+                            command: MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO,
+                            errorMessage: "",
+                            payload: ""
+                        };
+                        if (loadArduinoConfiguration()) {
+                            projectInfo.payload = arduinoProject.getArduinoConfiguration();
+                        } else {
+                            projectInfo.errorMessage = "Not an Arduino Project";
+                        }
+                        VueWebviewPanel.sendMessage(projectInfo);
                         break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);

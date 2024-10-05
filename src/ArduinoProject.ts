@@ -274,7 +274,7 @@ export class ArduinoProject {
     public getBoardConfiguration(): string {
         return this.configJson.configuration || '';
     }
-    public getArduinoArduinoConfiguration(): ArduinoConfiguration {
+    public getArduinoConfiguration(): ArduinoConfiguration {
         return this.configJson;
     }
     public getPort(): string {
