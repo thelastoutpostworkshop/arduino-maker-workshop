@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { storeToRefs } from 'pinia';
 import { computed, watch } from 'vue';
 import { ARDUINO_MESSAGES } from '@shared/messages';
 
 const vsCodeStore = useVsCodeStore();
-const { projectStatus } = storeToRefs(vsCodeStore);
 
 const projectStatusInfo = computed(() => {
-  if (projectStatus.value) {
+  if (vsCodeStore.projectStatus) {
     try {
-      if (projectStatus.value.errorMessage !== "") {
-        return projectStatus.value.errorMessage;
+      if (vsCodeStore.projectStatus.errorMessage !== "") {
+        return vsCodeStore.projectStatus.errorMessage;
       } else {
         vscode.postMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
         return `Ready`;
@@ -25,13 +23,8 @@ const projectStatusInfo = computed(() => {
   }
 });
 
-watch([() => vsCodeStore.projectInfo, ()=>vsCodeStore.cliStatus], () => {}, { immediate: true });
+watch([() => vsCodeStore.projectInfo, () => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { }, { immediate: true });
 
-watch(projectStatus, (newProjectStatus) => {
-  if (!newProjectStatus) {
-    console.error("Project Status failed or returned an empty result.");
-  }
-});
 </script>
 
 
