@@ -6,7 +6,7 @@ import { computed, watch } from 'vue';
 import { ARDUINO_MESSAGES } from '@shared/messages';
 
 const vsCodeStore = useVsCodeStore();
-const { cliStatus, projectInfo, projectStatus } = storeToRefs(vsCodeStore);
+const { cliStatus, projectStatus } = storeToRefs(vsCodeStore);
 
 const cliVersionInfo = computed(() => {
   if (cliStatus.value) {
@@ -62,7 +62,9 @@ const projectStatusInfo = computed(() => {
 //   }
 // });
 
-// Watch the cliStatus to handle empty results
+// watch([() => vsCodeStore.projectStatus, () => store.freeSketch], () => {}, { immediate: true });
+watch([() => vsCodeStore.projectInfo], () => {}, { immediate: true });
+
 watch(cliStatus, (newStatus) => {
   if (!newStatus) {
     console.error("CLI command failed or returned an empty result.");
@@ -71,11 +73,6 @@ watch(cliStatus, (newStatus) => {
 watch(projectStatus, (newProjectStatus) => {
   if (!newProjectStatus) {
     console.error("Project Status failed or returned an empty result.");
-  }
-});
-watch(projectInfo, (newProjectInfo) => {
-  if (!newProjectInfo) {
-    console.error("Project Info failed or returned an empty result.");
   }
 });
 </script>
