@@ -28,7 +28,7 @@ export class VueWebviewPanel {
                         break;
                     case MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUS:
                         const projectStatus: WebviewToExtensionMessage = {
-                            command: MESSAGE_COMMANDS.ARDUINO_CLI_STATUS,
+                            command: MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUS,
                             errorMessage: "",
                             payload: ""
                         };
@@ -54,7 +54,7 @@ export class VueWebviewPanel {
                         // Handle show alert command
                         break;
                     default:
-                        arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command} `);
+                        arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);
                 }
             },
             null,
@@ -70,6 +70,7 @@ export class VueWebviewPanel {
     public static sendMessage(message: WebviewToExtensionMessage) {
         if (VueWebviewPanel.currentPanel) {
             VueWebviewPanel.currentPanel._panel.webview.postMessage(message);
+            arduinoExtensionChannel.appendLine(`Message to vue app: ${message.payload}`);
         } else {
             arduinoExtensionChannel.appendLine("Attempted to send message, but the webview panel is not active.");
         }
