@@ -53,11 +53,12 @@ export const useVsCodeStore = defineStore('vsCode', {
                         this.boardConfiguration = {
                             errorMessage: message.errorMessage,
                             configuration: message.payload.configuration,
-                            boardName:message.payload.boardName
+                            boardName: message.payload.boardName
                         }
                     } catch (error) {
                         return "Failed to parse Board Configuration information.";
-                    } break;
+                    }
+                    break;
                 default:
                     console.warn('Unknown command received:', message.command);
             }

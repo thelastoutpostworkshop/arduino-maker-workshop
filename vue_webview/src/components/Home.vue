@@ -23,7 +23,14 @@ const projectStatusInfo = computed(() => {
   }
 });
 
-watch([() => vsCodeStore.projectInfo, () => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { }, { immediate: true });
+watch(() => vsCodeStore.projectInfo, (newProjectInfo, oldProjectInfo) => {
+  if (newProjectInfo) {
+    console.log(newProjectInfo);
+    vscode.postMessage({ command: ARDUINO_MESSAGES.BOARD_CONFIGURATION, errorMessage: "", payload: vsCodeStore.projectInfo?.board });
+  }
+}, { immediate: true });
+
+watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { }, { immediate: true });
 
 </script>
 
@@ -54,7 +61,7 @@ watch([() => vsCodeStore.projectInfo, () => vsCodeStore.cliStatus, () => vsCodeS
               </div>
             </template>
 
-            <v-text-field label="Board" :model-value="vsCodeStore.projectInfo?.board" readonly></v-text-field>
+            <v-text-field label="Board" :model-value="vsCodeStore.boardConfiguration?.boardName" readonly></v-text-field>
             <v-text-field label="Port" :model-value="vsCodeStore.projectInfo?.port" readonly></v-text-field>
 
             <v-overlay opacity=".12" scrim="primary" contained model-value persistent />
