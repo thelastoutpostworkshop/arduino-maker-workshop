@@ -6,27 +6,7 @@ import { computed, watch } from 'vue';
 import { ARDUINO_MESSAGES } from '@shared/messages';
 
 const vsCodeStore = useVsCodeStore();
-const { cliStatus, projectStatus } = storeToRefs(vsCodeStore);
-
-const cliVersionInfo = computed(() => {
-  if (cliStatus.value) {
-    try {
-      if (cliStatus.value.errorMessage !== "") {
-        return cliStatus.value.errorMessage;
-      } else {
-        const cliInfo = JSON.parse(cliStatus.value.payload);
-        const version = cliInfo.VersionString;
-        const commit = cliInfo.Commit;
-        const date = new Date(cliInfo.Date).toLocaleDateString();
-        return `Version: ${version}, Commit: ${commit}, Date: ${date}`;
-      }
-    } catch (error) {
-      return "Failed to parse CLI information.";
-    }
-  } else {
-    return "CLI command failed. No data available.";
-  }
-});
+const { projectStatus } = storeToRefs(vsCodeStore);
 
 const projectStatusInfo = computed(() => {
   if (projectStatus.value) {
@@ -45,14 +25,8 @@ const projectStatusInfo = computed(() => {
   }
 });
 
-// watch([() => vsCodeStore.projectStatus, () => store.freeSketch], () => {}, { immediate: true });
-watch([() => vsCodeStore.projectInfo], () => {}, { immediate: true });
+watch([() => vsCodeStore.projectInfo, ()=>vsCodeStore.cliStatus], () => {}, { immediate: true });
 
-watch(cliStatus, (newStatus) => {
-  if (!newStatus) {
-    console.error("CLI command failed or returned an empty result.");
-  }
-});
 watch(projectStatus, (newProjectStatus) => {
   if (!newProjectStatus) {
     console.error("Project Status failed or returned an empty result.");
@@ -68,7 +42,7 @@ watch(projectStatus, (newProjectStatus) => {
         <h1 class="text-h3 font-weight-bold">Arduino Home</h1>
       </div>
       <div>
-        <p>Arduino CLI: {{ cliVersionInfo }}</p>
+        <p>Arduino CLI: v{{ vsCodeStore.cliStatus?.version }} ({{ vsCodeStore.cliStatus?.date }})</p>
         <p>Project Status: {{ projectStatusInfo }}</p>
         <p>Project Info: {{ vsCodeStore.projectInfo }}</p>
       </div>

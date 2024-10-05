@@ -1,28 +1,45 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoProjectInfoPayload, WebviewToExtensionMessage } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoCLIStatusPayload, ArduinoProjectInfoPayload, WebviewToExtensionMessage } from '@shared/messages';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
-        cliStatus: null as WebviewToExtensionMessage | null,
+        cliStatus: null as ArduinoCLIStatusPayload | null,
         projectInfo: null as ArduinoProjectInfoPayload | null,
         projectStatus: null as WebviewToExtensionMessage | null,
         boardConfiguration: null as WebviewToExtensionMessage | null,
     }),
     actions: {
-        handleMessage(message: any) {
+        handleMessage(message: WebviewToExtensionMessage) {
             switch (message.command) {
                 case ARDUINO_MESSAGES.CLI_STATUS:
-                    this.cliStatus = message;
+                    if (message.errorMessage !== "") {
+                        this.cliStatus = {
+                            errorMessage: message.errorMessage,
+                            version: "",
+                            date: ""
+                        }
+                    } else {
+                        try {
+                            const cliInfo = JSON.parse(message.payload);
+                            this.cliStatus = {
+                                errorMessage: message.errorMessage,
+                                version: cliInfo.VersionString,
+                                date: cliInfo.Date
+                            }
+                        } catch (error) {
+                            return "Failed to parse Arduino CLI Status.";
+                        }
+                    }
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                     try {
                         this.projectInfo = {
-                            errorMessage:message.errorMessage,
-                            configuration:message.payload.configuration,
-                            board:message.payload.board,
-                            sketch:message.payload.sketch,
-                            output:message.payload.output,
-                            port:message.payload.port
+                            errorMessage: message.errorMessage,
+                            configuration: message.payload.configuration,
+                            board: message.payload.board,
+                            sketch: message.payload.sketch,
+                            output: message.payload.output,
+                            port: message.payload.port
                         }
                     } catch (error) {
                         return "Failed to parse Project Configuration information.";
