@@ -56,6 +56,14 @@ export class VueWebviewPanel {
         arduinoExtensionChannel.appendLine("Arduino Web view ready");
     }
 
+    public static sendMessage(message: WebviewToExtensionMessage) {
+        if (VueWebviewPanel.currentPanel) {
+            VueWebviewPanel.currentPanel._panel.webview.postMessage(message);
+        } else {
+            arduinoExtensionChannel.appendLine("Attempted to send message, but the webview panel is not active.");
+        }
+    }
+
     public static render(extensionUri: Uri) {
 
         // If we already have a panel, show it.
