@@ -48,7 +48,7 @@ watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { },
 
       <v-row>
         <v-col cols="12">
-          <v-card class="pa-4" color="surface-variant" prepend-icon="mdi-cog" rounded="lg" variant="outlined">
+          <v-card class="pa-4"  prepend-icon="mdi-cog" rounded="lg" variant="flat">
             <template #title>
               <h2 class="text-h5 font-weight-bold">Sketch Configuration</h2>
             </template>
@@ -65,7 +65,7 @@ watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { },
                   indeterminate></v-progress-linear>
               </template>
               <template v-if="vsCodeStore.boardConfiguration?.boardName" v-slot:append>
-                <v-icon color='primary' icon="mdi-pencil" />
+                <v-btn icon="mdi-pencil" variant="text"></v-btn>
               </template>
             </v-text-field>
             <v-text-field label="Port" :model-value="vsCodeStore.projectInfo?.port" readonly>
@@ -73,9 +73,11 @@ watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { },
                 <v-progress-linear :active="!vsCodeStore.projectInfo?.port" height="2"
                   indeterminate></v-progress-linear>
               </template>
+              <template v-if="vsCodeStore.projectInfo?.port" v-slot:append>
+                <v-btn icon="mdi-pencil" variant="text"></v-btn>
+              </template>
             </v-text-field>
 
-            <v-overlay opacity=".12" scrim="primary" contained model-value persistent />
           </v-card>
         </v-col>
 
