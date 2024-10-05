@@ -92,7 +92,7 @@ export function checkArduinoCLICommand(): Promise<string> {
 					try {
 						resolve(result);
 					} catch (parseError) {
-						arduinoExtensionChannel.appendLine('Failed to parse Arduino CLI version information.');
+						arduinoExtensionChannel.appendLine('Failed to get Arduino CLI version information.');
 						resolve("");
 					}
 				} else {
@@ -104,6 +104,44 @@ export function checkArduinoCLICommand(): Promise<string> {
 				resolve("");
 			});
 	});
+}
+
+function getBoardConfiguration(context: ExtensionContext): Promise<string> {
+
+	return new Promise((resolve) => {
+		if (!loadArduinoConfiguration()) {
+			resolve("");
+			return;
+		}
+
+		if (!arduinoProject.getBoard()) {
+			resolve("");
+			return;
+		}
+
+		const configBoardArgs = arduinoProject.getBoardConfigurationArguments();
+		executeArduinoCommand(`${cliCommandArduinoPath}`, configBoardArgs, true, false)
+			.then((result) => {
+				if (result) {
+					try {
+						resolve(result);
+					} catch (parseError) {
+						arduinoExtensionChannel.appendLine('Failed to get Board Configuration.');
+						resolve("");
+					}
+				} else {
+					resolve("");
+				}
+			})
+			.catch((error) => {
+				window.showErrorMessage(`Failed to get Board Configuration: ${error}`);
+				resolve("");
+			});
+	});
+
+			// const configData = JSON.parse(result);
+			// const configuration = configData.config_options;
+			// const boardName = configData.name; 
 }
 
 
@@ -289,110 +327,7 @@ function getBoardSelectionHtml(boardStructure: { [platform: string]: { name: str
 }
 
 
-function vsCommandBoardConfiguration(context: ExtensionContext): Disposable {
-	return commands.registerCommand('vscode-arduino.boardconfig', async () => {
-		if (!loadArduinoConfiguration()) {
-			return false;
-		}
 
-		if (!arduinoProject.getBoard()) {
-			window.showErrorMessage('Select a board first');
-			return;
-		}
-
-		await window.withProgress({
-			location: ProgressLocation.Notification,
-			title: 'Retrieving board configuration options...',
-			cancellable: false
-		}, async (progress) => {
-			const configBoardArgs = arduinoProject.getBoardConfigurationArguments();
-
-			try {
-				const result = await executeArduinoCommand(`${cliCommandArduino}`, configBoardArgs, true);
-				if (result) {
-					progress.report({ message: 'Board Configuration retrieved.', increment: 100 });
-
-					// Parse the JSON result
-					const configData = JSON.parse(result);
-					const configuration = configData.config_options;
-					const boardName = configData.name; // Extract the board name
-
-					if (configuration.length === 0) {
-						window.showInformationMessage('Unable to retrieve board configuration.');
-						return;
-					}
-
-					const columnToShowIn = window.activeTextEditor
-						? window.activeTextEditor.viewColumn
-						: undefined;
-
-					if (boardConfigWebViewPanel) {
-						boardConfigWebViewPanel.reveal(columnToShowIn);
-					} else {
-						boardConfigWebViewPanel = window.createWebviewPanel(
-							'boardConfig',
-							'Arduino Board Configuration',
-							columnToShowIn || ViewColumn.One,
-							{
-								enableScripts: true, retainContextWhenHidden: true
-							}
-						);
-
-					}
-
-					// Set the HTML content with the configuration options
-					boardConfigWebViewPanel.webview.html = getWebviewContent(boardName, configuration);
-
-					// Handle messages from the webview
-					boardConfigWebViewPanel.webview.onDidReceiveMessage(
-						message => {
-							switch (message.command) {
-								case 'updateConfig':
-									// Merge the incoming config change with the existing configuration
-									const currentConfig = arduinoProject.getBoardConfiguration()
-										.split(',')
-										.reduce((configObj: any, item: string) => {
-											const [key, value] = item.split('=');
-											configObj[key] = value;
-											return configObj;
-										}, {});
-
-									// Update only the changed field
-									const updatedConfig = { ...currentConfig, ...message.config };
-
-									// Convert updated config object back to string format "key=value,key=value"
-									const updatedConfigString = Object.entries(updatedConfig)
-										.map(([key, value]) => `${key}=${value}`)
-										.join(',');
-
-									// Update the configuration in the project
-									arduinoProject.updateBoardConfiguration(updatedConfigString);
-
-									// vscode.window.showInformationMessage('Configuration updated!');
-									return;
-							}
-						},
-						undefined,
-						context.subscriptions
-					);
-
-					// Reset when the current panel is closed
-					boardConfigWebViewPanel.onDidDispose(
-						() => {
-							boardConfigWebViewPanel = undefined;
-						},
-						null,
-						context.subscriptions
-					);
-				} else {
-					window.showErrorMessage('Failed to retrieve board configuration.');
-				}
-			} catch (error) {
-				window.showErrorMessage(`Error retrieving board configuration: ${error}`);
-			}
-		});
-	});
-}
 
 function getWebviewContent(boardName: string, configuration: any[]): string {
 	let html = `
