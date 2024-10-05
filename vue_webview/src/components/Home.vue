@@ -11,7 +11,7 @@ const { cliStatus, projectInfo, projectStatus } = storeToRefs(vsCodeStore);
 const cliVersionInfo = computed(() => {
   if (cliStatus.value) {
     try {
-      if(cliStatus.value.errorMessage !== "") {
+      if (cliStatus.value.errorMessage !== "") {
         return cliStatus.value.errorMessage;
       } else {
         const cliInfo = JSON.parse(cliStatus.value.payload);
@@ -31,10 +31,10 @@ const cliVersionInfo = computed(() => {
 const projectStatusInfo = computed(() => {
   if (projectStatus.value) {
     try {
-      if(projectStatus.value.errorMessage !== "") {
+      if (projectStatus.value.errorMessage !== "") {
         return projectStatus.value.errorMessage;
       } else {
-        vscode.postMessage({ command: MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO,errorMessage:"", payload: "" });
+        vscode.postMessage({ command: MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
         return `Ready`;
       }
     } catch (error) {
@@ -48,16 +48,17 @@ const projectStatusInfo = computed(() => {
 const projectInfoDetails = computed(() => {
   if (projectInfo.value) {
     try {
-      if(projectInfo.value.errorMessage !== "") {
+      if (projectInfo.value.errorMessage !== "") {
         return projectInfo.value.errorMessage;
       } else {
-        return `${projectInfo.value.payload}`;
+        console.log(projectInfo.value.payload);
+        return projectInfo.value.payload;
       }
     } catch (error) {
-      return "Failed to parse Project Status information.";
+      return "Failed to parse Project Configuration information.";
     }
   } else {
-    return "Project Status failed. No data available.";
+    return "Project Configuration failed. No data available.";
   }
 });
 
@@ -105,6 +106,9 @@ watch(projectInfo, (newProjectInfo) => {
                 This is your current configuration
               </div>
             </template>
+
+            <v-text-field label="Board" :model-value="projectInfoDetails.board" readonly></v-text-field>
+            <v-text-field label="Port" model-value="John Doe" readonly></v-text-field>
 
             <v-overlay opacity=".12" scrim="primary" contained model-value persistent />
           </v-card>
