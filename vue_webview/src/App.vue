@@ -2,7 +2,7 @@
 import Toolbox from './components/Toolbox.vue';
 import { onMounted, onUnmounted } from 'vue';
 import { vscode } from './utilities/vscode';
-import { MESSAGE_COMMANDS } from '@shared/messages';
+import { ARDUINO_MESSAGES } from '@shared/messages';
 import { useVsCodeStore } from './stores/useVsCodeStore';
 
 const vsCodeStore = useVsCodeStore();
@@ -10,15 +10,15 @@ const vsCodeStore = useVsCodeStore();
 function handleMessageFromVsCode(event: MessageEvent) {
   const message = event.data; // The message sent from the extension
   console.log('Received message:', message);
-  
+
   // Use the store action to handle the message
   vsCodeStore.handleMessage(message);
 }
 
 onMounted(() => {
   window.addEventListener('message', handleMessageFromVsCode);
-  vscode.postMessage({ command: MESSAGE_COMMANDS.ARDUINO_CLI_STATUS,errorMessage:"", payload: "" });
-  vscode.postMessage({ command: MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUS,errorMessage:"", payload: "" });
+  vscode.postMessage({ command: ARDUINO_MESSAGES.CLI_STATUS, errorMessage: "", payload: "" });
+  vscode.postMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS, errorMessage: "", payload: "" });
 });
 
 onUnmounted(() => {

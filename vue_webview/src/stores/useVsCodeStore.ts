@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { MESSAGE_COMMANDS, WebviewToExtensionMessage } from '@shared/messages';
+import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from '@shared/messages';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
@@ -10,13 +10,13 @@ export const useVsCodeStore = defineStore('vsCode', {
     actions: {
         handleMessage(message: any) {
             switch (message.command) {
-                case MESSAGE_COMMANDS.ARDUINO_CLI_STATUS:
+                case ARDUINO_MESSAGES.CLI_STATUS:
                     this.cliStatus = message;
                     break;
-                case MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO:
+                case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                     this.projectInfo = message;
                     break;
-                case MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUS:
+                case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                     this.projectStatus = message;
                     break;
                 default:

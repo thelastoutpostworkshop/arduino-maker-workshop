@@ -3,7 +3,7 @@ import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { storeToRefs } from 'pinia';
 import { computed, watch } from 'vue';
-import { MESSAGE_COMMANDS } from '@shared/messages';
+import { ARDUINO_MESSAGES } from '@shared/messages';
 
 const vsCodeStore = useVsCodeStore();
 const { cliStatus, projectInfo, projectStatus } = storeToRefs(vsCodeStore);
@@ -34,7 +34,7 @@ const projectStatusInfo = computed(() => {
       if (projectStatus.value.errorMessage !== "") {
         return projectStatus.value.errorMessage;
       } else {
-        vscode.postMessage({ command: MESSAGE_COMMANDS.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
+        vscode.postMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
         return `Ready`;
       }
     } catch (error) {

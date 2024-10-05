@@ -2,7 +2,7 @@ import { window, WebviewPanel, ExtensionContext, commands, ProgressLocation, Dis
 import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { QuickAccessProvider } from './quickAccessProvider';
-import { MESSAGE_COMMANDS, WebviewToExtensionMessage } from "./shared/messages";
+import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from "./shared/messages";
 
 const cp = require('child_process');
 const fs = require('fs');
@@ -69,7 +69,7 @@ export function processArduinoCLICommandCheck(commandResult: string): WebviewToE
 		message = "Arduino CLI Path wrong or not set in settings";
 	}
 	const cliStatusMessage: WebviewToExtensionMessage = {
-		command: MESSAGE_COMMANDS.ARDUINO_CLI_STATUS,
+		command: ARDUINO_MESSAGES.CLI_STATUS,
 		errorMessage: message,
 		payload: commandResult
 	};
@@ -139,9 +139,9 @@ function getBoardConfiguration(context: ExtensionContext): Promise<string> {
 			});
 	});
 
-			// const configData = JSON.parse(result);
-			// const configuration = configData.config_options;
-			// const boardName = configData.name; 
+	// const configData = JSON.parse(result);
+	// const configuration = configData.config_options;
+	// const boardName = configData.name; 
 }
 
 
