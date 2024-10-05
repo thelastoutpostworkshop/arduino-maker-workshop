@@ -31,7 +31,7 @@ export class VueWebviewPanel {
                                 errorMessage: message,
                                 payload: result
                             };
-                            this._panel.webview.postMessage(cliStatusMessage);
+                            VueWebviewPanel.sendMessage(cliStatusMessage);
                         });
                         break;
                     case MESSAGE_COMMANDS.ARDUINO_PROJECT_STATUT:
