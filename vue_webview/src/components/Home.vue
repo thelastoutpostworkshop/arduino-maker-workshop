@@ -6,7 +6,6 @@ import { computed, watch } from 'vue';
 const vsCodeStore = useVsCodeStore();
 const { cliStatus, projectInfo, projectStatus } = storeToRefs(vsCodeStore);
 
-// Computed property to extract and display CLI info
 const cliVersionInfo = computed(() => {
   if (cliStatus.value) {
     try {
@@ -27,10 +26,31 @@ const cliVersionInfo = computed(() => {
   }
 });
 
+const projectStatusInfo = computed(() => {
+  if (projectStatus.value) {
+    try {
+      if(projectStatus.value.errorMessage !== "") {
+        return projectStatus.value.errorMessage;
+      } else {
+        return `Ready`;
+      }
+    } catch (error) {
+      return "Failed to parse Project Status information.";
+    }
+  } else {
+    return "Project Status failed. No data available.";
+  }
+});
+
 // Watch the cliStatus to handle empty results
 watch(cliStatus, (newStatus) => {
   if (!newStatus) {
     console.error("CLI command failed or returned an empty result.");
+  }
+});
+watch(projectStatus, (newProjectStatus) => {
+  if (!newProjectStatus) {
+    console.error("Project Status failed or returned an empty result.");
   }
 });
 </script>
@@ -44,7 +64,7 @@ watch(cliStatus, (newStatus) => {
       </div>
       <div>
         <p>Arduino CLI: {{ cliVersionInfo }}</p>
-        <p>Project Status: {{ projectStatus }}</p>
+        <p>Project Status: {{ projectStatusInfo }}</p>
         <p>Project Info: {{ projectInfo }}</p>
       </div>
       <div class="py-4" />
