@@ -6,6 +6,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         cliStatus: null as WebviewToExtensionMessage | null,
         projectInfo: null as any,
         projectStatus: null as any,
+        boardConfiguration: null as any,
     }),
     actions: {
         handleMessage(message: any) {
