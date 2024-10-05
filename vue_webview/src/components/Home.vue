@@ -10,11 +10,15 @@ const { cliStatus, projectInfo, projectStatus } = storeToRefs(vsCodeStore);
 const cliVersionInfo = computed(() => {
   if (cliStatus.value) {
     try {
-      const cliInfo = JSON.parse(cliStatus.value);
-      const version = cliInfo.VersionString;
-      const commit = cliInfo.Commit;
-      const date = new Date(cliInfo.Date).toLocaleDateString();
-      return `Version: ${version}, Commit: ${commit}, Date: ${date}`;
+      if(cliStatus.value.errorMessage !== "") {
+        return cliStatus.value.errorMessage;
+      } else {
+        const cliInfo = JSON.parse(cliStatus.value.payload);
+        const version = cliInfo.VersionString;
+        const commit = cliInfo.Commit;
+        const date = new Date(cliInfo.Date).toLocaleDateString();
+        return `Version: ${version}, Commit: ${commit}, Date: ${date}`;
+      }
     } catch (error) {
       return "Failed to parse CLI information.";
     }

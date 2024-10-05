@@ -17,7 +17,7 @@ function handleMessageFromVsCode(event: MessageEvent) {
 
 onMounted(() => {
   window.addEventListener('message', handleMessageFromVsCode);
-  vscode.postMessage({ command: MESSAGE_COMMANDS.ARDUINO_CLI_STATUS, payload: "" });
+  vscode.postMessage({ command: MESSAGE_COMMANDS.ARDUINO_CLI_STATUS,errorMessage:"", payload: "" });
 });
 
 onUnmounted(() => {

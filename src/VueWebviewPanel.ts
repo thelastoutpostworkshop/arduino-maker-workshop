@@ -22,8 +22,13 @@ export class VueWebviewPanel {
                 switch (message.command) {
                     case MESSAGE_COMMANDS.ARDUINO_CLI_STATUS:
                         checkArduinoCLICommand().then((result) => {
+                            let message: string = "";
+                            if (result === "") {
+                                message = "Arduino CLI Path not set in settings";
+                            }
                             const cliStatusMessage: WebviewToExtensionMessage = {
                                 command: MESSAGE_COMMANDS.ARDUINO_CLI_STATUS,
+                                errorMessage: message,
                                 payload: result
                             };
                             this._panel.webview.postMessage(cliStatusMessage);
