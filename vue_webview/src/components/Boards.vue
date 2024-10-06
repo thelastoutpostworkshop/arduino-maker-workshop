@@ -20,6 +20,9 @@ const boardStructure = computed(() => vsCodeStore.boards?.boardStructure || {});
 function onBoardSelect(value: string) {
   console.log("Selected Board FQBN:", value);
 }
+
+const inDevelopment = computed(() => import.meta.env.DEV);
+
 </script>
 
 <template>
@@ -27,6 +30,9 @@ function onBoardSelect(value: string) {
     <v-responsive>
       <div class="text-center">
         <h1 class="text-h4 font-weight-bold">Boards</h1>
+      </div>
+      <div v-if="inDevelopment">
+        <v-btn>Send Test Message</v-btn>
       </div>
       <v-text-field label="Current Board:" :model-value="vsCodeStore.boardConfiguration?.boardName" readonly>
         <template v-slot:loader>
