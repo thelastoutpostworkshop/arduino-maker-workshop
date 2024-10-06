@@ -7,7 +7,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         projectInfo: null as ArduinoProjectInfoPayload | null,
         projectStatus: null as WebviewToExtensionMessage | null,
         boardConfiguration: null as ArduinoBoardConfigurationPayload | null,
-        boards:null as ArduinoBoardsListPayload | null,
+        boards: null as ArduinoBoardsListPayload | null,
     }),
     actions: {
         handleMessage(message: WebviewToExtensionMessage) {
@@ -62,11 +62,14 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
                     try {
+                        if (import.meta.env.DEV) {
+                            
+                        }
                         const boardsInfo = JSON.parse(message.payload);
                         this.boards = {
                             errorMessage: message.errorMessage,
-                            boardStructure:boardsInfo.boardStructure,
-                            uniqueFqbnSet:boardsInfo.uniqueFqbnSet
+                            boardStructure: boardsInfo.boardStructure,
+                            uniqueFqbnSet: boardsInfo.uniqueFqbnSet
                         };
                         console.log(this.boards);
                     } catch (error) {
