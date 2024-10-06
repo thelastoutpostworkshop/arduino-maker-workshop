@@ -154,7 +154,7 @@ export function loadArduinoConfiguration(): boolean {
 	return true;
 }
 
-async function getBoardsListAll(context: ExtensionContext): Promise<ArduinoBoardsListPayload> {
+export async function getBoardsListAll(): Promise<ArduinoBoardsListPayload> {
 	const message: ArduinoBoardsListPayload = {
 	  errorMessage: "",
 	  boardStructure: undefined,

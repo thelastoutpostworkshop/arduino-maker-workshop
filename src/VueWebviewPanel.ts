@@ -1,8 +1,8 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
-import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, loadArduinoConfiguration, processArduinoCLICommandCheck } from "./extension";
+import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoBoardsListPayload, WebviewToExtensionMessage } from './shared/messages';
+import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardsListAll, loadArduinoConfiguration, processArduinoCLICommandCheck } from "./extension";
 import { ARDUINO_ERRORS } from "./ArduinoProject";
 
 const path = require('path');
@@ -84,6 +84,19 @@ export class VueWebviewPanel {
                                 boardConfiguration.errorMessage = "Cannot get Board configuration";
                             }
                             VueWebviewPanel.sendMessage(boardConfiguration);
+                        });
+                        break;
+                    case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
+                        getBoardsListAll().then((result:ArduinoBoardsListPayload) => {
+                            const boardList: WebviewToExtensionMessage = {
+                                command: ARDUINO_MESSAGES.BOARDS_LIST_ALL,
+                                errorMessage: result.errorMessage,
+                                payload: JSON.stringify({
+                                    boardStructure:result.boardStructure,
+                                    uniqueFqbnSet:result.uniqueFqbnSet
+                                })
+                            };
+                            VueWebviewPanel.sendMessage(boardList);
                         });
                         break;
                     default:
