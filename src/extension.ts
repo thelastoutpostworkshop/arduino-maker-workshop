@@ -1,4 +1,4 @@
-import { window, WebviewPanel, ExtensionContext, commands, ProgressLocation, Disposable, ViewColumn, workspace } from "vscode";
+import { window, WebviewPanel, ExtensionContext, commands, ProgressLocation, Disposable, workspace } from "vscode";
 import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { QuickAccessProvider } from './quickAccessProvider';
@@ -14,7 +14,6 @@ arduinoExtensionChannel.appendLine("Arduino Extension started");
 
 export const arduinoProject: ArduinoProject = new ArduinoProject();
 let cliCommandArduinoPath: string = "";
-let boardConfigWebViewPanel: WebviewPanel | undefined = undefined;
 export let arduinoConfigurationLastError: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_ERRORS;
 
 export function activate(context: ExtensionContext) {
@@ -208,165 +207,6 @@ function vsCommandBoardSelection(context: ExtensionContext): Disposable {
 		});
 	});
 }
-
-function showBoardSelectionWebview(context: ExtensionContext, boardStructure: { [platform: string]: { name: string, fqbn: string }[] }) {
-	const panel = window.createWebviewPanel(
-		'boardSelect', // Identifies the type of the webview
-		'Select Arduino Board', // Title of the webview panel
-		ViewColumn.One, // Editor column to show the new webview panel in
-		{
-			enableScripts: true // Enable JavaScript in the webview
-		}
-	);
-
-	// Construct the HTML content for the webview with dropdown
-	panel.webview.html = getBoardSelectionHtml(boardStructure);
-
-	// Handle messages from the webview
-	panel.webview.onDidReceiveMessage(message => {
-		switch (message.command) {
-			case 'selectBoard':
-				window.showInformationMessage(`Board Selected: ${message.fqbn}`);
-				panel.dispose(); // Close the webview
-				return;
-		}
-	});
-}
-
-function getBoardSelectionHtml(boardStructure: { [platform: string]: { name: string, fqbn: string }[] }) {
-	let htmlContent = `
-        <html>
-        <head>
-            <style>
-                body {
-                    font-family: sans-serif;
-                    padding: 10px;
-                }
-                select {
-                    width: 100%;
-                    padding: 8px;
-                    margin-bottom: 20px;
-                    border-radius: 4px;
-                    border: 1px solid #ddd;
-                }
-                button {
-                    padding: 10px 15px;
-                    font-size: 16px;
-                    border: none;
-                    border-radius: 4px;
-                    background-color: #007acc;
-                    color: white;
-                    cursor: pointer;
-                }
-                button:hover {
-                    background-color: #005fa3;
-                }
-            </style>
-        </head>
-        <body>
-            <h1>Select Arduino Board</h1>
-            <form id="boardForm">
-    `;
-
-	// Loop through the platforms and add a dropdown for each one
-	for (const platform in boardStructure) {
-		htmlContent += `
-            <h2>${platform}</h2>
-            <select id="select-${platform.replace(/\s+/g, '-')}" onchange="onBoardSelect('${platform}')">
-                <option value="">Select a board...</option>
-        `;
-		boardStructure[platform].forEach(board => {
-			htmlContent += `<option value="${board.fqbn}">${board.name} (${board.fqbn})</option>`;
-		});
-		htmlContent += `</select>`;
-	}
-
-	htmlContent += `
-            <button type="button" onclick="submitBoardSelection()">Submit</button>
-            </form>
-
-            <script>
-                let selectedFqbn = '';
-
-                function onBoardSelect(platform) {
-                    const selectElement = document.getElementById('select-' + platform.replace(/\\s+/g, '-'));
-                    selectedFqbn = selectElement.value;
-                }
-
-                function submitBoardSelection() {
-                    if (selectedFqbn) {
-                        vscode.postMessage({ command: 'selectBoard', fqbn: selectedFqbn });
-                    } else {
-                        alert('Please select a board.');
-                    }
-                }
-
-                const vscode = acquireVsCodeApi();
-            </script>
-        </body>
-        </html>
-    `;
-
-	return htmlContent;
-}
-
-function vsCommandPort(): Disposable {
-	return commands.registerCommand('vscode-arduino.port', async () => {
-		if (!loadArduinoConfiguration()) {
-			return;
-		}
-
-		await window.withProgress({
-			location: ProgressLocation.Notification,
-			title: 'Retrieving available ports...',
-			cancellable: false
-		}, async (progress) => {
-			// Execute the Arduino CLI command to get the list of ports
-			const portListCommand = arduinoProject.getPortListArguments();
-
-			// Use executeArduinoCommand and pass true to get the output as a string
-			try {
-				const result = await executeArduinoCommand(`${cliCommandArduino}`, portListCommand, true);
-				if (result) {
-					progress.report({ message: 'Ports have been successfully retrieved.', increment: 100 });
-
-					// Parse the JSON result
-					const ports = JSON.parse(result).detected_ports;
-
-					if (ports.length === 0) {
-						window.showInformationMessage('No ports detected.');
-						return;
-					}
-
-					// Create QuickPick items from the list of detected ports
-					const portItems = ports.map((port: any) => ({
-						label: port.port.label,
-						description: port.port.protocol_label
-					}));
-
-					// Show the QuickPick to the user
-					const selectedPort = await window.showQuickPick(portItems, {
-						placeHolder: 'Select a port to use for uploading'
-					});
-
-					if (selectedPort) {
-						window.showInformationMessage(`Selected port: ${selectedPort.label}`);
-						// Set the selected port in your project settings or wherever needed
-						arduinoProject.setPort(selectedPort.label);
-					} else {
-						window.showInformationMessage('No port selected.');
-					}
-				} else {
-					window.showErrorMessage('Failed to retrieve port list.');
-				}
-			} catch (error) {
-				window.showErrorMessage(`Error retrieving port list: ${error}`);
-			}
-		});
-	});
-
-}
-
 
 function vsCommandUpload(): Disposable {
 	return commands.registerCommand('vscode-arduino.upload', () => {
