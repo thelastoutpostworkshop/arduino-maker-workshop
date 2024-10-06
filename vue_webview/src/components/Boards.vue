@@ -48,6 +48,7 @@ function onBoardSelect(value: string) {
               @change="onBoardSelect"
               outlined
               dense
+              return-object
             ></v-autocomplete>
           </v-expansion-panel-text>
         </v-expansion-panel>
