@@ -38,7 +38,7 @@ watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { },
   <v-container>
     <v-responsive>
       <div class="text-center">
-        <h1 class="text-h3 font-weight-bold">Arduino Home</h1>
+        <h1 class="text-h4 font-weight-bold">Arduino Home</h1>
       </div>
       <div>
         <p>Arduino CLI: v{{ vsCodeStore.cliStatus?.version }} ({{ vsCodeStore.cliStatus?.date }})</p>
@@ -50,7 +50,7 @@ watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { },
         <v-col cols="12">
           <v-card class="pa-4" color="blue-grey-darken-4"  prepend-icon="mdi-cog" rounded="lg">
             <template #title>
-              <h2 class="text-h5 font-weight-bold">Sketch Configuration</h2>
+              <h2 class="text-h6 font-weight-bold">Sketch Configuration</h2>
             </template>
 
             <template #subtitle>
