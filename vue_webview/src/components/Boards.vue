@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
-import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { computed, watch } from 'vue';
+// import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES } from '@shared/messages';
 import { onMounted } from 'vue';
 
-const vsCodeStore = useVsCodeStore();
+// const vsCodeStore = useVsCodeStore();
 
 onMounted(() => {
   vscode.postMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
