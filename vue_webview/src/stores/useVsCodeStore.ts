@@ -62,11 +62,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
                     try {
+                        const boardsInfo = JSON.parse(message.payload);
                         this.boards = {
                             errorMessage: message.errorMessage,
-                            configuration: message.payload.configuration,
-                            boardName: message.payload.boardName
+                            boardStructure:boardsInfo.boardStructure,
+                            uniqueFqbnSet:boardsInfo.uniqueFqbnSet
                         };
+                        console.log(this.boards);
                     } catch (error) {
                         return "Failed to parse Board Configuration information.";
                     }
