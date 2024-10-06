@@ -19,6 +19,7 @@ export default defineConfig({
     Components(),
   ],
   build: {
+    sourcemap: true,
     rollupOptions: {
       external: ['vscode'],
       // produce predictable filenames without cache-busting SHA suffix

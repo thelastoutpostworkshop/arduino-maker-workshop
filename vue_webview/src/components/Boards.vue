@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES } from '@shared/messages';
+import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from '@shared/messages';
 import { onMounted, watch, computed } from 'vue';
 
 const vsCodeStore = useVsCodeStore();
@@ -21,6 +21,15 @@ function onBoardSelect(value: string) {
   console.log("Selected Board FQBN:", value);
 }
 
+function sendTestMessage() {
+  const message:WebviewToExtensionMessage = {
+    command:ARDUINO_MESSAGES.BOARDS_LIST_ALL,
+    errorMessage:"",
+    payload:import.meta.env.VITE_BOARDS_LISTALL_TEST
+  }
+  vsCodeStore.simulateMessage(message);
+}
+
 const inDevelopment = computed(() => import.meta.env.DEV);
 
 </script>
@@ -32,7 +41,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
         <h1 class="text-h4 font-weight-bold">Boards</h1>
       </div>
       <div v-if="inDevelopment">
-        <v-btn>Send Test Message</v-btn>
+        <v-btn @click="sendTestMessage()">Send Test Message</v-btn>
       </div>
       <v-text-field label="Current Board:" :model-value="vsCodeStore.boardConfiguration?.boardName" readonly>
         <template v-slot:loader>

@@ -10,6 +10,9 @@ export const useVsCodeStore = defineStore('vsCode', {
         boards: null as ArduinoBoardsListPayload | null,
     }),
     actions: {
+        simulateMessage(message: WebviewToExtensionMessage) {
+            this.handleMessage(message);
+        },
         handleMessage(message: WebviewToExtensionMessage) {
             switch (message.command) {
                 case ARDUINO_MESSAGES.CLI_STATUS:
@@ -28,7 +31,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                                 date: cliInfo.Date
                             }
                         } catch (error) {
-                            return "Failed to parse Arduino CLI Status.";
+                            console.log("Failed to parse Arduino CLI Status.");
                         }
                     }
                     break;
@@ -43,7 +46,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                             port: message.payload.port
                         }
                     } catch (error) {
-                        return "Failed to parse Project Configuration information.";
+                        console.log("Failed to parse Project Configuration information.") ;
                     }
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
@@ -57,23 +60,20 @@ export const useVsCodeStore = defineStore('vsCode', {
                             boardName: message.payload.boardName
                         };
                     } catch (error) {
-                        return "Failed to parse Board Configuration information.";
+                        console.log("Failed to parse Board Configuration information.") ;
                     }
                     break;
                 case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
+                    console.log(message);
                     try {
-                        if (import.meta.env.DEV) {
-                            
-                        }
                         const boardsInfo = JSON.parse(message.payload);
                         this.boards = {
                             errorMessage: message.errorMessage,
                             boardStructure: boardsInfo.boardStructure,
                             uniqueFqbnSet: boardsInfo.uniqueFqbnSet
                         };
-                        console.log(this.boards);
                     } catch (error) {
-                        return "Failed to parse Board Configuration information.";
+                        console.log ("Failed to parse Board Configuration information: "+error);
                     }
                     break;
                 default:
