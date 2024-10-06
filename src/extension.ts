@@ -90,44 +90,29 @@ export function checkArduinoCLICommand(): Promise<string> {
 			});
 	});
 }
-
-export function getBoardConfiguration(context: ExtensionContext): Promise<string> {
-
-	return new Promise((resolve) => {
-		if (!loadArduinoConfiguration()) {
-			resolve("");
-			return;
-		}
-
-		if (!arduinoProject.getBoard()) {
-			resolve("");
-			return;
-		}
-
-		const configBoardArgs = arduinoProject.getBoardConfigurationArguments();
-		executeArduinoCommand(`${cliCommandArduinoPath}`, configBoardArgs, true, false)
-			.then((result) => {
-				if (result) {
-					try {
-						resolve(result);
-					} catch (parseError) {
-						arduinoExtensionChannel.appendLine('Failed to get Board Configuration.');
-						resolve("");
-					}
-				} else {
-					resolve("");
-				}
-			})
-			.catch((error) => {
-				arduinoExtensionChannel.appendLine(`Failed to get Board Configuration: ${error}`);
-				resolve("");
-			});
-	});
-
-
-}
-
-
+export async function getBoardConfiguration(context: ExtensionContext): Promise<string> {
+	try {
+	  if (!loadArduinoConfiguration()) {
+		throw new Error("Unable to load Project Configuration");
+	  }
+	  if (!arduinoProject.getBoard()) {
+		throw new Error("Unable to get Board Configuration");
+	  }
+	  const configBoardArgs = arduinoProject.getBoardConfigurationArguments();
+	  const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, configBoardArgs, true, false);
+  
+	  if (!result) {
+		throw new Error("Command result empty");
+	  }
+  
+	  return result; 
+  
+	} catch (error: any) {
+	  arduinoExtensionChannel.appendLine(`Error: ${error.message}`);
+	  throw error; 
+	}
+  }
+  
 export function loadArduinoConfiguration(): boolean {
 
 	arduinoConfigurationLastError = arduinoProject.isFolderArduinoProject();
@@ -156,66 +141,65 @@ export function loadArduinoConfiguration(): boolean {
 
 export async function getBoardsListAll(): Promise<ArduinoBoardsListPayload> {
 	const message: ArduinoBoardsListPayload = {
-	  errorMessage: "",
-	  boardStructure: undefined,
-	  uniqueFqbnSet: undefined,
+		errorMessage: "",
+		boardStructure: undefined,
+		uniqueFqbnSet: undefined,
 	};
-  
+
 	try {
-	  // Validate Arduino configuration
-	  if (!loadArduinoConfiguration()) {
-		throw new Error("Unable to load Project Configuration");
-	  }
-  
-	  if (!arduinoProject.getBoard()) {
-		throw new Error("Unable to get Project Board");
-	  }
-  
-	  const allBoardArgs = arduinoProject.getBoardsListArguments();
-	  const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, allBoardArgs, true, false);
-  
-	  if (!result) {
-		throw new Error("Command result empty");
-	  }
-  
-	  // Parse board list
-	  const boardList = JSON.parse(result).boards;
-  
-	  // Initialize an empty object to hold the structured board data
-	  const boardStructure: { [platform: string]: { name: string, fqbn: string }[] } = {};
-	  const uniqueFqbnSet = new Set<string>();
-  
-	  boardList.forEach((board: any) => {
-		const platformName = board.platform.release.name; // Get the platform release name
-  
-		// Initialize the platform in the structure if it doesn't exist
-		if (!boardStructure[platformName]) {
-		  boardStructure[platformName] = [];
+		if (!loadArduinoConfiguration()) {
+			throw new Error("Unable to load Project Configuration");
 		}
-  
-		// Loop through each board under this platform
-		board.platform.release.boards.forEach((boardInfo: any) => {
-		  const { name, fqbn } = boardInfo;
-  
-		  // Only add if the fqbn is not a duplicate
-		  if (!uniqueFqbnSet.has(fqbn)) {
-			uniqueFqbnSet.add(fqbn);
-			boardStructure[platformName].push({ name, fqbn });
-		  }
+
+		if (!arduinoProject.getBoard()) {
+			throw new Error("Unable to get Project Board");
+		}
+
+		const allBoardArgs = arduinoProject.getBoardsListArguments();
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, allBoardArgs, true, false);
+
+		if (!result) {
+			throw new Error("Command result empty");
+		}
+
+		// Parse board list
+		const boardList = JSON.parse(result).boards;
+
+		// Initialize an empty object to hold the structured board data
+		const boardStructure: { [platform: string]: { name: string, fqbn: string }[] } = {};
+		const uniqueFqbnSet = new Set<string>();
+
+		boardList.forEach((board: any) => {
+			const platformName = board.platform.release.name; // Get the platform release name
+
+			// Initialize the platform in the structure if it doesn't exist
+			if (!boardStructure[platformName]) {
+				boardStructure[platformName] = [];
+			}
+
+			// Loop through each board under this platform
+			board.platform.release.boards.forEach((boardInfo: any) => {
+				const { name, fqbn } = boardInfo;
+
+				// Only add if the fqbn is not a duplicate
+				if (!uniqueFqbnSet.has(fqbn)) {
+					uniqueFqbnSet.add(fqbn);
+					boardStructure[platformName].push({ name, fqbn });
+				}
+			});
 		});
-	  });
-  
-	  message.boardStructure = boardStructure;
-	  message.uniqueFqbnSet = uniqueFqbnSet;
+
+		message.boardStructure = boardStructure;
+		message.uniqueFqbnSet = uniqueFqbnSet;
 	} catch (error: any) {
-	  message.errorMessage = error.message;
-	  arduinoExtensionChannel.appendLine(`Error: ${error.message}`);
+		message.errorMessage = error.message;
+		arduinoExtensionChannel.appendLine(`Error: ${error.message}`);
 	}
-  
+
 	return message;
-  }
-  
-  
+}
+
+
 
 function vsCommandUpload(): Disposable {
 	return commands.registerCommand('vscode-arduino.upload', () => {
