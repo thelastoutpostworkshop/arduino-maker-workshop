@@ -15,17 +15,17 @@ onMounted(() => {
 watch([() => vsCodeStore.boards], () => { }, { immediate: true });
 
 // Compute the board structure from the store
-const boardStructure = computed(() => vsCodeStore.boards?.boardStructure || {});
+const boardStructure = computed(() => vsCodeStore.boards?.boardStructure || undefined);
 
 function onBoardSelect(value: string) {
   console.log("Selected Board FQBN:", value);
 }
 
 function sendTestMessage() {
-  const message:WebviewToExtensionMessage = {
-    command:ARDUINO_MESSAGES.BOARDS_LIST_ALL,
-    errorMessage:"",
-    payload:import.meta.env.VITE_BOARDS_LISTALL_TEST
+  const message: WebviewToExtensionMessage = {
+    command: ARDUINO_MESSAGES.BOARDS_LIST_ALL,
+    errorMessage: "",
+    payload: import.meta.env.VITE_BOARDS_LISTALL_TEST
   }
   vsCodeStore.simulateMessage(message);
 }
@@ -45,26 +45,25 @@ const inDevelopment = computed(() => import.meta.env.DEV);
       </div>
       <v-text-field label="Current Board:" :model-value="vsCodeStore.boardConfiguration?.boardName" readonly>
         <template v-slot:loader>
-          <v-progress-linear :active="!vsCodeStore.boardConfiguration?.boardName" height="2" indeterminate></v-progress-linear>
+          <v-progress-linear :active="!vsCodeStore.boardConfiguration?.boardName" height="2"
+            indeterminate></v-progress-linear>
         </template>
       </v-text-field>
-
+      <div v-if="boardStructure == undefined">
+        Loading Boards
+        <v-progress-circular :size="25" color="grey" indeterminate></v-progress-circular>
+      </div>
+      <div v-else>
+        Choose a board:
+      </div>
       <v-expansion-panels multiple>
         <!-- Loop over each platform in the board structure -->
         <v-expansion-panel v-for="(boards, platform) in boardStructure" :key="platform">
           <v-expansion-panel-title>{{ platform }}</v-expansion-panel-title>
           <v-expansion-panel-text>
             <!-- Autocomplete for selecting a board -->
-            <v-autocomplete
-              :items="boards"
-              item-title="name"
-              item-value="fqbn"
-              label="Select a Board"
-              @change="onBoardSelect"
-              outlined
-              dense
-              return-object
-            ></v-autocomplete>
+            <v-autocomplete :items="boards" item-title="name" item-value="fqbn" label="Select a Board"
+              @change="onBoardSelect" outlined dense return-object></v-autocomplete>
           </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>
