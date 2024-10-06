@@ -154,79 +154,67 @@ export function loadArduinoConfiguration(): boolean {
 	return true;
 }
 
-function getBoardsListAll(context: ExtensionContext): Promise<ArduinoBoardsListPayload> {
+async function getBoardsListAll(context: ExtensionContext): Promise<ArduinoBoardsListPayload> {
 	const message: ArduinoBoardsListPayload = {
 	  errorMessage: "",
 	  boardStructure: undefined,
-	  uniqueFqbnSet: undefined
+	  uniqueFqbnSet: undefined,
 	};
   
-	return new Promise((resolve) => {
+	try {
+	  // Validate Arduino configuration
 	  if (!loadArduinoConfiguration()) {
-		message.errorMessage = "Unable to load Project Configuration";
-		resolve(message);
-		return;
+		throw new Error("Unable to load Project Configuration");
 	  }
   
 	  if (!arduinoProject.getBoard()) {
-		message.errorMessage = "Unable to Project Board";
-		resolve(message);
-		return;
+		throw new Error("Unable to get Project Board");
 	  }
   
 	  const allBoardArgs = arduinoProject.getBoardsListArguments();
-	  executeArduinoCommand(`${cliCommandArduinoPath}`, allBoardArgs, true, false)
-		.then((result) => {
-		  if (result) {
-			try {
-			  const boardList = JSON.parse(result).boards;
+	  const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, allBoardArgs, true, false);
   
-			  // Initialize an empty object to hold the structured board data
-			  const boardStructure: { [platform: string]: { name: string, fqbn: string }[] } = {};
+	  if (!result) {
+		throw new Error("Command result empty");
+	  }
   
-			  // Create a Set to track unique fqbn values
-			  const uniqueFqbnSet = new Set<string>();
+	  // Parse board list
+	  const boardList = JSON.parse(result).boards;
   
-			  boardList.forEach((board: any) => {
-				const platformName = board.platform.release.name; // Get the platform release name (e.g., "Arduino AVR Boards")
+	  // Initialize an empty object to hold the structured board data
+	  const boardStructure: { [platform: string]: { name: string, fqbn: string }[] } = {};
+	  const uniqueFqbnSet = new Set<string>();
   
-				// Initialize the platform in the structure if it doesn't exist
-				if (!boardStructure[platformName]) {
-				  boardStructure[platformName] = [];
-				}
+	  boardList.forEach((board: any) => {
+		const platformName = board.platform.release.name; // Get the platform release name
   
-				// Loop through each board under this platform
-				board.platform.release.boards.forEach((boardInfo: any) => {
-				  const { name, fqbn } = boardInfo;
+		// Initialize the platform in the structure if it doesn't exist
+		if (!boardStructure[platformName]) {
+		  boardStructure[platformName] = [];
+		}
   
-				  // Only add if the fqbn is not a duplicate
-				  if (!uniqueFqbnSet.has(fqbn)) {
-					uniqueFqbnSet.add(fqbn);
-					boardStructure[platformName].push({ name, fqbn });
-				  }
-				});
-			  });
+		// Loop through each board under this platform
+		board.platform.release.boards.forEach((boardInfo: any) => {
+		  const { name, fqbn } = boardInfo;
   
-			  message.boardStructure = boardStructure;
-			  message.uniqueFqbnSet = uniqueFqbnSet;
-			  resolve(message);
-			} catch (parseError) {
-			  arduinoExtensionChannel.appendLine('Failed to parse command result.');
-			  message.errorMessage = 'Failed to parse command result';
-			  resolve(message);
-			}
-		  } else {
-			message.errorMessage = 'Command result empty';
-			resolve(message);
+		  // Only add if the fqbn is not a duplicate
+		  if (!uniqueFqbnSet.has(fqbn)) {
+			uniqueFqbnSet.add(fqbn);
+			boardStructure[platformName].push({ name, fqbn });
 		  }
-		})
-		.catch((error) => {
-		  arduinoExtensionChannel.appendLine(`Failed to get Board List: ${error}`);
-		  message.errorMessage = 'Failed to get Board List';
-		  resolve(message);
 		});
-	});
+	  });
+  
+	  message.boardStructure = boardStructure;
+	  message.uniqueFqbnSet = uniqueFqbnSet;
+	} catch (error: any) {
+	  message.errorMessage = error.message;
+	  arduinoExtensionChannel.appendLine(`Error: ${error.message}`);
+	}
+  
+	return message;
   }
+  
   
 
 function vsCommandUpload(): Disposable {

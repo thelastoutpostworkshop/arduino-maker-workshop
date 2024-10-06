@@ -37,6 +37,7 @@ export const ARDUINO_MESSAGES = {
     CLI_STATUS: 'getArduinoCLIStatus',
     ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
     ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
-    BOARD_CONFIGURATION: 'getArduinoBoardConfiguration'
+    BOARD_CONFIGURATION: 'getArduinoBoardConfiguration',
+    BOARDS_LIST_ALL:'getArduinoBoardsListAll'
     // Add more commands as needed
 };
