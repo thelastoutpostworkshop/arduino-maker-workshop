@@ -1,8 +1,8 @@
-import { window, WebviewPanel, ExtensionContext, commands, ProgressLocation, Disposable, workspace } from "vscode";
+import { window, WebviewPanel, ExtensionContext, commands, Disposable, workspace } from "vscode";
 import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { QuickAccessProvider } from './quickAccessProvider';
-import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from "./shared/messages";
+import { ARDUINO_MESSAGES, ArduinoBoardsListPayload, WebviewToExtensionMessage } from "./shared/messages";
 
 const cp = require('child_process');
 const fs = require('fs');
@@ -119,7 +119,7 @@ export function getBoardConfiguration(context: ExtensionContext): Promise<string
 				}
 			})
 			.catch((error) => {
-				window.showErrorMessage(`Failed to get Board Configuration: ${error}`);
+				arduinoExtensionChannel.appendLine(`Failed to get Board Configuration: ${error}`);
 				resolve("");
 			});
 	});
@@ -154,59 +154,80 @@ export function loadArduinoConfiguration(): boolean {
 	return true;
 }
 
-function vsCommandBoardSelection(context: ExtensionContext): Disposable {
-	return commands.registerCommand('vscode-arduino.boardselect', async () => {
-		if (!loadArduinoConfiguration()) {
-			return false;
-		}
-
-		await window.withProgress({
-			location: ProgressLocation.Notification,
-			title: 'Retrieving board list...',
-			cancellable: false
-		}, async (progress) => {
-			const listBoardArgs = arduinoProject.getBoardsListArguments();
+function getBoardsListAll(context: ExtensionContext): Promise<ArduinoBoardsListPayload> {
+	const message: ArduinoBoardsListPayload = {
+	  errorMessage: "",
+	  boardStructure: undefined,
+	  uniqueFqbnSet: undefined
+	};
+  
+	return new Promise((resolve) => {
+	  if (!loadArduinoConfiguration()) {
+		message.errorMessage = "Unable to load Project Configuration";
+		resolve(message);
+		return;
+	  }
+  
+	  if (!arduinoProject.getBoard()) {
+		message.errorMessage = "Unable to Project Board";
+		resolve(message);
+		return;
+	  }
+  
+	  const allBoardArgs = arduinoProject.getBoardsListArguments();
+	  executeArduinoCommand(`${cliCommandArduinoPath}`, allBoardArgs, true, false)
+		.then((result) => {
+		  if (result) {
 			try {
-				const result = await executeArduinoCommand(`${cliCommandArduino}`, listBoardArgs, true);
-				if (result) {
-					progress.report({ message: 'Board list retrieved.', increment: 100 });
-					const boardList = JSON.parse(result).boards;
-
-					// Initialize an empty object to hold the structured board data
-					const boardStructure: { [platform: string]: { name: string, fqbn: string }[] } = {};
-
-					// Create a Set to track unique fqbn values
-					const uniqueFqbnSet = new Set<string>();
-
-					boardList.forEach((board: any) => {
-						const platformName = board.platform.release.name; // Get the platform release name (e.g., "Arduino AVR Boards")
-
-						// Initialize the platform in the structure if it doesn't exist
-						if (!boardStructure[platformName]) {
-							boardStructure[platformName] = [];
-						}
-
-						// Loop through each board under this platform
-						board.platform.release.boards.forEach((boardInfo: any) => {
-							const { name, fqbn } = boardInfo;
-
-							// Only add if the fqbn is not a duplicate
-							if (!uniqueFqbnSet.has(fqbn)) {
-								uniqueFqbnSet.add(fqbn);
-								boardStructure[platformName].push({ name, fqbn });
-							}
-						});
-					});
-
-					// Show the board selection webview
-					showBoardSelectionWebview(context, boardStructure);
+			  const boardList = JSON.parse(result).boards;
+  
+			  // Initialize an empty object to hold the structured board data
+			  const boardStructure: { [platform: string]: { name: string, fqbn: string }[] } = {};
+  
+			  // Create a Set to track unique fqbn values
+			  const uniqueFqbnSet = new Set<string>();
+  
+			  boardList.forEach((board: any) => {
+				const platformName = board.platform.release.name; // Get the platform release name (e.g., "Arduino AVR Boards")
+  
+				// Initialize the platform in the structure if it doesn't exist
+				if (!boardStructure[platformName]) {
+				  boardStructure[platformName] = [];
 				}
-			} catch (error) {
-				window.showErrorMessage(`Error retrieving board list: ${error}`);
+  
+				// Loop through each board under this platform
+				board.platform.release.boards.forEach((boardInfo: any) => {
+				  const { name, fqbn } = boardInfo;
+  
+				  // Only add if the fqbn is not a duplicate
+				  if (!uniqueFqbnSet.has(fqbn)) {
+					uniqueFqbnSet.add(fqbn);
+					boardStructure[platformName].push({ name, fqbn });
+				  }
+				});
+			  });
+  
+			  message.boardStructure = boardStructure;
+			  message.uniqueFqbnSet = uniqueFqbnSet;
+			  resolve(message);
+			} catch (parseError) {
+			  arduinoExtensionChannel.appendLine('Failed to parse command result.');
+			  message.errorMessage = 'Failed to parse command result';
+			  resolve(message);
 			}
+		  } else {
+			message.errorMessage = 'Command result empty';
+			resolve(message);
+		  }
+		})
+		.catch((error) => {
+		  arduinoExtensionChannel.appendLine(`Failed to get Board List: ${error}`);
+		  message.errorMessage = 'Failed to get Board List';
+		  resolve(message);
 		});
 	});
-}
+  }
+  
 
 function vsCommandUpload(): Disposable {
 	return commands.registerCommand('vscode-arduino.upload', () => {
