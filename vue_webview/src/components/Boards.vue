@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
-// import { useVsCodeStore } from '../stores/useVsCodeStore';
+import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES } from '@shared/messages';
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 
-// const vsCodeStore = useVsCodeStore();
+const vsCodeStore = useVsCodeStore();
 
 onMounted(() => {
   vscode.postMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
 });
+watch([() => vsCodeStore.boards], () => { }, { immediate: true });
+
 </script>
 
 
@@ -18,7 +20,7 @@ onMounted(() => {
       <div class="text-center">
         <h1 class="text-h4 font-weight-bold">Boards</h1>
       </div>
- 
+
     </v-responsive>
   </v-container>
 </template>
