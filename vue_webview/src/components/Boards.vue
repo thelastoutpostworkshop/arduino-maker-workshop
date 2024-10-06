@@ -25,14 +25,21 @@ const boardStructure = computed(() => vsCodeStore.boards?.boardStructure || {});
       <div class="text-center">
         <h1 class="text-h4 font-weight-bold">Boards</h1>
       </div>
+      <v-text-field label="Current Board:" :model-value="vsCodeStore.boardConfiguration?.boardName" readonly>
+        <template v-slot:loader>
+          <v-progress-linear :active="!vsCodeStore.boardConfiguration?.boardName" height="2"
+            indeterminate></v-progress-linear>
+        </template>
+      </v-text-field>
       <v-expansion-panels multiple>
         <v-expansion-panel v-for="(boards, platform) in boardStructure" :key="platform">
           <v-expansion-panel-title>{{ platform }}</v-expansion-panel-title>
           <v-expansion-panel-text>
+            <v-autocomplete :items="boards.name" density="comfortable" label="Comfortable"></v-autocomplete>
             <v-list>
               <v-list-item v-for="board in boards" :key="board.fqbn">
-                  <v-list-item-title>{{ board.name }}</v-list-item-title>
-                  <v-list-item-subtitle>{{ board.fqbn }}</v-list-item-subtitle>
+                <v-list-item-title>{{ board.name }}</v-list-item-title>
+                <v-list-item-subtitle>{{ board.fqbn }}</v-list-item-subtitle>
               </v-list-item>
             </v-list>
           </v-expansion-panel-text>
