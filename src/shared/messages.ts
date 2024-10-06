@@ -21,7 +21,6 @@ export interface ArduinoCLIStatusPayload {
 export interface ArduinoBoardsListPayload {
     errorMessage:string;
     boardStructure: any;
-    uniqueFqbnSet: any;
 }
 
 export interface ArduinoProjectInfoPayload {

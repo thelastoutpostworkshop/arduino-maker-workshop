@@ -93,7 +93,6 @@ export class VueWebviewPanel {
                                 errorMessage: result.errorMessage,
                                 payload: JSON.stringify({
                                     boardStructure:result.boardStructure,
-                                    uniqueFqbnSet:result.uniqueFqbnSet
                                 })
                             };
                             VueWebviewPanel.sendMessage(boardList);

@@ -143,7 +143,6 @@ export async function getBoardsListAll(): Promise<ArduinoBoardsListPayload> {
 	const message: ArduinoBoardsListPayload = {
 		errorMessage: "",
 		boardStructure: undefined,
-		uniqueFqbnSet: undefined,
 	};
 
 	try {
@@ -190,7 +189,6 @@ export async function getBoardsListAll(): Promise<ArduinoBoardsListPayload> {
 		});
 
 		message.boardStructure = boardStructure;
-		message.uniqueFqbnSet = uniqueFqbnSet;
 	} catch (error: any) {
 		message.errorMessage = error.message;
 		arduinoExtensionChannel.appendLine(`Error: ${error.message}`);
