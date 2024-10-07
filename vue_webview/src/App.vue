@@ -15,15 +15,17 @@ function handleMessageFromVsCode(event: MessageEvent) {
   vsCodeStore.handleMessage(message);
 }
 
-onMounted(() => {
-  window.addEventListener('message', handleMessageFromVsCode);
-  vscode.postMessage({ command: ARDUINO_MESSAGES.CLI_STATUS, errorMessage: "", payload: "" });
-  vscode.postMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS, errorMessage: "", payload: "" });
-});
+if (!import.meta.env.DEV) {
+  onMounted(() => {
+    window.addEventListener('message', handleMessageFromVsCode);
+    vscode.postMessage({ command: ARDUINO_MESSAGES.CLI_STATUS, errorMessage: "", payload: "" });
+    vscode.postMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS, errorMessage: "", payload: "" });
+  });
 
-onUnmounted(() => {
-  window.removeEventListener('message', handleMessageFromVsCode);
-});
+  onUnmounted(() => {
+    window.removeEventListener('message', handleMessageFromVsCode);
+  });
+}
 </script>
 
 <template>
