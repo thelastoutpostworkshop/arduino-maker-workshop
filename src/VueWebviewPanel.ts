@@ -23,86 +23,22 @@ export class VueWebviewPanel {
                 arduinoExtensionChannel.appendLine(`Message from Vue App: ${message.command}`);
                 switch (message.command) {
                     case ARDUINO_MESSAGES.CLI_STATUS:
-                        checkArduinoCLICommand().then((result) => {
-                            VueWebviewPanel.sendMessage(processArduinoCLICommandCheck(result));
-                        });
+                        this.sendCliStatus();
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
-                        const projectStatus: WebviewToExtensionMessage = {
-                            command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS,
-                            errorMessage: "",
-                            payload: ""
-                        };
-                        if (!loadArduinoConfiguration()) {
-                            switch (arduinoConfigurationLastError) {
-                                case ARDUINO_ERRORS.NO_INO_FILES:
-                                    projectStatus.errorMessage = "No sketch file (.ino) found";
-                                    break;
-                                case ARDUINO_ERRORS.WRONG_FOLDER_NAME:
-                                    projectStatus.errorMessage = "Folder and sketch name mismatch";
-                                    break;
-                                default:
-                                    projectStatus.errorMessage = "Unknown error in Arduino Project Configuration";
-                                    break;
-                            }
-                        } else {
-                            projectStatus.errorMessage = "";
-                        }
-                        VueWebviewPanel.sendMessage(projectStatus);
+                        this.sendArduinoProjectStatus();
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
-                        const projectInfo: WebviewToExtensionMessage = {
-                            command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO,
-                            errorMessage: "",
-                            payload: ""
-                        };
-                        if (loadArduinoConfiguration()) {
-                            projectInfo.payload = arduinoProject.getArduinoConfiguration();
-                        } else {
-                            projectInfo.errorMessage = "Not an Arduino Project";
-                        }
-                        VueWebviewPanel.sendMessage(projectInfo);
+                        this.sendArduinoProjectInfo();
                         break;
                     case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
-                        getBoardConfiguration(message.payload).then((result) => {
-                            const boardConfiguration: WebviewToExtensionMessage = {
-                                command: ARDUINO_MESSAGES.BOARD_CONFIGURATION,
-                                errorMessage: "",
-                                payload: ""
-                            };
-                            if (result !== "") {
-                                try {
-                                    const configData = JSON.parse(result);
-                                    boardConfiguration.payload = <ArduinoBoardConfigurationPayload>{
-                                        configuration: configData.config_options,
-                                        boardName: configData.name
-                                    };
-
-                                } catch (error) {
-                                    boardConfiguration.errorMessage = "Cannot parse Board configuration";
-                                }
-                            } else {
-                                boardConfiguration.errorMessage = "Cannot get Board configuration";
-                            }
-                            VueWebviewPanel.sendMessage(boardConfiguration);
-                        });
+                        this.sendBoardConfiguration(message);
                         break;
                     case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
-                        getBoardsListAll().then((result:ArduinoBoardsListPayload) => {
-                            const boardList: WebviewToExtensionMessage = {
-                                command: ARDUINO_MESSAGES.BOARDS_LIST_ALL,
-                                errorMessage: result.errorMessage,
-                                payload: JSON.stringify({
-                                    boardStructure:result.boardStructure,
-                                })
-                            };
-                            VueWebviewPanel.sendMessage(boardList);
-                        });
+                        this.sendBoardListAll();
                         break;
                     case ARDUINO_MESSAGES.SET_BOARD:
-                        const fqbn = message.payload;
-                        arduinoExtensionChannel.appendLine(`Set Board FQBN=:${fqbn}`);
-                        arduinoProject.setBoard(fqbn);
+                        this.setBoard(message);
                         break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);
@@ -116,6 +52,94 @@ export class VueWebviewPanel {
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
         this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
         arduinoExtensionChannel.appendLine("Arduino Web view ready");
+    }
+
+    private setBoard(message: WebviewToExtensionMessage) {
+        const fqbn = message.payload;
+        arduinoExtensionChannel.appendLine(`Set Board FQBN=:${fqbn}`);
+        arduinoProject.setBoard(fqbn);
+    }
+
+    private sendBoardListAll() {
+        getBoardsListAll().then((result: ArduinoBoardsListPayload) => {
+            const boardList: WebviewToExtensionMessage = {
+                command: ARDUINO_MESSAGES.BOARDS_LIST_ALL,
+                errorMessage: result.errorMessage,
+                payload: JSON.stringify({
+                    boardStructure: result.boardStructure,
+                })
+            };
+            VueWebviewPanel.sendMessage(boardList);
+        });
+    }
+
+    private sendBoardConfiguration(message: WebviewToExtensionMessage) {
+        getBoardConfiguration(message.payload).then((result) => {
+            const boardConfiguration: WebviewToExtensionMessage = {
+                command: ARDUINO_MESSAGES.BOARD_CONFIGURATION,
+                errorMessage: "",
+                payload: ""
+            };
+            if (result !== "") {
+                try {
+                    const configData = JSON.parse(result);
+                    boardConfiguration.payload = <ArduinoBoardConfigurationPayload>{
+                        configuration: configData.config_options,
+                        boardName: configData.name
+                    };
+
+                } catch (error) {
+                    boardConfiguration.errorMessage = "Cannot parse Board configuration";
+                }
+            } else {
+                boardConfiguration.errorMessage = "Cannot get Board configuration";
+            }
+            VueWebviewPanel.sendMessage(boardConfiguration);
+        });
+    }
+
+    private sendArduinoProjectInfo() {
+        const projectInfo: WebviewToExtensionMessage = {
+            command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO,
+            errorMessage: "",
+            payload: ""
+        };
+        if (loadArduinoConfiguration()) {
+            projectInfo.payload = arduinoProject.getArduinoConfiguration();
+        } else {
+            projectInfo.errorMessage = "Not an Arduino Project";
+        }
+        VueWebviewPanel.sendMessage(projectInfo);
+    }
+
+    private sendArduinoProjectStatus() {
+        const projectStatus: WebviewToExtensionMessage = {
+            command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS,
+            errorMessage: "",
+            payload: ""
+        };
+        if (!loadArduinoConfiguration()) {
+            switch (arduinoConfigurationLastError) {
+                case ARDUINO_ERRORS.NO_INO_FILES:
+                    projectStatus.errorMessage = "No sketch file (.ino) found";
+                    break;
+                case ARDUINO_ERRORS.WRONG_FOLDER_NAME:
+                    projectStatus.errorMessage = "Folder and sketch name mismatch";
+                    break;
+                default:
+                    projectStatus.errorMessage = "Unknown error in Arduino Project Configuration";
+                    break;
+            }
+        } else {
+            projectStatus.errorMessage = "";
+        }
+        VueWebviewPanel.sendMessage(projectStatus);
+    }
+
+    private sendCliStatus() {
+        checkArduinoCLICommand().then((result) => {
+            VueWebviewPanel.sendMessage(processArduinoCLICommandCheck(result));
+        });
     }
 
     public static sendMessage(message: WebviewToExtensionMessage) {
