@@ -23,7 +23,7 @@ export class VueWebviewPanel {
                 arduinoExtensionChannel.appendLine(`Message from Vue App: ${message.command}`);
                 switch (message.command) {
                     case ARDUINO_MESSAGES.CLI_STATUS:
-                        this.getCliStatus().then((clistatus)=>{
+                        this.getCliStatus().then((clistatus) => {
                             VueWebviewPanel.sendMessage(clistatus);
                         });
                         break;
@@ -32,11 +32,13 @@ export class VueWebviewPanel {
                         VueWebviewPanel.sendMessage(projectStatus);
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
-                        const projectInfo= this.getArduinoProjectInfo();
+                        const projectInfo = this.getArduinoProjectInfo();
                         VueWebviewPanel.sendMessage(projectInfo);
                         break;
                     case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
-                        this.sendBoardConfiguration(message);
+                        this.getBoardConfiguration(message).then((boardConfiguration)=>{
+                            VueWebviewPanel.sendMessage(boardConfiguration);
+                        });
                         break;
                     case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
                         this.sendBoardListAll();
@@ -77,32 +79,31 @@ export class VueWebviewPanel {
         });
     }
 
-    private sendBoardConfiguration(message: WebviewToExtensionMessage) {
-        getBoardConfiguration(message.payload).then((result) => {
-            const boardConfiguration: WebviewToExtensionMessage = {
-                command: ARDUINO_MESSAGES.BOARD_CONFIGURATION,
-                errorMessage: "",
-                payload: ""
-            };
-            if (result !== "") {
-                try {
-                    const configData = JSON.parse(result);
-                    boardConfiguration.payload = <ArduinoBoardConfigurationPayload>{
-                        configuration: configData.config_options,
-                        boardName: configData.name
-                    };
+    private async getBoardConfiguration(message: WebviewToExtensionMessage):Promise<WebviewToExtensionMessage> {
+        const result = await getBoardConfiguration(message.payload);
+        const boardConfiguration: WebviewToExtensionMessage = {
+            command: ARDUINO_MESSAGES.BOARD_CONFIGURATION,
+            errorMessage: "",
+            payload: ""
+        };
+        if (result !== "") {
+            try {
+                const configData = JSON.parse(result);
+                boardConfiguration.payload = <ArduinoBoardConfigurationPayload>{
+                    configuration: configData.config_options,
+                    boardName: configData.name
+                };
 
-                } catch (error) {
-                    boardConfiguration.errorMessage = "Cannot parse Board configuration";
-                }
-            } else {
-                boardConfiguration.errorMessage = "Cannot get Board configuration";
+            } catch (error) {
+                boardConfiguration.errorMessage = "Cannot parse Board configuration";
             }
-            VueWebviewPanel.sendMessage(boardConfiguration);
-        });
+        } else {
+            boardConfiguration.errorMessage = "Cannot get Board configuration";
+        }
+        return boardConfiguration;
     }
 
-    private getArduinoProjectInfo():WebviewToExtensionMessage {
+    private getArduinoProjectInfo(): WebviewToExtensionMessage {
         const projectInfo: WebviewToExtensionMessage = {
             command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO,
             errorMessage: "",
@@ -116,7 +117,7 @@ export class VueWebviewPanel {
         return projectInfo;
     }
 
-    private getArduinoProjectStatus():WebviewToExtensionMessage {
+    private getArduinoProjectStatus(): WebviewToExtensionMessage {
         const projectStatus: WebviewToExtensionMessage = {
             command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS,
             errorMessage: "",
