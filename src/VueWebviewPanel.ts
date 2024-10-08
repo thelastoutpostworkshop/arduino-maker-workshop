@@ -32,7 +32,8 @@ export class VueWebviewPanel {
                         VueWebviewPanel.sendMessage(projectStatus);
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
-                        this.sendArduinoProjectInfo();
+                        const projectInfo= this.getArduinoProjectInfo();
+                        VueWebviewPanel.sendMessage(projectInfo);
                         break;
                     case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
                         this.sendBoardConfiguration(message);
@@ -101,7 +102,7 @@ export class VueWebviewPanel {
         });
     }
 
-    private sendArduinoProjectInfo() {
+    private getArduinoProjectInfo():WebviewToExtensionMessage {
         const projectInfo: WebviewToExtensionMessage = {
             command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO,
             errorMessage: "",
@@ -112,7 +113,7 @@ export class VueWebviewPanel {
         } else {
             projectInfo.errorMessage = "Not an Arduino Project";
         }
-        VueWebviewPanel.sendMessage(projectInfo);
+        return projectInfo;
     }
 
     private getArduinoProjectStatus():WebviewToExtensionMessage {
