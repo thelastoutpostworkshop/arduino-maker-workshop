@@ -147,7 +147,8 @@ export class ArduinoProject {
             `${boardCommandArduino}`,
             `${detailsFunctionArduino}`,
             `${fqbnOptionArduino}`,
-            `${this.getBoard()}:${this.getBoardConfiguration()}`,
+            // `${this.getBoard()}:${this.getBoardConfiguration()}`,
+            `${this.getBoard()}`,
             `${jsonOutputArduino}`
         ];
         return compileCommand;
