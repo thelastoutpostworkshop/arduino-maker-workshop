@@ -28,7 +28,8 @@ export class VueWebviewPanel {
                         });
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
-                        this.sendArduinoProjectStatus();
+                        const projectStatus = this.getArduinoProjectStatus();
+                        VueWebviewPanel.sendMessage(projectStatus);
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                         this.sendArduinoProjectInfo();
@@ -114,7 +115,7 @@ export class VueWebviewPanel {
         VueWebviewPanel.sendMessage(projectInfo);
     }
 
-    private sendArduinoProjectStatus() {
+    private getArduinoProjectStatus():WebviewToExtensionMessage {
         const projectStatus: WebviewToExtensionMessage = {
             command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS,
             errorMessage: "",
@@ -135,7 +136,7 @@ export class VueWebviewPanel {
         } else {
             projectStatus.errorMessage = "";
         }
-        VueWebviewPanel.sendMessage(projectStatus);
+        return projectStatus;
     }
 
     private async getCliStatus(): Promise<WebviewToExtensionMessage> {
