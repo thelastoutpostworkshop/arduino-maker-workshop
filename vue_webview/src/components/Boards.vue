@@ -22,6 +22,7 @@ watch(
     newValue.forEach((newVal, index) => {
       if (newVal !== boardSelectBefore.value[index]) {
         console.log(`Board selected at index ${index}:`, newVal);
+        vscode.postMessage({ command: ARDUINO_MESSAGES.SET_BOARD, errorMessage: "", payload: newVal.fqbn })
         boardSelectBefore.value = { ...boardSelect.value };
       }
     });
@@ -65,12 +66,10 @@ const inDevelopment = computed(() => import.meta.env.DEV);
       <div v-else>
         Choose a board from the platforms:
       </div>
-      {{ boardSelect }}
       <v-expansion-panels multiple>
         <v-expansion-panel v-for="(boards, platform, index) in boardStructure" :key="platform">
           <v-expansion-panel-title>{{ platform }}</v-expansion-panel-title>
           <v-expansion-panel-text>
-            {{ boardSelect[index] }}
             <v-autocomplete v-model="boardSelect[index]" :items="boards" item-title="name" item-value="fqbn"
               label="Select a Board" outlined dense return-object></v-autocomplete>
           </v-expansion-panel-text>

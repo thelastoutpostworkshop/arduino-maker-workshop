@@ -99,6 +99,10 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(boardList);
                         });
                         break;
+                    case ARDUINO_MESSAGES.SET_BOARD:
+                        const fqbn = message.payload;
+                        arduinoExtensionChannel.appendLine(`Set Board FQBN=:${fqbn}`);
+                        break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);
                 }
