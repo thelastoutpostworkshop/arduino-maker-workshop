@@ -36,12 +36,14 @@ export class VueWebviewPanel {
                         VueWebviewPanel.sendMessage(projectInfo);
                         break;
                     case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
-                        this.getBoardConfiguration(message).then((boardConfiguration)=>{
+                        this.getBoardConfiguration(message).then((boardConfiguration) => {
                             VueWebviewPanel.sendMessage(boardConfiguration);
                         });
                         break;
                     case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
-                        this.sendBoardListAll();
+                        this.getBoardListAll().then((boardList)=>{
+                            VueWebviewPanel.sendMessage(boardList);
+                        });
                         break;
                     case ARDUINO_MESSAGES.SET_BOARD:
                         this.setBoard(message);
@@ -66,20 +68,19 @@ export class VueWebviewPanel {
         arduinoProject.setBoard(fqbn);
     }
 
-    private sendBoardListAll() {
-        getBoardsListAll().then((result: ArduinoBoardsListPayload) => {
-            const boardList: WebviewToExtensionMessage = {
-                command: ARDUINO_MESSAGES.BOARDS_LIST_ALL,
-                errorMessage: result.errorMessage,
-                payload: JSON.stringify({
-                    boardStructure: result.boardStructure,
-                })
-            };
-            VueWebviewPanel.sendMessage(boardList);
-        });
+    private async getBoardListAll(): Promise<WebviewToExtensionMessage> {
+        const result = await getBoardsListAll();
+        const boardList: WebviewToExtensionMessage = {
+            command: ARDUINO_MESSAGES.BOARDS_LIST_ALL,
+            errorMessage: result.errorMessage,
+            payload: JSON.stringify({
+                boardStructure: result.boardStructure,
+            })
+        };
+        return boardList;
     }
 
-    private async getBoardConfiguration(message: WebviewToExtensionMessage):Promise<WebviewToExtensionMessage> {
+    private async getBoardConfiguration(message: WebviewToExtensionMessage): Promise<WebviewToExtensionMessage> {
         const result = await getBoardConfiguration(message.payload);
         const boardConfiguration: WebviewToExtensionMessage = {
             command: ARDUINO_MESSAGES.BOARD_CONFIGURATION,
