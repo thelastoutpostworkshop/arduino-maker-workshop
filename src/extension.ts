@@ -99,7 +99,7 @@ export async function getBoardConfiguration(context: ExtensionContext): Promise<
 		throw new Error("Unable to get Board Configuration");
 	  }
 	  const configBoardArgs = arduinoProject.getBoardConfigurationArguments();
-	  const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, configBoardArgs, true, false);
+	  const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, configBoardArgs, true, true);
   
 	  if (!result) {
 		throw new Error("Command result empty");
@@ -257,9 +257,9 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 	if (showOutput) {
 		outputChannel.show(true);
 	}
-	// arduinoExtensionChannel.appendLine('Running Arduino CLI...');
-	// arduinoExtensionChannel.appendLine(`${command}`);
-	// arduinoExtensionChannel.appendLine(args.join(' '));
+	arduinoExtensionChannel.appendLine('Running Arduino CLI...');
+	arduinoExtensionChannel.appendLine(`${command}`);
+	arduinoExtensionChannel.appendLine(args.join(' '));
 
 	const child = cp.spawn(`${command}`, args);
 	let outputBuffer = '';  // String buffer to store output

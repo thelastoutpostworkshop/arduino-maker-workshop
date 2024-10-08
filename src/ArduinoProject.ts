@@ -283,7 +283,7 @@ export class ArduinoProject {
     public getBoard(): string {
         return this.configJson.board || '';
     }
-    private setBoard(board: string) {
+    public setBoard(board: string) {
         this.configJson.board = board;
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
