@@ -166,7 +166,7 @@ export class VueWebviewPanel {
         const scriptUri = getUri(webview, extensionUri, ["vue_webview", "dist", "assets", "index.js"]);
 
         const nonce = getNonce();
-        arduinoExtensionChannel.appendLine(nonce);
+        // arduinoExtensionChannel.appendLine(nonce);
 
         const hmltcontent = /*html*/ `
         <!DOCTYPE html>
