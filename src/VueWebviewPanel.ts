@@ -23,7 +23,9 @@ export class VueWebviewPanel {
                 arduinoExtensionChannel.appendLine(`Message from Vue App: ${message.command}`);
                 switch (message.command) {
                     case ARDUINO_MESSAGES.CLI_STATUS:
-                        this.sendCliStatus();
+                        this.getCliStatus().then((clistatus)=>{
+                            VueWebviewPanel.sendMessage(clistatus);
+                        });
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                         this.sendArduinoProjectStatus();
@@ -136,10 +138,9 @@ export class VueWebviewPanel {
         VueWebviewPanel.sendMessage(projectStatus);
     }
 
-    private sendCliStatus() {
-        checkArduinoCLICommand().then((result) => {
-            VueWebviewPanel.sendMessage(processArduinoCLICommandCheck(result));
-        });
+    private async getCliStatus(): Promise<WebviewToExtensionMessage> {
+        const result = await checkArduinoCLICommand();
+        return processArduinoCLICommandCheck(result);
     }
 
     public static sendMessage(message: WebviewToExtensionMessage) {
