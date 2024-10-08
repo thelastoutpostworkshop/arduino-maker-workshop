@@ -20,6 +20,7 @@ export class VueWebviewPanel {
         // Handle messages from the webview
         this._panel.webview.onDidReceiveMessage(
             (message: WebviewToExtensionMessage) => {
+                arduinoExtensionChannel.appendLine(`Message from Vue App: ${message.command}`);
                 switch (message.command) {
                     case ARDUINO_MESSAGES.CLI_STATUS:
                         checkArduinoCLICommand().then((result) => {
