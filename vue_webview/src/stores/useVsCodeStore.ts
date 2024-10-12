@@ -21,7 +21,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                             errorMessage: message.errorMessage,
                             version: "",
                             date: ""
-                        }
+                        };
                     } else {
                         try {
                             const cliInfo = JSON.parse(message.payload);
@@ -29,7 +29,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                                 errorMessage: message.errorMessage,
                                 version: cliInfo.VersionString,
                                 date: cliInfo.Date
-                            }
+                            };
                         } catch (error) {
                             console.log("Failed to parse Arduino CLI Status.");
                         }
@@ -44,7 +44,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                             sketch: message.payload.sketch,
                             output: message.payload.output,
                             port: message.payload.port
-                        }
+                        };
                     } catch (error) {
                         console.log("Failed to parse Project Configuration information.") ;
                     }
@@ -59,6 +59,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                             configuration: message.payload.configuration,
                             boardName: message.payload.boardName
                         };
+                        extractBoardConfiguration(this.boardConfiguration.configuration);
                     } catch (error) {
                         console.log("Failed to parse Board Configuration information.") ;
                     }
@@ -80,3 +81,14 @@ export const useVsCodeStore = defineStore('vsCode', {
         },
     },
 });
+
+function extractBoardConfiguration(boardConf : string) {
+	const currentConfig = boardConf
+		.split(',')
+		.reduce((configObj: any, item: string) => {
+			const [key, value] = item.split('=');
+			configObj[key] = value;
+			return configObj;
+		}, {});
+    console.log(currentConfig);
+}
