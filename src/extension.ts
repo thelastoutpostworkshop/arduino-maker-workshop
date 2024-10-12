@@ -5,8 +5,6 @@ import { QuickAccessProvider } from './quickAccessProvider';
 import { ARDUINO_MESSAGES, ArduinoBoardsListPayload, WebviewToExtensionMessage } from "./shared/messages";
 
 const cp = require('child_process');
-const fs = require('fs');
-const path = require('path');
 
 const outputChannel = window.createOutputChannel('Arduino');
 export const arduinoExtensionChannel = window.createOutputChannel('Arduino.Extension');
