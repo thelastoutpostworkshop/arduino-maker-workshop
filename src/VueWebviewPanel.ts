@@ -47,6 +47,9 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.SET_BOARD:
                         this.setBoard(message);
+                        this.getBoardConfiguration(message).then((boardConfiguration) => {
+                            VueWebviewPanel.sendMessage(boardConfiguration);
+                        });
                         break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);
