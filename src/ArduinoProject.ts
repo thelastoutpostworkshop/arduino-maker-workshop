@@ -275,6 +275,10 @@ export class ArduinoProject {
     public getBoardConfiguration(): string {
         return this.configJson.configuration || '';
     }
+    public resetBoardConfiguration() {
+        this.configJson.configuration = "";
+        fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8'); 
+    }
     public getArduinoConfiguration(): ArduinoConfiguration {
         return this.configJson;
     }
