@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from '@shared/messages';
-import { onMounted, watch, computed, ref } from 'vue';
+import { computed } from 'vue';
 
 const vsCodeStore = useVsCodeStore();
 
