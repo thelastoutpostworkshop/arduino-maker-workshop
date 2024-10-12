@@ -143,12 +143,19 @@ export class ArduinoProject {
         return compileCommand;
     }
     public getBoardConfigurationArguments(): string[] {
+        let boardConfigArg = "";
+        if(this.getBoardConfiguration() === "") {
+            boardConfigArg = this.getBoard();
+        } else
+        {
+            boardConfigArg = `${this.getBoard()}:${this.getBoardConfiguration()}`;
+        }
         const compileCommand = [
             `${boardCommandArduino}`,
             `${detailsFunctionArduino}`,
             `${fqbnOptionArduino}`,
             // `${this.getBoard()}:${this.getBoardConfiguration()}`,
-            `${this.getBoard()}`,
+            `${boardConfigArg}`,
             `${jsonOutputArduino}`
         ];
         return compileCommand;
