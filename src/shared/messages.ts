@@ -39,7 +39,7 @@ export interface BoardConfiguration {
     programmers: Programmer[];
 }
 
-interface ConfigOptionValue {
+export interface ConfigOptionValue {
     value: string;
     value_label: string;
     selected?: boolean;

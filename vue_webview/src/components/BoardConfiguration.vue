@@ -1,44 +1,69 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from '@shared/messages';
+import { ARDUINO_MESSAGES, ConfigOptionValue, WebviewToExtensionMessage } from '@shared/messages';
 import { computed, ref, watch } from 'vue';
 
 const vsCodeStore = useVsCodeStore();
 
 const inDevelopment = computed(() => import.meta.env.DEV);
 
-const boardOption = ref<string[]>([]);
+// Update ConfigOptionValue type to match the expected structure
+type ConfigOptionValue = {
+    value: string;
+    value_label: string;  // Added to meet Vuetify's v-select expectations
+    selected?: boolean;
+};
 
-watch(() => vsCodeStore.boardConfiguration?.boardConfiguration?.config_options, (newConfig) => {
-    if (newConfig) {
-        console.log(newConfig);
-        newConfig.forEach((option,indexOption)=> {
-            option.values.forEach((value,index)=>{
-                if(value.selected) {
-                    boardOption.value[indexOption] = value.value;
-                }
-            })
-            console.log(option);
-        })
-    }
-}, { immediate: true });
+// Define boardOption as an object indexed by string keys
+const boardOption = ref<Record<string, ConfigOptionValue>>({});
+
+watch(
+    () => vsCodeStore.boardConfiguration?.boardConfiguration?.config_options,
+    (newConfig) => {
+        if (newConfig) {
+            newConfig.forEach((option) => {
+                option.values.forEach((value) => {
+                    if (value.selected) {
+                        boardOption.value[option.option] = value;
+                    }
+                });
+            });
+        }
+    },
+    { immediate: true }
+);
+
+watch(
+    boardOption,
+    () => {
+        let configuration: string = Object.entries(boardOption.value)
+            .map(([key, option]) => `${key}=${option.value}`)
+            .join(",");
+
+        console.log(configuration);
+    },
+    { deep: true }
+);
+
 
 function sendTestMessagewWithConfigOptions() {
     const message: WebviewToExtensionMessage = {
         command: ARDUINO_MESSAGES.BOARD_CONFIGURATION,
         errorMessage: "",
-        payload: import.meta.env.VITE_BOARDS_CONFIG_WITH_OPTIONS
-    }
+        payload: import.meta.env.VITE_BOARDS_CONFIG_WITH_OPTIONS,
+    };
     vsCodeStore.simulateMessage(message);
 }
+
 function sendTestMessagewWithNoConfigOptions() {
     const message: WebviewToExtensionMessage = {
         command: ARDUINO_MESSAGES.BOARD_CONFIGURATION,
         errorMessage: "",
-        payload: import.meta.env.VITE_BOARDS_CONFIG_WITH_NO_OPTIONS
-    }
+        payload: import.meta.env.VITE_BOARDS_CONFIG_WITH_NO_OPTIONS,
+    };
     vsCodeStore.simulateMessage(message);
 }
+
 </script>
 
 <template>
@@ -77,10 +102,10 @@ function sendTestMessagewWithNoConfigOptions() {
                     </div>
                 </template>
                 <div v-if="vsCodeStore.boardConfiguration?.boardConfiguration?.config_options">
-                    <div v-for="(option, index) in vsCodeStore.boardConfiguration?.boardConfiguration?.config_options"
+                    <div v-for="(option) in vsCodeStore.boardConfiguration?.boardConfiguration?.config_options"
                         :key="option.option">
-                        <v-select v-model="boardOption[index]" :label="option.option_label" :items="option.values"
-                            item-title="value_label" item-value="value"></v-select>
+                        <v-select v-model="boardOption[option.option]" :label="option.option_label"
+                            :items="option.values" item-title="value_label" item-value="value" return-object></v-select>
                     </div>
                 </div>
             </v-card>
