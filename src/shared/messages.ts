@@ -8,8 +8,7 @@ export interface WebviewToExtensionMessage {
 
 export interface ArduinoBoardConfigurationPayload {
     errorMessage:string;
-    configuration: string;
-    boardName: string;
+    boardConfiguration: BoardConfiguration | null;
 }
 
 export interface ArduinoCLIStatusPayload {
@@ -30,6 +29,32 @@ export interface ArduinoProjectInfoPayload {
     sketch:string;
     output:string;
     port:string;
+}
+
+export interface BoardConfiguration {
+    fqbn: string;
+    name: string;
+    version: string;
+    config_options: ConfigOption[];
+    programmers: Programmer[];
+}
+
+interface ConfigOptionValue {
+    value: string;
+    value_label: string;
+    selected?: boolean;
+}
+
+interface ConfigOption {
+    option: string;
+    option_label: string;
+    values: ConfigOptionValue[];
+}
+
+interface Programmer {
+    platform: string;
+    id: string;
+    name: string;
 }
 
 export const ARDUINO_MESSAGES = {

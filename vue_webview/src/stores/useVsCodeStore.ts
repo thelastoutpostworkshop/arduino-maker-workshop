@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoBoardsListPayload, ArduinoCLIStatusPayload, ArduinoProjectInfoPayload, WebviewToExtensionMessage } from '@shared/messages';
-import { BoardConfiguration } from '@/interfaces/interfaces';
+import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoBoardsListPayload, ArduinoCLIStatusPayload, ArduinoProjectInfoPayload, BoardConfiguration, WebviewToExtensionMessage } from '@shared/messages';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
@@ -55,15 +54,18 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
                     try {
-                        if (message.errorMessage !== "") {
-
+                        if (message.errorMessage === "") {
+                            this.boardConfiguration = {
+                                errorMessage: "",
+                                boardConfiguration:extractBoardConfiguration(message.payload)
+                            };
+                        } else {
+                            this.boardConfiguration = {
+                                errorMessage: message.errorMessage,
+                                boardConfiguration:null
+                            };
                         }
-                        this.boardConfiguration = {
-                            errorMessage: message.errorMessage,
-                            configuration: message.payload.configuration,
-                            boardName: message.payload.boardName
-                        };
-                        extractBoardConfiguration(this.boardConfiguration.configuration);
+    
                     } catch (error) {
                         console.log("Failed to parse Board Configuration information.");
                     }
@@ -88,6 +90,5 @@ export const useVsCodeStore = defineStore('vsCode', {
 
 function extractBoardConfiguration(boardConf: string): BoardConfiguration {
     const currentConfig = JSON.parse(boardConf);
-    console.log(currentConfig);
     return currentConfig;
 }
