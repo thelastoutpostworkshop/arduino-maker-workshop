@@ -93,7 +93,7 @@ export class VueWebviewPanel {
             payload: ""
         };
         if (result !== "") {
-            boardConfiguration.payload = result
+            boardConfiguration.payload = result;
         }
         return boardConfiguration;
     }
