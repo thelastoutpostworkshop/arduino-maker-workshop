@@ -1,11 +1,27 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from '@shared/messages';
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const vsCodeStore = useVsCodeStore();
 
 const inDevelopment = computed(() => import.meta.env.DEV);
+
+const boardOption = ref<string[]>([]);
+
+watch(() => vsCodeStore.boardConfiguration?.boardConfiguration?.config_options, (newConfig) => {
+    if (newConfig) {
+        console.log(newConfig);
+        newConfig.forEach((option,indexOption)=> {
+            option.values.forEach((value,index)=>{
+                if(value.selected) {
+                    boardOption.value[indexOption] = value.value;
+                }
+            })
+            console.log(option);
+        })
+    }
+}, { immediate: true });
 
 function sendTestMessagewWithConfigOptions() {
     const message: WebviewToExtensionMessage = {
@@ -60,9 +76,11 @@ function sendTestMessagewWithNoConfigOptions() {
                         No options available for your board
                     </div>
                 </template>
-                <div v-if="vsCodeStore.boardConfiguration?.boardConfiguration?.config_options" >
-                    <div v-for="(option) in vsCodeStore.boardConfiguration?.boardConfiguration?.config_options" :key="option.option"> 
-                        <v-select :label="option.option_label" :items="option.values" item-title="value_label" item-value="value"></v-select>
+                <div v-if="vsCodeStore.boardConfiguration?.boardConfiguration?.config_options">
+                    <div v-for="(option, index) in vsCodeStore.boardConfiguration?.boardConfiguration?.config_options"
+                        :key="option.option">
+                        <v-select v-model="boardOption[index]" :label="option.option_label" :items="option.values"
+                            item-title="value_label" item-value="value"></v-select>
                     </div>
                 </div>
             </v-card>
