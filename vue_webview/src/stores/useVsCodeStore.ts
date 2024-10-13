@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoBoardsListPayload, ArduinoCLIStatusPayload, ArduinoProjectInfoPayload, WebviewToExtensionMessage } from '@shared/messages';
-import { BoardInfo } from '@/interfaces/interfaces';
+import { BoardConfiguration } from '@/interfaces/interfaces';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
@@ -47,7 +47,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                             port: message.payload.port
                         };
                     } catch (error) {
-                        console.log("Failed to parse Project Configuration information.") ;
+                        console.log("Failed to parse Project Configuration information.");
                     }
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
@@ -56,7 +56,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
                     try {
                         if (message.errorMessage !== "") {
-                            
+
                         }
                         this.boardConfiguration = {
                             errorMessage: message.errorMessage,
@@ -65,7 +65,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         };
                         extractBoardConfiguration(this.boardConfiguration.configuration);
                     } catch (error) {
-                        console.log("Failed to parse Board Configuration information.") ;
+                        console.log("Failed to parse Board Configuration information.");
                     }
                     break;
                 case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
@@ -76,7 +76,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                             boardStructure: boardsInfo.boardStructure,
                         };
                     } catch (error) {
-                        console.log ("Failed to parse Board Configuration information: "+error);
+                        console.log("Failed to parse Board Configuration information: " + error);
                     }
                     break;
                 default:
@@ -86,8 +86,8 @@ export const useVsCodeStore = defineStore('vsCode', {
     },
 });
 
-function extractBoardConfiguration(boardConf : string):BoardInfo {
-	const currentConfig = JSON.parse(boardConf);
+function extractBoardConfiguration(boardConf: string): BoardConfiguration {
+    const currentConfig = JSON.parse(boardConf);
     console.log(currentConfig);
     return currentConfig;
 }

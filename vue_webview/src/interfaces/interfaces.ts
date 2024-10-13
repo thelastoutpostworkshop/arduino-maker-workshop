@@ -1,4 +1,4 @@
-export interface BoardInfo {
+export interface BoardConfiguration {
     fqbn: string;
     name: string;
     version: string;
