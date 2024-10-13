@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoBoardsListPayload, ArduinoCLIStatusPayload, ArduinoProjectInfoPayload, WebviewToExtensionMessage } from '@shared/messages';
+import { BoardInfo } from '@/interfaces/interfaces';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
@@ -54,6 +55,9 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
                     try {
+                        if (message.errorMessage !== "") {
+                            
+                        }
                         this.boardConfiguration = {
                             errorMessage: message.errorMessage,
                             configuration: message.payload.configuration,
@@ -82,13 +86,8 @@ export const useVsCodeStore = defineStore('vsCode', {
     },
 });
 
-function extractBoardConfiguration(boardConf : string) {
-	const currentConfig = boardConf
-		.split(',')
-		.reduce((configObj: any, item: string) => {
-			const [key, value] = item.split('=');
-			configObj[key] = value;
-			return configObj;
-		}, {});
+function extractBoardConfiguration(boardConf : string):BoardInfo {
+	const currentConfig = JSON.parse(boardConf);
     console.log(currentConfig);
+    return currentConfig;
 }

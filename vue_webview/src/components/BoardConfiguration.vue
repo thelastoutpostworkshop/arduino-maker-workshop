@@ -11,7 +11,7 @@ function sendTestMessage() {
   const message: WebviewToExtensionMessage = {
     command: ARDUINO_MESSAGES.BOARD_CONFIGURATION,
     errorMessage: "",
-    payload: import.meta.env.VITE_BOARDS_LISTALL_TEST
+    payload: import.meta.env.VITE_BOARDS_CONFIG
   }
   vsCodeStore.simulateMessage(message);
 }
