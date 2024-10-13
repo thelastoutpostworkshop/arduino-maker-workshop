@@ -7,11 +7,19 @@ const vsCodeStore = useVsCodeStore();
 
 const inDevelopment = computed(() => import.meta.env.DEV);
 
-function sendTestMessage() {
+function sendTestMessagewWithConfigOptions() {
     const message: WebviewToExtensionMessage = {
         command: ARDUINO_MESSAGES.BOARD_CONFIGURATION,
         errorMessage: "",
-        payload: import.meta.env.VITE_BOARDS_CONFIG
+        payload: import.meta.env.VITE_BOARDS_CONFIG_WITH_OPTIONS
+    }
+    vsCodeStore.simulateMessage(message);
+}
+function sendTestMessagewWithNoConfigOptions() {
+    const message: WebviewToExtensionMessage = {
+        command: ARDUINO_MESSAGES.BOARD_CONFIGURATION,
+        errorMessage: "",
+        payload: import.meta.env.VITE_BOARDS_CONFIG_WITH_NO_OPTIONS
     }
     vsCodeStore.simulateMessage(message);
 }
@@ -21,7 +29,8 @@ function sendTestMessage() {
     <v-container>
         <v-responsive>
             <div v-if="inDevelopment">
-                <v-btn @click="sendTestMessage()">Send Test Message</v-btn>
+                <v-btn @click="sendTestMessagewWithConfigOptions()">Test With Config Options</v-btn>
+                <v-btn @click="sendTestMessagewWithNoConfigOptions()">Test With No Config Options</v-btn>
             </div>
             <div class="text-center">
                 <h1 class="text-h4 font-weight-bold">Board Configuration</h1>
