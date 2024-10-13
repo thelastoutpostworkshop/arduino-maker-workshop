@@ -59,12 +59,12 @@ watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { },
               </div>
             </template>
 
-            <v-text-field label="Board" :model-value="vsCodeStore.boardConfiguration?.boardName" readonly>
+            <v-text-field label="Board" :model-value="vsCodeStore.boardConfiguration?.boardConfiguration?.name" readonly>
               <template v-slot:loader>
-                <v-progress-linear :active="!vsCodeStore.boardConfiguration?.boardName" height="2"
+                <v-progress-linear :active="!vsCodeStore.boardConfiguration?.boardConfiguration?.name" height="2"
                   indeterminate></v-progress-linear>
               </template>
-              <template v-if="vsCodeStore.boardConfiguration?.boardName" v-slot:append>
+              <template v-if="vsCodeStore.boardConfiguration?.boardConfiguration?.name" v-slot:append>
                 <v-btn icon="mdi-pencil" variant="text"></v-btn>
               </template>
             </v-text-field>
