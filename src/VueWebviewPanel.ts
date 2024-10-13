@@ -41,7 +41,7 @@ export class VueWebviewPanel {
                         });
                         break;
                     case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
-                        this.getBoardListAll().then((boardList)=>{
+                        this.getBoardListAll().then((boardList) => {
                             VueWebviewPanel.sendMessage(boardList);
                         });
                         break;
@@ -93,18 +93,7 @@ export class VueWebviewPanel {
             payload: ""
         };
         if (result !== "") {
-            try {
-                const configData = JSON.parse(result);
-                boardConfiguration.payload = <ArduinoBoardConfigurationPayload>{
-                    configuration: configData.config_options,
-                    boardName: configData.name
-                };
-
-            } catch (error) {
-                boardConfiguration.errorMessage = "Cannot parse Board configuration";
-            }
-        } else {
-            boardConfiguration.errorMessage = "Cannot get Board configuration";
+            boardConfiguration.payload = result
         }
         return boardConfiguration;
     }
