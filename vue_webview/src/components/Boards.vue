@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from '@shared/messages';
+import { ARDUINO_MESSAGES, WebviewToExtensionMessage,BoardConfiguration } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
-import { BoardConfiguration } from '@/interfaces/interfaces';
 
 const vsCodeStore = useVsCodeStore();
 const boardSelect = ref<BoardConfiguration[]>([]);
