@@ -63,6 +63,7 @@ export const ARDUINO_MESSAGES = {
     ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
     BOARD_CONFIGURATION: 'getArduinoBoardConfiguration',
     BOARDS_LIST_ALL:'getArduinoBoardsListAll',
-    SET_BOARD:'setArduinoBoard'
+    SET_BOARD:'setArduinoBoard',
+    SET_BOARD_CONFIGURATION:'setArduinoBoardConfiguration'
     // Add more commands as needed
 };
