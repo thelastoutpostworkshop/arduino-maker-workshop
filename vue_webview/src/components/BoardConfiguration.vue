@@ -52,14 +52,19 @@ function sendTestMessagewWithNoConfigOptions() {
                 </template>
 
                 <template #subtitle v-if="vsCodeStore.boardConfiguration">
-                    <div class="text-subtitle-1" v-if="vsCodeStore.boardConfiguration.boardConfiguration?.config_options">
+                    <div class="text-subtitle-1"
+                        v-if="vsCodeStore.boardConfiguration.boardConfiguration?.config_options">
                         Select your board options
                     </div>
                     <div class="text-subtitle-1" v-else>
                         No options available for your board
                     </div>
                 </template>
-
+                <div v-if="vsCodeStore.boardConfiguration?.boardConfiguration?.config_options" >
+                    <div v-for="(option) in vsCodeStore.boardConfiguration?.boardConfiguration?.config_options" :key="option.option"> 
+                        <v-select :label="option.option_label" :items="option.values" item-title="value_label" item-value="value"></v-select>
+                    </div>
+                </div>
             </v-card>
 
         </v-responsive>

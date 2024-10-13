@@ -54,9 +54,9 @@ const inDevelopment = computed(() => import.meta.env.DEV);
       <div v-if="inDevelopment">
         <v-btn @click="sendTestMessage()">Send Test Message</v-btn>
       </div>
-      <v-text-field label="Current Board:" :model-value="vsCodeStore.boardConfiguration?.boardName" readonly>
+      <v-text-field label="Current Board:" :model-value="vsCodeStore.boardConfiguration?.boardConfiguration?.name" readonly>
         <template v-slot:loader>
-          <v-progress-linear :active="!vsCodeStore.boardConfiguration?.boardName" height="2"
+          <v-progress-linear :active="!vsCodeStore.boardConfiguration?.boardConfiguration?.name" height="2"
             indeterminate></v-progress-linear>
         </template>
       </v-text-field>
