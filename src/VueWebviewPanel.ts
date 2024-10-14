@@ -45,6 +45,9 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(boardList);
                         });
                         break;
+                    case ARDUINO_MESSAGES.SET_BOARD_CONFIGURATION:
+                        this.setConfiguration(message);
+                        break;
                     case ARDUINO_MESSAGES.SET_BOARD:
                         this.setBoard(message);
                         arduinoProject.resetBoardConfiguration();
@@ -71,6 +74,12 @@ export class VueWebviewPanel {
         const fqbn = message.payload;
         arduinoExtensionChannel.appendLine(`Set Board FQBN=:${fqbn}`);
         arduinoProject.setBoard(fqbn);
+    }
+
+    private setConfiguration(message:WebviewToExtensionMessage) {
+        const configuration = message.payload;
+        arduinoExtensionChannel.appendLine(`New Configration=:${configuration}`);
+        arduinoProject.setConfiguration(configuration);
     }
 
     private async getBoardListAll(): Promise<WebviewToExtensionMessage> {

@@ -2,17 +2,12 @@
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, ConfigOptionValue, WebviewToExtensionMessage } from '@shared/messages';
 import { computed, ref, watch } from 'vue';
+import { vscode } from '@/utilities/vscode';
 
 const vsCodeStore = useVsCodeStore();
 
 const inDevelopment = computed(() => import.meta.env.DEV);
 
-// Update ConfigOptionValue type to match the expected structure
-type ConfigOptionValue = {
-    value: string;
-    value_label: string;  // Added to meet Vuetify's v-select expectations
-    selected?: boolean;
-};
 
 // Define boardOption as an object indexed by string keys
 const boardOption = ref<Record<string, ConfigOptionValue>>({});
@@ -41,6 +36,7 @@ watch(
             .join(",");
 
         console.log(configuration);
+        vscode.postMessage({ command: ARDUINO_MESSAGES.SET_BOARD_CONFIGURATION, errorMessage: "", payload: configuration });
     },
     { deep: true }
 );

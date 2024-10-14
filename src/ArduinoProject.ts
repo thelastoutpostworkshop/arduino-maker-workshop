@@ -1,3 +1,4 @@
+import { write } from 'fs';
 import * as vscode from 'vscode';
 
 const path = require('path');
@@ -271,20 +272,29 @@ export class ArduinoProject {
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
 
-
+    private writeVSCodeArduinoConfiguration() {
+        fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
+    }
+    private getProjectPath(): string {
+        return this.projectFullPath;
+    }
+    public setBoard(board: string) {
+        this.configJson.board = board;
+        this.writeVSCodeArduinoConfiguration();
+    }
+    public setConfiguration(configuration:string) {
+        this.configJson.configuration = configuration;
+        this.writeVSCodeArduinoConfiguration();
+    }
     public getOutput(): string {
         return this.configJson.output || ARDUINO_DEFAULT_OUTPUT;
-    }
-    private setOutput(output: string) {
-        this.configJson.output = output;
-        fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
     public getBoardConfiguration(): string {
         return this.configJson.configuration || '';
     }
     public resetBoardConfiguration() {
         this.configJson.configuration = "";
-        fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8'); 
+        this.writeVSCodeArduinoConfiguration();
     }
     public getArduinoConfiguration(): ArduinoConfiguration {
         return this.configJson;
@@ -295,11 +305,10 @@ export class ArduinoProject {
     public getBoard(): string {
         return this.configJson.board || '';
     }
-    public setBoard(board: string) {
-        this.configJson.board = board;
-        fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
+
+    private setOutput(output: string) {
+        this.configJson.output = output;
+        this.writeVSCodeArduinoConfiguration();
     }
-    private getProjectPath(): string {
-        return this.projectFullPath;
-    }
+
 }
