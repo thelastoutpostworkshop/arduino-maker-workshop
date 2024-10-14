@@ -26,6 +26,18 @@ function sendTestMessage() {
         <div v-if="inDevelopment">
           <v-btn @click="sendTestMessage()">Send Test Message</v-btn>
         </div>
+        <v-expansion-panels multiple>
+        <v-expansion-panel>
+          <v-expansion-panel-title>Platform updates</v-expansion-panel-title>
+          <v-expansion-panel-text>
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+        <v-expansion-panel>
+          <v-expansion-panel-title>Library updates</v-expansion-panel-title>
+          <v-expansion-panel-text>
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+      </v-expansion-panels>
        </v-responsive>
     </v-container>
   </template>
