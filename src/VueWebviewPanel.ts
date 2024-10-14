@@ -56,6 +56,8 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(boardConfiguration);
                         });
                         break;
+                    case ARDUINO_MESSAGES.OUTDATED:
+                        break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);
                 }
@@ -94,6 +96,9 @@ export class VueWebviewPanel {
         return boardList;
     }
 
+    private async getOutdated(): Promise<WebviewToExtensionMessage> {
+        
+    }
     private async getBoardConfiguration(message: WebviewToExtensionMessage): Promise<WebviewToExtensionMessage> {
         const result = await getBoardConfiguration(message.payload);
         const boardConfiguration: WebviewToExtensionMessage = {

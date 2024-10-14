@@ -88,29 +88,44 @@ export function checkArduinoCLICommand(): Promise<string> {
 			});
 	});
 }
-export async function getBoardConfiguration(context: ExtensionContext): Promise<string> {
+
+export async function getOutdatedBoardAndLib(): Promise<string> {
 	try {
-	  if (!loadArduinoConfiguration()) {
-		throw new Error("Unable to load Project Configuration");
-	  }
-	  if (!arduinoProject.getBoard()) {
-		throw new Error("Unable to get Board Configuration");
-	  }
-	  const configBoardArgs = arduinoProject.getBoardConfigurationArguments();
-	  const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, configBoardArgs, true, false);
-  
-	  if (!result) {
-		throw new Error("Command result empty");
-	  }
-  
-	  return result; 
-  
+		const outdatedArgs = arduinoProject.getOutdatedArguments();
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, outdatedArgs, true, true);
+		if (!result) {
+			throw new Error("Command result empty");
+		}
+		return result;
 	} catch (error: any) {
-	  arduinoExtensionChannel.appendLine(`Error: ${error.message}`);
-	  throw error; 
+		arduinoExtensionChannel.appendLine(`Error: ${error.message}`);
+		throw error;
 	}
-  }
-  
+}
+
+export async function getBoardConfiguration(): Promise<string> {
+	try {
+		if (!loadArduinoConfiguration()) {
+			throw new Error("Unable to load Project Configuration");
+		}
+		if (!arduinoProject.getBoard()) {
+			throw new Error("Unable to get Board Configuration");
+		}
+		const configBoardArgs = arduinoProject.getBoardConfigurationArguments();
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, configBoardArgs, true, false);
+
+		if (!result) {
+			throw new Error("Command result empty");
+		}
+
+		return result;
+
+	} catch (error: any) {
+		arduinoExtensionChannel.appendLine(`Error: ${error.message}`);
+		throw error;
+	}
+}
+
 export function loadArduinoConfiguration(): boolean {
 
 	arduinoConfigurationLastError = arduinoProject.isFolderArduinoProject();
