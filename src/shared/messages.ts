@@ -64,6 +64,7 @@ export const ARDUINO_MESSAGES = {
     BOARD_CONFIGURATION: 'getArduinoBoardConfiguration',
     BOARDS_LIST_ALL:'getArduinoBoardsListAll',
     SET_BOARD:'setArduinoBoard',
-    SET_BOARD_CONFIGURATION:'setArduinoBoardConfiguration'
+    SET_BOARD_CONFIGURATION:'setArduinoBoardConfiguration',
+    OUTDATED:'checkArduinoOutdated'
     // Add more commands as needed
 };
