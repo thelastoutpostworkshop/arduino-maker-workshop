@@ -57,6 +57,79 @@ interface Programmer {
     name: string;
 }
 
+interface Platform {
+    id: string;
+    maintainer: string;
+    website: string;
+    email: string;
+    indexed: boolean;
+    releases: Record<string, Release>;
+    installed_version: string;
+    latest_version: string;
+  }
+  
+  interface Release {
+    name: string;
+    version: string;
+    types: string[];
+    boards: Board[];
+    help: Help;
+    compatible: boolean;
+    installed?: boolean;
+  }
+  
+  interface Board {
+    name: string;
+    fqbn?: string;
+  }
+  
+  interface Help {
+    online: string;
+  }
+  
+  interface LibraryData {
+    library: Library;
+    release: ReleaseDetails;
+  }
+  
+  interface Library {
+    name: string;
+    author: string;
+    maintainer: string;
+    sentence: string;
+    paragraph: string;
+    website: string;
+    category: string;
+    architectures: string[];
+    install_dir: string;
+    source_dir: string;
+    version: string;
+    license: string;
+    properties: Record<string, unknown>;
+    location: string;
+    layout: string;
+    examples: string[];
+    provides_includes: string[];
+    compatible_with: Record<string, unknown>;
+  }
+  
+  interface ReleaseDetails {
+    author: string;
+    version: string;
+    maintainer: string;
+    sentence: string;
+    paragraph: string;
+    website: string;
+    category: string;
+    architectures: string[];
+    types: string[];
+  }
+  
+  interface OutdatedInformation {
+    platforms: Platform[];
+    libraries: LibraryData[];
+  }
+
 export const ARDUINO_MESSAGES = {
     CLI_STATUS: 'getArduinoCLIStatus',
     ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',

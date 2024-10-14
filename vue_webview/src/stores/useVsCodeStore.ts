@@ -81,6 +81,8 @@ export const useVsCodeStore = defineStore('vsCode', {
                         console.log("Failed to parse Board Configuration information: " + error);
                     }
                     break;
+                case ARDUINO_MESSAGES.OUTDATED:
+                    break;
                 default:
                     console.warn('Unknown command received:', message.command);
             }

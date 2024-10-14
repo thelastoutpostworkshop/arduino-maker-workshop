@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoBoardsListPayload, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardsListAll, loadArduinoConfiguration, processArduinoCLICommandCheck } from "./extension";
+import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardsListAll, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck } from "./extension";
 import { ARDUINO_ERRORS } from "./ArduinoProject";
 
 const path = require('path');
@@ -36,7 +36,7 @@ export class VueWebviewPanel {
                         VueWebviewPanel.sendMessage(projectInfo);
                         break;
                     case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
-                        this.getBoardConfiguration(message).then((boardConfiguration) => {
+                        this.getBoardConfiguration().then((boardConfiguration) => {
                             VueWebviewPanel.sendMessage(boardConfiguration);
                         });
                         break;
@@ -52,11 +52,14 @@ export class VueWebviewPanel {
                         this.setBoard(message);
                         arduinoProject.resetBoardConfiguration();
                         arduinoExtensionChannel.appendLine(`Current Board Configuration: ${arduinoProject.getBoardConfiguration()}`);
-                        this.getBoardConfiguration(message).then((boardConfiguration) => {
+                        this.getBoardConfiguration().then((boardConfiguration) => {
                             VueWebviewPanel.sendMessage(boardConfiguration);
                         });
                         break;
                     case ARDUINO_MESSAGES.OUTDATED:
+                        this.getOutdated().then((outdated)=>{
+                            VueWebviewPanel.sendMessage(outdated);
+                        });
                         break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);
@@ -97,10 +100,19 @@ export class VueWebviewPanel {
     }
 
     private async getOutdated(): Promise<WebviewToExtensionMessage> {
-        
+        const result = await getOutdatedBoardAndLib();
+        const outdated: WebviewToExtensionMessage = {
+            command: ARDUINO_MESSAGES.OUTDATED,
+            errorMessage: "",
+            payload: ""
+        };
+        if (result !== "") {
+            outdated.payload = result;
+        }
+        return outdated;
     }
-    private async getBoardConfiguration(message: WebviewToExtensionMessage): Promise<WebviewToExtensionMessage> {
-        const result = await getBoardConfiguration(message.payload);
+    private async getBoardConfiguration(): Promise<WebviewToExtensionMessage> {
+        const result = await getBoardConfiguration();
         const boardConfiguration: WebviewToExtensionMessage = {
             command: ARDUINO_MESSAGES.BOARD_CONFIGURATION,
             errorMessage: "",
