@@ -61,7 +61,7 @@
         "category": "Arduino"
       },
       {
-        "command": "vscode-arduino.upload",
+        "command": "vscode-arduino.compile",
         "title": "Upload",
         "category": "Arduino"
       }

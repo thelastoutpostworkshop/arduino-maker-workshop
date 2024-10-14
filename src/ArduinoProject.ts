@@ -1,4 +1,3 @@
-import { write } from 'fs';
 import * as vscode from 'vscode';
 
 const path = require('path');

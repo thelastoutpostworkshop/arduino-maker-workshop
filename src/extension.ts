@@ -1,5 +1,5 @@
-import { window, WebviewPanel, ExtensionContext, commands, Disposable, workspace } from "vscode";
-import { ARDUINO_ERRORS, ArduinoProject, cliCommandArduino } from './ArduinoProject';
+import { window, ExtensionContext, commands, Disposable, workspace } from "vscode";
+import { ARDUINO_ERRORS, ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { QuickAccessProvider } from './quickAccessProvider';
 import { ARDUINO_MESSAGES, ArduinoBoardsListPayload, WebviewToExtensionMessage } from "./shared/messages";
@@ -214,7 +214,7 @@ function vsCommandUpload(): Disposable {
 
 		// Execute the Arduino CLI command
 		const uploadCommand = arduinoProject.getUploadArguments();
-		const output = executeArduinoCommand(`${cliCommandArduino}`, uploadCommand, true);
+		const output = executeArduinoCommand(`${cliCommandArduinoPath}`, uploadCommand, true);
 
 	});
 }
@@ -236,7 +236,7 @@ function vsCommandCompile(): Disposable {
 
 		// Execute the Arduino CLI command
 		const compileCommand = arduinoProject.getCompileCommandArguments();
-		executeArduinoCommand(`${cliCommandArduino}`, compileCommand, true)
+		executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true)
 			.then(output => {
 				if (output) {
 					// Parse the output and generate c_cpp_properties.json
