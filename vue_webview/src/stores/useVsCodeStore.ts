@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoBoardsListPayload, ArduinoCLIStatusPayload, ArduinoProjectInfoPayload, BoardConfiguration, WebviewToExtensionMessage } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoBoardsListPayload, ArduinoCLIStatusPayload, ArduinoProjectInfoPayload, BoardConfiguration, OutdatedInformation, WebviewToExtensionMessage } from '@shared/messages';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
@@ -83,7 +83,8 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.OUTDATED:
                     try {
-                        
+                        const outdated:OutdatedInformation = JSON.parse(message.payload);
+                        console.log(outdated);
                     } catch (error) {
                         
                     }
