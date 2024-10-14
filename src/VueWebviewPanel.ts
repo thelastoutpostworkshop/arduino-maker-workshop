@@ -168,7 +168,7 @@ export class VueWebviewPanel {
             // Otherwise, create a new panel.
             const panel = window.createWebviewPanel(
                 'vueWebview', // Identifies the type of the webview. Used internally
-                'Vue Webview', // Title of the panel displayed to the user
+                'Arduino Home', // Title of the panel displayed to the user
                 ViewColumn.One,
                 {
                     enableScripts: true,
