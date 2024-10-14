@@ -4,7 +4,6 @@
   "publisher": "TheLastOutpostWorkshop",
   "description": "",
   "version": "0.0.3",
-  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -31,7 +30,7 @@
         {
           "id": "arduino",
           "title": "Arduino",
-          "icon": "resources/activity.png"
+          "icon": "resources/arduino.svg"
         }
       ]
     },
