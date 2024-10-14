@@ -11,6 +11,7 @@ const listFunctionArduino: string = 'list';
 const listAllFunctionArduino: string = 'listall';
 const detailsFunctionArduino: string = 'details';
 const jsonOutputArduino: string = '--json';
+const outdatedCommandArduino: string = 'outdated';
 export const verboseOptionArduino: string = '-v';
 export const portOptionArduino: string = '-p';
 export const buildPathArduino: string = '--build-path';
@@ -118,6 +119,13 @@ export class ArduinoProject {
         ];
         return compileCommand;
     }
+    public getOutdatedArguments(): string[] {
+        const outdatedCommand = [
+            `${outdatedCommandArduino}`,
+            `${jsonOutputArduino}`
+        ];
+        return outdatedCommand;
+    }
     public getPortListArguments(): string[] {
         const compileCommand = [
             `${boardCommandArduino}`,
@@ -143,10 +151,9 @@ export class ArduinoProject {
     }
     public getBoardConfigurationArguments(): string[] {
         let boardConfigArg = "";
-        if(this.getBoardConfiguration() === "") {
+        if (this.getBoardConfiguration() === "") {
             boardConfigArg = this.getBoard();
-        } else
-        {
+        } else {
             boardConfigArg = `${this.getBoard()}:${this.getBoardConfiguration()}`;
         }
         const compileCommand = [
@@ -280,7 +287,7 @@ export class ArduinoProject {
         this.configJson.board = board;
         this.writeVSCodeArduinoConfiguration();
     }
-    public setConfiguration(configuration:string) {
+    public setConfiguration(configuration: string) {
         this.configJson.configuration = configuration;
         this.writeVSCodeArduinoConfiguration();
     }
