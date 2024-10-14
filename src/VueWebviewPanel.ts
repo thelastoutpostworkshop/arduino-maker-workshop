@@ -1,7 +1,7 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
-import { ARDUINO_MESSAGES, ArduinoBoardsListPayload, WebviewToExtensionMessage } from './shared/messages';
+import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardsListAll, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck } from "./extension";
 import { ARDUINO_ERRORS } from "./ArduinoProject";
 
