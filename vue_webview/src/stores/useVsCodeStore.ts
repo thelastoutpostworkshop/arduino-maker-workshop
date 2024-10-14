@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoBoardsListPayload, ArduinoCLIStatus, ArduinoProjectInfoPayload, BoardConfiguration, OutdatedInformation, WebviewToExtensionMessage } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoBoardsListPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, OutdatedInformation, WebviewToExtensionMessage } from '@shared/messages';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
         cliStatus: null as ArduinoCLIStatus | null,
-        projectInfo: null as ArduinoProjectInfoPayload | null,
+        projectInfo: null as ArduinoConfiguration | null,
         projectStatus: null as WebviewToExtensionMessage | null,
         boardConfiguration: null as ArduinoBoardConfigurationPayload | null,
         boards: null as ArduinoBoardsListPayload | null,
@@ -38,14 +38,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                     try {
-                        this.projectInfo = {
-                            errorMessage: message.errorMessage,
-                            configuration: message.payload.configuration,
-                            board: message.payload.board,
-                            sketch: message.payload.sketch,
-                            output: message.payload.output,
-                            port: message.payload.port
-                        };
+                        this.projectInfo = message.payload;
                     } catch (error) {
                         console.log("Failed to parse Project Configuration information.");
                     }
