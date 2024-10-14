@@ -82,6 +82,11 @@ export const useVsCodeStore = defineStore('vsCode', {
                     }
                     break;
                 case ARDUINO_MESSAGES.OUTDATED:
+                    try {
+                        
+                    } catch (error) {
+                        
+                    }
                     break;
                 default:
                     console.warn('Unknown command received:', message.command);
