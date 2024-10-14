@@ -97,7 +97,7 @@ export async function getBoardConfiguration(context: ExtensionContext): Promise<
 		throw new Error("Unable to get Board Configuration");
 	  }
 	  const configBoardArgs = arduinoProject.getBoardConfigurationArguments();
-	  const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, configBoardArgs, true, true);
+	  const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, configBoardArgs, true, false);
   
 	  if (!result) {
 		throw new Error("Command result empty");
