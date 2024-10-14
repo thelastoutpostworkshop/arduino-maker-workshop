@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 const path = require('path');
 const fs = require('fs');
 
-export const cliCommandArduino: string = 'arduino-cli';
 export const compileCommandArduino: string = 'compile';
 const versionCommandArduino: string = 'version';
 const uploadCommandArduino: string = 'upload';
