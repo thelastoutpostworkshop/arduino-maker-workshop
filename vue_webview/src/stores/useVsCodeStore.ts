@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoBoardsListPayload, ArduinoCLIStatusPayload, ArduinoProjectInfoPayload, BoardConfiguration, OutdatedInformation, WebviewToExtensionMessage } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoBoardsListPayload, ArduinoCLIStatus, ArduinoProjectInfoPayload, BoardConfiguration, OutdatedInformation, WebviewToExtensionMessage } from '@shared/messages';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
-        cliStatus: null as ArduinoCLIStatusPayload | null,
+        cliStatus: null as ArduinoCLIStatus | null,
         projectInfo: null as ArduinoProjectInfoPayload | null,
         projectStatus: null as WebviewToExtensionMessage | null,
         boardConfiguration: null as ArduinoBoardConfigurationPayload | null,
@@ -18,20 +18,21 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.CLI_STATUS:
                     if (message.errorMessage !== "") {
                         this.cliStatus = {
-                            errorMessage: message.errorMessage,
-                            version: "",
-                            date: ""
+                            version: "?",
+                            date: "Arduino CLI not set or wrong"
                         };
                     } else {
                         try {
                             const cliInfo = JSON.parse(message.payload);
                             this.cliStatus = {
-                                errorMessage: message.errorMessage,
                                 version: cliInfo.VersionString,
                                 date: cliInfo.Date
                             };
                         } catch (error) {
-                            console.log("Failed to parse Arduino CLI Status.");
+                            this.cliStatus = {
+                                version: "?",
+                                date: `${error}`
+                            };
                         }
                     }
                     break;
@@ -57,15 +58,15 @@ export const useVsCodeStore = defineStore('vsCode', {
                         if (message.errorMessage === "") {
                             this.boardConfiguration = {
                                 errorMessage: "",
-                                boardConfiguration:extractBoardConfiguration(message.payload)
+                                boardConfiguration: extractBoardConfiguration(message.payload)
                             };
                         } else {
                             this.boardConfiguration = {
                                 errorMessage: message.errorMessage,
-                                boardConfiguration:null
+                                boardConfiguration: null
                             };
                         }
-    
+
                     } catch (error) {
                         console.log("Failed to parse Board Configuration information.");
                     }
@@ -83,10 +84,10 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.OUTDATED:
                     try {
-                        const outdated:OutdatedInformation = JSON.parse(message.payload);
+                        const outdated: OutdatedInformation = JSON.parse(message.payload);
                         console.log(outdated);
                     } catch (error) {
-                        
+
                     }
                     break;
                 default:

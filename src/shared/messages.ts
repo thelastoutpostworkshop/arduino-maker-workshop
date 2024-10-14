@@ -3,7 +3,7 @@
 export interface WebviewToExtensionMessage {
   command: string;
   errorMessage: string,
-  payload: any | ArduinoBoardConfigurationPayload | ArduinoProjectInfoPayload | ArduinoCLIStatusPayload | ArduinoBoardsListPayload;
+  payload: any | ArduinoBoardConfigurationPayload | ArduinoProjectInfoPayload | ArduinoCLIStatus | ArduinoBoardsListPayload;
 }
 
 export interface ArduinoBoardConfigurationPayload {
@@ -11,8 +11,7 @@ export interface ArduinoBoardConfigurationPayload {
   boardConfiguration: BoardConfiguration | null;
 }
 
-export interface ArduinoCLIStatusPayload {
-  errorMessage: string;
+export interface ArduinoCLIStatus {
   version: string;
   date: string;
 }
