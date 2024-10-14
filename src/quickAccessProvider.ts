@@ -16,8 +16,8 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
   private getQuickAccessItems(): QuickAccessItem[] {
     const items = [
       new QuickAccessItem('Arduino Home', 'extension.openVueWebview', 'Open the Arduino Home', 'home'),
-      new QuickAccessItem('Compile', 'vscode-arduino.compile', 'Compile the current sketch', 'gear'),
-      new QuickAccessItem('Upload', 'vscode-arduino.compile', 'Upload to the board', 'cloud-upload')
+      new QuickAccessItem('Compile', 'quickAccessView.compile', 'Compile the current sketch', 'gear'),
+      new QuickAccessItem('Upload', 'quickAccessView.upload', 'Upload to the board', 'cloud-upload')
     ];
     return items;
   }

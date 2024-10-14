@@ -44,10 +44,7 @@
       ]
     },
     "activationEvents": [
-      "onView:quickAccessView",
-      "onCommand:extension.openVueWebview",
-      "onCommand:vscode-arduino.compile",
-      "onCommand:vscode-arduino.upload"
+      "onView:quickAccessView"
     ],
     "commands": [
       {
@@ -56,12 +53,12 @@
         "category": "Arduino"
       },
       {
-        "command": "vscode-arduino.compile",
+        "command": "quickAccessView.compile",
         "title": "Compile",
         "category": "Arduino"
       },
       {
-        "command": "vscode-arduino.compile",
+        "command": "quickAccessView.upload",
         "title": "Upload",
         "category": "Arduino"
       }

@@ -195,10 +195,8 @@ export async function getBoardsListAll(): Promise<ArduinoBoardsListPayload> {
 	return message;
 }
 
-
-
 function vsCommandUpload(): Disposable {
-	return commands.registerCommand('vscode-arduino.upload', () => {
+	return commands.registerCommand('quickAccessView.upload', () => {
 		if (!loadArduinoConfiguration()) {
 			return;
 		}
@@ -220,7 +218,7 @@ function vsCommandUpload(): Disposable {
 }
 
 function vsCommandCompile(): Disposable {
-	return commands.registerCommand('vscode-arduino.compile', () => {
+	return commands.registerCommand('quickAccessView.compile', () => {
 		if (!loadArduinoConfiguration()) {
 			return;
 		}
