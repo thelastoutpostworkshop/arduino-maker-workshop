@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { ArduinoConfiguration } from './shared/messages';
 
 const path = require('path');
 const fs = require('fs');
@@ -34,13 +35,6 @@ export enum ARDUINO_ERRORS {
     WRONG_FOLDER_NAME,
     INTERNAL
 }
-
-type ArduinoConfiguration = {
-    port: string
-    configuration: string
-    output: string
-    board: string
-};
 
 export class ArduinoProject {
     private arduinoConfigurationPath: string = "";

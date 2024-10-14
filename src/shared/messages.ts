@@ -11,6 +11,13 @@ export interface ArduinoBoardConfigurationPayload {
   boardConfiguration: BoardConfiguration | null;
 }
 
+export interface ArduinoConfiguration  {
+    port: string;
+    configuration: string;
+    output: string;
+    board: string;
+};
+
 export interface ArduinoCLIStatus {
   version: string;
   date: string;
