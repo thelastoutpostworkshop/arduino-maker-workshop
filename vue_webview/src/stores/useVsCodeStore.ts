@@ -76,7 +76,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         const outdated: OutdatedInformation = JSON.parse(message.payload);
                         console.log(outdated);
                     } catch (error) {
-
+                        console.log("Failed to parse Board Configuration information: " + error);
                     }
                     break;
                 default:

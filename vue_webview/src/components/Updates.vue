@@ -8,9 +8,9 @@ const inDevelopment = computed(() => import.meta.env.DEV);
 
 function sendTestMessage() {
   const message: WebviewToExtensionMessage = {
-    command: ARDUINO_MESSAGES.BOARDS_LIST_ALL,
+    command: ARDUINO_MESSAGES.OUTDATED,
     errorMessage: "",
-    payload: import.meta.env.VITE_BOARDS_LISTALL_TEST
+    payload: import.meta.env.VITE_OUTDATED_TEST
   }
   vsCodeStore.simulateMessage(message);
 }
