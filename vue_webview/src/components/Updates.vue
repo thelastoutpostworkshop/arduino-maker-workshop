@@ -9,10 +9,6 @@ const vsCodeStore = useVsCodeStore();
 const inDevelopment = computed(() => import.meta.env.DEV);
 const panels = ref([0, 1]);
 
-// const platformName = computed((platform : Platform,version:string) => {
-//  return plat
-// });
-
 function sendTestMessage() {
   const message: WebviewToExtensionMessage = {
     command: ARDUINO_MESSAGES.OUTDATED,
