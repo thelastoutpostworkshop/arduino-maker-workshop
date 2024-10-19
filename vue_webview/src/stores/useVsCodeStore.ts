@@ -8,6 +8,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         projectStatus: null as WebviewToExtensionMessage | null,
         boardConfiguration: null as ArduinoBoardConfigurationPayload | null,
         boards: null as ArduinoBoardsListPayload | null,
+        outdated: null as OutdatedInformation | null
     }),
     actions: {
         simulateMessage(message: WebviewToExtensionMessage) {
@@ -73,8 +74,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.OUTDATED:
                     try {
-                        const outdated: OutdatedInformation = JSON.parse(message.payload);
-                        console.log(outdated);
+                        this.outdated = JSON.parse(message.payload);
                     } catch (error) {
                         console.log("Failed to parse Board Configuration information: " + error);
                     }

@@ -2,6 +2,8 @@
 import { computed } from 'vue';
 import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from '@shared/messages';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
+import { onMounted } from 'vue';
+import { vscode } from '@/utilities/vscode';
 
 const vsCodeStore = useVsCodeStore();
 const inDevelopment = computed(() => import.meta.env.DEV);
@@ -14,6 +16,10 @@ function sendTestMessage() {
   }
   vsCodeStore.simulateMessage(message);
 }
+
+onMounted(() => {
+  vscode.postMessage({ command: ARDUINO_MESSAGES.OUTDATED, errorMessage: "", payload: "" });
+});
 
 </script>
 

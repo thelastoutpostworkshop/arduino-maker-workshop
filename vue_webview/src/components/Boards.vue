@@ -8,7 +8,6 @@ const vsCodeStore = useVsCodeStore();
 const boardSelect = ref<BoardConfiguration[]>([]);
 const boardSelectBefore = ref<BoardConfiguration[]>([])
 
-// Send a message to request the boards list when the component is mounted
 onMounted(() => {
   vscode.postMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
 });
