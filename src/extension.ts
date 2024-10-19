@@ -92,7 +92,7 @@ export function checkArduinoCLICommand(): Promise<string> {
 export async function getOutdatedBoardAndLib(): Promise<string> {
 	try {
 		const outdatedArgs = arduinoProject.getOutdatedArguments();
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, outdatedArgs, true, true);
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, outdatedArgs, true, false);
 		if (!result) {
 			throw new Error("Command result empty");
 		}
