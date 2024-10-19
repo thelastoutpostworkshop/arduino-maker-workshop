@@ -38,8 +38,10 @@ onMounted(() => {
         <v-btn @click="sendTestMessage()">Send Test Message</v-btn>
       </div>
       <v-expansion-panels multiple v-model="panels">
+        <v-btn v-if="vsCodeStore.outdated">Update Everything</v-btn>
         <v-expansion-panel>
           <v-expansion-panel-title>Board updates</v-expansion-panel-title>
+          <v-btn>Update All</v-btn>
           <v-expansion-panel-text>
             <div v-if="vsCodeStore.outdated?.platforms.length">
               <v-list>
@@ -73,6 +75,7 @@ onMounted(() => {
         </v-expansion-panel>
         <v-expansion-panel>
           <v-expansion-panel-title>Library updates</v-expansion-panel-title>
+          <v-btn>Update All</v-btn>
           <v-expansion-panel-text>
             <div v-if="vsCodeStore.outdated?.libraries.length">
               <v-list>
