@@ -40,7 +40,7 @@ onMounted(() => {
           <v-btn>Update All</v-btn>
           <v-expansion-panel-text>
             <div v-if="vsCodeStore.outdated?.platforms.length">
-              <v-list>
+              <!-- <v-list>
                 <v-list-item v-for="platform in vsCodeStore.outdated.platforms" :key="platform.id">
                   <template v-slot:prepend>
                     <v-avatar>
@@ -50,13 +50,28 @@ onMounted(() => {
                   <template v-slot:append>
                     <v-btn color="grey-lighten-1" icon="mdi-update" variant="text"></v-btn>
                   </template>
-                  <v-list-item-title>{{ platform.releases[platform.latest_version].name }} by {{ platform.maintainer }}</v-list-item-title>
+                  <v-list-item-title>{{ platform.releases[platform.latest_version].name }} by {{ platform.maintainer
+                    }}</v-list-item-title>
                   <v-list-item-subtitle>
                     Installed version: {{ platform.installed_version }}
                     Latest version: {{ platform.latest_version }}
                   </v-list-item-subtitle>
                 </v-list-item>
-              </v-list>
+              </v-list> -->
+              <v-card v-for="platform in vsCodeStore.outdated.platforms" :key="platform.id" class="mt-2" color="blue-grey-darken-4"
+              :title="platform.releases[platform.latest_version].name" :subtitle="'by '+platform.maintainer">
+                <template v-slot:prepend>
+                    <v-avatar>
+                      <v-icon color="white">mdi-developer-board</v-icon>
+                    </v-avatar>
+                  </template>
+                <v-card-text>
+                  <div class="text-green font-weight-bold">
+                    {{ platform.installed_version }} installed
+                  </div>
+                  Latest version: {{ platform.latest_version }}
+                </v-card-text>
+              </v-card>
             </div>
             <div v-else>
               <div v-if="vsCodeStore.outdated">
