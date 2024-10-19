@@ -50,7 +50,7 @@ onMounted(() => {
                   <template v-slot:append>
                     <v-btn color="grey-lighten-1" icon="mdi-update" variant="text"></v-btn>
                   </template>
-                  <v-list-item-title>{{ platform.releases[platform.latest_version].name }}</v-list-item-title>
+                  <v-list-item-title>{{ platform.releases[platform.latest_version].name }} by {{ platform.maintainer }}</v-list-item-title>
                   <v-list-item-subtitle>
                     Installed version: {{ platform.installed_version }}
                     Latest version: {{ platform.latest_version }}
