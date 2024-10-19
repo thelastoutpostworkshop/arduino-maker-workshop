@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { ARDUINO_MESSAGES, WebviewToExtensionMessage, OutdatedInformation } from '@shared/messages';
+import { ARDUINO_MESSAGES, WebviewToExtensionMessage, Platform } from '@shared/messages';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { onMounted,ref } from 'vue';
 import { vscode } from '@/utilities/vscode';
@@ -9,23 +9,9 @@ const vsCodeStore = useVsCodeStore();
 const inDevelopment = computed(() => import.meta.env.DEV);
 const panels = ref([0, 1]);
 
-const outdatedPlatforms = computed(() => {
-  const outdated: OutdatedInformation | null = vsCodeStore.outdated;
-  if (!outdated) return [];
-  return outdated.platforms.filter(platform => {
-    const installedRelease = Object.values(platform.releases).find(release => release.installed);
-    if (!installedRelease) return [];
-    const latestRelease = Object.values(platform.releases).reduce((latest, current) => {
-      return current.version > latest.version ? current : latest;
-    }, installedRelease);
-    return installedRelease.version !== latestRelease.version;
-  });
-});
-
-const outdatedLibraries = computed(() => {
-  const outdated: OutdatedInformation | null = vsCodeStore.outdated;
-  return outdated ? outdated.libraries.filter(library => library.library.version !== library.release.version) : [];
-});
+// const platformName = computed((platform : Platform,version:string) => {
+//  return plat
+// });
 
 function sendTestMessage() {
   const message: WebviewToExtensionMessage = {
@@ -45,24 +31,23 @@ onMounted(() => {
   <v-container>
     <v-responsive>
       <div class="text-center">
-        <h1 class="text-h4 font-weight-bold">Updates for platforms and libraries</h1>
+        <h1 class="text-h4 font-weight-bold">Updates for Boards and Libraries</h1>
       </div>
       <div v-if="inDevelopment">
         <v-btn @click="sendTestMessage()">Send Test Message</v-btn>
       </div>
       <v-expansion-panels multiple v-model="panels">
         <v-expansion-panel>
-          <v-expansion-panel-title>Platform updates</v-expansion-panel-title>
+          <v-expansion-panel-title>Board updates</v-expansion-panel-title>
           <v-expansion-panel-text>
-            <div v-if="outdatedPlatforms.length">
+            <div v-if="vsCodeStore.outdated?.platforms.length">
               <v-list>
-                <v-list-item v-for="platform in outdatedPlatforms" :key="platform.id">
+                <v-list-item v-for="platform in vsCodeStore.outdated.platforms" :key="platform.id">
                   <v-list-item-content>
-                    <v-list-item-title>{{ platform.id }}</v-list-item-title>
+                    <v-list-item-title>{{ platform.releases[platform.latest_version].name }}</v-list-item-title>
                     <v-list-item-subtitle>
-                      Maintainer: {{ platform.maintainer }} <br>
-                      Installed version: {{ Object.values(platform.releases).find(release => release.installed)?.version }} <br>
-                      Latest version: {{ Object.values(platform.releases).reduce((latest, current) => current.version > latest.version ? current : latest).version }}
+                      Installed version: {{ platform.installed_version }} 
+                      Latest version: {{ platform.latest_version }}
                     </v-list-item-subtitle>
                   </v-list-item-content>
                 </v-list-item>
@@ -70,10 +55,10 @@ onMounted(() => {
             </div>
             <div v-else>
               <div v-if="vsCodeStore.outdated">
-                All your Platforms are up to date
+                All your Boards are up to date
               </div>
               <div v-else>
-                Retrieving platform updates...
+                Retrieving boards updates...
                 <v-progress-linear  height="2" indeterminate></v-progress-linear>
               </div>
             </div>
@@ -82,9 +67,9 @@ onMounted(() => {
         <v-expansion-panel>
           <v-expansion-panel-title>Library updates</v-expansion-panel-title>
           <v-expansion-panel-text>
-            <div v-if="outdatedLibraries.length">
+            <div v-if="vsCodeStore.outdated?.libraries.length">
               <v-list>
-                <v-list-item v-for="library in outdatedLibraries" :key="library.library.name">
+                <v-list-item v-for="library in vsCodeStore.outdated.libraries" :key="library.library.name">
                   <v-list-item-content>
                     <v-list-item-title>{{ library.library.name }}</v-list-item-title>
                     <v-list-item-subtitle>

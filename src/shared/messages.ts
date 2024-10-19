@@ -63,7 +63,7 @@ interface Programmer {
   name: string;
 }
 
-interface Platform {
+export interface Platform {
   id: string;
   maintainer: string;
   website: string;
@@ -74,7 +74,7 @@ interface Platform {
   latest_version: string;
 }
 
-interface Release {
+ interface Release {
   name: string;
   version: string;
   types: string[];
