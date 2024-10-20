@@ -19,9 +19,11 @@ function sendTestMessage() {
 }
 
 const releases = (release: Record<string, Release>) => {
-  return Object.entries(release).map(([version]) => ({
-    version,
-  }));
+  return Object.entries(release)
+    .reverse() // Reverse the entries without sorting
+    .map(([, releaseObject]) => ({
+      ...releaseObject, // Spread all properties from the release object
+    }));
 };
 
 onMounted(() => {
