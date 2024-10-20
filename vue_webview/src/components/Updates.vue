@@ -8,6 +8,7 @@ import { vscode } from '@/utilities/vscode';
 const vsCodeStore = useVsCodeStore();
 const inDevelopment = computed(() => import.meta.env.DEV);
 const panels = ref([0, 1]);
+const selectedPlatform = ref<Release | null>(null);
 
 function sendTestMessage() {
   const message: WebviewToExtensionMessage = {
@@ -19,11 +20,12 @@ function sendTestMessage() {
 }
 
 const releases = (release: Record<string, Release>) => {
-  return Object.entries(release)
+  const rel = Object.entries(release)
     .reverse() // Reverse the entries without sorting
     .map(([, releaseObject]) => ({
       ...releaseObject, // Spread all properties from the release object
     }));
+  return rel;
 };
 
 onMounted(() => {
@@ -78,8 +80,9 @@ onMounted(() => {
                     {{ platform.installed_version }} installed
                   </div>
                   Latest version: {{ platform.latest_version }}
-                  <v-select 
-                  :items="releases(platform.releases)" item-title="version" item-value="version" return-object></v-select>
+                  <v-select v-model="selectedPlatform"
+                  :items="releases(platform.releases)" item-title="version" item-value="version" return-object>
+                </v-select>
                 </v-card-text>
               </v-card>
             </div>
