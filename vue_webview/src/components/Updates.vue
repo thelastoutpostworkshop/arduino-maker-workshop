@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from '@shared/messages';
+import { ARDUINO_MESSAGES, Release, WebviewToExtensionMessage } from '@shared/messages';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { onMounted, ref } from 'vue';
 import { vscode } from '@/utilities/vscode';
@@ -17,6 +17,12 @@ function sendTestMessage() {
   }
   vsCodeStore.simulateMessage(message);
 }
+
+const releases = (release: Record<string, Release>) => {
+  return Object.entries(release).map(([version, value]) => ({
+    version,
+  }));
+};
 
 onMounted(() => {
   vsCodeStore.outdated = null;
@@ -70,6 +76,8 @@ onMounted(() => {
                     {{ platform.installed_version }} installed
                   </div>
                   Latest version: {{ platform.latest_version }}
+                  <v-select 
+                  :items="releases(platform.releases)" item-title="version" item-value="version" return-object></v-select>
                 </v-card-text>
               </v-card>
             </div>

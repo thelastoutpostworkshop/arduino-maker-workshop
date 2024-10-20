@@ -74,7 +74,7 @@ export interface Platform {
   latest_version: string;
 }
 
- interface Release {
+ export interface Release {
   name: string;
   version: string;
   types: string[];
