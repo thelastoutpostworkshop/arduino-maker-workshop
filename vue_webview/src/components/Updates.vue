@@ -19,7 +19,7 @@ function sendTestMessage() {
 }
 
 const releases = (release: Record<string, Release>) => {
-  return Object.entries(release).map(([version, value]) => ({
+  return Object.entries(release).map(([version]) => ({
     version,
   }));
 };
