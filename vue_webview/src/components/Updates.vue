@@ -31,8 +31,7 @@ function sendTestMessage() {
 const releases = (release: Record<string, Release>, platformId: string) => {
   const rel = Object.entries(release)
     .reverse() // Reverse the entries without sorting
-    .map(([version, releaseObject]) => ({
-      ...releaseObject, // Spread all properties from the release object
+    .map(([version]) => ({
       version,          // Add version key
       platformId        // Add platformId to each object
     }));
