@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { ARDUINO_MESSAGES, Release, WebviewToExtensionMessage } from '@shared/messages';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { onMounted, ref } from 'vue';
@@ -8,7 +8,16 @@ import { vscode } from '@/utilities/vscode';
 const vsCodeStore = useVsCodeStore();
 const inDevelopment = computed(() => import.meta.env.DEV);
 const panels = ref([0, 1]);
-const selectedPlatform = ref<Release | null>(null);
+const selectedPlatform = ref<Record<string, any>>({});
+
+watch(selectedPlatform, (newValue) => {
+    console.log(newValue);
+  }, { deep: true }
+);
+
+// function updatePlatformVersion() {
+
+// }
 
 function sendTestMessage() {
   const message: WebviewToExtensionMessage = {
@@ -19,11 +28,13 @@ function sendTestMessage() {
   vsCodeStore.simulateMessage(message);
 }
 
-const releases = (release: Record<string, Release>) => {
+const releases = (release: Record<string, Release>, platformId: string) => {
   const rel = Object.entries(release)
     .reverse() // Reverse the entries without sorting
-    .map(([, releaseObject]) => ({
+    .map(([version, releaseObject]) => ({
       ...releaseObject, // Spread all properties from the release object
+      version,          // Add version key
+      platformId        // Add platformId to each object
     }));
   return rel;
 };
@@ -80,8 +91,8 @@ onMounted(() => {
                     {{ platform.installed_version }} installed
                   </div>
                   Latest version: {{ platform.latest_version }}
-                  <v-select v-model="selectedPlatform"
-                  :items="releases(platform.releases)" item-title="version" item-value="version" return-object>
+                  <v-select v-model="selectedPlatform[platform.id]"
+                  :items="releases(platform.releases,platform.id)" item-title="version" item-value="version" return-object>
                 </v-select>
                 </v-card-text>
               </v-card>
