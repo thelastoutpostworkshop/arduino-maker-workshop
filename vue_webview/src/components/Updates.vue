@@ -5,15 +5,15 @@ import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { onMounted, ref } from 'vue';
 import { vscode } from '@/utilities/vscode';
 
+interface PlatformOutdated {
+  version: string;
+  platformId: string;
+}
+
 const vsCodeStore = useVsCodeStore();
 const inDevelopment = computed(() => import.meta.env.DEV);
 const panels = ref([0, 1]);
-const selectedPlatform = ref<Record<string, any>>({});
-
-watch(selectedPlatform, (newValue) => {
-    console.log(newValue);
-  }, { deep: true }
-);
+const selectedPlatform = ref<Record<string, PlatformOutdated>>({});
 
 // function updatePlatformVersion() {
 
@@ -28,13 +28,14 @@ function sendTestMessage() {
   vsCodeStore.simulateMessage(message);
 }
 
-const releases = (release: Record<string, Release>, platformId: string) => {
+const releases = (release: Record<string, Release>, platformId: string): PlatformOutdated[] => {
   const rel = Object.entries(release)
     .reverse() // Reverse the entries without sorting
     .map(([version]) => ({
       version,          // Add version key
       platformId        // Add platformId to each object
     }));
+  selectedPlatform.value[platformId] = rel[0];
   return rel;
 };
 
@@ -67,32 +68,33 @@ onMounted(() => {
                       <v-icon color="white">mdi-developer-board</v-icon>
                     </v-avatar>
                   </template>
-                  <template v-slot:append>
+<template v-slot:append>
                     <v-btn color="grey-lighten-1" icon="mdi-update" variant="text"></v-btn>
                   </template>
-                  <v-list-item-title>{{ platform.releases[platform.latest_version].name }} by {{ platform.maintainer
-                    }}</v-list-item-title>
-                  <v-list-item-subtitle>
-                    Installed version: {{ platform.installed_version }}
-                    Latest version: {{ platform.latest_version }}
-                  </v-list-item-subtitle>
-                </v-list-item>
-              </v-list> -->
-              <v-card v-for="platform in vsCodeStore.outdated.platforms" :key="platform.id" class="mt-2" color="blue-grey-darken-4"
-              :title="platform.releases[platform.latest_version].name" :subtitle="'by '+platform.maintainer">
+<v-list-item-title>{{ platform.releases[platform.latest_version].name }} by {{ platform.maintainer
+  }}</v-list-item-title>
+<v-list-item-subtitle>
+  Installed version: {{ platform.installed_version }}
+  Latest version: {{ platform.latest_version }}
+</v-list-item-subtitle>
+</v-list-item>
+</v-list> -->
+              <v-card v-for="platform in vsCodeStore.outdated.platforms" :key="platform.id" class="mt-2"
+                color="blue-grey-darken-4" :title="platform.releases[platform.latest_version].name"
+                :subtitle="'by ' + platform.maintainer">
                 <template v-slot:prepend>
-                    <v-avatar>
-                      <v-icon color="white">mdi-developer-board</v-icon>
-                    </v-avatar>
-                  </template>
+                  <v-avatar>
+                    <v-icon color="white">mdi-developer-board</v-icon>
+                  </v-avatar>
+                </template>
                 <v-card-text>
                   <div class="text-green font-weight-bold">
                     {{ platform.installed_version }} installed
                   </div>
                   Latest version: {{ platform.latest_version }}
-                  <v-select v-model="selectedPlatform[platform.id]"
-                  :items="releases(platform.releases,platform.id)" item-title="version" item-value="version" return-object>
-                </v-select>
+                  <v-select v-model="selectedPlatform[platform.id]" :items="releases(platform.releases, platform.id)"
+                    item-title="version" item-value="version" return-object>
+                  </v-select>
                 </v-card-text>
               </v-card>
             </div>
