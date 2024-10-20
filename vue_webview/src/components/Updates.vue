@@ -35,9 +35,24 @@ const releases = (release: Record<string, Release>, platformId: string): Platfor
       version,          // Add version key
       platformId        // Add platformId to each object
     }));
-  selectedPlatform.value[platformId] = rel[0];
   return rel;
 };
+
+watch(
+  () => vsCodeStore.outdated,
+  (newConfig) => {
+    if (newConfig) {
+      console.log(newConfig);
+      vsCodeStore.outdated?.platforms.forEach((platform) => {
+        const releasesList = releases(platform.releases, platform.id);
+        if (releasesList.length > 0) {
+          selectedPlatform.value[platform.id] = releasesList[0]; // Set the first item in the list as selected
+        }
+      })
+    }
+  },
+  { immediate: true }
+);
 
 onMounted(() => {
   vsCodeStore.outdated = null;
