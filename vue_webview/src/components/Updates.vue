@@ -103,12 +103,17 @@ onMounted(() => {
                   </v-avatar>
                 </template>
                 <v-card-text>
-                  <div class="text-green font-weight-bold">
-                    {{ platform.installed_version }} installed
+                  <div class="pb-4">
+                    <span class="text-blue font-weight-bold">
+                      {{ platform.installed_version }} installed
+                    </span>
+                    <span class="text-green font-weight-bold">
+                      ({{ platform.latest_version }} is the newest)
+                    </span>
                   </div>
-                  Latest version: {{ platform.latest_version }}
+                  <v-btn class="mb-2" size="small" append-icon="mdi-arrow-down">Install version selected</v-btn>
                   <v-select v-model="selectedPlatform[platform.id]" :items="releases(platform.releases, platform.id)"
-                    item-title="version" item-value="version" return-object>
+                    item-title="version" item-value="version" return-object density="compact">
                   </v-select>
                 </v-card-text>
               </v-card>
