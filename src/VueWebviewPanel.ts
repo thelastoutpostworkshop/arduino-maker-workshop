@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardsListAll, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck } from "./extension";
+import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck } from "./extension";
 import { ARDUINO_ERRORS } from "./ArduinoProject";
 
 const path = require('path');
@@ -57,8 +57,10 @@ export class VueWebviewPanel {
                         });
                         break;
                     case ARDUINO_MESSAGES.OUTDATED:
-                        this.getOutdated().then((outdated)=>{
-                            VueWebviewPanel.sendMessage(outdated);
+                        this.runCoreUpdate().then(() => {
+                            this.getOutdated().then((outdated) => {
+                                VueWebviewPanel.sendMessage(outdated);
+                            });
                         });
                         break;
                     default:
@@ -81,7 +83,7 @@ export class VueWebviewPanel {
         arduinoProject.setBoard(fqbn);
     }
 
-    private setConfiguration(message:WebviewToExtensionMessage) {
+    private setConfiguration(message: WebviewToExtensionMessage) {
         const configuration = message.payload;
         arduinoExtensionChannel.appendLine(`New Configration=:${configuration}`);
         arduinoProject.setConfiguration(configuration);
@@ -99,6 +101,18 @@ export class VueWebviewPanel {
         return boardList;
     }
 
+    private async runCoreUpdate(): Promise<WebviewToExtensionMessage> {
+        const result = await getCoreUpdate();
+        const coreUpdateResult: WebviewToExtensionMessage = {
+            command: ARDUINO_MESSAGES.OUTDATED,
+            errorMessage: "",
+            payload: ""
+        };
+        if (result !== "") {
+            coreUpdateResult.payload = result;
+        }
+        return coreUpdateResult;
+    }
     private async getOutdated(): Promise<WebviewToExtensionMessage> {
         const result = await getOutdatedBoardAndLib();
         const outdated: WebviewToExtensionMessage = {

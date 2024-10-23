@@ -13,6 +13,8 @@ const listAllFunctionArduino: string = 'listall';
 const detailsFunctionArduino: string = 'details';
 const jsonOutputArduino: string = '--json';
 const outdatedCommandArduino: string = 'outdated';
+const coreCommandArduino:string = 'core';
+const updateOption:string = 'update-index';
 export const verboseOptionArduino: string = '-v';
 export const portOptionArduino: string = '-p';
 export const buildPathArduino: string = '--build-path';
@@ -119,6 +121,13 @@ export class ArduinoProject {
             `${jsonOutputArduino}`
         ];
         return outdatedCommand;
+    }
+    public getCoreUpdateArguments(): string[] {
+        const updateCoreCommand = [
+            `${coreCommandArduino}`,
+            `${updateOption}`
+        ];
+        return updateCoreCommand;
     }
     public getPortListArguments(): string[] {
         const compileCommand = [

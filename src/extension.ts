@@ -102,6 +102,19 @@ export async function getOutdatedBoardAndLib(): Promise<string> {
 		throw error;
 	}
 }
+export async function getCoreUpdate(): Promise<string> {
+	try {
+		const coreUpdateArgs = arduinoProject.getCoreUpdateArguments();
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, coreUpdateArgs, true, false);
+		if (!result) {
+			throw new Error("Command result empty");
+		}
+		return result;
+	} catch (error: any) {
+		arduinoExtensionChannel.appendLine(`Error: ${error.message}`);
+		throw error;
+	}
+}
 
 export async function getBoardConfiguration(): Promise<string> {
 	try {
