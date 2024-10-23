@@ -133,7 +133,8 @@ export class ArduinoProject {
     public getInstallCoreVersionArguments(version:string): string[] {
         const installCoreVersionCommand = [
             `${coreCommandArduino}`,
-            `${installOption}@${version}`
+            `${installOption}`,
+            `${version}`
         ];
         return installCoreVersionCommand;
     }

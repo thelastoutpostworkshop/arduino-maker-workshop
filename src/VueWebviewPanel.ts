@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck } from "./extension";
+import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck, runInstallCoreVersion } from "./extension";
 import { ARDUINO_ERRORS } from "./ArduinoProject";
 
 const path = require('path');
@@ -63,6 +63,12 @@ export class VueWebviewPanel {
                             });
                         });
                         break;
+                    case ARDUINO_MESSAGES.INSTALL_CORE_VERSION:
+                        const coreToUpdate = message.payload;
+                        this.installCoreVersion(coreToUpdate).then((result)=> {
+
+                        });
+                        break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);
                 }
@@ -101,6 +107,18 @@ export class VueWebviewPanel {
         return boardList;
     }
 
+    private async installCoreVersion(version:string): Promise<WebviewToExtensionMessage> {
+        const result = await runInstallCoreVersion(version);
+        const installCoreVersionResult: WebviewToExtensionMessage = {
+            command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION,
+            errorMessage: "",
+            payload: ""
+        };
+        if (result !== "") {
+            installCoreVersionResult.payload = result;
+        }
+        return installCoreVersionResult;
+    }
     private async runCoreUpdate(): Promise<WebviewToExtensionMessage> {
         const result = await getCoreUpdate();
         const coreUpdateResult: WebviewToExtensionMessage = {

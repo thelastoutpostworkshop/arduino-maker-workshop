@@ -17,7 +17,8 @@ const selectedPlatform = ref<Record<string, PlatformOutdated>>({});
 
 function updatePlatformVersion(platformID:string) {
   const toInstall = selectedPlatform.value[platformID];
-  console.log(toInstall);
+  const version = `${toInstall.platformId}@${toInstall.version}`;
+  vscode.postMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: version });
 }
 
 function sendTestMessage() {

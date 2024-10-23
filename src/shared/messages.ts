@@ -144,6 +144,7 @@ export const ARDUINO_MESSAGES = {
   BOARDS_LIST_ALL: 'getArduinoBoardsListAll',
   SET_BOARD: 'setArduinoBoard',
   SET_BOARD_CONFIGURATION: 'setArduinoBoardConfiguration',
-  OUTDATED: 'checkArduinoOutdated'
+  OUTDATED: 'checkArduinoOutdated',
+  INSTALL_CORE_VERSION:'installCoreVersion'
   // Add more commands as needed
 };
