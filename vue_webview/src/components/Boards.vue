@@ -47,7 +47,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
   <v-container>
     <v-responsive>
       <div class="text-center">
-        <h1 class="text-h4 font-weight-bold">Boards</h1>
+        <h1 class="text-h4 font-weight-bold">Boards Available</h1>
       </div>
       <div v-if="inDevelopment">
         <v-btn @click="sendTestMessage()">Send Test Message</v-btn>
