@@ -15,6 +15,7 @@ const jsonOutputArduino: string = '--json';
 const outdatedCommandArduino: string = 'outdated';
 const coreCommandArduino:string = 'core';
 const updateOption:string = 'update-index';
+const installOption:string = 'install';
 export const verboseOptionArduino: string = '-v';
 export const portOptionArduino: string = '-p';
 export const buildPathArduino: string = '--build-path';
@@ -128,6 +129,13 @@ export class ArduinoProject {
             `${updateOption}`
         ];
         return updateCoreCommand;
+    }
+    public getInstallCoreVersionArguments(version:string): string[] {
+        const installCoreVersionCommand = [
+            `${coreCommandArduino}`,
+            `${installOption}@${version}`
+        ];
+        return installCoreVersionCommand;
     }
     public getPortListArguments(): string[] {
         const compileCommand = [
