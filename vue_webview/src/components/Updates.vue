@@ -15,9 +15,10 @@ const inDevelopment = computed(() => import.meta.env.DEV);
 const panels = ref([0, 1]);
 const selectedPlatform = ref<Record<string, PlatformOutdated>>({});
 
-// function updatePlatformVersion() {
-
-// }
+function updatePlatformVersion(platformID:string) {
+  const toInstall = selectedPlatform.value[platformID];
+  console.log(toInstall);
+}
 
 function sendTestMessage() {
   const message: WebviewToExtensionMessage = {
@@ -76,24 +77,6 @@ onMounted(() => {
           <v-btn>Update All</v-btn>
           <v-expansion-panel-text>
             <div v-if="vsCodeStore.outdated?.platforms.length">
-              <!-- <v-list>
-                <v-list-item v-for="platform in vsCodeStore.outdated.platforms" :key="platform.id">
-                  <template v-slot:prepend>
-                    <v-avatar>
-                      <v-icon color="white">mdi-developer-board</v-icon>
-                    </v-avatar>
-                  </template>
-<template v-slot:append>
-                    <v-btn color="grey-lighten-1" icon="mdi-update" variant="text"></v-btn>
-                  </template>
-<v-list-item-title>{{ platform.releases[platform.latest_version].name }} by {{ platform.maintainer
-  }}</v-list-item-title>
-<v-list-item-subtitle>
-  Installed version: {{ platform.installed_version }}
-  Latest version: {{ platform.latest_version }}
-</v-list-item-subtitle>
-</v-list-item>
-</v-list> -->
               <v-card v-for="platform in vsCodeStore.outdated.platforms" :key="platform.id" class="mt-2"
                 color="blue-grey-darken-4" :title="platform.releases[platform.latest_version].name"
                 :subtitle="'by ' + platform.maintainer">
@@ -111,7 +94,7 @@ onMounted(() => {
                       ({{ platform.latest_version }} is the newest)
                     </span>
                   </div>
-                  <v-btn class="mb-2" size="small" append-icon="mdi-arrow-down">Install version selected</v-btn>
+                  <v-btn @click="updatePlatformVersion(platform.id)" class="mb-2" size="small" append-icon="mdi-arrow-down">Install version selected</v-btn>
                   <v-select v-model="selectedPlatform[platform.id]" :items="releases(platform.releases, platform.id)"
                     item-title="version" item-value="version" return-object density="compact">
                   </v-select>
