@@ -96,12 +96,12 @@ export async function getOutdatedBoardAndLib(): Promise<string> {
 		const outdatedArgs = arduinoProject.getOutdatedArguments();
 		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, outdatedArgs, true, false);
 		if (!result) {
-			window.showErrorMessage(`No result from outdated Board and Libraries information`);
+			window.showErrorMessage(`CLI : No result from outdated Board and Libraries information`);
 			throw new Error("Command result empty");
 		}
 		return result;
 	} catch (error: any) {
-		window.showErrorMessage(`Failed to get outdated Board and Libraries information`);
+		window.showErrorMessage(`CLI : Failed to get outdated Board and Libraries information`);
 		throw error;
 	}
 }
@@ -110,11 +110,12 @@ export async function runInstallCoreVersion(version:string): Promise<string> {
 		const coreInstallVersionArgs = arduinoProject.getInstallCoreVersionArguments(version);
 		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, coreInstallVersionArgs, true, true);
 		if (!result) {
+			window.showErrorMessage(`CLI : No result from core version installation`);
 			throw new Error("Command result empty");
 		}
 		return result;
 	} catch (error: any) {
-		arduinoExtensionChannel.appendLine(`Error: ${error.message}`);
+		window.showErrorMessage(`CLI : Error from core version installation`);
 		throw error;
 	}
 }
