@@ -19,7 +19,6 @@ watch(
   boardSelect, (newValue) => {
     newValue.forEach((newVal, index) => {
       if (newVal !== boardSelectBefore.value[index]) {
-        console.log(`Board selected at index ${index}:`, newVal);
         vscode.postMessage({ command: ARDUINO_MESSAGES.SET_BOARD, errorMessage: "", payload: newVal.fqbn })
         boardSelectBefore.value = { ...boardSelect.value };
         vsCodeStore.boardConfiguration = null;
