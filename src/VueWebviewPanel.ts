@@ -116,24 +116,16 @@ export class VueWebviewPanel {
     }
 
     private async installCoreVersion(version: string): Promise<WebviewToExtensionMessage> {
+        const installCoreVersionResult = this.createWebviewMessage(ARDUINO_MESSAGES.INSTALL_CORE_VERSION);
         const result = await runInstallCoreVersion(version);
-        const installCoreVersionResult: WebviewToExtensionMessage = {
-            command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION,
-            errorMessage: "",
-            payload: ""
-        };
         if (result !== "") {
             installCoreVersionResult.payload = result;
         }
         return installCoreVersionResult;
     }
     private async runCoreUpdate(): Promise<WebviewToExtensionMessage> {
+        const coreUpdateResult = this.createWebviewMessage(ARDUINO_MESSAGES.OUTDATED);
         const result = await getCoreUpdate();
-        const coreUpdateResult: WebviewToExtensionMessage = {
-            command: ARDUINO_MESSAGES.OUTDATED,
-            errorMessage: "",
-            payload: ""
-        };
         if (result !== "") {
             coreUpdateResult.payload = result;
         }
