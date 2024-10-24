@@ -96,10 +96,12 @@ export async function getOutdatedBoardAndLib(): Promise<string> {
 		const outdatedArgs = arduinoProject.getOutdatedArguments();
 		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, outdatedArgs, true, false);
 		if (!result) {
+			window.showErrorMessage(`No result from outdated Board and Libraries information`);
 			throw new Error("Command result empty");
 		}
 		return result;
 	} catch (error: any) {
+		window.showErrorMessage(`Failed to get outdated Board and Libraries information`);
 		arduinoExtensionChannel.appendLine(`Error: ${error.message}`);
 		throw error;
 	}
