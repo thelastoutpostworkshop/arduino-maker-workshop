@@ -95,7 +95,7 @@ export class VueWebviewPanel {
         arduinoProject.setConfiguration(configuration);
     }
 
-    private createWebviewMessage(command:string): WebviewToExtensionMessage {
+    private createWebviewMessage(command: string): WebviewToExtensionMessage {
         return {
             command: command,
             errorMessage: "",
@@ -140,7 +140,7 @@ export class VueWebviewPanel {
         return coreUpdateResult;
     }
     private async getOutdated(): Promise<WebviewToExtensionMessage> {
-        const outdated =this.createWebviewMessage(ARDUINO_MESSAGES.OUTDATED); 
+        const outdated = this.createWebviewMessage(ARDUINO_MESSAGES.OUTDATED);
         const result = await getOutdatedBoardAndLib();
         if (result !== "") {
             outdated.payload = result;
@@ -148,12 +148,8 @@ export class VueWebviewPanel {
         return outdated;
     }
     private async getBoardConfiguration(): Promise<WebviewToExtensionMessage> {
+        const boardConfiguration = this.createWebviewMessage(ARDUINO_MESSAGES.BOARD_CONFIGURATION);
         const result = await getBoardConfiguration();
-        const boardConfiguration: WebviewToExtensionMessage = {
-            command: ARDUINO_MESSAGES.BOARD_CONFIGURATION,
-            errorMessage: "",
-            payload: ""
-        };
         if (result !== "") {
             boardConfiguration.payload = result;
         }
@@ -161,11 +157,7 @@ export class VueWebviewPanel {
     }
 
     private getArduinoProjectInfo(): WebviewToExtensionMessage {
-        const projectInfo: WebviewToExtensionMessage = {
-            command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO,
-            errorMessage: "",
-            payload: ""
-        };
+        const projectInfo = this.createWebviewMessage(ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO);
         if (loadArduinoConfiguration()) {
             projectInfo.payload = arduinoProject.getArduinoConfiguration();
         } else {
