@@ -102,7 +102,6 @@ export async function getOutdatedBoardAndLib(): Promise<string> {
 		return result;
 	} catch (error: any) {
 		window.showErrorMessage(`Failed to get outdated Board and Libraries information`);
-		arduinoExtensionChannel.appendLine(`Error: ${error.message}`);
 		throw error;
 	}
 }
