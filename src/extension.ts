@@ -125,11 +125,12 @@ export async function getCoreUpdate(): Promise<string> {
 		const coreUpdateArgs = arduinoProject.getCoreUpdateArguments();
 		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, coreUpdateArgs, true, false);
 		if (!result) {
+			window.showErrorMessage(`CLI : No result from core update`);
 			throw new Error("Command result empty");
 		}
 		return result;
 	} catch (error: any) {
-		arduinoExtensionChannel.appendLine(`Error: ${error.message}`);
+		window.showErrorMessage(`CLI : Error from core update`);
 		throw error;
 	}
 }
