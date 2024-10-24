@@ -76,9 +76,11 @@ export function checkArduinoCLICommand(): Promise<string> {
 						resolve(result);
 					} catch (parseError) {
 						arduinoExtensionChannel.appendLine('Failed to get Arduino CLI version information.');
+						window.showErrorMessage(`Failed to get Arduino CLI version information.`);
 						resolve("");
 					}
 				} else {
+					window.showErrorMessage(`No result returned by checking the CLI version`);
 					resolve("");
 				}
 			})
