@@ -1,4 +1,4 @@
-import Boards from '@/components/Boards.vue';
+import Boards from '@/components/BoardSelection.vue';
 import Home from '@/components/Home.vue';
 import BoardConfiguration from '@/components/BoardConfiguration.vue';
 import { createRouter, createMemoryHistory } from 'vue-router'
@@ -16,8 +16,8 @@ const router = createRouter({
         }
       },
       {
-        path: '/boards',
-        name: "boards",
+        path: '/board-selection',
+        name: "board-selection",
         components: {
           default: Boards,
         }
