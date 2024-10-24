@@ -167,11 +167,7 @@ export class VueWebviewPanel {
     }
 
     private getArduinoProjectStatus(): WebviewToExtensionMessage {
-        const projectStatus: WebviewToExtensionMessage = {
-            command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS,
-            errorMessage: "",
-            payload: ""
-        };
+        const projectStatus = this.createWebviewMessage(ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS);
         if (!loadArduinoConfiguration()) {
             switch (arduinoConfigurationLastError) {
                 case ARDUINO_ERRORS.NO_INO_FILES:
