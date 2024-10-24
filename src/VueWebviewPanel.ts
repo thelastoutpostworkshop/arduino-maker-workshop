@@ -65,7 +65,7 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.INSTALL_CORE_VERSION:
                         const coreToUpdate = message.payload;
-                        this.installCoreVersion(coreToUpdate).then((result)=> {
+                        this.installCoreVersion(coreToUpdate).then((result) => {
 
                         });
                         break;
@@ -95,6 +95,14 @@ export class VueWebviewPanel {
         arduinoProject.setConfiguration(configuration);
     }
 
+    private createWebviewMessage(command:string): WebviewToExtensionMessage {
+        return {
+            command: command,
+            errorMessage: "",
+            payload: ""
+        };
+    }
+
     private async getBoardListAll(): Promise<WebviewToExtensionMessage> {
         const result = await getBoardsListAll();
         const boardList: WebviewToExtensionMessage = {
@@ -107,7 +115,7 @@ export class VueWebviewPanel {
         return boardList;
     }
 
-    private async installCoreVersion(version:string): Promise<WebviewToExtensionMessage> {
+    private async installCoreVersion(version: string): Promise<WebviewToExtensionMessage> {
         const result = await runInstallCoreVersion(version);
         const installCoreVersionResult: WebviewToExtensionMessage = {
             command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION,
@@ -132,12 +140,8 @@ export class VueWebviewPanel {
         return coreUpdateResult;
     }
     private async getOutdated(): Promise<WebviewToExtensionMessage> {
+        const outdated =this.createWebviewMessage(ARDUINO_MESSAGES.OUTDATED); 
         const result = await getOutdatedBoardAndLib();
-        const outdated: WebviewToExtensionMessage = {
-            command: ARDUINO_MESSAGES.OUTDATED,
-            errorMessage: "",
-            payload: ""
-        };
         if (result !== "") {
             outdated.payload = result;
         }

@@ -146,5 +146,4 @@ export const ARDUINO_MESSAGES = {
   SET_BOARD_CONFIGURATION: 'setArduinoBoardConfiguration',
   OUTDATED: 'checkArduinoOutdated',
   INSTALL_CORE_VERSION:'installCoreVersion'
-  // Add more commands as needed
 };
