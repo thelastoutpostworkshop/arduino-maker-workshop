@@ -152,7 +152,6 @@ export async function getBoardConfiguration(): Promise<string> {
 			window.showErrorMessage(`CLI : No result from get board configuration`);
 			throw new Error("Command result empty");
 		}
-
 		return result;
 
 	} catch (error: any) {
@@ -206,6 +205,7 @@ export async function getBoardsListAll(): Promise<ArduinoBoardsListPayload> {
 		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, allBoardArgs, true, false);
 
 		if (!result) {
+			window.showErrorMessage(`CLI : No result from get board list`);
 			throw new Error("Command result empty");
 		}
 
@@ -239,9 +239,8 @@ export async function getBoardsListAll(): Promise<ArduinoBoardsListPayload> {
 		message.boardStructure = boardStructure;
 	} catch (error: any) {
 		message.errorMessage = error.message;
-		arduinoExtensionChannel.appendLine(`Error: ${error.message}`);
+		window.showErrorMessage(`CLI : Error from get board list`);
 	}
-
 	return message;
 }
 
