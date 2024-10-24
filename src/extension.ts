@@ -138,22 +138,25 @@ export async function getCoreUpdate(): Promise<string> {
 export async function getBoardConfiguration(): Promise<string> {
 	try {
 		if (!loadArduinoConfiguration()) {
+			window.showErrorMessage(`Unable to load Project Configuration`);
 			throw new Error("Unable to load Project Configuration");
 		}
 		if (!arduinoProject.getBoard()) {
+			window.showErrorMessage(`Unable to get Board Configuration`);
 			throw new Error("Unable to get Board Configuration");
 		}
 		const configBoardArgs = arduinoProject.getBoardConfigurationArguments();
 		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, configBoardArgs, true, false);
 
 		if (!result) {
+			window.showErrorMessage(`CLI : No result from get board configuration`);
 			throw new Error("Command result empty");
 		}
 
 		return result;
 
 	} catch (error: any) {
-		arduinoExtensionChannel.appendLine(`Error: ${error.message}`);
+		window.showErrorMessage(`CLI : Error from get board configuration`);
 		throw error;
 	}
 }
