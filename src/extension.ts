@@ -186,7 +186,22 @@ export function loadArduinoConfiguration(): boolean {
 	return true;
 }
 
-export async function getBoardsListAll(): Promise<ArduinoBoardsListPayload> {
+export async function getBoardsListAll(): Promise<string> {
+	try {
+		const allBoardArgs = arduinoProject.getBoardsListArguments();
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, allBoardArgs, true, false);
+		if (!result) {
+			window.showErrorMessage(`No result from getting Boards list`);
+			throw new Error("Command result empty");
+		}
+		return result;
+	} catch (error: any) {
+		window.showErrorMessage(`Failed to get boards list`);
+		throw error;
+	}
+}
+
+export async function getBoardsListAll_old(): Promise<ArduinoBoardsListPayload> {
 	const message: ArduinoBoardsListPayload = {
 		errorMessage: "",
 		boardStructure: undefined,

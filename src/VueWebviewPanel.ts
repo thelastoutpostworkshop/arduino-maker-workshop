@@ -102,18 +102,26 @@ export class VueWebviewPanel {
             payload: ""
         };
     }
-
     private async getBoardListAll(): Promise<WebviewToExtensionMessage> {
+        const outdated = this.createWebviewMessage(ARDUINO_MESSAGES.BOARDS_LIST_ALL);
         const result = await getBoardsListAll();
-        const boardList: WebviewToExtensionMessage = {
-            command: ARDUINO_MESSAGES.BOARDS_LIST_ALL,
-            errorMessage: result.errorMessage,
-            payload: JSON.stringify({
-                boardStructure: result.boardStructure,
-            })
-        };
-        return boardList;
+        if (result !== "") {
+            outdated.payload = result;
+        }
+        return outdated;
     }
+
+    // private async getBoardListAll_old(): Promise<WebviewToExtensionMessage> {
+    //     const result = await getBoardsListAll();
+    //     const boardList: WebviewToExtensionMessage = {
+    //         command: ARDUINO_MESSAGES.BOARDS_LIST_ALL,
+    //         errorMessage: result.errorMessage,
+    //         payload: JSON.stringify({
+    //             boardStructure: result.boardStructure,
+    //         })
+    //     };
+    //     return boardList;
+    // }
 
     private async installCoreVersion(version: string): Promise<WebviewToExtensionMessage> {
         const installCoreVersionResult = this.createWebviewMessage(ARDUINO_MESSAGES.INSTALL_CORE_VERSION);
