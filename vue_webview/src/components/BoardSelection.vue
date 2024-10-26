@@ -5,37 +5,32 @@ import { ARDUINO_MESSAGES, WebviewToExtensionMessage, BoardConfiguration } from 
 import { onMounted, watch, computed, ref } from 'vue';
 
 const vsCodeStore = useVsCodeStore();
-const boardSelect = ref<BoardConfiguration[]>([]);
-const boardSelectBefore = ref<BoardConfiguration[]>([])
+const boardSelect = ref<(BoardConfiguration | null)[]>([]); // Updated to track selected boards for each platform
+const boardSelectBefore = ref<(BoardConfiguration | null)[]>([]);
 
 onMounted(() => {
   vscode.postMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
 });
 
-
-// watch([() => vsCodeStore.boards?.boards], () => { }, { immediate: true });
-
+// Watch for changes in boardSelect
 watch(
-  boardSelect, (newValue) => {
+  boardSelect,
+  (newValue) => {
     newValue.forEach((newVal, index) => {
-      if (newVal !== boardSelectBefore.value[index]) {
-        vscode.postMessage({ command: ARDUINO_MESSAGES.SET_BOARD, errorMessage: "", payload: newVal.fqbn })
-        boardSelectBefore.value = { ...boardSelect.value };
+      if (newVal && newVal !== boardSelectBefore.value[index]) {
+        vscode.postMessage({ command: ARDUINO_MESSAGES.SET_BOARD, errorMessage: "", payload: newVal.fqbn });
+        boardSelectBefore.value = [...boardSelect.value];
         vsCodeStore.boardConfiguration = null;
       }
     });
-  }, { deep: true }
+  },
+  { deep: true }
 );
 
-// const boardStructure = computed<BoardList[]>(() => {
-//   const boards = vsCodeStore.boards?.boards ?? [];
-//   // Filter only boards that are installed
-//   return boards.filter(board => board.platform?.release?.installed);
-// });
-
+// Computed property for grouping boards by platform and filtering only installed boards
 const boardStructure = computed<{ [platform: string]: { name: string, fqbn: string }[] }>(() => {
   const boards = vsCodeStore.boards?.boards ?? [];
-  
+
   // Initialize an empty object to hold the structured board data
   const boardStructure: { [platform: string]: { name: string, fqbn: string }[] } = {};
   const uniqueFqbnSet = new Set<string>();
@@ -65,11 +60,12 @@ const boardStructure = computed<{ [platform: string]: { name: string, fqbn: stri
     });
   });
 
+  // Ensure boardSelect is initialized properly for each platform
+  const platformCount = Object.keys(boardStructure).length;
+  boardSelect.value = Array(platformCount).fill(null);
+
   return boardStructure;
 });
-
-
-
 
 function sendTestMessage() {
   const message: WebviewToExtensionMessage = {
@@ -81,7 +77,6 @@ function sendTestMessage() {
 }
 
 const inDevelopment = computed(() => import.meta.env.DEV);
-
 </script>
 
 <template>
@@ -106,12 +101,13 @@ const inDevelopment = computed(() => import.meta.env.DEV);
         Choose a board from the platforms:
         <v-expansion-panels multiple>
           <v-expansion-panel
-            v-for="(boards, platform) in boardStructure"
+            v-for="(boards, platform, index) in boardStructure"
             :key="platform"
           >
             <v-expansion-panel-title>{{ platform }}</v-expansion-panel-title>
             <v-expansion-panel-text>
               <v-autocomplete
+                v-model="boardSelect[index]"
                 :items="boards"
                 item-title="name"
                 item-value="fqbn"
