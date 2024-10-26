@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, WebviewToExtensionMessage,BoardConfiguration } from '@shared/messages';
+import { ARDUINO_MESSAGES, WebviewToExtensionMessage, BoardConfiguration, BoardList } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
 
 const vsCodeStore = useVsCodeStore();
@@ -13,7 +13,7 @@ onMounted(() => {
 });
 
 
-watch([() => vsCodeStore.boards], () => { }, { immediate: true });
+// watch([() => vsCodeStore.boards?.boards], () => { }, { immediate: true });
 
 watch(
   boardSelect, (newValue) => {
@@ -27,7 +27,11 @@ watch(
   }, { deep: true }
 );
 
-const boardStructure = computed(() => vsCodeStore.boards?.boardStructure || undefined);
+const boardStructure = computed<BoardList[]>(() => {
+  const boards = vsCodeStore.boards?.boards ?? [];
+  return boards;
+});
+
 
 function sendTestMessage() {
   const message: WebviewToExtensionMessage = {
@@ -51,28 +55,31 @@ const inDevelopment = computed(() => import.meta.env.DEV);
       <div v-if="inDevelopment">
         <v-btn @click="sendTestMessage()">Send Test Message</v-btn>
       </div>
-      <v-text-field label="Current Board:" :model-value="vsCodeStore.boardConfiguration?.boardConfiguration?.name" readonly>
+      <v-text-field label="Current Board:" :model-value="vsCodeStore.boardConfiguration?.boardConfiguration?.name"
+        readonly>
         <template v-slot:loader>
           <v-progress-linear :active="!vsCodeStore.boardConfiguration?.boardConfiguration?.name" height="2"
             indeterminate></v-progress-linear>
         </template>
       </v-text-field>
-      <div v-if="boardStructure == undefined">
+      <div v-if="boardStructure.length == 0">
         Loading Boards
         <v-progress-circular :size="25" color="grey" indeterminate></v-progress-circular>
       </div>
       <div v-else>
         Choose a board from the platforms:
+        <v-expansion-panels multiple>
+          <v-expansion-panel v-for="(board) in boardStructure" :key="board.fqbn">
+            <v-expansion-panel-title>{{ board.name }}</v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <v-autocomplete  :items="board.platform.release.boards" item-title="name" item-value="fqbn"
+                label="Select a Board" outlined dense return-object></v-autocomplete>
+              <!-- <v-autocomplete v-model="boardSelect[index]" :items="board.platform.release.boards" item-title="name" item-value="fqbn"
+                label="Select a Board" outlined dense return-object></v-autocomplete> -->
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
       </div>
-      <v-expansion-panels multiple>
-        <v-expansion-panel v-for="(boards, platform, index) in boardStructure" :key="platform">
-          <v-expansion-panel-title>{{ platform }}</v-expansion-panel-title>
-          <v-expansion-panel-text>
-            <v-autocomplete v-model="boardSelect[index]" :items="boards" item-title="name" item-value="fqbn"
-              label="Select a Board" outlined dense return-object></v-autocomplete>
-          </v-expansion-panel-text>
-        </v-expansion-panel>
-      </v-expansion-panels>
     </v-responsive>
   </v-container>
 </template>

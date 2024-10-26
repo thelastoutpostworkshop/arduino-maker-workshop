@@ -11,11 +11,11 @@ export interface ArduinoBoardConfigurationPayload {
   boardConfiguration: BoardConfiguration | null;
 }
 
-export interface ArduinoConfiguration  {
-    port: string;
-    configuration: string;
-    output: string;
-    board: string;
+export interface ArduinoConfiguration {
+  port: string;
+  configuration: string;
+  output: string;
+  board: string;
 };
 
 export interface ArduinoCLIStatus {
@@ -72,9 +72,10 @@ export interface Platform {
   releases: Record<string, Release>;
   installed_version: string;
   latest_version: string;
+  boards: Board[];
 }
 
- export interface Release {
+export interface Release {
   name: string;
   version: string;
   types: string[];
@@ -87,6 +88,12 @@ export interface Platform {
 interface Board {
   name: string;
   fqbn?: string;
+}
+
+export interface boards {
+  name: string;
+  fqbn: string;
+  platform: Platform;
 }
 
 interface Help {
@@ -136,6 +143,39 @@ export interface OutdatedInformation {
   libraries: LibraryData[];
 }
 
+export interface PlatformsList {
+  boards: BoardList[];
+}
+
+export interface BoardList {
+  name:     string;
+  fqbn:     string;
+  platform: PlatformData;
+}
+
+export interface PlatformData {
+  metadata: Metadata;
+  release:  ReleaseData;
+}
+
+export interface Metadata {
+  id:         string;
+  maintainer: string;
+  website:    string;
+  email:      string;
+  indexed?:   boolean;
+}
+
+export interface ReleaseData {
+  name:       string;
+  version:    string;
+  types:      string[];
+  installed:  boolean;
+  boards:     Board[];
+  help:       Help;
+  compatible: boolean;
+}
+
 export const ARDUINO_MESSAGES = {
   CLI_STATUS: 'getArduinoCLIStatus',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
@@ -145,5 +185,5 @@ export const ARDUINO_MESSAGES = {
   SET_BOARD: 'setArduinoBoard',
   SET_BOARD_CONFIGURATION: 'setArduinoBoardConfiguration',
   OUTDATED: 'checkArduinoOutdated',
-  INSTALL_CORE_VERSION:'installCoreVersion'
+  INSTALL_CORE_VERSION: 'installCoreVersion'
 };
