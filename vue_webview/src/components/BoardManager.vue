@@ -28,21 +28,23 @@ watch(
 );
 
 // Computed property for grouping boards by platform and filtering only installed boards
-const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boards: { name: string, fqbn: string }[] } }>(() => {
+const boardStructure = computed<{ [platform: string]: { metadata: Metadata;name: string; boards: { name: string, fqbn: string }[] } }>(() => {
   const boards = vsCodeStore.boards?.boards ?? [];
 
   // Initialize an empty object to hold the structured board data with metadata
-  const boardStructure: { [platform: string]: { metadata: Metadata; boards: { name: string, fqbn: string }[] } } = {};
+  const boardStructure: { [platformID: string]: { metadata: Metadata; name: string; boards: { name: string, fqbn: string }[] } } = {};
   const uniqueFqbnSet = new Set<string>();
 
   boards.forEach((board) => {
 
     const platformName = board.platform.release.name;
+    const plateformID = board.platform.metadata.id;
 
     // Initialize the platform in the structure if it doesn't exist, and add metadata
-    if (!boardStructure[platformName]) {
-      boardStructure[platformName] = {
+    if (!boardStructure[plateformID]) {
+      boardStructure[plateformID] = {
         metadata: board.platform.metadata,
+        name: platformName,
         boards: []
       };
     }
@@ -54,7 +56,7 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boar
       // Only add if the fqbn is not a duplicate
       if (!uniqueFqbnSet.has(fqbn)) {
         uniqueFqbnSet.add(fqbn);
-        boardStructure[platformName].boards.push({ name, fqbn });
+        boardStructure[plateformID].boards.push({ name, fqbn });
       }
     });
   });
@@ -95,25 +97,12 @@ const inDevelopment = computed(() => import.meta.env.DEV);
       <div v-else>
         Boards Available:
         <v-expansion-panels multiple>
-          <v-expansion-panel
-            v-for="(platformData, platform,index) in boardStructure"
-            :key="platform"
-          >
-            <v-expansion-panel-title>{{ platform }} by {{ platformData.metadata.maintainer }}</v-expansion-panel-title>
+          <v-expansion-panel v-for="(platformData) in boardStructure" :key="platformData.metadata.id">
+            <v-expansion-panel-title>{{ platformData.name }} by {{ platformData.metadata.maintainer }}</v-expansion-panel-title>
             <v-expansion-panel-text>
               <span class="text-subtitle-2">
                 <a :href="platformData.metadata.website" target="_blank">Go to Web Site</a><br />
               </span>
-              <v-autocomplete class="pt-2"
-                v-model="boardSelect[index]"
-                :items="platformData.boards"
-                item-title="name"
-                item-value="fqbn"
-                label="Select a Board"
-                outlined
-                dense
-                return-object
-              ></v-autocomplete>
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
@@ -121,4 +110,3 @@ const inDevelopment = computed(() => import.meta.env.DEV);
     </v-responsive>
   </v-container>
 </template>
-
