@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, WebviewToExtensionMessage, BoardConfiguration } from '@shared/messages';
+import { ARDUINO_MESSAGES, WebviewToExtensionMessage, BoardConfiguration, Metadata } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
 
 const vsCodeStore = useVsCodeStore();
@@ -28,11 +28,11 @@ watch(
 );
 
 // Computed property for grouping boards by platform and filtering only installed boards
-const boardStructure = computed<{ [platform: string]: { name: string, fqbn: string }[] }>(() => {
+const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boards: { name: string, fqbn: string }[] } }>(() => {
   const boards = vsCodeStore.boards?.boards ?? [];
 
-  // Initialize an empty object to hold the structured board data
-  const boardStructure: { [platform: string]: { name: string, fqbn: string }[] } = {};
+  // Initialize an empty object to hold the structured board data with metadata
+  const boardStructure: { [platform: string]: { metadata: Metadata; boards: { name: string, fqbn: string }[] } } = {};
   const uniqueFqbnSet = new Set<string>();
 
   boards.forEach((board) => {
@@ -43,9 +43,12 @@ const boardStructure = computed<{ [platform: string]: { name: string, fqbn: stri
 
     const platformName = board.platform.release.name;
 
-    // Initialize the platform in the structure if it doesn't exist
+    // Initialize the platform in the structure if it doesn't exist, and add metadata
     if (!boardStructure[platformName]) {
-      boardStructure[platformName] = [];
+      boardStructure[platformName] = {
+        metadata: board.platform.metadata,
+        boards: []
+      };
     }
 
     // Loop through each board under this platform
@@ -55,7 +58,7 @@ const boardStructure = computed<{ [platform: string]: { name: string, fqbn: stri
       // Only add if the fqbn is not a duplicate
       if (!uniqueFqbnSet.has(fqbn)) {
         uniqueFqbnSet.add(fqbn);
-        boardStructure[platformName].push({ name, fqbn });
+        boardStructure[platformName].boards.push({ name, fqbn });
       }
     });
   });
@@ -66,6 +69,7 @@ const boardStructure = computed<{ [platform: string]: { name: string, fqbn: stri
 
   return boardStructure;
 });
+
 
 function sendTestMessage() {
   const message: WebviewToExtensionMessage = {
@@ -101,14 +105,17 @@ const inDevelopment = computed(() => import.meta.env.DEV);
         Choose a board from the platforms installed:
         <v-expansion-panels multiple>
           <v-expansion-panel
-            v-for="(boards, platform, index) in boardStructure"
+            v-for="(platformData, platform,index) in boardStructure"
             :key="platform"
           >
-            <v-expansion-panel-title>{{ platform }}</v-expansion-panel-title>
+            <v-expansion-panel-title>{{ platform }} by {{ platformData.metadata.maintainer }}</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <v-autocomplete
+              <span class="text-subtitle-2">
+                <a :href="platformData.metadata.website" target="_blank">Go to Web Site</a><br />
+              </span>
+              <v-autocomplete class="pt-2"
                 v-model="boardSelect[index]"
-                :items="boards"
+                :items="platformData.boards"
                 item-title="name"
                 item-value="fqbn"
                 label="Select a Board"
@@ -123,3 +130,4 @@ const inDevelopment = computed(() => import.meta.env.DEV);
     </v-responsive>
   </v-container>
 </template>
+
