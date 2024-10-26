@@ -98,7 +98,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
         <v-progress-circular :size="25" color="grey" indeterminate></v-progress-circular>
       </div>
       <div v-else>
-        Choose a board from the platforms:
+        Choose a board from the platforms installed:
         <v-expansion-panels multiple>
           <v-expansion-panel
             v-for="(boards, platform, index) in boardStructure"
