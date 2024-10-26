@@ -36,10 +36,6 @@ const boardStructure = computed<{ [platform: string]: { name: string, fqbn: stri
   const uniqueFqbnSet = new Set<string>();
 
   boards.forEach((board) => {
-    // Filter out boards that are not installed
-    if (!board.platform?.release?.installed) {
-      return;
-    }
 
     const platformName = board.platform.release.name;
 
