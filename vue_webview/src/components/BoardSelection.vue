@@ -29,7 +29,8 @@ watch(
 
 const boardStructure = computed<BoardList[]>(() => {
   const boards = vsCodeStore.boards?.boards ?? [];
-  return boards;
+  // Filter only boards that are installed
+  return boards.filter(board => board.platform?.release?.installed);
 });
 
 
