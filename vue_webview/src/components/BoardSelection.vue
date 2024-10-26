@@ -27,11 +27,48 @@ watch(
   }, { deep: true }
 );
 
-const boardStructure = computed<BoardList[]>(() => {
+// const boardStructure = computed<BoardList[]>(() => {
+//   const boards = vsCodeStore.boards?.boards ?? [];
+//   // Filter only boards that are installed
+//   return boards.filter(board => board.platform?.release?.installed);
+// });
+
+const boardStructure = computed<{ [platform: string]: { name: string, fqbn: string }[] }>(() => {
   const boards = vsCodeStore.boards?.boards ?? [];
-  // Filter only boards that are installed
-  return boards.filter(board => board.platform?.release?.installed);
+  
+  // Initialize an empty object to hold the structured board data
+  const boardStructure: { [platform: string]: { name: string, fqbn: string }[] } = {};
+  const uniqueFqbnSet = new Set<string>();
+
+  boards.forEach((board) => {
+    // Filter out boards that are not installed
+    if (!board.platform?.release?.installed) {
+      return;
+    }
+
+    const platformName = board.platform.release.name;
+
+    // Initialize the platform in the structure if it doesn't exist
+    if (!boardStructure[platformName]) {
+      boardStructure[platformName] = [];
+    }
+
+    // Loop through each board under this platform
+    board.platform.release.boards.forEach((boardInfo: any) => {
+      const { name, fqbn } = boardInfo;
+
+      // Only add if the fqbn is not a duplicate
+      if (!uniqueFqbnSet.has(fqbn)) {
+        uniqueFqbnSet.add(fqbn);
+        boardStructure[platformName].push({ name, fqbn });
+      }
+    });
+  });
+
+  return boardStructure;
 });
+
+
 
 
 function sendTestMessage() {
@@ -56,27 +93,33 @@ const inDevelopment = computed(() => import.meta.env.DEV);
       <div v-if="inDevelopment">
         <v-btn @click="sendTestMessage()">Send Test Message</v-btn>
       </div>
-      <v-text-field label="Current Board:" :model-value="vsCodeStore.boardConfiguration?.boardConfiguration?.name"
-        readonly>
+      <v-text-field label="Current Board:" :model-value="vsCodeStore.boardConfiguration?.boardConfiguration?.name" readonly>
         <template v-slot:loader>
-          <v-progress-linear :active="!vsCodeStore.boardConfiguration?.boardConfiguration?.name" height="2"
-            indeterminate></v-progress-linear>
+          <v-progress-linear :active="!vsCodeStore.boardConfiguration?.boardConfiguration?.name" height="2" indeterminate></v-progress-linear>
         </template>
       </v-text-field>
-      <div v-if="boardStructure.length == 0">
+      <div v-if="Object.keys(boardStructure).length === 0">
         Loading Boards
         <v-progress-circular :size="25" color="grey" indeterminate></v-progress-circular>
       </div>
       <div v-else>
         Choose a board from the platforms:
         <v-expansion-panels multiple>
-          <v-expansion-panel v-for="(board) in boardStructure" :key="board.fqbn">
-            <v-expansion-panel-title>{{ board.name }}</v-expansion-panel-title>
+          <v-expansion-panel
+            v-for="(boards, platform) in boardStructure"
+            :key="platform"
+          >
+            <v-expansion-panel-title>{{ platform }}</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <v-autocomplete  :items="board.platform.release.boards" item-title="name" item-value="fqbn"
-                label="Select a Board" outlined dense return-object></v-autocomplete>
-              <!-- <v-autocomplete v-model="boardSelect[index]" :items="board.platform.release.boards" item-title="name" item-value="fqbn"
-                label="Select a Board" outlined dense return-object></v-autocomplete> -->
+              <v-autocomplete
+                :items="boards"
+                item-title="name"
+                item-value="fqbn"
+                label="Select a Board"
+                outlined
+                dense
+                return-object
+              ></v-autocomplete>
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
