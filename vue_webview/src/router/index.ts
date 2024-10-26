@@ -3,6 +3,7 @@ import Home from '@/components/Home.vue';
 import BoardConfiguration from '@/components/BoardConfiguration.vue';
 import { createRouter, createMemoryHistory } from 'vue-router'
 import Updates from '@/components/Updates.vue';
+import BoardManager from '@/components/BoardManager.vue';
 
 const router = createRouter({
 
@@ -34,6 +35,13 @@ const router = createRouter({
         name: "updates",
         components: {
           default: Updates,
+        }
+      },
+      {
+        path: '/board-manager',
+        name: "board-manager",
+        components: {
+          default: BoardManager,
         }
       },
 

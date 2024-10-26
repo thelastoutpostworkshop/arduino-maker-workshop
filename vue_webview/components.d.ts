@@ -8,7 +8,9 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     BoardConfiguration: typeof import('./src/components/BoardConfiguration.vue')['default']
+    BoardManager: typeof import('./src/components/BoardManager.vue')['default']
     BoardSelection: typeof import('./src/components/BoardSelection.vue')['default']
+    copy: typeof import('./src/components/BoardSelection copy.vue')['default']
     Home: typeof import('./src/components/Home.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

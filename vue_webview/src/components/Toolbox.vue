@@ -13,7 +13,7 @@ const router = useRouter()
         <v-list-item prepend-icon="mdi-home" v-tooltip  @click="router.push({ name: 'home' })">Project Home</v-list-item>
         <v-list-item prepend-icon="mdi-bulletin-board" v-tooltip  @click="router.push({ name: 'board-selection' })">Board Selection</v-list-item>
         <v-list-item prepend-icon="mdi-cog" v-tooltip  @click="router.push({ name: 'board-configuration' })">Board Configuration</v-list-item>
-        <v-list-item prepend-icon="mdi-developer-board" v-tooltip>Board Manager</v-list-item>
+        <v-list-item prepend-icon="mdi-developer-board" v-tooltip  @click="router.push({ name: 'board-manager' })">Boards Manager</v-list-item>
         <v-list-item prepend-icon="mdi-library" v-tooltip>Library Manager</v-list-item>
         <v-list-item prepend-icon="mdi-update" v-tooltip  @click="router.push({ name: 'updates' })">Updates</v-list-item>
     </v-navigation-drawer>
