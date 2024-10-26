@@ -16,6 +16,7 @@ const outdatedCommandArduino: string = 'outdated';
 const coreCommandArduino:string = 'core';
 const updateOption:string = 'update-index';
 const installOption:string = 'install';
+const searchOption:string = 'search';
 export const verboseOptionArduino: string = '-v';
 export const portOptionArduino: string = '-p';
 export const buildPathArduino: string = '--build-path';
@@ -154,12 +155,12 @@ export class ArduinoProject {
         return versionCommand;
     }
     public getBoardsListArguments(): string[] {
-        const compileCommand = [
+        const searchAllCommand = [
             `${boardCommandArduino}`,
-            `${listAllFunctionArduino}`,
+            `${searchOption}`,
             `${jsonOutputArduino}`
         ];
-        return compileCommand;
+        return searchAllCommand;
     }
     public getBoardConfigurationArguments(): string[] {
         let boardConfigArg = "";
