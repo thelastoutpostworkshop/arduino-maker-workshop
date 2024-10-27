@@ -15,13 +15,6 @@ const boardSelect = ref<(BoardConfiguration | null)[]>([]); // Updated to track 
 const boardSelectBefore = ref<(BoardConfiguration | null)[]>([]);
 const filterBoards = ref(FilterBoards.installed);
 
-watch(
-  filterBoards,
-  (newValue) => {
-    console.log(newValue);
-  },
-);
-
 onMounted(() => {
   store.outdated = null;
   vscode.postMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
