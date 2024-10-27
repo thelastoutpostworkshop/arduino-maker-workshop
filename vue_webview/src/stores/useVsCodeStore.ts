@@ -79,7 +79,9 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.CORE_SEARCH:
                     try {
                         const payloadData = JSON.parse(message.payload);
-                        const platformId = payloadData.id;
+                        const platformId = payloadData.find(()=>{
+                            
+                        })
                         const releases = payloadData.releases || {};
                 
                         // Create an object to store each version and its corresponding release data

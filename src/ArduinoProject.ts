@@ -162,11 +162,11 @@ export class ArduinoProject {
         ];
         return searchAllCommand;
     }
-    public getCoreSearchArguments(platform_id:string): string[] {
+    public getCoreSearchArguments(): string[] {
         const searchAllCommand = [
             `${boardCommandArduino}`,
             `${searchOption}`,
-            `${platform_id}`,
+            `-a`,
             `${jsonOutputArduino}`
         ];
         return searchAllCommand;

@@ -70,8 +70,7 @@ export class VueWebviewPanel {
                         });
                         break;
                     case ARDUINO_MESSAGES.CORE_SEARCH:
-                        const coreToSeatch = message.payload;
-                        this.searchCore(coreToSeatch).then((result) => {
+                        this.searchCore().then((result) => {
                             VueWebviewPanel.sendMessage(result);
                         });
                         break;
@@ -125,9 +124,9 @@ export class VueWebviewPanel {
         }
         return installCoreVersionResult;
     }
-    private async searchCore(platform_id: string): Promise<WebviewToExtensionMessage> {
+    private async searchCore(): Promise<WebviewToExtensionMessage> {
         const coreSearchResult = this.createWebviewMessage(ARDUINO_MESSAGES.CORE_SEARCH);
-        const result = await searchCore(platform_id);
+        const result = await searchCore();
         if (result !== "") {
             coreSearchResult.payload = result;
         }
