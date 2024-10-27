@@ -16,7 +16,7 @@ const boardSelectBefore = ref<(BoardConfiguration | null)[]>([]);
 onMounted(() => {
   store.outdated = null;
   vscode.postMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
-  vscode.postMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
+  // vscode.postMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
 });
 
 // Watch for changes in boardSelect
@@ -77,15 +77,6 @@ watch(
 //   }
 // };
 
-function plateformMetadata(platform_id:string):Metadata|undefined{
-  if(store.boards) {
-    const platform = store.boards.boards.find((platform)=>{
-      platform_id === platform.platform.metadata.id;
-    })
-    return platform?.platform.metadata;
-  }
-  return undefined;
-}
 
 const platformName = (platform_id: string): string => {
   const p = store.platform?.platforms.find((platform) => platform.id === platform_id);
@@ -146,11 +137,6 @@ function sendTestMessage() {
     errorMessage: "",
     payload: import.meta.env.VITE_SEARCH_CORE_TEST
   });
-  store.simulateMessage({
-    command: ARDUINO_MESSAGES.BOARDS_LIST_ALL,
-    errorMessage: "",
-    payload: import.meta.env.VITE_BOARDS_LISTALL_TEST
-  });
 }
 
 const inDevelopment = computed(() => import.meta.env.DEV);
@@ -165,14 +151,14 @@ const inDevelopment = computed(() => import.meta.env.DEV);
       <div v-if="inDevelopment">
         <v-btn @click="sendTestMessage()">Send Test Message</v-btn>
       </div>
-      <div v-if="!store.platform?.platforms || !store.boards">
+      <div v-if="!store.platform?.platforms">
         Loading Boards
         <v-progress-circular :size="25" color="grey" indeterminate></v-progress-circular>
       </div>
       <div v-else>
         Boards Available:
         <v-card v-for="(platform) in store.platform.platforms" :key="platform.id" :title="platformName(platform.id)"
-          :subtitle="'by ' + plateformMetadata(platform.id)" color="blue-grey-darken-4">
+          :subtitle="'by ' + platform.maintainer" color="blue-grey-darken-4">
           <v-card-text>
             <!-- <v-btn @click="updatePlatformVersion(platform.id)" class="mb-2" size="small"
               append-icon="mdi-arrow-down">Install version selected</v-btn> -->
@@ -180,7 +166,6 @@ const inDevelopment = computed(() => import.meta.env.DEV);
               :items="releases(platformData.metadata.id)" item-title="version" item-value="version" return-object
               density="compact">
             </v-select> -->
-            {{ platform.maintainer }}
           </v-card-text>
         </v-card>
         <!-- <v-expansion-panels multiple>
