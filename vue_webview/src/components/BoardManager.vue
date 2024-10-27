@@ -1,17 +1,31 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, BoardConfiguration, Metadata } from '@shared/messages';
+import { ARDUINO_MESSAGES, BoardConfiguration } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
 
+enum FilterBoards {
+  installed,
+  updatable,
+  deprecated,
+  all
+}
 const store = useVsCodeStore();
 const boardSelect = ref<(BoardConfiguration | null)[]>([]); // Updated to track selected boards for each platform
 const boardSelectBefore = ref<(BoardConfiguration | null)[]>([]);
+const filterBoards = ref(FilterBoards.installed);
 
 // interface PlatformOutdated {
 //   version: string;
 //   platformId: string;
 // }
+
+watch(
+  filterBoards,
+  (newValue) => {
+    console.log(newValue);
+  },
+);
 
 onMounted(() => {
   store.outdated = null;
@@ -157,6 +171,12 @@ const inDevelopment = computed(() => import.meta.env.DEV);
       </div>
       <div v-else>
         Boards Available:
+        <v-chip-group selected-class="text-primary" mandatory v-model="filterBoards">
+          <v-chip filter :value="FilterBoards.installed">Installed</v-chip>
+          <v-chip filter :value="FilterBoards.updatable">Updatable</v-chip>
+          <v-chip filter :value="FilterBoards.deprecated">Deprecated</v-chip>
+          <v-chip filter :value="FilterBoards.all">All</v-chip>
+        </v-chip-group>
         <v-card v-for="(platform) in store.platform.platforms" :key="platform.id" color="blue-grey-darken-4"
           class="mb-5 mt-5">
           <v-card-title>
@@ -164,6 +184,12 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           </v-card-title>
           <v-card-subtitle>
             {{ "by " + platform.maintainer }}
+            <span class="text-blue">
+              {{ platform.installed_version }} installed
+            </span>
+            <span class="text-green font-weight-bold">
+              ({{ platform.latest_version }} is the newest)
+            </span>
             <a :href="platform.website" target="_blank">Go to Web Site</a><br />
           </v-card-subtitle>
           <v-card-action>
@@ -176,7 +202,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
               :items="releases(platformData.metadata.id)" item-title="version" item-value="version" return-object
               density="compact">
             </v-select> -->
-            <span class="text-blue font-weight-bold">
+            <span class="text-blue">
               {{ platform.installed_version }} installed
             </span>
             <span class="text-green font-weight-bold">
