@@ -15,11 +15,6 @@ const boardSelect = ref<(BoardConfiguration | null)[]>([]); // Updated to track 
 const boardSelectBefore = ref<(BoardConfiguration | null)[]>([]);
 const filterBoards = ref(FilterBoards.installed);
 
-// interface PlatformOutdated {
-//   version: string;
-//   platformId: string;
-// }
-
 watch(
   filterBoards,
   (newValue) => {
@@ -47,32 +42,6 @@ watch(
   },
   { deep: true }
 );
-
-// watch(
-//   () => vsCodeStore.boards,
-//   (newBoards) => {
-//     if (newBoards?.boards) {
-//       newBoards.boards.forEach((board) => {
-//         if (inDevelopment) {
-//           const message: WebviewToExtensionMessage = {
-//             command: ARDUINO_MESSAGES.CORE_SEARCH,
-//             errorMessage: "",
-//             payload: import.meta.env.VITE_SEARCH_CORE_TEST
-//           }
-//           vsCodeStore.simulateMessage(message);
-//         } else {
-//           const platformId = board.platform.metadata.id;
-//           vscode.postMessage({
-//             command: ARDUINO_MESSAGES.CORE_SEARCH,
-//             errorMessage: "",
-//             payload: platformId,
-//           });
-//         }
-//       });
-//     }
-//   },
-//   { immediate: true }
-// );
 
 // const releases = (platformId: string): PlatformOutdated[] => {
 //   const release = store.outdated?.platforms.find((platform) => platform.id === platformId);
@@ -138,48 +107,6 @@ const platformName = (platform_id: string): string => {
   const name = relEntries[0]?.[1]?.name || 'Unknown'; // Access the name from the first release entry
   return name;
 };
-
-// Computed property for grouping boards by platform and filtering only installed boards
-// const boardStructure = computed<{ [platform: string]: { metadata: Metadata; name: string; boards: { name: string, fqbn: string }[] } }>(() => {
-//   const boards = store.boards?.boards ?? [];
-
-//   // Initialize an empty object to hold the structured board data with metadata
-//   const boardStructure: { [platformID: string]: { metadata: Metadata; name: string; boards: { name: string, fqbn: string }[] } } = {};
-//   const uniqueFqbnSet = new Set<string>();
-
-//   boards.forEach((board) => {
-
-//     const platformName = board.platform.release.name;
-//     const plateformID = board.platform.metadata.id;
-
-//     // Initialize the platform in the structure if it doesn't exist, and add metadata
-//     if (!boardStructure[plateformID]) {
-//       boardStructure[plateformID] = {
-//         metadata: board.platform.metadata,
-//         name: platformName,
-//         boards: []
-//       };
-//     }
-
-//     // Loop through each board under this platform
-//     board.platform.release.boards.forEach((boardInfo: any) => {
-//       const { name, fqbn } = boardInfo;
-
-//       // Only add if the fqbn is not a duplicate
-//       if (!uniqueFqbnSet.has(fqbn)) {
-//         uniqueFqbnSet.add(fqbn);
-//         boardStructure[plateformID].boards.push({ name, fqbn });
-//       }
-//     });
-//   });
-
-//   // Ensure boardSelect is initialized properly for each platform
-//   const platformCount = Object.keys(boardStructure).length;
-//   boardSelect.value = Array(platformCount).fill(null);
-
-//   return boardStructure;
-// });
-
 
 function sendTestMessage() {
   store.simulateMessage({
