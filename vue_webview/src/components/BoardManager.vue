@@ -1,14 +1,21 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, WebviewToExtensionMessage, BoardConfiguration, Metadata } from '@shared/messages';
+import { ARDUINO_MESSAGES, WebviewToExtensionMessage, BoardConfiguration, Metadata, Release } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
 
 const vsCodeStore = useVsCodeStore();
 const boardSelect = ref<(BoardConfiguration | null)[]>([]); // Updated to track selected boards for each platform
 const boardSelectBefore = ref<(BoardConfiguration | null)[]>([]);
+const selectedPlatform = ref<Record<string, PlatformOutdated>>({});
+
+interface PlatformOutdated {
+  version: string;
+  platformId: string;
+}
 
 onMounted(() => {
+  vsCodeStore.outdated = null;
   vscode.postMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
 });
 
@@ -27,8 +34,25 @@ watch(
   { deep: true }
 );
 
+const releases = (platformId: string): PlatformOutdated[] => {
+  const release = vsCodeStore.outdated?.platforms.find((platform) => platform.id === platformId);
+
+  if (release) {
+    console.log(release);
+    const rel = Object.entries(release)
+      .reverse() // Reverse the entries without sorting
+      .map(([version]) => ({
+        version,          // Add version key
+        platformId        // Add platformId to each object
+      }));
+    return rel;
+  } else {
+    return [];
+  }
+};
+
 // Computed property for grouping boards by platform and filtering only installed boards
-const boardStructure = computed<{ [platform: string]: { metadata: Metadata;name: string; boards: { name: string, fqbn: string }[] } }>(() => {
+const boardStructure = computed<{ [platform: string]: { metadata: Metadata; name: string; boards: { name: string, fqbn: string }[] } }>(() => {
   const boards = vsCodeStore.boards?.boards ?? [];
 
   // Initialize an empty object to hold the structured board data with metadata
@@ -96,9 +120,21 @@ const inDevelopment = computed(() => import.meta.env.DEV);
       </div>
       <div v-else>
         Boards Available:
+        <v-card v-for="(platformData) in boardStructure" :key="platformData.metadata.id" :title="platformData.name"
+          :subtitle="'by ' + platformData.metadata.maintainer" color="blue-grey-darken-4">
+          <v-card-text>
+            <!-- <v-btn @click="updatePlatformVersion(platform.id)" class="mb-2" size="small"
+              append-icon="mdi-arrow-down">Install version selected</v-btn> -->
+            <v-select v-if="vsCodeStore.outdated?.platforms.length" v-model="selectedPlatform[platformData.metadata.id]"
+              :items="releases(platformData.metadata.id)" item-title="version" item-value="version" return-object
+              density="compact">
+            </v-select>
+          </v-card-text>
+        </v-card>
         <v-expansion-panels multiple>
           <v-expansion-panel v-for="(platformData) in boardStructure" :key="platformData.metadata.id">
-            <v-expansion-panel-title>{{ platformData.name }} by {{ platformData.metadata.maintainer }}</v-expansion-panel-title>
+            <v-expansion-panel-title>{{ platformData.name }} by {{ platformData.metadata.maintainer
+              }}</v-expansion-panel-title>
             <v-expansion-panel-text>
               <span class="text-subtitle-2">
                 <a :href="platformData.metadata.website" target="_blank">Go to Web Site</a><br />
