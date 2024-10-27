@@ -86,7 +86,7 @@ export interface Release {
   installed?: boolean;
 }
 
-interface Board {
+export interface Board {
   name: string;
   fqbn?: string;
 }

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, BoardConfiguration, Platform } from '@shared/messages';
+import { ARDUINO_MESSAGES, Board, BoardConfiguration, Platform, Release } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
+import { version } from 'os';
 
 enum FilterBoards {
   installed,
@@ -14,6 +15,7 @@ const store = useVsCodeStore();
 const boardSelect = ref<(BoardConfiguration | null)[]>([]); // Updated to track selected boards for each platform
 const boardSelectBefore = ref<(BoardConfiguration | null)[]>([]);
 const filterBoards = ref(FilterBoards.installed);
+const selectedPlatform =  ref<string[]>([]);
 
 onMounted(() => {
   store.outdated = null;
@@ -35,6 +37,13 @@ watch(
   },
   { deep: true }
 );
+
+function releases(platform: Platform): string[] {
+  const relEntries = Object.entries(platform.releases)
+    .reverse()
+    .map(([version]) => version); // Map to only the version string
+  return relEntries;
+}
 
 // const releases = (platformId: string): PlatformOutdated[] => {
 //   const release = store.outdated?.platforms.find((platform) => platform.id === platformId);
@@ -147,35 +156,23 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             </span>
             <a :href="platform.website" target="_blank">Go to Web Site</a><br />
           </v-card-subtitle>
-          <v-card-action>
-
-          </v-card-action>
           <v-card-text>
             <!-- <v-btn @click="updatePlatformVersion(platform.id)" class="mb-2" size="small"
               append-icon="mdi-arrow-down">Install version selected</v-btn> -->
-            <!-- <v-select v-if="store.outdated?.platforms.length" v-model="selectedPlatform[platformData.metadata.id]"
-              :items="releases(platformData.metadata.id)" item-title="version" item-value="version" return-object
-              density="compact">
-            </v-select> -->
             <span class="text-blue">
               {{ platform.installed_version }} installed
             </span>
             <span class="text-green font-weight-bold">
               ({{ platform.latest_version }} is the newest)
             </span>
+            <v-select v-if="platform.boards" v-model="selectedPlatform[platform.id]" :items="releases(platform)"
+              item-title="version" item-value="version" return-object density="compact">
+            </v-select>
           </v-card-text>
+          <v-card-actions>
+
+          </v-card-actions>
         </v-card>
-        <!-- <v-expansion-panels multiple>
-          <v-expansion-panel v-for="(platformData) in boardStructure" :key="platformData.metadata.id">
-            <v-expansion-panel-title>{{ platformData.name }} by {{ platformData.metadata.maintainer
-              }}</v-expansion-panel-title>
-            <v-expansion-panel-text>
-              <span class="text-subtitle-2">
-                <a :href="platformData.metadata.website" target="_blank">Go to Web Site</a><br />
-              </span>
-            </v-expansion-panel-text>
-          </v-expansion-panel>
-        </v-expansion-panels> -->
       </div>
     </v-responsive>
   </v-container>
