@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, BoardConfiguration } from '@shared/messages';
+import { ARDUINO_MESSAGES, BoardConfiguration, Platform } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
 
 enum FilterBoards {
@@ -91,6 +91,42 @@ watch(
 //   }
 // };
 
+function isPlatformInstalled(platform: Platform): boolean {
+  return platform.installed_version.trim().length !== 0
+}
+
+function isPlatformUpdatable(platform: Platform): boolean {
+  return platform.installed_version !== platform.latest_version
+}
+
+function isPlatformDepracated(platform: Platform): boolean {
+  return platform.deprecated || false;
+}
+
+const filteredPlatforms = computed(() => {
+  let filtered;
+  switch (filterBoards.value) {
+    case FilterBoards.installed:
+      filtered = store.platform?.platforms.filter((platform) => {
+        return isPlatformInstalled(platform);
+      })
+      break;
+    case FilterBoards.updatable:
+      filtered = store.platform?.platforms.filter((platform) => {
+        return isPlatformUpdatable(platform) && isPlatformInstalled(platform);
+      })
+      break;
+    case FilterBoards.deprecated:
+      filtered = store.platform?.platforms.filter((platform) => {
+        return isPlatformDepracated(platform);
+      })
+      break;
+    default:
+      filtered = store.platform?.platforms;
+      break;
+  }
+  return filtered;
+})
 
 const platformName = (platform_id: string): string => {
   const p = store.platform?.platforms.find((platform) => platform.id === platform_id);
@@ -177,8 +213,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           <v-chip filter :value="FilterBoards.deprecated">Deprecated</v-chip>
           <v-chip filter :value="FilterBoards.all">All</v-chip>
         </v-chip-group>
-        <v-card v-for="(platform) in store.platform.platforms" :key="platform.id" color="blue-grey-darken-4"
-          class="mb-5 mt-5">
+        <v-card v-for="(platform) in filteredPlatforms" :key="platform.id" color="blue-grey-darken-4" class="mb-5 mt-5">
           <v-card-title>
             {{ platformName(platform.id) }}
           </v-card-title>

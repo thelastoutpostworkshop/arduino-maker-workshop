@@ -72,6 +72,7 @@ export interface Platform {
   releases: Record<string, Release>;
   installed_version: string;
   latest_version: string;
+  deprecated?:boolean;
   boards: Board[];
 }
 
