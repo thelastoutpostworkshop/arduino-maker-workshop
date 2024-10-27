@@ -34,6 +34,32 @@ watch(
   { deep: true }
 );
 
+watch(
+  () => vsCodeStore.boards,
+  (newBoards) => {
+    if (newBoards?.boards) {
+      newBoards.boards.forEach((board) => {
+        if (inDevelopment) {
+          const message: WebviewToExtensionMessage = {
+            command: ARDUINO_MESSAGES.CORE_SEARCH,
+            errorMessage: "",
+            payload: import.meta.env.VITE_SEARCH_CORE_TEST
+          }
+          vsCodeStore.simulateMessage(message);
+        } else {
+          const platformId = board.platform.metadata.id;
+          vscode.postMessage({
+            command: ARDUINO_MESSAGES.CORE_SEARCH,
+            errorMessage: "",
+            payload: platformId,
+          });
+        }
+      });
+    }
+  },
+  { immediate: true }
+);
+
 const releases = (platformId: string): PlatformOutdated[] => {
   const release = vsCodeStore.outdated?.platforms.find((platform) => platform.id === platformId);
 
