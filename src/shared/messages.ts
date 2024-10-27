@@ -143,6 +143,10 @@ export interface OutdatedInformation {
   libraries: LibraryData[];
 }
 
+export interface CorePlatforms {
+  platforms:Platform[];
+}
+
 export interface PlatformsList {
   boards: BoardList[];
 }

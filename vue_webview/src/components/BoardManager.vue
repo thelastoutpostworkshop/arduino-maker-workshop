@@ -4,19 +4,19 @@ import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, WebviewToExtensionMessage, BoardConfiguration, Metadata } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
 
-const vsCodeStore = useVsCodeStore();
+const store = useVsCodeStore();
 const boardSelect = ref<(BoardConfiguration | null)[]>([]); // Updated to track selected boards for each platform
 const boardSelectBefore = ref<(BoardConfiguration | null)[]>([]);
-const selectedPlatform = ref<Record<string, PlatformOutdated>>({});
 
-interface PlatformOutdated {
-  version: string;
-  platformId: string;
-}
+// interface PlatformOutdated {
+//   version: string;
+//   platformId: string;
+// }
 
 onMounted(() => {
-  vsCodeStore.outdated = null;
+  store.outdated = null;
   vscode.postMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
+  vscode.postMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
 });
 
 // Watch for changes in boardSelect
@@ -27,7 +27,7 @@ watch(
       if (newVal && newVal !== boardSelectBefore.value[index]) {
         vscode.postMessage({ command: ARDUINO_MESSAGES.SET_BOARD, errorMessage: "", payload: newVal.fqbn });
         boardSelectBefore.value = [...boardSelect.value];
-        vsCodeStore.boardConfiguration = null;
+        store.boardConfiguration = null;
       }
     });
   },
@@ -60,26 +60,37 @@ watch(
 //   { immediate: true }
 // );
 
-const releases = (platformId: string): PlatformOutdated[] => {
-  const release = vsCodeStore.outdated?.platforms.find((platform) => platform.id === platformId);
+// const releases = (platformId: string): PlatformOutdated[] => {
+//   const release = store.outdated?.platforms.find((platform) => platform.id === platformId);
 
-  if (release) {
-    console.log(release);
-    const rel = Object.entries(release)
-      .reverse() // Reverse the entries without sorting
-      .map(([version]) => ({
-        version,          // Add version key
-        platformId        // Add platformId to each object
-      }));
-    return rel;
-  } else {
-    return [];
+//   if (release) {
+//     console.log(release);
+//     const rel = Object.entries(release)
+//       .reverse() // Reverse the entries without sorting
+//       .map(([version]) => ({
+//         version,          // Add version key
+//         platformId        // Add platformId to each object
+//       }));
+//     return rel;
+//   } else {
+//     return [];
+//   }
+// };
+
+const platformName = (platform_id: string): string => {
+  const p = store.platform?.platforms.find((platform) => platform.id === platform_id);
+  if (!p || !p.releases) {
+    return 'Unknown';
   }
+
+  const relEntries = Object.entries(p.releases).reverse(); // Array of [version, Release] pairs
+  const name = relEntries[0]?.[1]?.name || 'Unknown'; // Access the name from the first release entry
+  return name;
 };
 
 // Computed property for grouping boards by platform and filtering only installed boards
 const boardStructure = computed<{ [platform: string]: { metadata: Metadata; name: string; boards: { name: string, fqbn: string }[] } }>(() => {
-  const boards = vsCodeStore.boards?.boards ?? [];
+  const boards = store.boards?.boards ?? [];
 
   // Initialize an empty object to hold the structured board data with metadata
   const boardStructure: { [platformID: string]: { metadata: Metadata; name: string; boards: { name: string, fqbn: string }[] } } = {};
@@ -120,12 +131,16 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; name
 
 
 function sendTestMessage() {
-  const message: WebviewToExtensionMessage = {
+  store.simulateMessage({
     command: ARDUINO_MESSAGES.CORE_SEARCH,
     errorMessage: "",
     payload: import.meta.env.VITE_SEARCH_CORE_TEST
-  }
-  vsCodeStore.simulateMessage(message);
+  });
+  store.simulateMessage({
+    command: ARDUINO_MESSAGES.BOARDS_LIST_ALL,
+    errorMessage: "",
+    payload: import.meta.env.VITE_BOARDS_LISTALL_TEST
+  });
 }
 
 const inDevelopment = computed(() => import.meta.env.DEV);
@@ -140,24 +155,25 @@ const inDevelopment = computed(() => import.meta.env.DEV);
       <div v-if="inDevelopment">
         <v-btn @click="sendTestMessage()">Send Test Message</v-btn>
       </div>
-      <div v-if="Object.keys(boardStructure).length === 0">
+      <div v-if="!store.platform?.platforms || !store.boards">
         Loading Boards
         <v-progress-circular :size="25" color="grey" indeterminate></v-progress-circular>
       </div>
       <div v-else>
         Boards Available:
-        <v-card v-for="(platformData) in boardStructure" :key="platformData.metadata.id" :title="platformData.name"
-          :subtitle="'by ' + platformData.metadata.maintainer" color="blue-grey-darken-4">
+        <v-card v-for="(platform) in store.platform.platforms" :key="platform.id" :title="platformName(platform.id)"
+          :subtitle="'by ' + platform.maintainer" color="blue-grey-darken-4">
           <v-card-text>
             <!-- <v-btn @click="updatePlatformVersion(platform.id)" class="mb-2" size="small"
               append-icon="mdi-arrow-down">Install version selected</v-btn> -->
-            <v-select v-if="vsCodeStore.outdated?.platforms.length" v-model="selectedPlatform[platformData.metadata.id]"
+            <!-- <v-select v-if="store.outdated?.platforms.length" v-model="selectedPlatform[platformData.metadata.id]"
               :items="releases(platformData.metadata.id)" item-title="version" item-value="version" return-object
               density="compact">
-            </v-select>
+            </v-select> -->
+            {{ platform.maintainer }}
           </v-card-text>
         </v-card>
-        <v-expansion-panels multiple>
+        <!-- <v-expansion-panels multiple>
           <v-expansion-panel v-for="(platformData) in boardStructure" :key="platformData.metadata.id">
             <v-expansion-panel-title>{{ platformData.name }} by {{ platformData.metadata.maintainer
               }}</v-expansion-panel-title>
@@ -167,7 +183,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
               </span>
             </v-expansion-panel-text>
           </v-expansion-panel>
-        </v-expansion-panels>
+        </v-expansion-panels> -->
       </div>
     </v-responsive>
   </v-container>

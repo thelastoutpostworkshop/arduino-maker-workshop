@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, OutdatedInformation, WebviewToExtensionMessage, PlatformsList, Platform } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, OutdatedInformation, WebviewToExtensionMessage, PlatformsList, CorePlatforms } from '@shared/messages';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
@@ -9,7 +9,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         boardConfiguration: null as ArduinoBoardConfigurationPayload | null,
         boards: null as PlatformsList | null,
         outdated: null as OutdatedInformation | null,
-        platform: [] as Platform | [], 
+        platform: null as CorePlatforms | null,
     }),
     actions: {
         simulateMessage(message: WebviewToExtensionMessage) {
@@ -79,7 +79,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.CORE_SEARCH:
                     try {
                         this.platform = JSON.parse(message.payload);
-                      } catch (error) {
+                    } catch (error) {
                         console.log("Failed to parse core search response: " + error);
                     }
                     break;

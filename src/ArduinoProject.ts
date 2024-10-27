@@ -164,7 +164,7 @@ export class ArduinoProject {
     }
     public getCoreSearchArguments(): string[] {
         const searchAllCommand = [
-            `${boardCommandArduino}`,
+            `${coreCommandArduino}`,
             `${searchOption}`,
             `-a`,
             `${jsonOutputArduino}`
