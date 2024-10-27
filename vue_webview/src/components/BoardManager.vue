@@ -157,8 +157,18 @@ const inDevelopment = computed(() => import.meta.env.DEV);
       </div>
       <div v-else>
         Boards Available:
-        <v-card v-for="(platform) in store.platform.platforms" :key="platform.id" :title="platformName(platform.id)"
-          :subtitle="'by ' + platform.maintainer" color="blue-grey-darken-4">
+        <v-card v-for="(platform) in store.platform.platforms" :key="platform.id" color="blue-grey-darken-4"
+          class="mb-5 mt-5">
+          <v-card-title>
+            {{ platformName(platform.id) }}
+          </v-card-title>
+          <v-card-subtitle>
+            {{ "by " + platform.maintainer }}
+            <a :href="platform.website" target="_blank">Go to Web Site</a><br />
+          </v-card-subtitle>
+          <v-card-action>
+
+          </v-card-action>
           <v-card-text>
             <!-- <v-btn @click="updatePlatformVersion(platform.id)" class="mb-2" size="small"
               append-icon="mdi-arrow-down">Install version selected</v-btn> -->
@@ -166,6 +176,12 @@ const inDevelopment = computed(() => import.meta.env.DEV);
               :items="releases(platformData.metadata.id)" item-title="version" item-value="version" return-object
               density="compact">
             </v-select> -->
+            <span class="text-blue font-weight-bold">
+              {{ platform.installed_version }} installed
+            </span>
+            <span class="text-green font-weight-bold">
+              ({{ platform.latest_version }} is the newest)
+            </span>
           </v-card-text>
         </v-card>
         <!-- <v-expansion-panels multiple>
