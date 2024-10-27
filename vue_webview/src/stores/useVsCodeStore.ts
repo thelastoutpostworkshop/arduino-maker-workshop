@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, OutdatedInformation, WebviewToExtensionMessage, PlatformsList } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, OutdatedInformation, WebviewToExtensionMessage, PlatformsList, Release } from '@shared/messages';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
@@ -8,7 +8,8 @@ export const useVsCodeStore = defineStore('vsCode', {
         projectStatus: null as WebviewToExtensionMessage | null,
         boardConfiguration: null as ArduinoBoardConfigurationPayload | null,
         boards: null as PlatformsList | null,
-        outdated: null as OutdatedInformation | null
+        outdated: null as OutdatedInformation | null,
+        platformReleases: {} as Record<string, Record<string, Release>>, 
     }),
     actions: {
         simulateMessage(message: WebviewToExtensionMessage) {
@@ -75,6 +76,25 @@ export const useVsCodeStore = defineStore('vsCode', {
                         console.log("Failed to parse Board Configuration information: " + error);
                     }
                     break;
+                case ARDUINO_MESSAGES.CORE_SEARCH:
+                    try {
+                        const payloadData = JSON.parse(message.payload);
+                        const platformId = payloadData.id;
+                        const releases = payloadData.releases || {};
+                
+                        // Create an object to store each version and its corresponding release data
+                        const platformReleaseRecord: Record<string, Release> = {};
+                        Object.entries(releases).forEach(([version, releaseData]) => {
+                            platformReleaseRecord[version] = releaseData as Release;
+                        });
+                
+                        // Store the platform releases by platformId in platformReleases
+                        this.platformReleases[platformId] = platformReleaseRecord;
+                    } catch (error) {
+                        console.log("Failed to parse core search response: " + error);
+                    }
+                    break;
+
                 default:
                     console.warn('Unknown command received:', message.command);
             }
