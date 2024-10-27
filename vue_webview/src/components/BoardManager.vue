@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, WebviewToExtensionMessage, BoardConfiguration, Metadata } from '@shared/messages';
+import { ARDUINO_MESSAGES, BoardConfiguration, Metadata } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
 
 const store = useVsCodeStore();
@@ -77,6 +77,16 @@ watch(
 //   }
 // };
 
+function plateformMetadata(platform_id:string):Metadata|undefined{
+  if(store.boards) {
+    const platform = store.boards.boards.find((platform)=>{
+      platform_id === platform.platform.metadata.id;
+    })
+    return platform?.platform.metadata;
+  }
+  return undefined;
+}
+
 const platformName = (platform_id: string): string => {
   const p = store.platform?.platforms.find((platform) => platform.id === platform_id);
   if (!p || !p.releases) {
@@ -89,45 +99,45 @@ const platformName = (platform_id: string): string => {
 };
 
 // Computed property for grouping boards by platform and filtering only installed boards
-const boardStructure = computed<{ [platform: string]: { metadata: Metadata; name: string; boards: { name: string, fqbn: string }[] } }>(() => {
-  const boards = store.boards?.boards ?? [];
+// const boardStructure = computed<{ [platform: string]: { metadata: Metadata; name: string; boards: { name: string, fqbn: string }[] } }>(() => {
+//   const boards = store.boards?.boards ?? [];
 
-  // Initialize an empty object to hold the structured board data with metadata
-  const boardStructure: { [platformID: string]: { metadata: Metadata; name: string; boards: { name: string, fqbn: string }[] } } = {};
-  const uniqueFqbnSet = new Set<string>();
+//   // Initialize an empty object to hold the structured board data with metadata
+//   const boardStructure: { [platformID: string]: { metadata: Metadata; name: string; boards: { name: string, fqbn: string }[] } } = {};
+//   const uniqueFqbnSet = new Set<string>();
 
-  boards.forEach((board) => {
+//   boards.forEach((board) => {
 
-    const platformName = board.platform.release.name;
-    const plateformID = board.platform.metadata.id;
+//     const platformName = board.platform.release.name;
+//     const plateformID = board.platform.metadata.id;
 
-    // Initialize the platform in the structure if it doesn't exist, and add metadata
-    if (!boardStructure[plateformID]) {
-      boardStructure[plateformID] = {
-        metadata: board.platform.metadata,
-        name: platformName,
-        boards: []
-      };
-    }
+//     // Initialize the platform in the structure if it doesn't exist, and add metadata
+//     if (!boardStructure[plateformID]) {
+//       boardStructure[plateformID] = {
+//         metadata: board.platform.metadata,
+//         name: platformName,
+//         boards: []
+//       };
+//     }
 
-    // Loop through each board under this platform
-    board.platform.release.boards.forEach((boardInfo: any) => {
-      const { name, fqbn } = boardInfo;
+//     // Loop through each board under this platform
+//     board.platform.release.boards.forEach((boardInfo: any) => {
+//       const { name, fqbn } = boardInfo;
 
-      // Only add if the fqbn is not a duplicate
-      if (!uniqueFqbnSet.has(fqbn)) {
-        uniqueFqbnSet.add(fqbn);
-        boardStructure[plateformID].boards.push({ name, fqbn });
-      }
-    });
-  });
+//       // Only add if the fqbn is not a duplicate
+//       if (!uniqueFqbnSet.has(fqbn)) {
+//         uniqueFqbnSet.add(fqbn);
+//         boardStructure[plateformID].boards.push({ name, fqbn });
+//       }
+//     });
+//   });
 
-  // Ensure boardSelect is initialized properly for each platform
-  const platformCount = Object.keys(boardStructure).length;
-  boardSelect.value = Array(platformCount).fill(null);
+//   // Ensure boardSelect is initialized properly for each platform
+//   const platformCount = Object.keys(boardStructure).length;
+//   boardSelect.value = Array(platformCount).fill(null);
 
-  return boardStructure;
-});
+//   return boardStructure;
+// });
 
 
 function sendTestMessage() {
@@ -162,7 +172,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
       <div v-else>
         Boards Available:
         <v-card v-for="(platform) in store.platform.platforms" :key="platform.id" :title="platformName(platform.id)"
-          :subtitle="'by ' + platform.maintainer" color="blue-grey-darken-4">
+          :subtitle="'by ' + plateformMetadata(platform.id)" color="blue-grey-darken-4">
           <v-card-text>
             <!-- <v-btn @click="updatePlatformVersion(platform.id)" class="mb-2" size="small"
               append-icon="mdi-arrow-down">Install version selected</v-btn> -->
