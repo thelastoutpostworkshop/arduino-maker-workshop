@@ -162,6 +162,15 @@ export class ArduinoProject {
         ];
         return searchAllCommand;
     }
+    public getCoreSearchArguments(platform_id:string): string[] {
+        const searchAllCommand = [
+            `${boardCommandArduino}`,
+            `${searchOption}`,
+            `${platform_id}`,
+            `${jsonOutputArduino}`
+        ];
+        return searchAllCommand;
+    }
     public getBoardConfigurationArguments(): string[] {
         let boardConfigArg = "";
         if (this.getBoardConfiguration() === "") {
