@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, OutdatedInformation, WebviewToExtensionMessage, PlatformsList, Release } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, OutdatedInformation, WebviewToExtensionMessage, PlatformsList, Release, Platform } from '@shared/messages';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
@@ -9,7 +9,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         boardConfiguration: null as ArduinoBoardConfigurationPayload | null,
         boards: null as PlatformsList | null,
         outdated: null as OutdatedInformation | null,
-        platformReleases: {} as Record<string, Record<string, Release>>, 
+        platform: [] as Platform | [], 
     }),
     actions: {
         simulateMessage(message: WebviewToExtensionMessage) {
@@ -78,21 +78,8 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.CORE_SEARCH:
                     try {
-                        const payloadData = JSON.parse(message.payload);
-                        const platformId = payloadData.find(()=>{
-                            
-                        })
-                        const releases = payloadData.releases || {};
-                
-                        // Create an object to store each version and its corresponding release data
-                        const platformReleaseRecord: Record<string, Release> = {};
-                        Object.entries(releases).forEach(([version, releaseData]) => {
-                            platformReleaseRecord[version] = releaseData as Release;
-                        });
-                
-                        // Store the platform releases by platformId in platformReleases
-                        this.platformReleases[platformId] = platformReleaseRecord;
-                    } catch (error) {
+                        this.platform = JSON.parse(message.payload);
+                      } catch (error) {
                         console.log("Failed to parse core search response: " + error);
                     }
                     break;
