@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck, runInstallCoreVersion } from "./extension";
+import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck, runInstallCoreVersion, searchCore } from "./extension";
 import { ARDUINO_ERRORS } from "./ArduinoProject";
 
 const path = require('path');
@@ -69,6 +69,12 @@ export class VueWebviewPanel {
 
                         });
                         break;
+                    case ARDUINO_MESSAGES.CORE_SEARCH:
+                        const coreToSeatch = message.payload;
+                        this.searchCore(coreToSeatch).then((result) => {
+                            VueWebviewPanel.sendMessage(result);
+                        });
+                        break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);
                 }
@@ -111,18 +117,6 @@ export class VueWebviewPanel {
         return outdated;
     }
 
-    // private async getBoardListAll_old(): Promise<WebviewToExtensionMessage> {
-    //     const result = await getBoardsListAll();
-    //     const boardList: WebviewToExtensionMessage = {
-    //         command: ARDUINO_MESSAGES.BOARDS_LIST_ALL,
-    //         errorMessage: result.errorMessage,
-    //         payload: JSON.stringify({
-    //             boardStructure: result.boardStructure,
-    //         })
-    //     };
-    //     return boardList;
-    // }
-
     private async installCoreVersion(version: string): Promise<WebviewToExtensionMessage> {
         const installCoreVersionResult = this.createWebviewMessage(ARDUINO_MESSAGES.INSTALL_CORE_VERSION);
         const result = await runInstallCoreVersion(version);
@@ -130,6 +124,14 @@ export class VueWebviewPanel {
             installCoreVersionResult.payload = result;
         }
         return installCoreVersionResult;
+    }
+    private async searchCore(platform_id: string): Promise<WebviewToExtensionMessage> {
+        const coreSearchResult = this.createWebviewMessage(ARDUINO_MESSAGES.CORE_SEARCH);
+        const result = await searchCore(platform_id);
+        if (result !== "") {
+            coreSearchResult.payload = result;
+        }
+        return coreSearchResult;
     }
     private async runCoreUpdate(): Promise<WebviewToExtensionMessage> {
         const coreUpdateResult = this.createWebviewMessage(ARDUINO_MESSAGES.OUTDATED);

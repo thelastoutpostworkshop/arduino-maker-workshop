@@ -105,6 +105,21 @@ export async function getOutdatedBoardAndLib(): Promise<string> {
 		throw error;
 	}
 }
+export async function searchCore(platform_id:string): Promise<string> {
+	try {
+		const searchCoreArgs = arduinoProject.getCoreSearchArguments(platform_id);
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, searchCoreArgs, true, true);
+		if (!result) {
+			window.showErrorMessage(`CLI : No result from search core`);
+			throw new Error("Command result empty");
+		}
+		return result;
+	} catch (error: any) {
+		window.showErrorMessage(`CLI : Error from search core`);
+		throw error;
+	}
+}
+
 export async function runInstallCoreVersion(version:string): Promise<string> {
 	try {
 		const coreInstallVersionArgs = arduinoProject.getInstallCoreVersionArguments(version);
