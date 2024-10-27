@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, WebviewToExtensionMessage, BoardConfiguration, Metadata, Release } from '@shared/messages';
+import { ARDUINO_MESSAGES, WebviewToExtensionMessage, BoardConfiguration, Metadata } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
 
 const vsCodeStore = useVsCodeStore();
@@ -16,7 +16,7 @@ interface PlatformOutdated {
 
 onMounted(() => {
   vsCodeStore.outdated = null;
-  vscode.postMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
+  vscode.postMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
 });
 
 // Watch for changes in boardSelect
@@ -34,31 +34,31 @@ watch(
   { deep: true }
 );
 
-watch(
-  () => vsCodeStore.boards,
-  (newBoards) => {
-    if (newBoards?.boards) {
-      newBoards.boards.forEach((board) => {
-        if (inDevelopment) {
-          const message: WebviewToExtensionMessage = {
-            command: ARDUINO_MESSAGES.CORE_SEARCH,
-            errorMessage: "",
-            payload: import.meta.env.VITE_SEARCH_CORE_TEST
-          }
-          vsCodeStore.simulateMessage(message);
-        } else {
-          const platformId = board.platform.metadata.id;
-          vscode.postMessage({
-            command: ARDUINO_MESSAGES.CORE_SEARCH,
-            errorMessage: "",
-            payload: platformId,
-          });
-        }
-      });
-    }
-  },
-  { immediate: true }
-);
+// watch(
+//   () => vsCodeStore.boards,
+//   (newBoards) => {
+//     if (newBoards?.boards) {
+//       newBoards.boards.forEach((board) => {
+//         if (inDevelopment) {
+//           const message: WebviewToExtensionMessage = {
+//             command: ARDUINO_MESSAGES.CORE_SEARCH,
+//             errorMessage: "",
+//             payload: import.meta.env.VITE_SEARCH_CORE_TEST
+//           }
+//           vsCodeStore.simulateMessage(message);
+//         } else {
+//           const platformId = board.platform.metadata.id;
+//           vscode.postMessage({
+//             command: ARDUINO_MESSAGES.CORE_SEARCH,
+//             errorMessage: "",
+//             payload: platformId,
+//           });
+//         }
+//       });
+//     }
+//   },
+//   { immediate: true }
+// );
 
 const releases = (platformId: string): PlatformOutdated[] => {
   const release = vsCodeStore.outdated?.platforms.find((platform) => platform.id === platformId);
@@ -121,9 +121,9 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; name
 
 function sendTestMessage() {
   const message: WebviewToExtensionMessage = {
-    command: ARDUINO_MESSAGES.BOARDS_LIST_ALL,
+    command: ARDUINO_MESSAGES.CORE_SEARCH,
     errorMessage: "",
-    payload: import.meta.env.VITE_BOARDS_LISTALL_TEST
+    payload: import.meta.env.VITE_SEARCH_CORE_TEST
   }
   vsCodeStore.simulateMessage(message);
 }
