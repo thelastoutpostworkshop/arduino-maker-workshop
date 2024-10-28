@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, Board, BoardConfiguration, Platform, Release } from '@shared/messages';
+import { ARDUINO_MESSAGES, BoardConfiguration, Platform } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
 
 enum FilterBoards {
@@ -14,7 +14,7 @@ const store = useVsCodeStore();
 const boardSelect = ref<(BoardConfiguration | null)[]>([]); // Updated to track selected boards for each platform
 const boardSelectBefore = ref<(BoardConfiguration | null)[]>([]);
 const filterBoards = ref(FilterBoards.installed);
-const selectedPlatform =  ref<string[]>([]);
+const selectedPlatform = ref<Record<string, string>>({});
 
 onMounted(() => {
   store.outdated = null;
@@ -155,17 +155,13 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             </span>
             <a :href="platform.website" target="_blank">Go to Web Site</a><br />
           </v-card-subtitle>
-          v-card-actions  
           <v-card-text>
             <!-- <v-btn @click="updatePlatformVersion(platform.id)" class="mb-2" size="small"
-              append-icon="mdi-arrow-down">Install version selected</v-btn> -->
-            <v-select v-if="platform.releases" :items="releases(platform)"
+            append-icon="mdi-arrow-down">Install version selected</v-btn> -->
+            <v-select v-if="platform.releases" v-model="selectedPlatform[platform.id]" :items="releases(platform)"
               item-title="version" item-value="version" return-object density="compact">
             </v-select>
           </v-card-text>
-          <v-card-actions>
-
-          </v-card-actions>
         </v-card>
       </div>
     </v-responsive>
