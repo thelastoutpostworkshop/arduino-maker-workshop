@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, BoardConfiguration, Platform } from '@shared/messages';
+import { ARDUINO_MESSAGES, Platform } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
 
 enum FilterBoards {
@@ -11,31 +11,26 @@ enum FilterBoards {
   all
 }
 const store = useVsCodeStore();
-const boardSelect = ref<(BoardConfiguration | null)[]>([]); // Updated to track selected boards for each platform
-const boardSelectBefore = ref<(BoardConfiguration | null)[]>([]);
 const filterBoards = ref(FilterBoards.installed);
 const selectedPlatform = ref<Record<string, string>>({});
 
 onMounted(() => {
-  store.outdated = null;
   vscode.postMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
   // vscode.postMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
 });
 
-// Watch for changes in boardSelect
 watch(
-  boardSelect,
-  (newValue) => {
-    newValue.forEach((newVal, index) => {
-      if (newVal && newVal !== boardSelectBefore.value[index]) {
-        vscode.postMessage({ command: ARDUINO_MESSAGES.SET_BOARD, errorMessage: "", payload: newVal.fqbn });
-        boardSelectBefore.value = [...boardSelect.value];
-        store.boardConfiguration = null;
-      }
-    });
+  () => store.platform,
+  (newConfig) => {
+    if (newConfig) {
+      store.platform?.platforms.forEach((platform) => {
+          selectedPlatform.value[platform.id] = platform.latest_version; 
+      })
+    }
   },
-  { deep: true }
+  { immediate: true }
 );
+
 
 function releases(platform: Platform): string[] {
   const relEntries = Object.entries(platform.releases)
@@ -43,23 +38,6 @@ function releases(platform: Platform): string[] {
     .map(([version]) => version); // Map to only the version string
   return relEntries;
 }
-
-// const releases = (platformId: string): PlatformOutdated[] => {
-//   const release = store.outdated?.platforms.find((platform) => platform.id === platformId);
-
-//   if (release) {
-//     console.log(release);
-//     const rel = Object.entries(release)
-//       .reverse() // Reverse the entries without sorting
-//       .map(([version]) => ({
-//         version,          // Add version key
-//         platformId        // Add platformId to each object
-//       }));
-//     return rel;
-//   } else {
-//     return [];
-//   }
-// };
 
 function isPlatformInstalled(platform: Platform): boolean {
   return platform.installed_version.trim().length !== 0
