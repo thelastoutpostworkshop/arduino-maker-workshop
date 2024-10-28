@@ -31,7 +31,6 @@ watch(
   { immediate: true }
 );
 
-
 function releases(platform: Platform): string[] {
   const relEntries = Object.entries(platform.releases)
     .reverse()
@@ -56,7 +55,7 @@ const filteredPlatforms = computed(() => {
   switch (filterBoards.value) {
     case FilterBoards.installed:
       filtered = store.platform?.platforms.filter((platform) => {
-        return isPlatformInstalled(platform);
+        return isPlatformInstalled(platform) && !isPlatformUpdatable(platform);
       })
       break;
     case FilterBoards.updatable:
@@ -119,10 +118,10 @@ const inDevelopment = computed(() => import.meta.env.DEV);
       <div v-else>
         Boards Available:
         <v-chip-group selected-class="text-primary" mandatory v-model="filterBoards">
-          <v-chip filter :value="FilterBoards.installed">Installed</v-chip>
+          <v-chip filter :value="FilterBoards.installed">Installed & Up to date</v-chip>
           <v-chip filter :value="FilterBoards.updatable">Updatable</v-chip>
-          <v-chip filter :value="FilterBoards.deprecated">Deprecated</v-chip>
           <v-chip filter :value="FilterBoards.not_installed">Not Installed</v-chip>
+          <v-chip filter :value="FilterBoards.deprecated">Deprecated</v-chip>
         </v-chip-group>
         <v-card v-for="(platform) in filteredPlatforms" :key="platform.id" color="blue-grey-darken-4" class="mb-5 mt-5">
           <v-card-title>
@@ -147,8 +146,23 @@ const inDevelopment = computed(() => import.meta.env.DEV);
                   item-title="version" item-value="version" return-object density="compact">
                 </v-select>
               </v-col>
-              <v-col>
-
+              <v-col v-if="!isPlatformInstalled(platform)">
+                <v-btn>Install</v-btn>
+              </v-col>
+              <v-col v-if="isPlatformInstalled(platform) && !isPlatformUpdatable(platform)">
+                <!-- <v-btn :disabled="selectedPlatform[platform.id] !== platform.latest_version">Update</v-btn> -->
+                <v-btn :disabled="selectedPlatform[platform.id] === platform.latest_version">Install older
+                  version</v-btn>
+              </v-col>
+              <v-col v-if="isPlatformUpdatable(platform) && isPlatformInstalled(platform)">
+                <!-- <v-btn :disabled="selectedPlatform[platform.id] !== platform.latest_version">Update</v-btn> -->
+                <v-btn v-if="selectedPlatform[platform.id] === platform.latest_version">Update</v-btn>
+                <v-btn
+                  v-if="(selectedPlatform[platform.id] !== platform.latest_version) && (selectedPlatform[platform.id] !== platform.installed_version)">Install
+                  older version</v-btn>
+                <span v-else-if="selectedPlatform[platform.id] === platform.installed_version">(this version is
+                  currently
+                  installed)</span>
               </v-col>
             </v-row>
           </v-card-text>
