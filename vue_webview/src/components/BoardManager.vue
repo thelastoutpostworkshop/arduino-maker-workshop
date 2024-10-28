@@ -3,7 +3,6 @@ import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, Board, BoardConfiguration, Platform, Release } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
-import { version } from 'os';
 
 enum FilterBoards {
   installed,
@@ -156,16 +155,11 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             </span>
             <a :href="platform.website" target="_blank">Go to Web Site</a><br />
           </v-card-subtitle>
+          v-card-actions  
           <v-card-text>
             <!-- <v-btn @click="updatePlatformVersion(platform.id)" class="mb-2" size="small"
               append-icon="mdi-arrow-down">Install version selected</v-btn> -->
-            <span class="text-blue">
-              {{ platform.installed_version }} installed
-            </span>
-            <span class="text-green font-weight-bold">
-              ({{ platform.latest_version }} is the newest)
-            </span>
-            <v-select v-if="platform.boards" v-model="selectedPlatform[platform.id]" :items="releases(platform)"
+            <v-select v-if="platform.releases" :items="releases(platform)"
               item-title="version" item-value="version" return-object density="compact">
             </v-select>
           </v-card-text>
