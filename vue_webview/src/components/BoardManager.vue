@@ -8,7 +8,7 @@ enum FilterBoards {
   installed,
   updatable,
   deprecated,
-  all
+  not_installed
 }
 const store = useVsCodeStore();
 const filterBoards = ref(FilterBoards.installed);
@@ -24,7 +24,7 @@ watch(
   (newConfig) => {
     if (newConfig) {
       store.platform?.platforms.forEach((platform) => {
-          selectedPlatform.value[platform.id] = platform.latest_version; 
+        selectedPlatform.value[platform.id] = platform.latest_version;
       })
     }
   },
@@ -67,6 +67,11 @@ const filteredPlatforms = computed(() => {
     case FilterBoards.deprecated:
       filtered = store.platform?.platforms.filter((platform) => {
         return isPlatformDepracated(platform);
+      })
+      break;
+    case FilterBoards.not_installed:
+      filtered = store.platform?.platforms.filter((platform) => {
+        return !isPlatformInstalled(platform) && !isPlatformDepracated(platform);
       })
       break;
     default:
@@ -117,7 +122,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           <v-chip filter :value="FilterBoards.installed">Installed</v-chip>
           <v-chip filter :value="FilterBoards.updatable">Updatable</v-chip>
           <v-chip filter :value="FilterBoards.deprecated">Deprecated</v-chip>
-          <v-chip filter :value="FilterBoards.all">All</v-chip>
+          <v-chip filter :value="FilterBoards.not_installed">Not Installed</v-chip>
         </v-chip-group>
         <v-card v-for="(platform) in filteredPlatforms" :key="platform.id" color="blue-grey-darken-4" class="mb-5 mt-5">
           <v-card-title>
@@ -125,7 +130,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           </v-card-title>
           <v-card-subtitle>
             {{ "by " + platform.maintainer }}
-            <span class="text-blue">
+            <span>
               {{ platform.installed_version }} installed
             </span>
             <span class="text-green font-weight-bold">
@@ -136,9 +141,16 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           <v-card-text>
             <!-- <v-btn @click="updatePlatformVersion(platform.id)" class="mb-2" size="small"
             append-icon="mdi-arrow-down">Install version selected</v-btn> -->
-            <v-select v-if="platform.releases" v-model="selectedPlatform[platform.id]" :items="releases(platform)"
-              item-title="version" item-value="version" return-object density="compact">
-            </v-select>
+            <v-row>
+              <v-col>
+                <v-select v-if="platform.releases" v-model="selectedPlatform[platform.id]" :items="releases(platform)"
+                  item-title="version" item-value="version" return-object density="compact">
+                </v-select>
+              </v-col>
+              <v-col>
+
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-card>
       </div>
