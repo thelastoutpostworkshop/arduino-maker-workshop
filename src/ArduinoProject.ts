@@ -8,6 +8,7 @@ export const compileCommandArduino: string = 'compile';
 const versionCommandArduino: string = 'version';
 const uploadCommandArduino: string = 'upload';
 const boardCommandArduino: string = 'board';
+const libraryCommandArduino:string='lib';
 const listFunctionArduino: string = 'list';
 const listAllFunctionArduino: string = 'listall';
 const detailsFunctionArduino: string = 'details';
@@ -17,6 +18,7 @@ const coreCommandArduino:string = 'core';
 const updateOption:string = 'update-index';
 const installOption:string = 'install';
 const searchOption:string = 'search';
+const listOption:string = 'list';
 export const verboseOptionArduino: string = '-v';
 export const portOptionArduino: string = '-p';
 export const buildPathArduino: string = '--build-path';
@@ -170,6 +172,15 @@ export class ArduinoProject {
             `${jsonOutputArduino}`
         ];
         return searchAllCommand;
+    }
+    public getLibrarySearchArguments(): string[] {
+        const libSearchCommand = [
+            `${libraryCommandArduino}`,
+            `${searchOption}`,
+            `--omit-releases-details`,
+            `${jsonOutputArduino}`
+        ];
+        return libSearchCommand;
     }
     public getBoardConfigurationArguments(): string[] {
         let boardConfigArg = "";

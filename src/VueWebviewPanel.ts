@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck, runInstallCoreVersion, searchCore } from "./extension";
+import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck, runInstallCoreVersion, searchCore, searchLibrary } from "./extension";
 import { ARDUINO_ERRORS } from "./ArduinoProject";
 
 const path = require('path');
@@ -75,6 +75,11 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(result);
                         });
                         break;
+                    case ARDUINO_MESSAGES.LIBRARY_SEARCH:
+                        this.searchLibrary().then((result) => {
+                            VueWebviewPanel.sendMessage(result);
+                        });
+                        break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);
                 }
@@ -132,6 +137,14 @@ export class VueWebviewPanel {
             coreSearchResult.payload = result;
         }
         return coreSearchResult;
+    }
+    private async searchLibrary(): Promise<WebviewToExtensionMessage> {
+        const libSearchResult = this.createWebviewMessage(ARDUINO_MESSAGES.LIBRARY_SEARCH);
+        const result = await searchLibrary();
+        if (result !== "") {
+            libSearchResult.payload = result;
+        }
+        return libSearchResult;
     }
     private async runCoreUpdate(): Promise<WebviewToExtensionMessage> {
         const coreUpdateResult = this.createWebviewMessage(ARDUINO_MESSAGES.OUTDATED);

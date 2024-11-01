@@ -120,6 +120,21 @@ export async function searchCore(): Promise<string> {
 	}
 }
 
+export async function searchLibrary(): Promise<string> {
+	try {
+		const searchLibraryArgs = arduinoProject.getCoreSearchArguments();
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, searchLibraryArgs, true, false);
+		if (!result) {
+			window.showErrorMessage(`CLI : No result from search core`);
+			throw new Error("Command result empty");
+		}
+		return result;
+	} catch (error: any) {
+		window.showErrorMessage(`CLI : Error from search core`);
+		throw error;
+	}
+}
+
 export async function runInstallCoreVersion(version:string): Promise<string> {
 	try {
 		const coreInstallVersionArgs = arduinoProject.getInstallCoreVersionArguments(version);
