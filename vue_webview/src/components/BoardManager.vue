@@ -118,7 +118,11 @@ const inDevelopment = computed(() => import.meta.env.DEV);
         Boards Available:
         <v-chip-group selected-class="text-primary" mandatory v-model="filterBoards">
           <v-chip filter :value="FilterBoards.installed">Installed & Up to date</v-chip>
-          <v-chip filter :value="FilterBoards.updatable">Updatable</v-chip>
+          <v-chip filter :value="FilterBoards.updatable">Updatable
+            <v-badge color="green" content="10" inline>
+
+            </v-badge>
+          </v-chip>
           <v-chip filter :value="FilterBoards.not_installed">Not Installed</v-chip>
           <v-chip filter :value="FilterBoards.deprecated">Deprecated</v-chip>
         </v-chip-group>
