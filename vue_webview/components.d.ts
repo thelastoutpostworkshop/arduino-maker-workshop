@@ -11,6 +11,7 @@ declare module 'vue' {
     BoardManager: typeof import('./src/components/BoardManager.vue')['default']
     BoardSelection: typeof import('./src/components/BoardSelection.vue')['default']
     Home: typeof import('./src/components/Home.vue')['default']
+    LibraryManager: typeof import('./src/components/LibraryManager.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Toolbox: typeof import('./src/components/Toolbox.vue')['default']

@@ -3,6 +3,7 @@ import Home from '@/components/Home.vue';
 import BoardConfiguration from '@/components/BoardConfiguration.vue';
 import { createRouter, createMemoryHistory } from 'vue-router'
 import BoardManager from '@/components/BoardManager.vue';
+import LibraryManager from '@/components/LibraryManager.vue';
 
 const router = createRouter({
 
@@ -34,6 +35,13 @@ const router = createRouter({
         name: "board-manager",
         components: {
           default: BoardManager,
+        }
+      },
+      {
+        path: '/library-manager',
+        name: "library-manager",
+        components: {
+          default: LibraryManager,
         }
       },
 
