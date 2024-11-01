@@ -240,5 +240,7 @@ export const ARDUINO_MESSAGES = {
   OUTDATED: 'checkArduinoOutdated',
   INSTALL_CORE_VERSION: 'installCoreVersion',
   CORE_SEARCH: 'coreSearch',
-  CORE_VERSION_INSTALLED: 'coreVersionInstalled'
+  CORE_VERSION_INSTALLED: 'coreVersionInstalled',
+  LIBRARY_SEARCH: 'librarySearch',
+  LIBRARY_INSTALLED: 'libraryInstalled'
 };
