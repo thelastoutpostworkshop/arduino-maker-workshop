@@ -69,17 +69,17 @@ function filterPlatforms(filter: FilterBoards): any {
         return isPlatformInstalled(platform) && !isPlatformUpdatable(platform);
       })
       break;
-    case filter:
+    case FilterBoards.updatable:
       filtered = store.platform?.platforms.filter((platform) => {
         return isPlatformUpdatable(platform) && isPlatformInstalled(platform);
       })
       break;
-    case filter:
+    case FilterBoards.deprecated:
       filtered = store.platform?.platforms.filter((platform) => {
         return isPlatformDepracated(platform);
       })
       break;
-    case filter:
+    case FilterBoards.not_installed:
       filtered = store.platform?.platforms.filter((platform) => {
         return !isPlatformInstalled(platform) && !isPlatformDepracated(platform);
       })
