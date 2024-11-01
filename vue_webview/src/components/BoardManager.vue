@@ -13,6 +13,7 @@ enum FilterBoards {
 const store = useVsCodeStore();
 const filterBoards = ref(FilterBoards.installed);
 const selectedPlatform = ref<Record<string, string>>({});
+const updatableCount = ref(0);
 
 onMounted(() => {
   vscode.postMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
@@ -25,6 +26,7 @@ watch(
       store.platform?.platforms.forEach((platform) => {
         selectedPlatform.value[platform.id] = platform.latest_version;
       })
+      updatableCount.value = filterPlatforms(FilterBoards.updatable).length;
     }
   },
   { immediate: true }
@@ -50,24 +52,28 @@ function isPlatformDepracated(platform: Platform): boolean {
 }
 
 const filteredPlatforms = computed(() => {
+  return filterPlatforms(filterBoards.value);
+})
+
+function filterPlatforms(filter: FilterBoards): any {
   let filtered;
-  switch (filterBoards.value) {
+  switch (filter) {
     case FilterBoards.installed:
       filtered = store.platform?.platforms.filter((platform) => {
         return isPlatformInstalled(platform) && !isPlatformUpdatable(platform);
       })
       break;
-    case FilterBoards.updatable:
+    case filter:
       filtered = store.platform?.platforms.filter((platform) => {
         return isPlatformUpdatable(platform) && isPlatformInstalled(platform);
       })
       break;
-    case FilterBoards.deprecated:
+    case filter:
       filtered = store.platform?.platforms.filter((platform) => {
         return isPlatformDepracated(platform);
       })
       break;
-    case FilterBoards.not_installed:
+    case filter:
       filtered = store.platform?.platforms.filter((platform) => {
         return !isPlatformInstalled(platform) && !isPlatformDepracated(platform);
       })
@@ -76,8 +82,8 @@ const filteredPlatforms = computed(() => {
       filtered = store.platform?.platforms;
       break;
   }
-  return filtered;
-})
+  return filtered || [];
+}
 
 const platformName = (platform_id: string): string => {
   const p = store.platform?.platforms.find((platform) => platform.id === platform_id);
@@ -85,8 +91,8 @@ const platformName = (platform_id: string): string => {
     return 'Unknown';
   }
 
-  const relEntries = Object.entries(p.releases).reverse(); 
-  const name = relEntries[0]?.[1]?.name || 'Unknown'; 
+  const relEntries = Object.entries(p.releases).reverse();
+  const name = relEntries[0]?.[1]?.name || 'Unknown';
   return name;
 };
 
@@ -119,7 +125,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
         <v-chip-group selected-class="text-primary" mandatory v-model="filterBoards">
           <v-chip filter :value="FilterBoards.installed">Installed & Up to date</v-chip>
           <v-chip filter :value="FilterBoards.updatable">Updatable
-            <v-badge color="green" content="10" inline>
+            <v-badge v-if="updatableCount > 0" color="green" :content="updatableCount" inline>
 
             </v-badge>
           </v-chip>
