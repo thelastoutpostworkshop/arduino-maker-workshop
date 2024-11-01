@@ -10,6 +10,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         boards: null as PlatformsList | null,
         outdated: null as OutdatedInformation | null,
         platform: null as CorePlatforms | null,
+        boardUpdating: ""
     }),
     actions: {
         simulateMessage(message: WebviewToExtensionMessage) {

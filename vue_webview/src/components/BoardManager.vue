@@ -32,10 +32,11 @@ watch(
   { immediate: true }
 );
 
-function updatePlatformVersion(platformID:string) {
+function updatePlatformVersion(platformID: string) {
   const toInstall = selectedPlatform.value[platformID];
   const version = `${platformID}@${toInstall}`;
   vscode.postMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: version });
+  store.boardUpdating = version;
 }
 
 function releases(platform: Platform): string[] {
@@ -126,8 +127,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
         Loading Boards
         <v-progress-circular :size="25" color="grey" indeterminate></v-progress-circular>
       </div>
-      <div v-else>
-        Boards Available:
+      <div v-else-if="!store.boardUpdating">
         <v-chip-group selected-class="text-primary" mandatory v-model="filterBoards">
           <v-chip filter :value="FilterBoards.installed">Installed & Up to date</v-chip>
           <v-chip :disabled="updatableCount == 0" filter :value="FilterBoards.updatable">Updatable
@@ -163,11 +163,13 @@ const inDevelopment = computed(() => import.meta.env.DEV);
                 <v-btn>Install</v-btn>
               </v-col>
               <v-col v-if="isPlatformInstalled(platform) && !isPlatformUpdatable(platform)">
-                <v-btn @click="updatePlatformVersion(platform.id)" :disabled="selectedPlatform[platform.id] === platform.latest_version">Install older
+                <v-btn @click="updatePlatformVersion(platform.id)"
+                  :disabled="selectedPlatform[platform.id] === platform.latest_version">Install older
                   version</v-btn>
               </v-col>
               <v-col v-if="isPlatformUpdatable(platform) && isPlatformInstalled(platform)">
-                <v-btn @click="updatePlatformVersion(platform.id)" v-if="selectedPlatform[platform.id] === platform.latest_version">Update</v-btn>
+                <v-btn @click="updatePlatformVersion(platform.id)"
+                  v-if="selectedPlatform[platform.id] === platform.latest_version">Update</v-btn>
                 <v-btn @click="updatePlatformVersion(platform.id)"
                   v-if="(selectedPlatform[platform.id] !== platform.latest_version) && (selectedPlatform[platform.id] !== platform.installed_version)">Install
                   older version</v-btn>
@@ -178,6 +180,10 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             </v-row>
           </v-card-text>
         </v-card>
+      </div>
+      <div v-else>
+        Installing board, please wait
+        <v-progress-linear  color="grey" indeterminate></v-progress-linear >
       </div>
     </v-responsive>
   </v-container>
