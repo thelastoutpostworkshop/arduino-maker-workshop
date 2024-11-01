@@ -135,6 +135,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
         <v-card v-for="(platform) in filteredPlatforms" :key="platform.id" color="blue-grey-darken-4" class="mb-5 mt-5">
           <v-card-title>
             {{ platformName(platform.id) }}
+            <span class="text-subtitle-2 pl-5"> <a :href="platform.website" target="_blank">Info</a></span>
           </v-card-title>
           <v-card-subtitle>
             {{ "by " + platform.maintainer }}
@@ -144,7 +145,6 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             <span class="text-green font-weight-bold">
               ({{ platform.latest_version }} is the newest)
             </span>
-            <a :href="platform.website" target="_blank">Go to Web Site</a><br />
           </v-card-subtitle>
           <v-card-text>
             <!-- <v-btn @click="updatePlatformVersion(platform.id)" class="mb-2" size="small"
