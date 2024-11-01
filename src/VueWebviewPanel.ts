@@ -66,7 +66,8 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.INSTALL_CORE_VERSION:
                         const coreToUpdate = message.payload;
                         this.installCoreVersion(coreToUpdate).then((result) => {
-
+                            message.command = ARDUINO_MESSAGES.CORE_VERSION_INSTALLED;
+                            VueWebviewPanel.sendMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.CORE_SEARCH:

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, OutdatedInformation, WebviewToExtensionMessage, PlatformsList, CorePlatforms } from '@shared/messages';
+import { vscode } from '@/utilities/vscode';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
@@ -84,7 +85,11 @@ export const useVsCodeStore = defineStore('vsCode', {
                         console.log("Failed to parse core search response: " + error);
                     }
                     break;
-
+                case ARDUINO_MESSAGES.CORE_VERSION_INSTALLED:
+                    this.boardUpdating = "";
+                    this.platform = null;
+                    vscode.postMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
+                    break;
                 default:
                     console.warn('Unknown command received:', message.command);
             }
