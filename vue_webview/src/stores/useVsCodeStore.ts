@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, OutdatedInformation, WebviewToExtensionMessage, PlatformsList, CorePlatforms } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 
 export const useVsCodeStore = defineStore('vsCode', {
@@ -9,7 +9,6 @@ export const useVsCodeStore = defineStore('vsCode', {
         projectStatus: null as WebviewToExtensionMessage | null,
         boardConfiguration: null as ArduinoBoardConfigurationPayload | null,
         boards: null as PlatformsList | null,
-        outdated: null as OutdatedInformation | null,
         platform: null as CorePlatforms | null,
         boardUpdating: ""
     }),
@@ -67,13 +66,6 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
                     try {
                         this.boards = JSON.parse(message.payload);
-                    } catch (error) {
-                        console.log("Failed to parse Board Configuration information: " + error);
-                    }
-                    break;
-                case ARDUINO_MESSAGES.OUTDATED:
-                    try {
-                        this.outdated = JSON.parse(message.payload);
                     } catch (error) {
                         console.log("Failed to parse Board Configuration information: " + error);
                     }

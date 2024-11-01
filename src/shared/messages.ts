@@ -101,49 +101,6 @@ interface Help {
   online: string;
 }
 
-interface LibraryData {
-  library: Library;
-  release: ReleaseDetails;
-}
-
-interface Library {
-  name: string;
-  author: string;
-  maintainer: string;
-  sentence: string;
-  paragraph: string;
-  website: string;
-  category: string;
-  architectures: string[];
-  install_dir: string;
-  source_dir: string;
-  version: string;
-  license: string;
-  properties: Record<string, unknown>;
-  location: string;
-  layout: string;
-  examples: string[];
-  provides_includes: string[];
-  compatible_with: Record<string, unknown>;
-}
-
-interface ReleaseDetails {
-  author: string;
-  version: string;
-  maintainer: string;
-  sentence: string;
-  paragraph: string;
-  website: string;
-  category: string;
-  architectures: string[];
-  types: string[];
-}
-
-export interface OutdatedInformation {
-  platforms: Platform[];
-  libraries: LibraryData[];
-}
-
 export interface CorePlatforms {
   platforms:Platform[];
 }
