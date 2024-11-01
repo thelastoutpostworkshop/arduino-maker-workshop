@@ -16,7 +16,6 @@ const selectedPlatform = ref<Record<string, string>>({});
 
 onMounted(() => {
   vscode.postMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
-  // vscode.postMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
 });
 
 watch(
@@ -86,8 +85,8 @@ const platformName = (platform_id: string): string => {
     return 'Unknown';
   }
 
-  const relEntries = Object.entries(p.releases).reverse(); // Array of [version, Release] pairs
-  const name = relEntries[0]?.[1]?.name || 'Unknown'; // Access the name from the first release entry
+  const relEntries = Object.entries(p.releases).reverse(); 
+  const name = relEntries[0]?.[1]?.name || 'Unknown'; 
   return name;
 };
 
