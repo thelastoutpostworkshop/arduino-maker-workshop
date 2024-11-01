@@ -138,6 +138,54 @@ export interface ReleaseData {
   compatible: boolean;
 }
 
+// Library
+export interface Liblist {
+  installed_libraries: InstalledLibrary[];
+}
+
+export interface InstalledLibrary {
+  library:  Library;
+  release?: Release;
+}
+
+export interface Library {
+  name:              string;
+  author:            string;
+  maintainer:        string;
+  sentence:          string;
+  paragraph:         string;
+  website:           string;
+  category:          string;
+  architectures:     string[];
+  install_dir:       string;
+  source_dir:        string;
+  version:           string;
+  license:           string;
+  properties:        CompatibleWith;
+  location:          string;
+  layout:            string;
+  examples?:         string[];
+  provides_includes: string[];
+  compatible_with:   CompatibleWith;
+}
+
+export interface CompatibleWith {
+}
+
+
+export interface Release {
+  author:        string;
+  version:       string;
+  maintainer:    string;
+  sentence:      string;
+  paragraph:     string;
+  website:       string;
+  category:      string;
+  architectures: string[];
+  types:         string[];
+}
+
+
 export const ARDUINO_MESSAGES = {
   CLI_STATUS: 'getArduinoCLIStatus',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
