@@ -185,6 +185,49 @@ export interface Release {
   types:         string[];
 }
 
+export interface Libsearch {
+  libraries: LibrarySearch[];
+  status:    string;
+}
+
+export interface LibrarySearch {
+  name:               string;
+  releases:           Releases;
+  latest:             LatestLibrary;
+  available_versions: string[];
+}
+
+export interface LatestLibrary {
+  author:             string;
+  version:            string;
+  maintainer:         string;
+  sentence:           string;
+  website:            string;
+  category:           string;
+  architectures?:     string[];
+  types:              string[];
+  resources:          LibraryResources;
+  provides_includes?: string[];
+  dependencies?:      LibraryDependency[];
+  paragraph?:         string;
+  license?:           string;
+}
+
+export interface LibraryDependency {
+  name:                string;
+  version_constraint?: string;
+}
+
+export interface LibraryResources {
+  url:              string;
+  archive_filename: string;
+  checksum:         string;
+  size:             number;
+  cache_path:       string;
+}
+
+export interface Releases {
+}
 
 export const ARDUINO_MESSAGES = {
   CLI_STATUS: 'getArduinoCLIStatus',
