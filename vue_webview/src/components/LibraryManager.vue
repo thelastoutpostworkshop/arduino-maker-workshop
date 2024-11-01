@@ -105,9 +105,9 @@ const platformName = (platform_id: string): string => {
 
 function sendTestMessage() {
   store.simulateMessage({
-    command: ARDUINO_MESSAGES.CORE_SEARCH,
+    command: ARDUINO_MESSAGES.LIBRARY_SEARCH,
     errorMessage: "",
-    payload: import.meta.env.VITE_SEARCH_CORE_TEST
+    payload: import.meta.env.VITE_LIBRARY_SEARCH_TEST
   });
 }
 

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Liblist } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 
 export const useVsCodeStore = defineStore('vsCode', {
@@ -10,7 +10,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         boardConfiguration: null as ArduinoBoardConfigurationPayload | null,
         boards: null as PlatformsList | null,
         platform: null as CorePlatforms | null,
-        libraries: null as Liblist | null,
+        libraries: null as Libsearch | null,
         boardUpdating: ""
     }),
     actions: {
