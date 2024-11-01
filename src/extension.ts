@@ -108,7 +108,7 @@ export async function getOutdatedBoardAndLib(): Promise<string> {
 export async function searchCore(): Promise<string> {
 	try {
 		const searchCoreArgs = arduinoProject.getCoreSearchArguments();
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, searchCoreArgs, true, true);
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, searchCoreArgs, true, false);
 		if (!result) {
 			window.showErrorMessage(`CLI : No result from search core`);
 			throw new Error("Command result empty");
