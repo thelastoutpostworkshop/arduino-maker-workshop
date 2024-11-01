@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Liblist } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 
 export const useVsCodeStore = defineStore('vsCode', {
@@ -10,6 +10,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         boardConfiguration: null as ArduinoBoardConfigurationPayload | null,
         boards: null as PlatformsList | null,
         platform: null as CorePlatforms | null,
+        libraries: null as Liblist | null,
         boardUpdating: ""
     }),
     actions: {
@@ -75,6 +76,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                         this.platform = JSON.parse(message.payload);
                     } catch (error) {
                         console.log("Failed to parse core search response: " + error);
+                    }
+                    break;
+                case ARDUINO_MESSAGES.LIBRARY_SEARCH:
+                    try {
+                        this.libraries = JSON.parse(message.payload);
+                    } catch (error) {
+                        console.log("Failed to parse library search response: " + error);
                     }
                     break;
                 case ARDUINO_MESSAGES.CORE_VERSION_INSTALLED:

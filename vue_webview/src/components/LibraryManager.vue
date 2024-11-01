@@ -16,7 +16,7 @@ const selectedPlatform = ref<Record<string, string>>({});
 const updatableCount = ref(0);
 
 onMounted(() => {
-  vscode.postMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
+  vscode.postMessage({ command: ARDUINO_MESSAGES.LIBRARY_SEARCH, errorMessage: "", payload: "" });
 });
 
 watch(
