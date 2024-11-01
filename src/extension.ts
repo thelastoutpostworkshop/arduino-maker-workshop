@@ -291,7 +291,7 @@ function vsCommandUpload(): Disposable {
 
 		// Execute the Arduino CLI command
 		const uploadCommand = arduinoProject.getUploadArguments();
-		const output = executeArduinoCommand(`${cliCommandArduinoPath}`, uploadCommand, true);
+		const output = executeArduinoCommand(`${cliCommandArduinoPath}`, uploadCommand, true,true);
 
 	});
 }
@@ -313,7 +313,7 @@ function vsCommandCompile(): Disposable {
 
 		// Execute the Arduino CLI command
 		const compileCommand = arduinoProject.getCompileCommandArguments();
-		executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true)
+		executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true,true)
 			.then(output => {
 				if (output) {
 					// Parse the output and generate c_cpp_properties.json
