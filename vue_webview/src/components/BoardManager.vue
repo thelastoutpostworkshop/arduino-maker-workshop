@@ -32,6 +32,12 @@ watch(
   { immediate: true }
 );
 
+function updatePlatformVersion(platformID:string) {
+  const toInstall = selectedPlatform.value[platformID];
+  const version = `${platformID}@${toInstall}`;
+  vscode.postMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: version });
+}
+
 function releases(platform: Platform): string[] {
   const relEntries = Object.entries(platform.releases)
     .reverse()
@@ -147,8 +153,6 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             </span>
           </v-card-subtitle>
           <v-card-text>
-            <!-- <v-btn @click="updatePlatformVersion(platform.id)" class="mb-2" size="small"
-            append-icon="mdi-arrow-down">Install version selected</v-btn> -->
             <v-row>
               <v-col>
                 <v-select v-if="platform.releases" v-model="selectedPlatform[platform.id]" :items="releases(platform)"
@@ -159,14 +163,12 @@ const inDevelopment = computed(() => import.meta.env.DEV);
                 <v-btn>Install</v-btn>
               </v-col>
               <v-col v-if="isPlatformInstalled(platform) && !isPlatformUpdatable(platform)">
-                <!-- <v-btn :disabled="selectedPlatform[platform.id] !== platform.latest_version">Update</v-btn> -->
-                <v-btn :disabled="selectedPlatform[platform.id] === platform.latest_version">Install older
+                <v-btn @click="updatePlatformVersion(platform.id)" :disabled="selectedPlatform[platform.id] === platform.latest_version">Install older
                   version</v-btn>
               </v-col>
               <v-col v-if="isPlatformUpdatable(platform) && isPlatformInstalled(platform)">
-                <!-- <v-btn :disabled="selectedPlatform[platform.id] !== platform.latest_version">Update</v-btn> -->
-                <v-btn v-if="selectedPlatform[platform.id] === platform.latest_version">Update</v-btn>
-                <v-btn
+                <v-btn @click="updatePlatformVersion(platform.id)" v-if="selectedPlatform[platform.id] === platform.latest_version">Update</v-btn>
+                <v-btn @click="updatePlatformVersion(platform.id)"
                   v-if="(selectedPlatform[platform.id] !== platform.latest_version) && (selectedPlatform[platform.id] !== platform.installed_version)">Install
                   older version</v-btn>
                 <span v-else-if="selectedPlatform[platform.id] === platform.installed_version">(this version is
