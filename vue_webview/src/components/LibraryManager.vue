@@ -114,6 +114,11 @@ function sendTestMessage() {
     errorMessage: "",
     payload: import.meta.env.VITE_LIBRARY_SEARCH_TEST
   });
+  store.simulateMessage({
+    command: ARDUINO_MESSAGES.LIBRARY_INSTALLED,
+    errorMessage: "",
+    payload: import.meta.env.VITE_LIBRARY_INSTALLED_TEST
+  });
 }
 
 const inDevelopment = computed(() => import.meta.env.DEV);
