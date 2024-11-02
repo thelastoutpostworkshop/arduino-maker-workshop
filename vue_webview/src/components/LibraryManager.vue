@@ -93,16 +93,16 @@ function filterLibs(filter: FilterLibraries): any {
   return filtered || [];
 }
 
-const platformName = (platform_id: string): string => {
-  const p = store.platform?.platforms.find((platform) => platform.id === platform_id);
-  if (!p || !p.releases) {
-    return 'Unknown';
-  }
+// const platformName = (platform_id: string): string => {
+//   const p = store.platform?.platforms.find((platform) => platform.id === platform_id);
+//   if (!p || !p.releases) {
+//     return 'Unknown';
+//   }
 
-  const relEntries = Object.entries(p.releases).reverse();
-  const name = relEntries[0]?.[1]?.name || 'Unknown';
-  return name;
-};
+//   const relEntries = Object.entries(p.releases).reverse();
+//   const name = relEntries[0]?.[1]?.name || 'Unknown';
+//   return name;
+// };
 
 function sendTestMessage() {
   store.simulateMessage({
@@ -141,7 +141,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
         </v-chip-group>
         <v-card v-for="(library,index) in filteredLibraries" :key="index" color="blue-grey-darken-4" class="mb-5 mt-5">
           <v-card-title>
-            {{ platformName(library.id) }}
+            {{ library.name }}
             <span class="text-subtitle-2 pl-5"> <a :href="library.website" target="_blank">Info</a></span>
           </v-card-title>
           <v-card-subtitle>

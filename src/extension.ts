@@ -122,7 +122,7 @@ export async function searchCore(): Promise<string> {
 
 export async function searchLibrary(): Promise<string> {
 	try {
-		const searchLibraryArgs = arduinoProject.getCoreSearchArguments();
+		const searchLibraryArgs = arduinoProject.getLibrarySearchArguments();
 		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, searchLibraryArgs, true, false);
 		if (!result) {
 			window.showErrorMessage(`CLI : No result from library search`);
