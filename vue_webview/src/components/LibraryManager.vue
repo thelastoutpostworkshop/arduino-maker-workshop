@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, Platform } from '@shared/messages';
+import { ARDUINO_MESSAGES, LibrarySearch, Platform } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
 
 enum FilterLibraries {
@@ -39,55 +39,58 @@ function updatePlatformVersion(platformID: string) {
   store.boardUpdating = version;
 }
 
-function releases(platform: Platform): string[] {
-  const relEntries = Object.entries(platform.releases)
+function releases(library: LibrarySearch): string[] {
+  const relEntries = Object.entries(library.releases)
     .reverse()
     .map(([version]) => version); // Map to only the version string
   return relEntries;
 }
 
-function isPlatformInstalled(platform: Platform): boolean {
-  return platform.installed_version.trim().length !== 0
+function isLibraryInstalled(library: LibrarySearch): boolean {
+  // return platform.installed_version.trim().length !== 0
+  return true;
 }
 
-function isPlatformUpdatable(platform: Platform): boolean {
-  return platform.installed_version !== platform.latest_version
+function isLibraryUpdatable(library: LibrarySearch): boolean {
+  // return library.installed_version !== library.latest.version
+  return false;
 }
 
-function isPlatformDepracated(platform: Platform): boolean {
-  return platform.deprecated || false;
+function isLibraryDepracated(library: LibrarySearch): boolean {
+  // return library.deprecated || false;
+  return false;
 }
 
 const filteredLibraries = computed(() => {
   return filterLibs(filterLibraries.value);
 })
 
-function filterLibs(filter: FilterLibraries): any {
-  let filtered;
+function filterLibs(filter: FilterLibraries): LibrarySearch[] {
+  let filtered: LibrarySearch[] = [];
   switch (filter) {
     case FilterLibraries.installed:
       // filtered = store.platform?.platforms.filter((platform) => {
       //   return isPlatformInstalled(platform) && !isPlatformUpdatable(platform);
       // })
-      filtered = store.libraries?.libraries;
+      filtered = store.libraries?.libraries ?? [];
       break;
     case FilterLibraries.updatable:
-      filtered = store.platform?.platforms.filter((platform) => {
-        return isPlatformUpdatable(platform) && isPlatformInstalled(platform);
-      })
+      filtered = (store.libraries?.libraries ?? []).filter((library) => {
+        return isLibraryUpdatable(library) && isLibraryInstalled(library);
+      });
       break;
     case FilterLibraries.deprecated:
-      filtered = store.platform?.platforms.filter((platform) => {
-        return isPlatformDepracated(platform);
+      filtered = (store.libraries?.libraries ?? []).filter((library) => {
+        return isLibraryDepracated(library);
       })
       break;
     case FilterLibraries.not_installed:
-      filtered = store.platform?.platforms.filter((platform) => {
-        return !isPlatformInstalled(platform) && !isPlatformDepracated(platform);
+      filtered = (store.libraries?.libraries ?? []).filter((library) => {
+        return !isLibraryInstalled(library) && !isLibraryDepracated(library);
       })
       break;
     default:
-      filtered = store.platform?.platforms;
+      filtered = store.libraries?.libraries ?? [];
       break;
   }
   return filtered || [];
@@ -139,44 +142,44 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           <v-chip filter :value="FilterLibraries.not_installed">Not Installed</v-chip>
           <v-chip filter :value="FilterLibraries.deprecated">Deprecated</v-chip>
         </v-chip-group>
-        <v-card v-for="(library,index) in filteredLibraries" :key="index" color="blue-grey-darken-4" class="mb-5 mt-5">
+        <v-card v-for="(library, index) in filteredLibraries" :key="index" color="blue-grey-darken-4" class="mb-5 mt-5">
           <v-card-title>
             {{ library.name }}
-            <span class="text-subtitle-2 pl-5"> <a :href="library.website" target="_blank">Info</a></span>
+            <span class="text-subtitle-2 pl-5"> <a :href="library.latest.website" target="_blank">Info</a></span>
           </v-card-title>
           <v-card-subtitle>
-            {{ "by " + library.maintainer }}
+            {{ "by " + library.latest.maintainer }}
             <span>
-              {{ library.installed_version }} installed
+              {{  }} installed
             </span>
             <span class="text-green font-weight-bold">
-              ({{ library.latest_version }} is the newest)
+              ({{ library.latest.version }} is the newest)
             </span>
           </v-card-subtitle>
           <v-card-text>
             <v-row>
               <v-col>
-                <v-select v-if="library.releases" v-model="selectedLibrary[library.id]" :items="releases(library)"
+                <v-select v-if="library.releases" v-model="selectedLibrary[library.name]" :items="releases(library)"
                   item-title="version" item-value="version" return-object density="compact">
                 </v-select>
               </v-col>
-              <v-col v-if="!isPlatformInstalled(library)">
+              <v-col v-if="!isLibraryInstalled(library)">
                 <v-btn>Install</v-btn>
               </v-col>
-              <v-col v-if="isPlatformInstalled(library) && !isPlatformUpdatable(library)">
-                <v-btn @click="updatePlatformVersion(library.id)"
+              <v-col v-if="isLibraryInstalled(library) && !isLibraryUpdatable(library)">
+                <!-- <v-btn @click="updatePlatformVersion(library.name)"
                   :disabled="selectedLibrary[library.id] === library.latest_version">Install older
-                  version</v-btn>
+                  version</v-btn> -->
               </v-col>
-              <v-col v-if="isPlatformUpdatable(library) && isPlatformInstalled(library)">
-                <v-btn @click="updatePlatformVersion(library.id)"
+              <v-col v-if="isLibraryUpdatable(library) && isLibraryInstalled(library)">
+                <!-- <v-btn @click="updatePlatformVersion(library.name)"
                   v-if="selectedLibrary[library.id] === library.latest_version">Update</v-btn>
                 <v-btn @click="updatePlatformVersion(library.id)"
                   v-if="(selectedLibrary[library.id] !== library.latest_version) && (selectedLibrary[library.id] !== library.installed_version)">Install
                   older version</v-btn>
                 <span v-else-if="selectedLibrary[library.id] === library.installed_version">(this version is
                   currently
-                  installed)</span>
+                  installed)</span> -->
               </v-col>
             </v-row>
           </v-card-text>
@@ -184,7 +187,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
       </div>
       <div v-else>
         Installing board, please wait
-        <v-progress-linear  color="grey" indeterminate></v-progress-linear >
+        <v-progress-linear color="grey" indeterminate></v-progress-linear>
       </div>
     </v-responsive>
   </v-container>
