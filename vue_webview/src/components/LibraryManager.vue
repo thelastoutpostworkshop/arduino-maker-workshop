@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, LibrarySearch, Platform } from '@shared/messages';
+import { ARDUINO_MESSAGES, LibrarySearch } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
 
 enum FilterLibraries {
@@ -17,6 +17,7 @@ const updatableCount = ref(0);
 
 onMounted(() => {
   vscode.postMessage({ command: ARDUINO_MESSAGES.LIBRARY_SEARCH, errorMessage: "", payload: "" });
+  vscode.postMessage({ command: ARDUINO_MESSAGES.LIBRARY_INSTALLED, errorMessage: "", payload: "" });
 });
 
 watch(
