@@ -134,6 +134,20 @@ export async function searchLibrary(): Promise<string> {
 		throw error;
 	}
 }
+export async function searchLibraryInstalled(): Promise<string> {
+	try {
+		const searchLibraryArgs = arduinoProject.getLibrarySearchArguments();
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, searchLibraryArgs, true, false);
+		if (!result) {
+			window.showErrorMessage(`CLI : No result from library search`);
+			throw new Error("Command result empty");
+		}
+		return result;
+	} catch (error: any) {
+		window.showErrorMessage(`CLI : Error from library search`);
+		throw error;
+	}
+}
 
 export async function runInstallCoreVersion(version:string): Promise<string> {
 	try {

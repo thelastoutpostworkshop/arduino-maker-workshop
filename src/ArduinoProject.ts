@@ -182,6 +182,14 @@ export class ArduinoProject {
         ];
         return libSearchCommand;
     }
+    public getLibraryInstalledArguments(): string[] {
+        const command = [
+            `${libraryCommandArduino}`,
+            `${listOption}`,
+            `${jsonOutputArduino}`
+        ];
+        return command;
+    }
     public getBoardConfigurationArguments(): string[] {
         let boardConfigArg = "";
         if (this.getBoardConfiguration() === "") {
