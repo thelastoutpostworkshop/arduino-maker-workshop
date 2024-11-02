@@ -25,7 +25,7 @@ watch(
   (newConfig) => {
     if (newConfig) {
       store.libraries?.libraries.forEach((library) => {
-        selectedLibrary.value[library.name] = library.name;
+        selectedLibrary.value[library.name] = library.latest.version;
       })
       // updatableCount.value = filterPlatforms(FilterLibraries.updatable).length;
     }
