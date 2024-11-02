@@ -65,7 +65,7 @@ function isLibraryUpdatable(library: LibrarySearch): boolean {
 //   return false;
 // }
 
-function installedVersion(name:string):string {
+function installedVersion(name: string): string {
   const foundLibrary = store.librariesInstalled?.installed_libraries.find(
     (installedLibrary) => installedLibrary.library.name === name
   );
@@ -174,8 +174,8 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             {{ library.latest.paragraph }}
             <v-row>
               <v-col>
-                <v-select v-if="library.available_versions" v-model="selectedLibrary[library.name]" :items="releases(library)"
-                  item-title="version" item-value="version" return-object density="compact">
+                <v-select v-if="library.available_versions" v-model="selectedLibrary[library.name]"
+                  :items="library.available_versions" return-object density="compact">
                 </v-select>
               </v-col>
               <v-col v-if="!isLibraryInstalled(library.name)">
