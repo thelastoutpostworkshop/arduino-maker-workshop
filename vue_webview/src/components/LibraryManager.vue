@@ -40,12 +40,12 @@ watch(
 //   store.boardUpdating = version;
 // }
 
-function releases(library: LibraryAvailable): string[] {
-  const relEntries = Object.entries(library.available_versions)
-    .reverse()
-    .map(([version]) => version); // Map to only the version string
-  return relEntries;
-}
+// function releases(library: LibraryAvailable): string[] {
+//   const relEntries = Object.entries(library.available_versions)
+//     .reverse()
+//     .map(([version]) => version); // Map to only the version string
+//   return relEntries;
+// }
 
 function isLibraryInstalled(library: LibraryAvailable): boolean {
   const foundLibrary = store.librariesInstalled?.installed_libraries.find(
@@ -56,8 +56,10 @@ function isLibraryInstalled(library: LibraryAvailable): boolean {
 
 
 function isLibraryUpdatable(library: LibraryAvailable): boolean {
-  // return library.installed_version !== library.latest.version
-  return false;
+  const foundLibrary = store.librariesInstalled?.installed_libraries.find(
+    (installedLibrary) => installedLibrary.library.name === library.name
+  );
+  return foundLibrary?.library.version !== library.latest.version
 }
 
 // function isLibraryDepracated(library: LibrarySearch): boolean {
