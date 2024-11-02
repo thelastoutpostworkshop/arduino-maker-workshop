@@ -72,7 +72,7 @@ export interface Platform {
   releases: Record<string, Release>;
   installed_version: string;
   latest_version: string;
-  deprecated?:boolean;
+  deprecated?: boolean;
   boards: Board[];
 }
 
@@ -102,7 +102,7 @@ interface Help {
 }
 
 export interface CorePlatforms {
-  platforms:Platform[];
+  platforms: Platform[];
 }
 
 export interface PlatformsList {
@@ -110,31 +110,31 @@ export interface PlatformsList {
 }
 
 export interface BoardList {
-  name:     string;
-  fqbn:     string;
+  name: string;
+  fqbn: string;
   platform: PlatformData;
 }
 
 export interface PlatformData {
   metadata: Metadata;
-  release:  ReleaseData;
+  release: ReleaseData;
 }
 
 export interface Metadata {
-  id:         string;
+  id: string;
   maintainer: string;
-  website:    string;
-  email:      string;
-  indexed?:   boolean;
+  website: string;
+  email: string;
+  indexed?: boolean;
 }
 
 export interface ReleaseData {
-  name:       string;
-  version:    string;
-  types:      string[];
-  installed:  boolean;
-  boards:     Board[];
-  help:       Help;
+  name: string;
+  version: string;
+  types: string[];
+  installed: boolean;
+  boards: Board[];
+  help: Help;
   compatible: boolean;
 }
 
@@ -144,29 +144,29 @@ export interface Liblist {
 }
 
 export interface InstalledLibrary {
-  library:  Library;
+  library: Library;
   release?: Release;
 }
 
 export interface Library {
-  name:              string;
-  author:            string;
-  maintainer:        string;
-  sentence:          string;
-  paragraph:         string;
-  website:           string;
-  category:          string;
-  architectures:     string[];
-  install_dir:       string;
-  source_dir:        string;
-  version:           string;
-  license:           string;
-  properties:        CompatibleWith;
-  location:          string;
-  layout:            string;
-  examples?:         string[];
+  name: string;
+  author: string;
+  maintainer: string;
+  sentence: string;
+  paragraph: string;
+  website: string;
+  category: string;
+  architectures: string[];
+  install_dir: string;
+  source_dir: string;
+  version: string;
+  license: string;
+  properties: CompatibleWith;
+  location: string;
+  layout: string;
+  examples?: string[];
   provides_includes: string[];
-  compatible_with:   CompatibleWith;
+  compatible_with: CompatibleWith;
 }
 
 export interface CompatibleWith {
@@ -174,56 +174,56 @@ export interface CompatibleWith {
 
 
 export interface Release {
-  author:        string;
-  version:       string;
-  maintainer:    string;
-  sentence:      string;
-  paragraph:     string;
-  website:       string;
-  category:      string;
+  author: string;
+  version: string;
+  maintainer: string;
+  sentence: string;
+  paragraph: string;
+  website: string;
+  category: string;
   architectures: string[];
-  types:         string[];
+  types: string[];
 }
 
 export interface Libsearch {
-  libraries: LibrarySearch[];
-  status:    string;
+  libraries: LibraryAvailable[];
+  status: string;
 }
 
-export interface LibrarySearch {
-  name:               string;
-  releases:           Releases;
-  latest:             LatestLibrary;
+export interface LibraryAvailable {
+  name: string;
+  releases: Releases;
+  latest: LatestLibrary;
   available_versions: string[];
 }
 
 export interface LatestLibrary {
-  author:             string;
-  version:            string;
-  maintainer:         string;
-  sentence:           string;
-  website:            string;
-  category:           string;
-  architectures?:     string[];
-  types:              string[];
-  resources:          LibraryResources;
+  author: string;
+  version: string;
+  maintainer: string;
+  sentence: string;
+  website: string;
+  category: string;
+  architectures?: string[];
+  types: string[];
+  resources: LibraryResources;
   provides_includes?: string[];
-  dependencies?:      LibraryDependency[];
-  paragraph?:         string;
-  license?:           string;
+  dependencies?: LibraryDependency[];
+  paragraph?: string;
+  license?: string;
 }
 
 export interface LibraryDependency {
-  name:                string;
+  name: string;
   version_constraint?: string;
 }
 
 export interface LibraryResources {
-  url:              string;
+  url: string;
   archive_filename: string;
-  checksum:         string;
-  size:             number;
-  cache_path:       string;
+  checksum: string;
+  size: number;
+  cache_path: string;
 }
 
 export interface Releases {

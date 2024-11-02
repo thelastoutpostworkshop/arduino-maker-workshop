@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, LibrarySearch } from '@shared/messages';
+import { ARDUINO_MESSAGES, LibraryAvailable } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
 
 enum FilterLibraries {
@@ -40,22 +40,22 @@ watch(
 //   store.boardUpdating = version;
 // }
 
-function releases(library: LibrarySearch): string[] {
+function releases(library: LibraryAvailable): string[] {
   const relEntries = Object.entries(library.available_versions)
     .reverse()
     .map(([version]) => version); // Map to only the version string
   return relEntries;
 }
 
-function isLibraryInstalled(name: string): boolean {
+function isLibraryInstalled(library: LibraryAvailable): boolean {
   const foundLibrary = store.librariesInstalled?.installed_libraries.find(
-    (installedLibrary) => installedLibrary.library.name === name
+    (installedLibrary) => installedLibrary.library.name === library.name
   );
   return foundLibrary !== undefined;
 }
 
 
-function isLibraryUpdatable(library: LibrarySearch): boolean {
+function isLibraryUpdatable(library: LibraryAvailable): boolean {
   // return library.installed_version !== library.latest.version
   return false;
 }
@@ -65,9 +65,9 @@ function isLibraryUpdatable(library: LibrarySearch): boolean {
 //   return false;
 // }
 
-function installedVersion(name: string): string {
+function installedVersion(library: LibraryAvailable): string {
   const foundLibrary = store.librariesInstalled?.installed_libraries.find(
-    (installedLibrary) => installedLibrary.library.name === name
+    (installedLibrary) => installedLibrary.library.name === library.name
   );
   return foundLibrary?.library.version ?? '';
 }
@@ -76,11 +76,11 @@ const filteredLibraries = computed(() => {
   return filterLibs(filterLibraries.value);
 })
 
-function filterLibs(filter: FilterLibraries): LibrarySearch[] {
-  let filtered: LibrarySearch[] = [];
+function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
+  let filtered: LibraryAvailable[] = [];
   switch (filter) {
     case FilterLibraries.installed:
-      filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library.name));
+      filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library));
       console.log(filtered);
       break;
     // case FilterLibraries.updatable:
@@ -164,7 +164,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           <v-card-subtitle>
             {{ "by " + library.latest.author }}
             <span>
-              {{ installedVersion(library.name) }} installed
+              {{ installedVersion(library) }} installed
             </span>
             <span class="text-green font-weight-bold">
               ({{ library.latest.version }} is the newest)
@@ -178,15 +178,15 @@ const inDevelopment = computed(() => import.meta.env.DEV);
                   :items="library.available_versions" return-object density="compact">
                 </v-select>
               </v-col>
-              <v-col v-if="!isLibraryInstalled(library.name)">
+              <v-col v-if="!isLibraryInstalled(library)">
                 <v-btn>Install</v-btn>
               </v-col>
-              <v-col v-if="isLibraryInstalled(library.name) && !isLibraryUpdatable(library)">
+              <v-col v-if="isLibraryInstalled(library) && !isLibraryUpdatable(library)">
                 <!-- <v-btn @click="updatePlatformVersion(library.name)"
                   :disabled="selectedLibrary[library.id] === library.latest_version">Install older
                   version</v-btn> -->
               </v-col>
-              <v-col v-if="isLibraryUpdatable(library) && isLibraryInstalled(library.name)">
+              <v-col v-if="isLibraryUpdatable(library) && isLibraryInstalled(library)">
                 <!-- <v-btn @click="updatePlatformVersion(library.name)"
                   v-if="selectedLibrary[library.id] === library.latest_version">Update</v-btn>
                 <v-btn @click="updatePlatformVersion(library.id)"
