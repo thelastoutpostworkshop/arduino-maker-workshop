@@ -33,12 +33,12 @@ watch(
   { immediate: true }
 );
 
-function updatePlatformVersion(platformID: string) {
-  const toInstall = selectedLibrary.value[platformID];
-  const version = `${platformID}@${toInstall}`;
-  vscode.postMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: version });
-  store.boardUpdating = version;
-}
+// function updatePlatformVersion(platformID: string) {
+//   const toInstall = selectedLibrary.value[platformID];
+//   const version = `${platformID}@${toInstall}`;
+//   vscode.postMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: version });
+//   store.boardUpdating = version;
+// }
 
 function releases(library: LibrarySearch): string[] {
   const relEntries = Object.entries(library.releases)
@@ -47,20 +47,23 @@ function releases(library: LibrarySearch): string[] {
   return relEntries;
 }
 
-function isLibraryInstalled(library: LibrarySearch): boolean {
-  // return platform.installed_version.trim().length !== 0
-  return true;
+function isLibraryInstalled(name: string): boolean {
+  const foundLibrary = store.librariesInstalled?.installed_libraries.find(
+    (installedLibrary) => installedLibrary.library.name === name
+  );
+  return foundLibrary !== undefined;
 }
+
 
 function isLibraryUpdatable(library: LibrarySearch): boolean {
   // return library.installed_version !== library.latest.version
   return false;
 }
 
-function isLibraryDepracated(library: LibrarySearch): boolean {
-  // return library.deprecated || false;
-  return false;
-}
+// function isLibraryDepracated(library: LibrarySearch): boolean {
+//   // return library.deprecated || false;
+//   return false;
+// }
 
 const filteredLibraries = computed(() => {
   return filterLibs(filterLibraries.value);
@@ -70,26 +73,23 @@ function filterLibs(filter: FilterLibraries): LibrarySearch[] {
   let filtered: LibrarySearch[] = [];
   switch (filter) {
     case FilterLibraries.installed:
-      // filtered = store.platform?.platforms.filter((platform) => {
-      //   return isPlatformInstalled(platform) && !isPlatformUpdatable(platform);
-      // })
-      filtered = store.libraries?.libraries ?? [];
+      filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library.name));
       break;
-    case FilterLibraries.updatable:
-      filtered = (store.libraries?.libraries ?? []).filter((library) => {
-        return isLibraryUpdatable(library) && isLibraryInstalled(library);
-      });
-      break;
-    case FilterLibraries.deprecated:
-      filtered = (store.libraries?.libraries ?? []).filter((library) => {
-        return isLibraryDepracated(library);
-      })
-      break;
-    case FilterLibraries.not_installed:
-      filtered = (store.libraries?.libraries ?? []).filter((library) => {
-        return !isLibraryInstalled(library) && !isLibraryDepracated(library);
-      })
-      break;
+    // case FilterLibraries.updatable:
+    //   filtered = (store.libraries?.libraries ?? []).filter((library) => {
+    //     return isLibraryUpdatable(library) && isLibraryInstalled(library);
+    //   });
+    //   break;
+    // case FilterLibraries.deprecated:
+    //   filtered = (store.libraries?.libraries ?? []).filter((library) => {
+    //     return isLibraryDepracated(library);
+    //   })
+    //   break;
+    // case FilterLibraries.not_installed:
+    //   filtered = (store.libraries?.libraries ?? []).filter((library) => {
+    //     return !isLibraryInstalled(library) && !isLibraryDepracated(library);
+    //   })
+    //   break;
     default:
       filtered = store.libraries?.libraries ?? [];
       break;
@@ -156,7 +156,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           <v-card-subtitle>
             {{ "by " + library.latest.author }}
             <span>
-              {{  }} installed
+              {{ }} installed
             </span>
             <span class="text-green font-weight-bold">
               ({{ library.latest.version }} is the newest)
@@ -170,15 +170,15 @@ const inDevelopment = computed(() => import.meta.env.DEV);
                   item-title="version" item-value="version" return-object density="compact">
                 </v-select>
               </v-col>
-              <v-col v-if="!isLibraryInstalled(library)">
+              <v-col v-if="!isLibraryInstalled(library.name)">
                 <v-btn>Install</v-btn>
               </v-col>
-              <v-col v-if="isLibraryInstalled(library) && !isLibraryUpdatable(library)">
+              <v-col v-if="isLibraryInstalled(library.name) && !isLibraryUpdatable(library)">
                 <!-- <v-btn @click="updatePlatformVersion(library.name)"
                   :disabled="selectedLibrary[library.id] === library.latest_version">Install older
                   version</v-btn> -->
               </v-col>
-              <v-col v-if="isLibraryUpdatable(library) && isLibraryInstalled(library)">
+              <v-col v-if="isLibraryUpdatable(library) && isLibraryInstalled(library.name)">
                 <!-- <v-btn @click="updatePlatformVersion(library.name)"
                   v-if="selectedLibrary[library.id] === library.latest_version">Update</v-btn>
                 <v-btn @click="updatePlatformVersion(library.id)"
