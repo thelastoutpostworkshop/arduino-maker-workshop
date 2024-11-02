@@ -148,7 +148,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             <span class="text-subtitle-2 pl-5"> <a :href="library.latest.website" target="_blank">Info</a></span>
           </v-card-title>
           <v-card-subtitle>
-            {{ "by " + library.latest.maintainer }}
+            {{ "by " + library.latest.author }}
             <span>
               {{  }} installed
             </span>
@@ -157,6 +157,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             </span>
           </v-card-subtitle>
           <v-card-text>
+            {{ library.latest.paragraph }}
             <v-row>
               <v-col>
                 <v-select v-if="library.releases" v-model="selectedLibrary[library.name]" :items="releases(library)"
