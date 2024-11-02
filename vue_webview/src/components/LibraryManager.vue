@@ -41,7 +41,7 @@ watch(
 // }
 
 function releases(library: LibrarySearch): string[] {
-  const relEntries = Object.entries(library.releases)
+  const relEntries = Object.entries(library.available_versions)
     .reverse()
     .map(([version]) => version); // Map to only the version string
   return relEntries;
@@ -65,6 +65,13 @@ function isLibraryUpdatable(library: LibrarySearch): boolean {
 //   return false;
 // }
 
+function installedVersion(name:string):string {
+  const foundLibrary = store.librariesInstalled?.installed_libraries.find(
+    (installedLibrary) => installedLibrary.library.name === name
+  );
+  return foundLibrary?.library.version ?? '';
+}
+
 const filteredLibraries = computed(() => {
   return filterLibs(filterLibraries.value);
 })
@@ -74,6 +81,7 @@ function filterLibs(filter: FilterLibraries): LibrarySearch[] {
   switch (filter) {
     case FilterLibraries.installed:
       filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library.name));
+      console.log(filtered);
       break;
     // case FilterLibraries.updatable:
     //   filtered = (store.libraries?.libraries ?? []).filter((library) => {
@@ -156,7 +164,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           <v-card-subtitle>
             {{ "by " + library.latest.author }}
             <span>
-              {{ }} installed
+              {{ installedVersion(library.name) }} installed
             </span>
             <span class="text-green font-weight-bold">
               ({{ library.latest.version }} is the newest)
@@ -166,7 +174,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             {{ library.latest.paragraph }}
             <v-row>
               <v-col>
-                <v-select v-if="library.releases" v-model="selectedLibrary[library.name]" :items="releases(library)"
+                <v-select v-if="library.available_versions" v-model="selectedLibrary[library.name]" :items="releases(library)"
                   item-title="version" item-value="version" return-object density="compact">
                 </v-select>
               </v-col>
