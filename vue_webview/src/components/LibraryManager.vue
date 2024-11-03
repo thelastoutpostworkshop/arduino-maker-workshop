@@ -169,7 +169,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             </tr>
           </template>
           <template v-slot:item.actions="{ item }">
-            <v-tooltip :text="`Install ${item.name}`">
+            <v-tooltip :text="`Install latest ${item.name}`">
               <template v-slot:activator="{ props }">
                 <v-btn icon v-bind="props" variant="text">
                   <v-icon class="me-2" size="small">
