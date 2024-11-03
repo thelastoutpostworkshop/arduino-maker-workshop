@@ -31,10 +31,13 @@ watch(
   () => store.libraries,
   (newConfig) => {
     if (newConfig) {
+      updatableCount.value = 0;
       store.libraries?.libraries.forEach((library) => {
         selectedLibrary.value[library.name] = library.latest.version;
+        if(isLibraryUpdatable(library) && isLibraryInstalled(library)) {
+          updatableCount.value++;
+        }
       })
-      // updatableCount.value = filterPlatforms(FilterLibraries.updatable).length;
     }
   },
   { immediate: true }
@@ -85,7 +88,7 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
       filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library));
       break;
     case FilterLibraries.updatable:
-      filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library) && isLibraryUpdatable(library));
+      filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryUpdatable(library) && isLibraryInstalled(library));
       break;
     case FilterLibraries.deprecated:
       filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryDeprecated(library));
