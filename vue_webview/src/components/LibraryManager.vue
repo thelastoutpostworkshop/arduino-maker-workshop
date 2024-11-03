@@ -169,14 +169,19 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             </tr>
           </template>
           <template v-slot:item.actions="{ item }">
-            <v-tooltip :text="`Install latest ${item.name}`">
+            <v-tooltip>
               <template v-slot:activator="{ props }">
                 <v-btn icon v-bind="props" variant="text">
                   <v-icon v-if="!isLibraryInstalled(item) || isLibraryUpdatable(item)" class="me-2" size="small">
                     mdi-tray-arrow-down
                   </v-icon>
+                  <v-icon v-if="isLibraryInstalled(item) && !isLibraryUpdatable(item)" class="me-2" size="small">
+                    mdi-trash-can
+                  </v-icon>
                 </v-btn>
               </template>
+              <span v-if="!isLibraryInstalled(item) || isLibraryUpdatable(item)"> Install latest {{ item.name }}</span>
+              <span v-if="isLibraryInstalled(item) && !isLibraryUpdatable(item)"> Uninstall {{ item.name }}</span>
             </v-tooltip>
           </template>
           <template v-slot:top>
