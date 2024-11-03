@@ -375,9 +375,9 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 	if (showOutput) {
 		outputChannel.show(true);
 	}
-	arduinoExtensionChannel.appendLine('Running Arduino CLI...');
-	arduinoExtensionChannel.appendLine(`${command}`);
-	arduinoExtensionChannel.appendLine(args.join(' '));
+	outputChannel.appendLine('Running Arduino CLI...');
+	outputChannel.appendLine(`${command}`);
+	outputChannel.appendLine(args.join(' '));
 
 	const child = cp.spawn(`${command}`, args);
 	let outputBuffer = '';  // String buffer to store output
