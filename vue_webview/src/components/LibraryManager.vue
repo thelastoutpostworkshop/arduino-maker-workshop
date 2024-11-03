@@ -20,6 +20,12 @@ onMounted(() => {
   vscode.postMessage({ command: ARDUINO_MESSAGES.LIBRARY_INSTALLED, errorMessage: "", payload: "" });
 });
 
+const headers = [
+  {title:'Name',value:'name'},
+  {title:'Latest Version',value:'latest.version'},
+  {title:'Author',value:'latest.author'},
+]
+
 watch(
   () => store.libraries,
   (newConfig) => {
@@ -55,10 +61,10 @@ function isLibraryDeprecated(library: LibraryAvailable): boolean {
     const paragraph = library.latest.paragraph?.toLowerCase() ?? "";
     return sentence.includes("deprecated") || paragraph.includes("deprecated");
 }
-function installedVersion(library: LibraryAvailable): string {
-  const installedLibrary = findLibrary(library.name);
-  return installedLibrary?.library.version ?? '';
-}
+// function installedVersion(library: LibraryAvailable): string {
+//   const installedLibrary = findLibrary(library.name);
+//   return installedLibrary?.library.version ?? '';
+// }
 
 function findLibrary(name: string): InstalledLibrary | undefined {
   const foundLibrary = store.librariesInstalled?.installed_libraries.find(
@@ -133,7 +139,10 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           <v-chip filter :value="FilterLibraries.not_installed">Not Installed</v-chip>
           <v-chip filter :value="FilterLibraries.deprecated">Deprecated</v-chip>
         </v-chip-group>
-        <v-card v-for="(library, index) in filteredLibraries" :key="index" color="blue-grey-darken-4" class="mb-5 mt-5">
+        <v-data-table :items="filteredLibraries" :headers="headers">
+
+        </v-data-table>
+        <!-- <v-card v-for="(library, index) in filteredLibraries" :key="index" color="blue-grey-darken-4" class="mb-5 mt-5">
           <v-card-title>
             {{ library.name }}
             <span class="text-subtitle-2 pl-5"> <a :href="library.latest.website" target="_blank">Info</a></span>
@@ -159,23 +168,23 @@ const inDevelopment = computed(() => import.meta.env.DEV);
                 <v-btn>Install</v-btn>
               </v-col>
               <v-col v-if="isLibraryInstalled(library) && !isLibraryUpdatable(library)">
-                <!-- <v-btn @click="updatePlatformVersion(library.name)"
+                <v-btn @click="updatePlatformVersion(library.name)"
                   :disabled="selectedLibrary[library.id] === library.latest_version">Install older
-                  version</v-btn> -->
+                  version</v-btn>
               </v-col>
               <v-col v-if="isLibraryUpdatable(library) && isLibraryInstalled(library)">
-                <!-- <v-btn @click="updatePlatformVersion(library.name)"
+                <v-btn @click="updatePlatformVersion(library.name)"
                   v-if="selectedLibrary[library.id] === library.latest_version">Update</v-btn>
                 <v-btn @click="updatePlatformVersion(library.id)"
                   v-if="(selectedLibrary[library.id] !== library.latest_version) && (selectedLibrary[library.id] !== library.installed_version)">Install
                   older version</v-btn>
                 <span v-else-if="selectedLibrary[library.id] === library.installed_version">(this version is
                   currently
-                  installed)</span> -->
+                  installed)</span>
               </v-col>
             </v-row>
           </v-card-text>
-        </v-card>
+        </v-card> -->
       </div>
       <div v-else>
         Installing board, please wait
