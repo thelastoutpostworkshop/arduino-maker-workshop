@@ -21,9 +21,8 @@ onMounted(() => {
 });
 
 const headers = [
-  { title: 'Name', value: 'name' },
+  { title: 'Name', value: 'name',sortable:true },
   { title: 'Version', value: 'latest.version' },
-  { title: 'Author', value: 'latest.author' },
 ]
 
 watch(
@@ -146,6 +145,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
                 {{ "By " + item.latest.author }}
                 <div>
                   {{ item.latest.paragraph }}
+                  <span class="text-subtitle-2"> <a :href="item.latest.website" target="_blank">More Info</a></span>
                 </div>
               </td>
             </tr>
