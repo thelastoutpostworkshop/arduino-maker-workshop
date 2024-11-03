@@ -167,7 +167,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
                 </div>
                 <div class="pt-2">
                   <v-row>
-                    <v-col>
+                    <v-col cols="3">
                       <v-select v-if="item.available_versions" v-model="selectedLibrary[item.name]"
                         :items="item.available_versions" return-object density="compact" label="Versions available">
                       </v-select>
