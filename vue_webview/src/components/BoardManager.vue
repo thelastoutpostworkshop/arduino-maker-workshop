@@ -42,12 +42,12 @@ watch(
   { immediate: true }
 );
 
-// function updatePlatformVersion(platformID: string) {
-//   const toInstall = selectedPlatform.value[platformID];
-//   const version = `${platformID}@${toInstall}`;
-//   vscode.postMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: version });
-//   store.boardUpdating = version;
-// }
+function updatePlatformVersion(platformID: string) {
+  const toInstall = selectedPlatform.value[platformID];
+  const version = `${platformID}@${toInstall}`;
+  vscode.postMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: version });
+  store.boardUpdating = version;
+}
 
 function releases(platform: Platform): string[] {
   const relEntries = Object.entries(platform.releases)
@@ -173,7 +173,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
                     <v-col>
                       <v-tooltip>
                         <template v-slot:activator="{ props }">
-                          <v-btn icon v-bind="props" variant="text">
+                          <v-btn @click="updatePlatformVersion(item.id)" icon v-bind="props" variant="text">
                             <v-icon>
                               mdi-tray-arrow-down
                             </v-icon>
@@ -196,18 +196,24 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             </v-card>
           </template>
           <template v-slot:item.actions="{ item }">
-            <v-tooltip>
+            <v-tooltip v-if="!isPlatformInstalled(item) || isPlatformUpdatable(item)">
               <template v-slot:activator="{ props }">
-                <v-btn icon v-bind="props" variant="text">
-                  <v-icon v-if="!isPlatformInstalled(item) || isPlatformUpdatable(item)">
+                <v-btn @click="updatePlatformVersion(item.id)" icon v-bind="props" variant="text">
+                  <v-icon  v-if="!isPlatformInstalled(item) || isPlatformUpdatable(item)">
                     mdi-tray-arrow-down
                   </v-icon>
+                </v-btn>
+              </template>
+              <span> Install latest {{ item.name }}</span>
+            </v-tooltip>
+            <v-tooltip v-if="isPlatformInstalled(item) && !isPlatformUpdatable(item)">
+              <template v-slot:activator="{ props }">
+                <v-btn @click="updatePlatformVersion(item.id)" icon v-bind="props" variant="text">
                   <v-icon v-if="isPlatformInstalled(item) && !isPlatformUpdatable(item)">
                     mdi-trash-can
                   </v-icon>
                 </v-btn>
               </template>
-              <span v-if="!isPlatformInstalled(item) || isPlatformUpdatable(item)"> Install latest {{ item.name }}</span>
               <span v-if="isPlatformInstalled(item) && !isPlatformUpdatable(item)"> Uninstall {{ item.name }}</span>
             </v-tooltip>
           </template>
