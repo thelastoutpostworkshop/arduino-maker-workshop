@@ -49,7 +49,7 @@ function updatePlatformVersion(platformID: string) {
   store.boardUpdating = `Installing board ${platformID} version ${toInstall}`
 }
 function uninstallPlatform(platformID: string) {
-  vscode.postMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: platformID });
+  vscode.postMessage({ command: ARDUINO_MESSAGES.UNINSTALL_CORE, errorMessage: "", payload: platformID });
   store.boardUpdating = `Uninstalling board ${platformID}`;
 }
 
