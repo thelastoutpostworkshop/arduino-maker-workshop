@@ -94,11 +94,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                         console.log("Failed to parse library search response: " + error);
                     }
                     break;
+                case ARDUINO_MESSAGES.CORE_UNINSTALLED:
                 case ARDUINO_MESSAGES.CORE_VERSION_INSTALLED:
                     this.boardUpdating = "";
                     this.platform = null;
                     vscode.postMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
                     break;
+    
                 default:
                     console.warn('Unknown command received:', message.command);
             }

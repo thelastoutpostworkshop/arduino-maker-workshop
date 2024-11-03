@@ -8,17 +8,18 @@ export const compileCommandArduino: string = 'compile';
 const versionCommandArduino: string = 'version';
 const uploadCommandArduino: string = 'upload';
 const boardCommandArduino: string = 'board';
-const libraryCommandArduino:string='lib';
+const libraryCommandArduino: string = 'lib';
 const listFunctionArduino: string = 'list';
 const listAllFunctionArduino: string = 'listall';
 const detailsFunctionArduino: string = 'details';
 const jsonOutputArduino: string = '--json';
 const outdatedCommandArduino: string = 'outdated';
-const coreCommandArduino:string = 'core';
-const updateOption:string = 'update-index';
-const installOption:string = 'install';
-const searchOption:string = 'search';
-const listOption:string = 'list';
+const coreCommandArduino: string = 'core';
+const updateOption: string = 'update-index';
+const installOption: string = 'install';
+const uninstallOption: string = 'uninstall';
+const searchOption: string = 'search';
+const listOption: string = 'list';
 export const verboseOptionArduino: string = '-v';
 export const portOptionArduino: string = '-p';
 export const buildPathArduino: string = '--build-path';
@@ -133,11 +134,21 @@ export class ArduinoProject {
         ];
         return updateCoreCommand;
     }
-    public getInstallCoreVersionArguments(version:string): string[] {
+    public getInstallCoreVersionArguments(version: string): string[] {
         const installCoreVersionCommand = [
             `${coreCommandArduino}`,
             `${installOption}`,
             `${version}`
+        ];
+        return installCoreVersionCommand;
+    }
+    public getUninstallCoreArguments(board_id: string): string[] {
+        const installCoreVersionCommand = [
+            `${coreCommandArduino}`,
+            `${uninstallOption}`,
+            `--run-post-install`,
+            `--run-pre-uninstall`,
+            `${board_id}`
         ];
         return installCoreVersionCommand;
     }

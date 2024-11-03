@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck, runInstallCoreVersion, searchCore, searchLibrary, searchLibraryInstalled } from "./extension";
+import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck, runInstallCoreVersion, runUninstallCoreVersion, searchCore, searchLibrary, searchLibraryInstalled } from "./extension";
 import { ARDUINO_ERRORS } from "./ArduinoProject";
 
 const path = require('path');
@@ -70,6 +70,13 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
+                    case ARDUINO_MESSAGES.UNINSTALL_CORE:
+                        const coreToUninstall = message.payload;
+                        this.uninstallCoreVersion(coreToUninstall).then((result) => {
+                            message.command = ARDUINO_MESSAGES.CORE_UNINSTALLED;
+                            VueWebviewPanel.sendMessage(message);
+                        });
+                        break;
                     case ARDUINO_MESSAGES.CORE_SEARCH:
                         this.searchCore().then((result) => {
                             VueWebviewPanel.sendMessage(result);
@@ -134,6 +141,14 @@ export class VueWebviewPanel {
             installCoreVersionResult.payload = result;
         }
         return installCoreVersionResult;
+    }
+    private async uninstallCoreVersion(board_id: string): Promise<WebviewToExtensionMessage> {
+        const uninstallCoreVersionResult = this.createWebviewMessage(ARDUINO_MESSAGES.UNINSTALL_CORE);
+        const result = await runUninstallCoreVersion(board_id);
+        if (result !== "") {
+            uninstallCoreVersionResult.payload = result;
+        }
+        return uninstallCoreVersionResult;
     }
     private async searchCore(): Promise<WebviewToExtensionMessage> {
         const coreSearchResult = this.createWebviewMessage(ARDUINO_MESSAGES.CORE_SEARCH);

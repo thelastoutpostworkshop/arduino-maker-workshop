@@ -46,7 +46,11 @@ function updatePlatformVersion(platformID: string) {
   const toInstall = selectedPlatform.value[platformID];
   const version = `${platformID}@${toInstall}`;
   vscode.postMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: version });
-  store.boardUpdating = version;
+  store.boardUpdating = `Installing board ${platformID} version ${toInstall}`
+}
+function uninstallPlatform(platformID: string) {
+  vscode.postMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: platformID });
+  store.boardUpdating = `Uninstalling board ${platformID}`;
 }
 
 function releases(platform: Platform): string[] {
@@ -208,7 +212,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             </v-tooltip>
             <v-tooltip v-if="isPlatformInstalled(item) && !isPlatformUpdatable(item)">
               <template v-slot:activator="{ props }">
-                <v-btn @click="updatePlatformVersion(item.id)" icon v-bind="props" variant="text">
+                <v-btn @click="uninstallPlatform(item.id)" icon v-bind="props" variant="text">
                   <v-icon v-if="isPlatformInstalled(item) && !isPlatformUpdatable(item)">
                     mdi-trash-can
                   </v-icon>
@@ -263,7 +267,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
         </v-card> -->
       </div>
       <div v-else>
-        Installing board, please wait
+        {{ store.boardUpdating }}
         <v-progress-linear color="grey" indeterminate></v-progress-linear>
       </div>
     </v-responsive>

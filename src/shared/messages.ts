@@ -240,8 +240,10 @@ export const ARDUINO_MESSAGES = {
   SET_BOARD_CONFIGURATION: 'setArduinoBoardConfiguration',
   OUTDATED: 'checkArduinoOutdated',
   INSTALL_CORE_VERSION: 'installCoreVersion',
-  CORE_SEARCH: 'coreSearch',
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
+  UNINSTALL_CORE:'uninstallCore',
+  CORE_UNINSTALLED:'coreUninstalled',
+  CORE_SEARCH: 'coreSearch',
   LIBRARY_SEARCH: 'librarySearch',
   LIBRARY_INSTALLED: 'libraryInstalled'
 };

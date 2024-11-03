@@ -149,10 +149,10 @@ export async function searchLibraryInstalled(): Promise<string> {
 	}
 }
 
-export async function runInstallCoreVersion(version:string): Promise<string> {
+export async function runInstallCoreVersion(board_id: string): Promise<string> {
 	try {
-		const coreInstallVersionArgs = arduinoProject.getInstallCoreVersionArguments(version);
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, coreInstallVersionArgs, true, true);
+		const coreUninstallVersionArgs = arduinoProject.getInstallCoreVersionArguments(board_id);
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, coreUninstallVersionArgs, true, true);
 		if (!result) {
 			window.showErrorMessage(`CLI : No result from core version installation`);
 			throw new Error("Command result empty");
@@ -160,6 +160,20 @@ export async function runInstallCoreVersion(version:string): Promise<string> {
 		return result;
 	} catch (error: any) {
 		window.showErrorMessage(`CLI : Error from core version installation`);
+		throw error;
+	}
+}
+export async function runUninstallCoreVersion(version: string): Promise<string> {
+	try {
+		const coreInstallVersionArgs = arduinoProject.getUninstallCoreArguments(version);
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, coreInstallVersionArgs, true, true);
+		if (!result) {
+			window.showErrorMessage(`CLI : No result from core uninstall`);
+			throw new Error("Command result empty");
+		}
+		return result;
+	} catch (error: any) {
+		window.showErrorMessage(`CLI : Error from core uninstall`);
 		throw error;
 	}
 }
@@ -320,7 +334,7 @@ function vsCommandUpload(): Disposable {
 
 		// Execute the Arduino CLI command
 		const uploadCommand = arduinoProject.getUploadArguments();
-		const output = executeArduinoCommand(`${cliCommandArduinoPath}`, uploadCommand, true,true);
+		const output = executeArduinoCommand(`${cliCommandArduinoPath}`, uploadCommand, true, true);
 
 	});
 }
@@ -342,7 +356,7 @@ function vsCommandCompile(): Disposable {
 
 		// Execute the Arduino CLI command
 		const compileCommand = arduinoProject.getCompileCommandArguments();
-		executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true,true)
+		executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true, true)
 			.then(output => {
 				if (output) {
 					// Parse the output and generate c_cpp_properties.json
