@@ -14,6 +14,7 @@ const store = useVsCodeStore();
 const filterLibraries = ref(FilterLibraries.installed);
 const selectedLibrary = ref<Record<string, string>>({});
 const updatableCount = ref(0);
+const searchLibrary = ref('');
 
 onMounted(() => {
   vscode.postMessage({ command: ARDUINO_MESSAGES.LIBRARY_SEARCH, errorMessage: "", payload: "" });
@@ -139,20 +140,26 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           <v-chip filter :value="FilterLibraries.not_installed">Not Installed</v-chip>
           <v-chip filter :value="FilterLibraries.deprecated">Deprecated</v-chip>
         </v-chip-group>
-        <v-data-table :items="filteredLibraries" :headers="headers" density="compact" show-expand item-value="name"
-          :sort-by="[{key:'name',order:'asc'}]">
-          <template v-slot:expanded-row="{ columns, item }">
-            <tr>
-              <td :colspan="columns.length" class="text-grey">
-                {{ "By " + item.latest.author }}
-                <div>
-                  {{ item.latest.paragraph }}
-                  <span class="text-subtitle-2"> <a :href="item.latest.website" target="_blank">More Info</a></span>
-                </div>
-              </td>
-            </tr>
+        <v-card title="Libraries" flat>
+          <template v-slot:text>
+            <v-text-field v-model="searchLibrary" label="Search" prepend-inner-icon="mdi-magnify" variant="outlined"
+              hide-details single-line></v-text-field>
           </template>
-        </v-data-table>
+          <v-data-table :items="filteredLibraries" :headers="headers" density="compact" show-expand item-value="name"
+            :sort-by="[{ key: 'name', order: 'asc' }]" :search="searchLibrary">
+            <template v-slot:expanded-row="{ columns, item }">
+              <tr>
+                <td :colspan="columns.length" class="text-grey">
+                  {{ "By " + item.latest.author }}
+                  <div>
+                    {{ item.latest.paragraph }}
+                    <span class="text-subtitle-2"> <a :href="item.latest.website" target="_blank">More Info</a></span>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </v-data-table>
+        </v-card>
         <!-- <v-card v-for="(library, index) in filteredLibraries" :key="index" color="blue-grey-darken-4" class="mb-5 mt-5">
           <v-card-title>
             {{ library.name }}
