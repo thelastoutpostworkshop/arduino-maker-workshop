@@ -23,8 +23,8 @@ onMounted(() => {
 
 const headers = [
   { title: 'Name', value: 'name', key: 'name', sortable: true },
-  { title: 'Version', value: 'latest.version', key: 'latest.version', sortable: false },
-  { title: 'Actions', key: 'actions', sortable: false },
+  { title: 'Version', value: 'latest.version', key: 'latest.version', align: 'center', sortable: false, width: '15%' },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'center', width: '10%' },
 ]
 
 watch(
@@ -142,7 +142,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           <v-chip filter :value="FilterLibraries.deprecated">Deprecated</v-chip>
         </v-chip-group>
         <v-data-table :items="filteredLibraries" :headers="headers" density="compact" show-expand item-value="name"
-          :sort-by="[{ key: 'name', order: 'asc' }]" :search="searchLibrary" >
+          :sort-by="[{ key: 'name', order: 'asc' }]" :search="searchLibrary">
           <template v-slot:expanded-row="{ columns, item }">
             <tr>
               <td :colspan="columns.length" class="text-grey">
@@ -155,12 +155,15 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             </tr>
           </template>
           <template v-slot:item.actions="{ item }">
-            <v-icon class="me-2" size="small">
-              mdi-pencil
-            </v-icon>
-            <v-icon size="small">
-              mdi-delete
-            </v-icon>
+            <v-tooltip text="test">
+              <template v-slot:activator="{ props }">
+                <v-btn icon v-bind="props" variant="text">
+                  <v-icon class="me-2" size="small">
+                    mdi-tray-arrow-down
+                  </v-icon>
+                </v-btn>
+              </template>
+            </v-tooltip>
           </template>
           <template v-slot:top>
             <v-card title="Libraries" flat>
