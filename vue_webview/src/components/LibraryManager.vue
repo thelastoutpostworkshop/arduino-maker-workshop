@@ -52,7 +52,7 @@ function isLibraryUpdatable(library: LibraryAvailable): boolean {
 
 function isLibraryDepracated(library: LibraryAvailable): boolean {
   const installedLibrary = findLibrary(library.name);
-  return installedLibrary?.library.name.toLowerCase().includes("deprecated") ?? false;
+  return (installedLibrary?.library.sentence.toLowerCase().includes("deprecated") || installedLibrary?.library.paragraph.toLowerCase().includes("deprecated")) ?? false;
 }
 
 function installedVersion(library: LibraryAvailable): string {
