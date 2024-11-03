@@ -21,8 +21,8 @@ onMounted(() => {
 });
 
 const headers = [
-  { title: 'Name', value: 'name',sortable:true },
-  { title: 'Version', value: 'latest.version' },
+  { title: 'Name', value: 'name', key: 'name', sortable: true },
+  { title: 'Version', value: 'latest.version', key: 'latest.version', sortable: false },
 ]
 
 watch(
@@ -95,6 +95,7 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
       filtered = store.libraries?.libraries ?? [];
       break;
   }
+  // return filtered.sort((a, b) => a.name.localeCompare(b.name)) || [];
   return filtered || [];
 }
 
@@ -138,7 +139,8 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           <v-chip filter :value="FilterLibraries.not_installed">Not Installed</v-chip>
           <v-chip filter :value="FilterLibraries.deprecated">Deprecated</v-chip>
         </v-chip-group>
-        <v-data-table :items="filteredLibraries" :headers="headers" density="compact" show-expand item-value="name">
+        <v-data-table :items="filteredLibraries" :headers="headers" density="compact" show-expand item-value="name"
+          :sort-by="[{key:'name',order:'asc'}]">
           <template v-slot:expanded-row="{ columns, item }">
             <tr>
               <td :colspan="columns.length" class="text-grey">
