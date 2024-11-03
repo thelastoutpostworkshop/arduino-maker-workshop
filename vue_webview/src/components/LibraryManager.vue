@@ -208,7 +208,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           <template v-slot:top>
             <v-card :title="filteredLibrariesCountText" flat>
               <template v-slot:text>
-                <v-text-field v-model="searchLibrary" label="Search" prepend-inner-icon="mdi-magnify" variant="outlined"
+                <v-text-field v-if="filterdLibrariesCount > 10" v-model="searchLibrary" label="Search" prepend-inner-icon="mdi-magnify" variant="outlined"
                   hide-details single-line clearable></v-text-field>
               </template>
             </v-card>
