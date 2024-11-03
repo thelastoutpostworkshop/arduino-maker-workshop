@@ -23,9 +23,9 @@ onMounted(() => {
 
 const headers = [
   { title: 'Name', value: 'name', key: 'name', sortable: true },
-  { title: 'Version', value: 'latest.version', key: 'latest.version', align: 'center', sortable: false, width: '15%' },
-  { title: 'Actions', key: 'actions', sortable: false, align: 'center', width: '10%' },
-]
+  { title: 'Version', value: 'latest.version', key: 'latest.version', align: 'center' as const, sortable: false, width: '15%' },
+  { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '10%' },
+];
 
 watch(
   () => store.libraries,
@@ -155,7 +155,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             </tr>
           </template>
           <template v-slot:item.actions="{ item }">
-            <v-tooltip text="test">
+            <v-tooltip :text="`Install ${item.name}`">
               <template v-slot:activator="{ props }">
                 <v-btn icon v-bind="props" variant="text">
                   <v-icon class="me-2" size="small">
