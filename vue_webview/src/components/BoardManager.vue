@@ -41,12 +41,12 @@ watch(
   { immediate: true }
 );
 
-function updatePlatformVersion(platformID: string) {
-  const toInstall = selectedPlatform.value[platformID];
-  const version = `${platformID}@${toInstall}`;
-  vscode.postMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: version });
-  store.boardUpdating = version;
-}
+// function updatePlatformVersion(platformID: string) {
+//   const toInstall = selectedPlatform.value[platformID];
+//   const version = `${platformID}@${toInstall}`;
+//   vscode.postMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: version });
+//   store.boardUpdating = version;
+// }
 
 function releases(platform: Platform): string[] {
   const relEntries = Object.entries(platform.releases)
@@ -155,10 +155,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             <tr>
               <td :colspan="columns.length" class="text-grey">
                 {{ "By " + item.maintainer }}
-                <div>
-                  <!-- {{ item.latest.paragraph }} -->
-                  <span class="text-subtitle-2"> <a :href="item.website" target="_blank">More Info</a></span>
-                </div>
+                <span class="text-subtitle-2"> <a :href="item.website" target="_blank">More Info</a></span>
                 <div class="pt-2">
                   <v-row>
                     <v-col cols="3">
