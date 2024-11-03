@@ -33,7 +33,7 @@ watch(
     if (newConfig) {
       store.platform?.platforms.forEach((platform) => {
         selectedPlatform.value[platform.id] = platform.latest_version;
-        platform.name = platformName(platform.id);
+        platform.name = platformName(platform.id); // Patch because name is not provided by the CLI
       })
       updatableCount.value = filterPlatforms(FilterBoards.updatable).length;
     }
