@@ -195,6 +195,22 @@ const inDevelopment = computed(() => import.meta.env.DEV);
               </template>
             </v-card>
           </template>
+          <template v-slot:item.actions="{ item }">
+            <v-tooltip>
+              <template v-slot:activator="{ props }">
+                <v-btn icon v-bind="props" variant="text">
+                  <v-icon v-if="!isPlatformInstalled(item) || isPlatformUpdatable(item)">
+                    mdi-tray-arrow-down
+                  </v-icon>
+                  <v-icon v-if="isPlatformInstalled(item) && !isPlatformUpdatable(item)">
+                    mdi-trash-can
+                  </v-icon>
+                </v-btn>
+              </template>
+              <span v-if="!isPlatformInstalled(item) || isPlatformUpdatable(item)"> Install latest {{ item.name }}</span>
+              <span v-if="isPlatformInstalled(item) && !isPlatformUpdatable(item)"> Uninstall {{ item.name }}</span>
+            </v-tooltip>
+          </template>
         </v-data-table>
 
         <!-- <v-card v-for="(platform) in filteredPlatforms" :key="platform.id" color="blue-grey-darken-4" class="mb-5 mt-5">
