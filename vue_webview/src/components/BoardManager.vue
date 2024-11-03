@@ -16,6 +16,7 @@ const filterBoards = ref(FilterBoards.installed);
 const selectedPlatform = ref<Record<string, string>>({});
 const updatableCount = ref(0);
 const searchBoards = ref('');
+const filterdBoardsCount = ref(0);
 
 onMounted(() => {
   vscode.postMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
@@ -67,35 +68,41 @@ function isPlatformDepracated(platform: Platform): boolean {
   return platform.deprecated || false;
 }
 
+const filteredBoardsCountText = computed(() => {
+  if (filterdBoardsCount.value <= 1) {
+    return `${filterdBoardsCount.value} Board`;
+  } else {
+    return `${filterdBoardsCount.value} Boards`;
+  }
+})
+
 const filteredPlatforms = computed(() => {
-  return filterPlatforms(filterBoards.value);
+  const filtered = filterPlatforms(filterBoards.value);
+  filterdBoardsCount.value = filtered.length;
+  return filtered;
 })
 
 function filterPlatforms(filter: FilterBoards): Platform[] {
-  let filtered;
+  let filtered: Platform[] = [];
   switch (filter) {
     case FilterBoards.installed:
-      filtered = store.platform?.platforms.filter((platform) => {
-        return isPlatformInstalled(platform) && !isPlatformUpdatable(platform);
-      })
+      filtered = (store.platform?.platforms ?? []).filter((platform) =>
+        isPlatformInstalled(platform) && !isPlatformUpdatable(platform))
       break;
     case FilterBoards.updatable:
-      filtered = store.platform?.platforms.filter((platform) => {
-        return isPlatformUpdatable(platform) && isPlatformInstalled(platform);
-      })
+      filtered = (store.platform?.platforms ?? []).filter((platform) => 
+        isPlatformUpdatable(platform) && isPlatformInstalled(platform))
       break;
     case FilterBoards.deprecated:
-      filtered = store.platform?.platforms.filter((platform) => {
-        return isPlatformDepracated(platform);
-      })
+      filtered = (store.platform?.platforms ?? []).filter((platform) => 
+        isPlatformDepracated(platform))
       break;
     case FilterBoards.not_installed:
-      filtered = store.platform?.platforms.filter((platform) => {
-        return !isPlatformInstalled(platform) && !isPlatformDepracated(platform);
-      })
+      filtered = (store.platform?.platforms ?? []).filter((platform) => 
+        !isPlatformInstalled(platform) && !isPlatformDepracated(platform))
       break;
     default:
-      filtered = store.platform?.platforms;
+      filtered = store.platform?.platforms ?? [];
       break;
   }
   return filtered || [];
@@ -179,6 +186,14 @@ const inDevelopment = computed(() => import.meta.env.DEV);
                 </div>
               </td>
             </tr>
+          </template>
+          <template v-slot:top>
+            <v-card :title="filteredBoardsCountText" flat>
+              <template v-slot:text>
+                <v-text-field v-if="filterdBoardsCount > 10" v-model="searchBoards" label="Search"
+                  prepend-inner-icon="mdi-magnify" variant="outlined" hide-details single-line clearable></v-text-field>
+              </template>
+            </v-card>
           </template>
         </v-data-table>
 

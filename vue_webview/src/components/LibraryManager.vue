@@ -115,7 +115,6 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
       filtered = store.libraries?.libraries ?? [];
       break;
   }
-  // return filtered.sort((a, b) => a.name.localeCompare(b.name)) || [];
   return filtered || [];
 }
 
