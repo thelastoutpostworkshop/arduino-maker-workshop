@@ -21,9 +21,9 @@ onMounted(() => {
 });
 
 const headers = [
-  {title:'Name',value:'name'},
-  {title:'Latest Version',value:'latest.version'},
-  {title:'Author',value:'latest.author'},
+  { title: 'Name', value: 'name' },
+  { title: 'Version', value: 'latest.version' },
+  { title: 'Author', value: 'latest.author' },
 ]
 
 watch(
@@ -57,9 +57,9 @@ function isLibraryUpdatable(library: LibraryAvailable): boolean {
 }
 
 function isLibraryDeprecated(library: LibraryAvailable): boolean {
-    const sentence = library.latest.sentence?.toLowerCase() ?? "";
-    const paragraph = library.latest.paragraph?.toLowerCase() ?? "";
-    return sentence.includes("deprecated") || paragraph.includes("deprecated");
+  const sentence = library.latest.sentence?.toLowerCase() ?? "";
+  const paragraph = library.latest.paragraph?.toLowerCase() ?? "";
+  return sentence.includes("deprecated") || paragraph.includes("deprecated");
 }
 // function installedVersion(library: LibraryAvailable): string {
 //   const installedLibrary = findLibrary(library.name);
@@ -139,8 +139,17 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           <v-chip filter :value="FilterLibraries.not_installed">Not Installed</v-chip>
           <v-chip filter :value="FilterLibraries.deprecated">Deprecated</v-chip>
         </v-chip-group>
-        <v-data-table :items="filteredLibraries" :headers="headers">
-
+        <v-data-table :items="filteredLibraries" :headers="headers" density="compact" show-expand item-value="name">
+          <template v-slot:expanded-row="{ columns, item }">
+            <tr>
+              <td :colspan="columns.length" class="text-grey">
+                {{ "By " + item.latest.author }}
+                <div>
+                  {{ item.latest.paragraph }}
+                </div>
+              </td>
+            </tr>
+          </template>
         </v-data-table>
         <!-- <v-card v-for="(library, index) in filteredLibraries" :key="index" color="blue-grey-darken-4" class="mb-5 mt-5">
           <v-card-title>
