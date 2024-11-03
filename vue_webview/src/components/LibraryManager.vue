@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, LibraryAvailable } from '@shared/messages';
+import { ARDUINO_MESSAGES, InstalledLibrary, LibraryAvailable } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
 
 enum FilterLibraries {
@@ -48,30 +48,33 @@ watch(
 // }
 
 function isLibraryInstalled(library: LibraryAvailable): boolean {
-  const foundLibrary = store.librariesInstalled?.installed_libraries.find(
-    (installedLibrary) => installedLibrary.library.name === library.name
-  );
-  return foundLibrary !== undefined;
+  const installedLibrary = findLibrary(library.name);
+  return installedLibrary !== undefined;
 }
 
 
 function isLibraryUpdatable(library: LibraryAvailable): boolean {
-  const foundLibrary = store.librariesInstalled?.installed_libraries.find(
-    (installedLibrary) => installedLibrary.library.name === library.name
-  );
-  return foundLibrary?.library.version !== library.latest.version
+  const installedLibrary = findLibrary(library.name);
+  return installedLibrary?.library.version !== library.latest.version
 }
 
 // function isLibraryDepracated(library: LibrarySearch): boolean {
-//   // return library.deprecated || false;
-//   return false;
+//   const foundLibrary = store.librariesInstalled?.installed_libraries.find(
+//     (installedLibrary) =>
+//       installedLibrary.library.name.toLowerCase().includes("deprecated");
+//   return foundLibrary != undefined;
 // }
 
 function installedVersion(library: LibraryAvailable): string {
+  const installedLibrary = findLibrary(library.name);
+  return installedLibrary?.library.version ?? '';
+}
+
+function findLibrary(name: string): InstalledLibrary | undefined {
   const foundLibrary = store.librariesInstalled?.installed_libraries.find(
-    (installedLibrary) => installedLibrary.library.name === library.name
+    (installedLibrary) => installedLibrary.library.name === name
   );
-  return foundLibrary?.library.version ?? '';
+  return foundLibrary;
 }
 
 const filteredLibraries = computed(() => {
@@ -83,13 +86,12 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
   switch (filter) {
     case FilterLibraries.installed:
       filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library));
-      console.log(filtered);
       break;
-    // case FilterLibraries.updatable:
-    //   filtered = (store.libraries?.libraries ?? []).filter((library) => {
-    //     return isLibraryUpdatable(library) && isLibraryInstalled(library);
-    //   });
-    //   break;
+    case FilterLibraries.updatable:
+      filtered = (store.libraries?.libraries ?? []).filter((library) => {
+        filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library) && isLibraryUpdatable(library));
+      });
+      break;
     // case FilterLibraries.deprecated:
     //   filtered = (store.libraries?.libraries ?? []).filter((library) => {
     //     return isLibraryDepracated(library);
