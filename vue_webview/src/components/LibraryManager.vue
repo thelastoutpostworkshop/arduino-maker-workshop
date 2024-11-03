@@ -15,6 +15,7 @@ const filterLibraries = ref(FilterLibraries.installed);
 const selectedLibrary = ref<Record<string, string>>({});
 const updatableCount = ref(0);
 const searchLibrary = ref('');
+const filterdLibrariesCount = ref(0);
 
 onMounted(() => {
   vscode.postMessage({ command: ARDUINO_MESSAGES.LIBRARY_SEARCH, errorMessage: "", payload: "" });
@@ -34,7 +35,7 @@ watch(
       updatableCount.value = 0;
       store.libraries?.libraries.forEach((library) => {
         selectedLibrary.value[library.name] = library.latest.version;
-        if(isLibraryUpdatable(library) && isLibraryInstalled(library)) {
+        if (isLibraryUpdatable(library) && isLibraryInstalled(library)) {
           updatableCount.value++;
         }
       })
@@ -78,7 +79,17 @@ function findLibrary(name: string): InstalledLibrary | undefined {
 }
 
 const filteredLibraries = computed(() => {
-  return filterLibs(filterLibraries.value);
+  const filtered = filterLibs(filterLibraries.value);
+  filterdLibrariesCount.value = filtered.length;
+  return filtered
+})
+
+const filteredLibrariesCountText = computed(() => {
+  if (filterdLibrariesCount.value <= 1) {
+    return `${filterdLibrariesCount.value} Library`;
+  } else {
+    return `${filterdLibrariesCount.value} Libraries`;
+  }
 })
 
 function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
@@ -169,7 +180,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             </v-tooltip>
           </template>
           <template v-slot:top>
-            <v-card title="Libraries" flat>
+            <v-card :title="filteredLibrariesCountText" flat>
               <template v-slot:text>
                 <v-text-field v-model="searchLibrary" label="Search" prepend-inner-icon="mdi-magnify" variant="outlined"
                   hide-details single-line clearable></v-text-field>
