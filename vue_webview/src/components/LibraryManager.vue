@@ -143,7 +143,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
         <v-card title="Libraries" flat>
           <template v-slot:text>
             <v-text-field v-model="searchLibrary" label="Search" prepend-inner-icon="mdi-magnify" variant="outlined"
-              hide-details single-line></v-text-field>
+              hide-details single-line clearable></v-text-field>
           </template>
           <v-data-table :items="filteredLibraries" :headers="headers" density="compact" show-expand item-value="name"
             :sort-by="[{ key: 'name', order: 'asc' }]" :search="searchLibrary">
@@ -160,49 +160,6 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             </template>
           </v-data-table>
         </v-card>
-        <!-- <v-card v-for="(library, index) in filteredLibraries" :key="index" color="blue-grey-darken-4" class="mb-5 mt-5">
-          <v-card-title>
-            {{ library.name }}
-            <span class="text-subtitle-2 pl-5"> <a :href="library.latest.website" target="_blank">Info</a></span>
-          </v-card-title>
-          <v-card-subtitle>
-            {{ "by " + library.latest.author }}
-            <span>
-              {{ installedVersion(library) }} installed
-            </span>
-            <span class="text-green font-weight-bold">
-              ({{ library.latest.version }} is the newest)
-            </span>
-          </v-card-subtitle>
-          <v-card-text>
-            {{ library.latest.paragraph }}
-            <v-row>
-              <v-col>
-                <v-select v-if="library.available_versions" v-model="selectedLibrary[library.name]"
-                  :items="library.available_versions" return-object density="compact">
-                </v-select>
-              </v-col>
-              <v-col v-if="!isLibraryInstalled(library)">
-                <v-btn>Install</v-btn>
-              </v-col>
-              <v-col v-if="isLibraryInstalled(library) && !isLibraryUpdatable(library)">
-                <v-btn @click="updatePlatformVersion(library.name)"
-                  :disabled="selectedLibrary[library.id] === library.latest_version">Install older
-                  version</v-btn>
-              </v-col>
-              <v-col v-if="isLibraryUpdatable(library) && isLibraryInstalled(library)">
-                <v-btn @click="updatePlatformVersion(library.name)"
-                  v-if="selectedLibrary[library.id] === library.latest_version">Update</v-btn>
-                <v-btn @click="updatePlatformVersion(library.id)"
-                  v-if="(selectedLibrary[library.id] !== library.latest_version) && (selectedLibrary[library.id] !== library.installed_version)">Install
-                  older version</v-btn>
-                <span v-else-if="selectedLibrary[library.id] === library.installed_version">(this version is
-                  currently
-                  installed)</span>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card> -->
       </div>
       <div v-else>
         Installing board, please wait
