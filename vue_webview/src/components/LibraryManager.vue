@@ -93,17 +93,6 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
   return filtered || [];
 }
 
-// const platformName = (platform_id: string): string => {
-//   const p = store.platform?.platforms.find((platform) => platform.id === platform_id);
-//   if (!p || !p.releases) {
-//     return 'Unknown';
-//   }
-
-//   const relEntries = Object.entries(p.releases).reverse();
-//   const name = relEntries[0]?.[1]?.name || 'Unknown';
-//   return name;
-// };
-
 function sendTestMessage() {
   store.simulateMessage({
     command: ARDUINO_MESSAGES.LIBRARY_SEARCH,
