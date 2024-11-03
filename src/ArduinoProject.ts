@@ -138,6 +138,8 @@ export class ArduinoProject {
         const installCoreVersionCommand = [
             `${coreCommandArduino}`,
             `${installOption}`,
+            `--run-post-install`,
+            `--run-pre-uninstall`,
             `${version}`
         ];
         return installCoreVersionCommand;
