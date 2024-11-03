@@ -92,6 +92,10 @@ const filteredLibrariesCountText = computed(() => {
   }
 })
 
+function getVersions(library: LibraryAvailable): string[] {
+  return [...library.available_versions].reverse();
+}
+
 function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
   let filtered: LibraryAvailable[] = [];
   switch (filter) {
@@ -169,7 +173,7 @@ const inDevelopment = computed(() => import.meta.env.DEV);
                   <v-row>
                     <v-col cols="3">
                       <v-select v-if="item.available_versions" v-model="selectedLibrary[item.name]"
-                        :items="item.available_versions" return-object density="compact" label="Versions available">
+                        :items="getVersions(item)" return-object density="compact" label="Versions available">
                       </v-select>
                     </v-col>
                     <v-col>
