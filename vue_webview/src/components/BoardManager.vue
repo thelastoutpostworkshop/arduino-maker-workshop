@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import mockDataSearchBoards from '@/mock/coresearch.json';
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, Platform } from '@shared/messages';
@@ -104,10 +105,11 @@ const platformName = (platform_id: string): string => {
 };
 
 function sendTestMessage() {
+  const payload = JSON.stringify(mockDataSearchBoards);
   store.simulateMessage({
     command: ARDUINO_MESSAGES.CORE_SEARCH,
     errorMessage: "",
-    payload: import.meta.env.VITE_SEARCH_CORE_TEST
+    payload: payload
   });
 }
 
