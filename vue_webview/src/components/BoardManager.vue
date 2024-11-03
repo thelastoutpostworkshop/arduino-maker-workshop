@@ -15,10 +15,17 @@ const store = useVsCodeStore();
 const filterBoards = ref(FilterBoards.installed);
 const selectedPlatform = ref<Record<string, string>>({});
 const updatableCount = ref(0);
+const searchBoards = ref('');
 
 onMounted(() => {
   vscode.postMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
 });
+
+const headers = [
+  { title: 'Name', value: 'name', key: 'name', sortable: true },
+  { title: 'Version', value: 'latest_version', key: 'latest_version', align: 'center' as const, sortable: false, width: '15%' },
+  { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '10%' },
+];
 
 watch(
   () => store.platform,
@@ -26,6 +33,7 @@ watch(
     if (newConfig) {
       store.platform?.platforms.forEach((platform) => {
         selectedPlatform.value[platform.id] = platform.latest_version;
+        platform.name = platformName(platform.id);
       })
       updatableCount.value = filterPlatforms(FilterBoards.updatable).length;
     }
@@ -63,7 +71,7 @@ const filteredPlatforms = computed(() => {
   return filterPlatforms(filterBoards.value);
 })
 
-function filterPlatforms(filter: FilterBoards): any {
+function filterPlatforms(filter: FilterBoards): Platform[] {
   let filtered;
   switch (filter) {
     case FilterBoards.installed:
@@ -140,7 +148,44 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           <v-chip filter :value="FilterBoards.not_installed">Not Installed</v-chip>
           <v-chip filter :value="FilterBoards.deprecated">Deprecated</v-chip>
         </v-chip-group>
-        <v-card v-for="(platform) in filteredPlatforms" :key="platform.id" color="blue-grey-darken-4" class="mb-5 mt-5">
+        <v-data-table :items="filteredPlatforms" :headers="headers" density="compact" show-expand item-value="name"
+          :sort-by="[{ key: 'name', order: 'asc' }]" :search="searchBoards">
+
+          <template v-slot:expanded-row="{ columns, item }">
+            <tr>
+              <td :colspan="columns.length" class="text-grey">
+                {{ "By " + item.maintainer }}
+                <div>
+                  <!-- {{ item.latest.paragraph }} -->
+                  <span class="text-subtitle-2"> <a :href="item.website" target="_blank">More Info</a></span>
+                </div>
+                <div class="pt-2">
+                  <v-row>
+                    <v-col cols="3">
+                      <v-select v-if="item.releases" v-model="selectedPlatform[item.id]" :items="releases(item)"
+                        return-object density="compact" label="Versions available">
+                      </v-select>
+                    </v-col>
+                    <v-col>
+                      <v-tooltip>
+                        <template v-slot:activator="{ props }">
+                          <v-btn icon v-bind="props" variant="text">
+                            <v-icon>
+                              mdi-tray-arrow-down
+                            </v-icon>
+                          </v-btn>
+                        </template>
+                        <span> Install version {{ selectedPlatform[item.id] }}</span>
+                      </v-tooltip>
+                    </v-col>
+                  </v-row>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </v-data-table>
+
+        <!-- <v-card v-for="(platform) in filteredPlatforms" :key="platform.id" color="blue-grey-darken-4" class="mb-5 mt-5">
           <v-card-title>
             {{ platformName(platform.id) }}
             <span class="text-subtitle-2 pl-5"> <a :href="platform.website" target="_blank">Info</a></span>
@@ -181,11 +226,11 @@ const inDevelopment = computed(() => import.meta.env.DEV);
               </v-col>
             </v-row>
           </v-card-text>
-        </v-card>
+        </v-card> -->
       </div>
       <div v-else>
         Installing board, please wait
-        <v-progress-linear  color="grey" indeterminate></v-progress-linear >
+        <v-progress-linear color="grey" indeterminate></v-progress-linear>
       </div>
     </v-responsive>
   </v-container>

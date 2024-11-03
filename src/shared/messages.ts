@@ -74,6 +74,7 @@ export interface Platform {
   latest_version: string;
   deprecated?: boolean;
   boards: Board[];
+  name?:string;
 }
 
 export interface Release {
