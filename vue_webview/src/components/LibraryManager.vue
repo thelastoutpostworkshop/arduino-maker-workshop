@@ -165,6 +165,27 @@ const inDevelopment = computed(() => import.meta.env.DEV);
                   {{ item.latest.paragraph }}
                   <span class="text-subtitle-2"> <a :href="item.latest.website" target="_blank">More Info</a></span>
                 </div>
+                <div class="pt-2">
+                  <v-row>
+                    <v-col>
+                      <v-select v-if="item.available_versions" v-model="selectedLibrary[item.name]"
+                        :items="item.available_versions" return-object density="compact" label="Versions available">
+                      </v-select>
+                    </v-col>
+                    <v-col>
+                      <v-tooltip>
+                        <template v-slot:activator="{ props }">
+                          <v-btn icon v-bind="props" variant="text">
+                            <v-icon>
+                              mdi-tray-arrow-down
+                            </v-icon>
+                          </v-btn>
+                        </template>
+                        <span> Install version {{ selectedLibrary[item.name] }}</span>
+                      </v-tooltip>
+                    </v-col>
+                  </v-row>
+                </div>
               </td>
             </tr>
           </template>
@@ -172,10 +193,10 @@ const inDevelopment = computed(() => import.meta.env.DEV);
             <v-tooltip>
               <template v-slot:activator="{ props }">
                 <v-btn icon v-bind="props" variant="text">
-                  <v-icon v-if="!isLibraryInstalled(item) || isLibraryUpdatable(item)" class="me-2" size="small">
+                  <v-icon v-if="!isLibraryInstalled(item) || isLibraryUpdatable(item)">
                     mdi-tray-arrow-down
                   </v-icon>
-                  <v-icon v-if="isLibraryInstalled(item) && !isLibraryUpdatable(item)" class="me-2" size="small">
+                  <v-icon v-if="isLibraryInstalled(item) && !isLibraryUpdatable(item)">
                     mdi-trash-can
                   </v-icon>
                 </v-btn>
