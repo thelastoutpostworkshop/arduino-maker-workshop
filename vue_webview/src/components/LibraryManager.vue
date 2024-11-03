@@ -50,11 +50,11 @@ function isLibraryUpdatable(library: LibraryAvailable): boolean {
   return installedLibrary?.library.version !== library.latest.version
 }
 
-function isLibraryDepracated(library: LibraryAvailable): boolean {
-  const installedLibrary = findLibrary(library.name);
-  return (installedLibrary?.library.sentence.toLowerCase().includes("deprecated") || installedLibrary?.library.paragraph.toLowerCase().includes("deprecated")) ?? false;
+function isLibraryDeprecated(library: LibraryAvailable): boolean {
+    const sentence = library.latest.sentence?.toLowerCase() ?? "";
+    const paragraph = library.latest.paragraph?.toLowerCase() ?? "";
+    return sentence.includes("deprecated") || paragraph.includes("deprecated");
 }
-
 function installedVersion(library: LibraryAvailable): string {
   const installedLibrary = findLibrary(library.name);
   return installedLibrary?.library.version ?? '';
@@ -81,10 +81,10 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
       filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library) && isLibraryUpdatable(library));
       break;
     case FilterLibraries.deprecated:
-      filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryDepracated(library));
+      filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryDeprecated(library));
       break;
     case FilterLibraries.not_installed:
-      filtered = (store.libraries?.libraries ?? []).filter((library) => !isLibraryInstalled(library) && !isLibraryDepracated(library));
+      filtered = (store.libraries?.libraries ?? []).filter((library) => !isLibraryInstalled(library) && !isLibraryDeprecated(library));
       break;
     default:
       filtered = store.libraries?.libraries ?? [];
