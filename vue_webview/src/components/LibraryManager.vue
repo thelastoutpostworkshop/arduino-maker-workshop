@@ -40,30 +40,20 @@ watch(
 //   store.boardUpdating = version;
 // }
 
-// function releases(library: LibraryAvailable): string[] {
-//   const relEntries = Object.entries(library.available_versions)
-//     .reverse()
-//     .map(([version]) => version); // Map to only the version string
-//   return relEntries;
-// }
-
 function isLibraryInstalled(library: LibraryAvailable): boolean {
   const installedLibrary = findLibrary(library.name);
   return installedLibrary !== undefined;
 }
-
 
 function isLibraryUpdatable(library: LibraryAvailable): boolean {
   const installedLibrary = findLibrary(library.name);
   return installedLibrary?.library.version !== library.latest.version
 }
 
-// function isLibraryDepracated(library: LibrarySearch): boolean {
-//   const foundLibrary = store.librariesInstalled?.installed_libraries.find(
-//     (installedLibrary) =>
-//       installedLibrary.library.name.toLowerCase().includes("deprecated");
-//   return foundLibrary != undefined;
-// }
+function isLibraryDepracated(library: LibraryAvailable): boolean {
+  const installedLibrary = findLibrary(library.name);
+  return installedLibrary?.library.name.toLowerCase().includes("deprecated") ?? false;
+}
 
 function installedVersion(library: LibraryAvailable): string {
   const installedLibrary = findLibrary(library.name);
@@ -88,20 +78,14 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
       filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library));
       break;
     case FilterLibraries.updatable:
-      filtered = (store.libraries?.libraries ?? []).filter((library) => {
-        filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library) && isLibraryUpdatable(library));
-      });
+      filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library) && isLibraryUpdatable(library));
       break;
-    // case FilterLibraries.deprecated:
-    //   filtered = (store.libraries?.libraries ?? []).filter((library) => {
-    //     return isLibraryDepracated(library);
-    //   })
-    //   break;
-    // case FilterLibraries.not_installed:
-    //   filtered = (store.libraries?.libraries ?? []).filter((library) => {
-    //     return !isLibraryInstalled(library) && !isLibraryDepracated(library);
-    //   })
-    //   break;
+    case FilterLibraries.deprecated:
+      filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryDepracated(library));
+      break;
+    case FilterLibraries.not_installed:
+      filtered = (store.libraries?.libraries ?? []).filter((library) => !isLibraryInstalled(library) && !isLibraryDepracated(library));
+      break;
     default:
       filtered = store.libraries?.libraries ?? [];
       break;
