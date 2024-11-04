@@ -371,10 +371,8 @@ function vsCommandCompile(): Disposable {
 }
 
 export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true): Promise<string | void> {
-	outputChannel.clear();
-	if (showOutput) {
-		outputChannel.show(true);
-	}
+	// outputChannel.clear();
+	showOutput && outputChannel.show(true);
 	outputChannel.appendLine('Running Arduino CLI...');
 	outputChannel.appendLine(`${command}`);
 	outputChannel.appendLine(args.join(' '));
@@ -386,7 +384,7 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 		// Stream stdout to the output channel and optionally to the buffer
 		child.stdout.on('data', (data: Buffer) => {
 			const output = data.toString();
-			outputChannel.appendLine(output);
+			showOutput && outputChannel.show(true);
 
 			if (returnOutput) {
 				outputBuffer += output;
@@ -396,7 +394,7 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 		// Stream stderr to the output channel and optionally to the buffer
 		child.stderr.on('data', (data: Buffer) => {
 			const error = `Error: ${data.toString()}`;
-			outputChannel.appendLine(error);
+			showOutput && outputChannel.show(true);
 
 			if (returnOutput) {
 				outputBuffer += error;
@@ -411,14 +409,14 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 				resolve(returnOutput ? outputBuffer : undefined);
 			} else {
 				// Command failed
-				arduinoExtensionChannel.appendLine(`Command failed with code ${code}. Check Output window for details.`);
+				outputChannel.appendLine(`Command failed with code ${code}. Check Output window for details.`);
 				reject(`Command failed with code ${code}`);
 			}
 		});
 
 		// Handle error event in case the command fails to start
 		child.on('error', (err: any) => {
-			arduinoExtensionChannel.appendLine(`Failed to run command: ${err.message}`);
+			outputChannel.appendLine(`Failed to run command: ${err.message}`);
 			reject(`Failed to run command: ${err.message}`);
 		});
 	});
