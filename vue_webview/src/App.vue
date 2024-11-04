@@ -12,20 +12,23 @@ function handleMessageFromVsCode(event: MessageEvent) {
   console.log('Received message:', message);
 
   // Use the store action to handle the message
-  vsCodeStore.handleMessage(message);
+  if(import.meta.env.DEV) {
+    vsCodeStore.simulateMessage(message);
+  }else {
+    vsCodeStore.handleMessage(message);
+  }
 }
 
-if (!import.meta.env.DEV) {
-  onMounted(() => {
-    window.addEventListener('message', handleMessageFromVsCode);
-    vscode.postMessage({ command: ARDUINO_MESSAGES.CLI_STATUS, errorMessage: "", payload: "" });
-    vscode.postMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS, errorMessage: "", payload: "" });
-  });
+onMounted(() => {
+  window.addEventListener('message', handleMessageFromVsCode);
+  vscode.postMessage({ command: ARDUINO_MESSAGES.CLI_STATUS, errorMessage: "", payload: "" });
+  vscode.postMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS, errorMessage: "", payload: "" });
+});
 
-  onUnmounted(() => {
-    window.removeEventListener('message', handleMessageFromVsCode);
-  });
-}
+onUnmounted(() => {
+  window.removeEventListener('message', handleMessageFromVsCode);
+});
+
 </script>
 
 <template>

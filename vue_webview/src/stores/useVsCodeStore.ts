@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
+import mockDataSearchBoards from '@/mock/coresearch.json';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
@@ -11,13 +12,23 @@ export const useVsCodeStore = defineStore('vsCode', {
         boards: null as PlatformsList | null,
         platform: null as CorePlatforms | null,
         libraries: null as Libsearch | null,
-        librariesInstalled:null as Liblist | null,
+        librariesInstalled: null as Liblist | null,
         boardUpdating: "",
-        libraryUpdating:""
+        libraryUpdating: ""
     }),
     actions: {
         simulateMessage(message: WebviewToExtensionMessage) {
-            this.handleMessage(message);
+            console.log(message);
+            switch (message.command) {
+                case ARDUINO_MESSAGES.CORE_SEARCH:
+                    const payload = JSON.stringify(mockDataSearchBoards);
+                    message.payload = payload;
+                    this.handleMessage(message);
+                    break;
+
+                default:
+                    break;
+            }
         },
         handleMessage(message: WebviewToExtensionMessage) {
             switch (message.command) {
@@ -100,7 +111,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.platform = null;
                     vscode.postMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
                     break;
-    
+
                 default:
                     console.warn('Unknown command received:', message.command);
             }

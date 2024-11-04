@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import mockDataSearchBoards from '@/mock/coresearch.json';
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, Platform } from '@shared/messages';
@@ -39,7 +38,6 @@ watch(
       updatableCount.value = filterPlatforms(FilterBoards.updatable).length;
     }
   },
-  { immediate: true }
 );
 
 function updatePlatformVersion(platformID: string) {
@@ -122,17 +120,6 @@ const platformName = (platform_id: string): string => {
   const name = relEntries[0]?.[1]?.name || 'Unknown';
   return name;
 };
-
-function sendTestMessage() {
-  const payload = JSON.stringify(mockDataSearchBoards);
-  store.simulateMessage({
-    command: ARDUINO_MESSAGES.CORE_SEARCH,
-    errorMessage: "",
-    payload: payload
-  });
-}
-
-const inDevelopment = computed(() => import.meta.env.DEV);
 </script>
 
 <template>
@@ -140,9 +127,6 @@ const inDevelopment = computed(() => import.meta.env.DEV);
     <v-responsive>
       <div class="text-center">
         <h1 class="text-h4 font-weight-bold">Boards Manager</h1>
-      </div>
-      <div v-if="inDevelopment">
-        <v-btn @click="sendTestMessage()">Send Test Message</v-btn>
       </div>
       <div v-if="!store.platform?.platforms">
         Loading Boards

@@ -21,6 +21,10 @@ class VSCodeAPIWrapper {
     }
   }
 
+  public inDevelopment():boolean {
+    return import.meta.env.DEV;
+  }
+
   /**
    * Post a message (i.e. send arbitrary data) to the owner of the webview.
    *
@@ -34,7 +38,9 @@ class VSCodeAPIWrapper {
     if (this.vsCodeApi) {
       this.vsCodeApi.postMessage(message);
     } else {
-      console.log(message);
+      if(this.inDevelopment()) {
+        window.postMessage(message);
+      }
     }
   }
 
