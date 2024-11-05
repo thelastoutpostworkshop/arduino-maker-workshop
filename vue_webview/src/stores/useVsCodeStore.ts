@@ -2,6 +2,8 @@ import { defineStore } from 'pinia';
 import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 import mockDataSearchBoards from '@/mock/coresearch.json';
+import mockDataLibrarySearch from '@/mock/libsearch.json';
+import mockDataLibraryList from '@/mock/liblist.json';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
@@ -21,11 +23,17 @@ export const useVsCodeStore = defineStore('vsCode', {
             console.log(message);
             switch (message.command) {
                 case ARDUINO_MESSAGES.CORE_SEARCH:
-                    const payload = JSON.stringify(mockDataSearchBoards);
-                    message.payload = payload;
+                    message.payload = JSON.stringify(mockDataSearchBoards);;
                     this.handleMessage(message);
                     break;
-
+                case ARDUINO_MESSAGES.LIBRARY_SEARCH:
+                    message.payload = JSON.stringify(mockDataLibrarySearch);
+                    this.handleMessage(message);
+                    break;
+                    case ARDUINO_MESSAGES.LIBRARY_INSTALLED:
+                    message.payload = JSON.stringify(mockDataLibraryList);
+                    this.handleMessage(message);
+                    break;
                 default:
                     break;
             }

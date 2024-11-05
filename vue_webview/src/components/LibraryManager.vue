@@ -40,8 +40,7 @@ watch(
         }
       })
     }
-  },
-  { immediate: true }
+  }
 );
 
 // function updatePlatformVersion(platformID: string) {
@@ -118,20 +117,6 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
   return filtered || [];
 }
 
-function sendTestMessage() {
-  store.simulateMessage({
-    command: ARDUINO_MESSAGES.LIBRARY_SEARCH,
-    errorMessage: "",
-    payload: import.meta.env.VITE_LIBRARY_SEARCH_TEST
-  });
-  store.simulateMessage({
-    command: ARDUINO_MESSAGES.LIBRARY_INSTALLED,
-    errorMessage: "",
-    payload: import.meta.env.VITE_LIBRARY_INSTALLED_TEST
-  });
-}
-
-const inDevelopment = computed(() => import.meta.env.DEV);
 </script>
 
 <template>
@@ -139,9 +124,6 @@ const inDevelopment = computed(() => import.meta.env.DEV);
     <v-responsive>
       <div class="text-center">
         <h1 class="text-h4 font-weight-bold">Library Manager</h1>
-      </div>
-      <div v-if="inDevelopment">
-        <v-btn @click="sendTestMessage()">Send Test Message</v-btn>
       </div>
       <div v-if="!store.libraries?.libraries">
         Loading Libraries
@@ -211,8 +193,8 @@ const inDevelopment = computed(() => import.meta.env.DEV);
           <template v-slot:top>
             <v-card :title="filteredLibrariesCountText" flat>
               <template v-slot:text>
-                <v-text-field v-if="filterdLibrariesCount > 10" v-model="searchLibrary" label="Search" prepend-inner-icon="mdi-magnify" variant="outlined"
-                  hide-details single-line clearable></v-text-field>
+                <v-text-field v-if="filterdLibrariesCount > 10" v-model="searchLibrary" label="Search"
+                  prepend-inner-icon="mdi-magnify" variant="outlined" hide-details single-line clearable></v-text-field>
               </template>
             </v-card>
 
