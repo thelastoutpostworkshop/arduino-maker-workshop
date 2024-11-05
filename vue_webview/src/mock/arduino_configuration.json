@@ -1,0 +1,7 @@
+{
+    "configuration": "UploadSpeed=921600,USBMode=hwcdc,CDCOnBoot=default,MSCOnBoot=default,DFUOnBoot=default,UploadMode=default,CPUFreq=240,FlashMode=qio,FlashSize=4M,PartitionScheme=default,DebugLevel=none,PSRAM=enabled,LoopCore=1,EventsCore=1,EraseFlash=none,JTAGAdapter=default,ZigbeeMode=default",
+    "board": "esp32:esp32:esp32s3",
+    "sketch": "coralie_radio.ino",
+    "output": "build",
+    "port": "COM12"
+  }
