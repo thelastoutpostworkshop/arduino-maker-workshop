@@ -3,7 +3,8 @@ import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, A
 import { vscode } from '@/utilities/vscode';
 import mockDataSearchBoards from '@/mock/coresearch.json';
 import mockDataLibrarySearch from '@/mock/libsearch.json';
-import mockDataLibraryList from '@/mock/liblist.json';
+import mockDataLibraryInstalled from '@/mock/libinstalled.json';
+import mockDataCliVersion from '@/mock/cliversion.json';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
@@ -20,7 +21,7 @@ export const useVsCodeStore = defineStore('vsCode', {
     }),
     actions: {
         simulateMessage(message: WebviewToExtensionMessage) {
-            if(import.meta.env.DEV) {
+            if (import.meta.env.DEV) {
                 switch (message.command) {
                     case ARDUINO_MESSAGES.CORE_SEARCH:
                         message.payload = JSON.stringify(mockDataSearchBoards);;
@@ -30,8 +31,12 @@ export const useVsCodeStore = defineStore('vsCode', {
                         message.payload = JSON.stringify(mockDataLibrarySearch);
                         this.handleMessage(message);
                         break;
-                        case ARDUINO_MESSAGES.LIBRARY_INSTALLED:
-                        message.payload = JSON.stringify(mockDataLibraryList);
+                    case ARDUINO_MESSAGES.LIBRARY_INSTALLED:
+                        message.payload = JSON.stringify(mockDataLibraryInstalled);
+                        this.handleMessage(message);
+                        break;
+                    case ARDUINO_MESSAGES.CLI_STATUS:
+                        message.payload = JSON.stringify(mockDataCliVersion);
                         this.handleMessage(message);
                         break;
                     default:
