@@ -30,7 +30,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         this.handleMessage(message);
                         break;
                     case ARDUINO_MESSAGES.LIBRARY_SEARCH:
-                        message.payload = JSON.stringify(mockDataLibrarySearch);
+                        message.payload =  JSON.stringify(mockDataLibrarySearch);
                         this.handleMessage(message);
                         break;
                     case ARDUINO_MESSAGES.LIBRARY_INSTALLED:
@@ -46,7 +46,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         this.handleMessage(message);
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
-                        message.payload = JSON.stringify(mockDataArduinoConfiguration);
+                        message.payload = mockDataArduinoConfiguration;
                         this.handleMessage(message);
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
