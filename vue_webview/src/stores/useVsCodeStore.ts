@@ -44,6 +44,9 @@ export const useVsCodeStore = defineStore('vsCode', {
                         message.payload = JSON.stringify(mockDataBoardDetails);
                         this.handleMessage(message);
                         break;
+                    case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
+                        message.payload = "";
+                        this.handleMessage(message);
                     default:
                         break;
                 }
