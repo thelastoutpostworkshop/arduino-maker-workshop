@@ -1,0 +1,1666 @@
+{
+  "fqbn": "esp32:esp32:esp32s3",
+  "name": "ESP32S3 Dev Module",
+  "version": "3.0.5",
+  "properties_id": "esp32s3",
+  "package": {
+    "maintainer": "Espressif Systems",
+    "url": "https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json",
+    "website_url": "https://github.com/espressif/arduino-esp32",
+    "email": "hristo@espressif.com",
+    "name": "esp32",
+    "help": {
+      "online": "http://esp32.com"
+    }
+  },
+  "platform": {
+    "architecture": "esp32",
+    "category": "ESP32",
+    "url": "https://github.com/espressif/arduino-esp32/releases/download/3.0.5/esp32-3.0.5.zip",
+    "archive_filename": "esp32-3.0.5.zip",
+    "checksum": "SHA-256:6ead4c452e69146b8eb08bee5a77898acc75a0637e9fccb5bbf665385ddc28db",
+    "size": 24481707,
+    "name": "esp32"
+  },
+  "tools_dependencies": [
+    {
+      "packager": "arduino",
+      "name": "dfu-util",
+      "version": "0.11.0-arduino5",
+      "systems": [
+        {
+          "checksum": "SHA-256:9e576c6e44f54b1e921a43ea77bcc08ec99e0e4e0905f4b9acf9ab2c979f0a22",
+          "host": "i386-apple-darwin11",
+          "archive_filename": "dfu-util-0.11-arduino5-darwin_amd64.tar.gz",
+          "url": "http://downloads.arduino.cc/tools/dfu-util-0.11-arduino5-darwin_amd64.tar.gz",
+          "size": 72429
+        },
+        {
+          "checksum": "SHA-256:acd4bd283fd408515279a44dd830499ad37b0767e8f2fde5c27e878ded909dc3",
+          "host": "arm-linux-gnueabihf",
+          "archive_filename": "dfu-util-0.11-arduino5-linux_arm.tar.gz",
+          "url": "http://downloads.arduino.cc/tools/dfu-util-0.11-arduino5-linux_arm.tar.gz",
+          "size": 2512819
+        },
+        {
+          "checksum": "SHA-256:b3f46a65da0c2fed2449dc5a3351c3c74953a868aa7f8d99ba2bb8c418344fe9",
+          "host": "aarch64-linux-gnu",
+          "archive_filename": "dfu-util-0.11-arduino5-linux_arm64.tar.gz",
+          "url": "http://downloads.arduino.cc/tools/dfu-util-0.11-arduino5-linux_arm64.tar.gz",
+          "size": 2607592
+        },
+        {
+          "checksum": "SHA-256:96c64c278561af806b585c123c85748926ad02b1aedc07e5578ca9bee2be0d2a",
+          "host": "x86_64-linux-gnu",
+          "archive_filename": "dfu-util-0.11-arduino5-linux_amd64.tar.gz",
+          "url": "http://downloads.arduino.cc/tools/dfu-util-0.11-arduino5-linux_amd64.tar.gz",
+          "size": 2283425
+        },
+        {
+          "checksum": "SHA-256:9a707692261e5710ed79a6d8a4031ffd0bfe1e585216569934346e9b2d68d0c2",
+          "host": "i686-linux-gnu",
+          "archive_filename": "dfu-util-0.11-arduino5-linux_386.tar.gz",
+          "url": "http://downloads.arduino.cc/tools/dfu-util-0.11-arduino5-linux_386.tar.gz",
+          "size": 2524406
+        },
+        {
+          "checksum": "SHA-256:6451e16bf77600fe2436c8708ab4b75077c49997cf8bedf03221d9d6726bb641",
+          "host": "i686-mingw32",
+          "archive_filename": "dfu-util-0.11-arduino5-windows_386.tar.gz",
+          "url": "http://downloads.arduino.cc/tools/dfu-util-0.11-arduino5-windows_386.tar.gz",
+          "size": 571340
+        }
+      ]
+    },
+    {
+      "packager": "esp32",
+      "name": "esp-rv32",
+      "version": "2302",
+      "systems": [
+        {
+          "checksum": "SHA-256:1eb0d65990547ee9706b90406600cbc3638814d5feb7c1f7b44bb5416478a5bd",
+          "host": "x86_64-pc-linux-gnu",
+          "archive_filename": "riscv32-esp-elf-12.2.0_20230208-x86_64-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/riscv32-esp-elf-12.2.0_20230208-x86_64-linux-gnu.tar.gz",
+          "size": 257615266
+        },
+        {
+          "checksum": "SHA-256:921fcdc170c7fe5d6a0a30470ed1875c8926d910c19739fc950c8d1836e4c1c5",
+          "host": "aarch64-linux-gnu",
+          "archive_filename": "riscv32-esp-elf-12.2.0_20230208-aarch64-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/riscv32-esp-elf-12.2.0_20230208-aarch64-linux-gnu.tar.gz",
+          "size": 253094184
+        },
+        {
+          "checksum": "SHA-256:f66e06312b58251c2121c1b1df1102565708573b86b2a9fe0c03ea1b0e9a7511",
+          "host": "arm-linux-gnueabihf",
+          "archive_filename": "riscv32-esp-elf-12.2.0_20230208-arm-linux-gnueabi.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/riscv32-esp-elf-12.2.0_20230208-arm-linux-gnueabi.tar.gz",
+          "size": 252558021
+        },
+        {
+          "checksum": "SHA-256:8abcac0331ef8973d1c705e77523364ebec7e98b37640d4a1d036912f3cbe946",
+          "host": "i686-pc-linux-gnu",
+          "archive_filename": "riscv32-esp-elf-12.2.0_20230208-i686-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/riscv32-esp-elf-12.2.0_20230208-i686-linux-gnu.tar.gz",
+          "size": 261248375
+        },
+        {
+          "checksum": "SHA-256:76a334bc75a4e3891c222c84d7968817f2d0699d2976fc2a1658e56395283bec",
+          "host": "x86_64-apple-darwin",
+          "archive_filename": "riscv32-esp-elf-12.2.0_20230208-x86_64-apple-darwin.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/riscv32-esp-elf-12.2.0_20230208-x86_64-apple-darwin.tar.gz",
+          "size": 268987133
+        },
+        {
+          "checksum": "SHA-256:f30571945b257a10a26901bba3c5892e07c192aacf9ed6e8fcd11ca36ed827d2",
+          "host": "arm64-apple-darwin",
+          "archive_filename": "riscv32-esp-elf-12.2.0_20230208-aarch64-apple-darwin.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/riscv32-esp-elf-12.2.0_20230208-aarch64-apple-darwin.tar.gz",
+          "size": 252159713
+        },
+        {
+          "checksum": "SHA-256:a5dfbb6dbf6fc6c6ea9beb2723af059ba3c5b2c86c2f0dc3b21afdc7bb229bf5",
+          "host": "i686-mingw32",
+          "archive_filename": "riscv32-esp-elf-12.2.0_20230208-i686-w64-mingw32.zip",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/riscv32-esp-elf-12.2.0_20230208-i686-w64-mingw32.zip",
+          "size": 324863847
+        },
+        {
+          "checksum": "SHA-256:9deae9e0013b2f7bbf017f9c8135755bfa89522f337c7dca35872bf12ec08176",
+          "host": "x86_64-mingw32",
+          "archive_filename": "riscv32-esp-elf-12.2.0_20230208-x86_64-w64-mingw32.zip",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/riscv32-esp-elf-12.2.0_20230208-x86_64-w64-mingw32.zip",
+          "size": 328092732
+        }
+      ]
+    },
+    {
+      "packager": "esp32",
+      "name": "esp-x32",
+      "version": "2302",
+      "systems": [
+        {
+          "checksum": "SHA-256:e8d35938385447cf9c34735fee2a3b2b61cca6be07db77a45856a1c2a347e423",
+          "host": "x86_64-pc-linux-gnu",
+          "archive_filename": "xtensa-esp32-elf-12.2.0_20230208-x86_64-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32-elf-12.2.0_20230208-x86_64-linux-gnu.tar.gz",
+          "size": 111766903
+        },
+        {
+          "checksum": "SHA-256:569988acfc2673369f222037c64bac96990cee08cebeebc4f8860e0d984f8bd9",
+          "host": "aarch64-linux-gnu",
+          "archive_filename": "xtensa-esp32-elf-12.2.0_20230208-aarch64-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32-elf-12.2.0_20230208-aarch64-linux-gnu.tar.gz",
+          "size": 106473247
+        },
+        {
+          "checksum": "SHA-256:6a844f16021e936cc9b87b203978356f57ab2144554f6f2a0f73ffa3d3d316c5",
+          "host": "arm-linux-gnueabihf",
+          "archive_filename": "xtensa-esp32-elf-12.2.0_20230208-arm-linux-gnueabi.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32-elf-12.2.0_20230208-arm-linux-gnueabi.tar.gz",
+          "size": 105576049
+        },
+        {
+          "checksum": "SHA-256:743d6f03a89329bb09f9550d27fcab677f5cf06b4720793bbcef7883a932681d",
+          "host": "i686-pc-linux-gnu",
+          "archive_filename": "xtensa-esp32-elf-12.2.0_20230208-i686-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32-elf-12.2.0_20230208-i686-linux-gnu.tar.gz",
+          "size": 114870843
+        },
+        {
+          "checksum": "SHA-256:4d32d764e984f3a570aacfb2f4957619540fb4629534d969b2e83997901334c3",
+          "host": "x86_64-apple-darwin",
+          "archive_filename": "xtensa-esp32-elf-12.2.0_20230208-x86_64-apple-darwin.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32-elf-12.2.0_20230208-x86_64-apple-darwin.tar.gz",
+          "size": 119424029
+        },
+        {
+          "checksum": "SHA-256:dc8fa7f4933bf5cb08e83bacce6160cc9dfe93d7aad1e8f92599bb81ff5b2e28",
+          "host": "arm64-apple-darwin",
+          "archive_filename": "xtensa-esp32-elf-12.2.0_20230208-aarch64-apple-darwin.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32-elf-12.2.0_20230208-aarch64-apple-darwin.tar.gz",
+          "size": 106136827
+        },
+        {
+          "checksum": "SHA-256:62bb6428d107ed3f44c212c77ecf24804b74c97327b0f0ad2029c656c6dbd6ee",
+          "host": "i686-mingw32",
+          "archive_filename": "xtensa-esp32-elf-12.2.0_20230208-i686-w64-mingw32.zip",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32-elf-12.2.0_20230208-i686-w64-mingw32.zip",
+          "size": 130847086
+        },
+        {
+          "checksum": "SHA-256:8febfe4a6476efc69012390106c8c660a14418f025137b0513670c72124339cf",
+          "host": "x86_64-mingw32",
+          "archive_filename": "xtensa-esp32-elf-12.2.0_20230208-x86_64-w64-mingw32.zip",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32-elf-12.2.0_20230208-x86_64-w64-mingw32.zip",
+          "size": 134985117
+        }
+      ]
+    },
+    {
+      "packager": "esp32",
+      "name": "esp-xs2",
+      "version": "2302",
+      "systems": [
+        {
+          "checksum": "SHA-256:2ff838520a5003d2768b275f5bb5ead69dd2388c3b7cd9043cb59891ba43147f",
+          "host": "x86_64-pc-linux-gnu",
+          "archive_filename": "xtensa-esp32s2-elf-12.2.0_20230208-x86_64-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s2-elf-12.2.0_20230208-x86_64-linux-gnu.tar.gz",
+          "size": 112199211
+        },
+        {
+          "checksum": "SHA-256:6d79d5b14fc7129a9b8208d54e19b05dedb565f50f7a96264c9df84b06ad3be0",
+          "host": "aarch64-linux-gnu",
+          "archive_filename": "xtensa-esp32s2-elf-12.2.0_20230208-aarch64-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s2-elf-12.2.0_20230208-aarch64-linux-gnu.tar.gz",
+          "size": 106953064
+        },
+        {
+          "checksum": "SHA-256:e5bd03b6ad19179b015a93ada9992adc3610036ebf6aeb0835a09c9aadb50a14",
+          "host": "arm-linux-gnueabihf",
+          "archive_filename": "xtensa-esp32s2-elf-12.2.0_20230208-arm-linux-gnueabi.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s2-elf-12.2.0_20230208-arm-linux-gnueabi.tar.gz",
+          "size": 106026829
+        },
+        {
+          "checksum": "SHA-256:fb45943557b2d201bbb1bdc7514a1872f9bb96c2dfb48b95abdba281cc792f75",
+          "host": "i686-pc-linux-gnu",
+          "archive_filename": "xtensa-esp32s2-elf-12.2.0_20230208-i686-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s2-elf-12.2.0_20230208-i686-linux-gnu.tar.gz",
+          "size": 115288662
+        },
+        {
+          "checksum": "SHA-256:e965236cb80e45282d16f40184af183e013b63b177bd1884736c463eac636564",
+          "host": "x86_64-apple-darwin",
+          "archive_filename": "xtensa-esp32s2-elf-12.2.0_20230208-x86_64-apple-darwin.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s2-elf-12.2.0_20230208-x86_64-apple-darwin.tar.gz",
+          "size": 119711811
+        },
+        {
+          "checksum": "SHA-256:78a55eec18650b21378d97494989ffe208748e0f49bb2b2d6756b264e1863919",
+          "host": "arm64-apple-darwin",
+          "archive_filename": "xtensa-esp32s2-elf-12.2.0_20230208-aarch64-apple-darwin.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s2-elf-12.2.0_20230208-aarch64-apple-darwin.tar.gz",
+          "size": 106540817
+        },
+        {
+          "checksum": "SHA-256:1e6dac5162ab75f94b88c47ebeabb6600c652fb4f615ed07c1724d037c02fd19",
+          "host": "i686-mingw32",
+          "archive_filename": "xtensa-esp32s2-elf-12.2.0_20230208-i686-w64-mingw32.zip",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s2-elf-12.2.0_20230208-i686-w64-mingw32.zip",
+          "size": 131273859
+        },
+        {
+          "checksum": "SHA-256:8a785cc4e0838cebe404f82c0ead7a0f9ac5fabc660a742e33a41ddac6326cc1",
+          "host": "x86_64-mingw32",
+          "archive_filename": "xtensa-esp32s2-elf-12.2.0_20230208-x86_64-w64-mingw32.zip",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s2-elf-12.2.0_20230208-x86_64-w64-mingw32.zip",
+          "size": 135373049
+        }
+      ]
+    },
+    {
+      "packager": "esp32",
+      "name": "esp-xs3",
+      "version": "2302",
+      "systems": [
+        {
+          "checksum": "SHA-256:61495ffe575e00c6998ae7274ff917658c04bded62ece0937c7042d6dcbf46de",
+          "host": "x86_64-pc-linux-gnu",
+          "archive_filename": "xtensa-esp32s3-elf-12.2.0_20230208-x86_64-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s3-elf-12.2.0_20230208-x86_64-linux-gnu.tar.gz",
+          "size": 111971129
+        },
+        {
+          "checksum": "SHA-256:9008d395be46fcfe68c7de6edc850fc1595f28323a28e7922e5c085bd310cb90",
+          "host": "aarch64-linux-gnu",
+          "archive_filename": "xtensa-esp32s3-elf-12.2.0_20230208-aarch64-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s3-elf-12.2.0_20230208-aarch64-linux-gnu.tar.gz",
+          "size": 106616800
+        },
+        {
+          "checksum": "SHA-256:568857bdac7dea389dffc7fbc6871b4af299150a8ecf1bf965f224d2a1655edb",
+          "host": "arm-linux-gnueabihf",
+          "archive_filename": "xtensa-esp32s3-elf-12.2.0_20230208-arm-linux-gnueabi.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s3-elf-12.2.0_20230208-arm-linux-gnueabi.tar.gz",
+          "size": 105700326
+        },
+        {
+          "checksum": "SHA-256:d122738bcc6c2f52d05fa89b2fb1afe6a7894cda8a07a1879aca867a31507ed0",
+          "host": "i686-pc-linux-gnu",
+          "archive_filename": "xtensa-esp32s3-elf-12.2.0_20230208-i686-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s3-elf-12.2.0_20230208-i686-linux-gnu.tar.gz",
+          "size": 115098400
+        },
+        {
+          "checksum": "SHA-256:7defcddb98788b0991416ad2e0cb6a3b248b8030f22d5d76b8832117cc1494ca",
+          "host": "x86_64-apple-darwin",
+          "archive_filename": "xtensa-esp32s3-elf-12.2.0_20230208-x86_64-apple-darwin.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s3-elf-12.2.0_20230208-x86_64-apple-darwin.tar.gz",
+          "size": 119883189
+        },
+        {
+          "checksum": "SHA-256:b59e076f8e4b9ca99535d449f9fc4cbb443188051dce4ad934e38f16b095f8d9",
+          "host": "arm64-apple-darwin",
+          "archive_filename": "xtensa-esp32s3-elf-12.2.0_20230208-aarch64-apple-darwin.tar.gz",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s3-elf-12.2.0_20230208-aarch64-apple-darwin.tar.gz",
+          "size": 106464677
+        },
+        {
+          "checksum": "SHA-256:3ddf51774817e815e5d41c312a90c1159226978fb45fd0d4f7085c567f8b73ab",
+          "host": "i686-mingw32",
+          "archive_filename": "xtensa-esp32s3-elf-12.2.0_20230208-i686-w64-mingw32.zip",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s3-elf-12.2.0_20230208-i686-w64-mingw32.zip",
+          "size": 131134034
+        },
+        {
+          "checksum": "SHA-256:1d15ca65e3508388a86d8bed3048c46d07538f5bc88d3e4296f9c03152087cd1",
+          "host": "x86_64-mingw32",
+          "archive_filename": "xtensa-esp32s3-elf-12.2.0_20230208-x86_64-w64-mingw32.zip",
+          "url": "https://github.com/espressif/crosstool-NG/releases/download/esp-12.2.0_20230208/xtensa-esp32s3-elf-12.2.0_20230208-x86_64-w64-mingw32.zip",
+          "size": 135381926
+        }
+      ]
+    },
+    {
+      "packager": "esp32",
+      "name": "esp32-arduino-libs",
+      "version": "idf-release_v5.1-33fbade6",
+      "systems": [
+        {
+          "checksum": "SHA-256:578f325fa9fca635d9c6c3b19726cb26077751e3155b677317bde2e0b371df7d",
+          "host": "aarch64-linux-gnu",
+          "archive_filename": "esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "url": "https://github.com/espressif/esp32-arduino-lib-builder/releases/download/idf-release_v5.1/esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "size": 309285463
+        },
+        {
+          "checksum": "SHA-256:578f325fa9fca635d9c6c3b19726cb26077751e3155b677317bde2e0b371df7d",
+          "host": "arm-linux-gnueabihf",
+          "archive_filename": "esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "url": "https://github.com/espressif/esp32-arduino-lib-builder/releases/download/idf-release_v5.1/esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "size": 309285463
+        },
+        {
+          "checksum": "SHA-256:578f325fa9fca635d9c6c3b19726cb26077751e3155b677317bde2e0b371df7d",
+          "host": "arm64-apple-darwin",
+          "archive_filename": "esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "url": "https://github.com/espressif/esp32-arduino-lib-builder/releases/download/idf-release_v5.1/esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "size": 309285463
+        },
+        {
+          "checksum": "SHA-256:578f325fa9fca635d9c6c3b19726cb26077751e3155b677317bde2e0b371df7d",
+          "host": "i686-mingw32",
+          "archive_filename": "esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "url": "https://github.com/espressif/esp32-arduino-lib-builder/releases/download/idf-release_v5.1/esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "size": 309285463
+        },
+        {
+          "checksum": "SHA-256:578f325fa9fca635d9c6c3b19726cb26077751e3155b677317bde2e0b371df7d",
+          "host": "i686-pc-linux-gnu",
+          "archive_filename": "esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "url": "https://github.com/espressif/esp32-arduino-lib-builder/releases/download/idf-release_v5.1/esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "size": 309285463
+        },
+        {
+          "checksum": "SHA-256:578f325fa9fca635d9c6c3b19726cb26077751e3155b677317bde2e0b371df7d",
+          "host": "x86_64-apple-darwin",
+          "archive_filename": "esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "url": "https://github.com/espressif/esp32-arduino-lib-builder/releases/download/idf-release_v5.1/esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "size": 309285463
+        },
+        {
+          "checksum": "SHA-256:578f325fa9fca635d9c6c3b19726cb26077751e3155b677317bde2e0b371df7d",
+          "host": "x86_64-mingw32",
+          "archive_filename": "esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "url": "https://github.com/espressif/esp32-arduino-lib-builder/releases/download/idf-release_v5.1/esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "size": 309285463
+        },
+        {
+          "checksum": "SHA-256:578f325fa9fca635d9c6c3b19726cb26077751e3155b677317bde2e0b371df7d",
+          "host": "x86_64-pc-linux-gnu",
+          "archive_filename": "esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "url": "https://github.com/espressif/esp32-arduino-lib-builder/releases/download/idf-release_v5.1/esp32-arduino-libs-idf-release_v5.1-33fbade6.zip",
+          "size": 309285463
+        }
+      ]
+    },
+    {
+      "packager": "esp32",
+      "name": "esptool_py",
+      "version": "4.6",
+      "systems": [
+        {
+          "checksum": "SHA-256:22f9bad0cd1cea14e554ac1f4a6d8f67415ff7029a66ce9130756276e7264e5a",
+          "host": "x86_64-pc-linux-gnu",
+          "archive_filename": "esptool-v4.6-src.tar.gz",
+          "url": "https://github.com/espressif/arduino-esp32/releases/download/2.0.9/esptool-v4.6-src.tar.gz",
+          "size": 99141
+        },
+        {
+          "checksum": "SHA-256:22f9bad0cd1cea14e554ac1f4a6d8f67415ff7029a66ce9130756276e7264e5a",
+          "host": "i686-pc-linux-gnu",
+          "archive_filename": "esptool-v4.6-src.tar.gz",
+          "url": "https://github.com/espressif/arduino-esp32/releases/download/2.0.9/esptool-v4.6-src.tar.gz",
+          "size": 99141
+        },
+        {
+          "checksum": "SHA-256:22f9bad0cd1cea14e554ac1f4a6d8f67415ff7029a66ce9130756276e7264e5a",
+          "host": "aarch64-linux-gnu",
+          "archive_filename": "esptool-v4.6-src.tar.gz",
+          "url": "https://github.com/espressif/arduino-esp32/releases/download/2.0.9/esptool-v4.6-src.tar.gz",
+          "size": 99141
+        },
+        {
+          "checksum": "SHA-256:22f9bad0cd1cea14e554ac1f4a6d8f67415ff7029a66ce9130756276e7264e5a",
+          "host": "arm-linux-gnueabihf",
+          "archive_filename": "esptool-v4.6-src.tar.gz",
+          "url": "https://github.com/espressif/arduino-esp32/releases/download/2.0.9/esptool-v4.6-src.tar.gz",
+          "size": 99141
+        },
+        {
+          "checksum": "SHA-256:885ec69fcffdcb9e7c6eacd2589f13a45ce6bcb6742bea368ec3a73bcca6dd59",
+          "host": "x86_64-apple-darwin",
+          "archive_filename": "esptool-v4.6-macos.tar.gz",
+          "url": "https://github.com/espressif/arduino-esp32/releases/download/2.0.9/esptool-v4.6-macos.tar.gz",
+          "size": 5851297
+        },
+        {
+          "checksum": "SHA-256:c7c68cd1aa520cbfce488ff6a77818ece272272eb012831b9d9ab1280a7c393f",
+          "host": "x86_64-mingw32",
+          "archive_filename": "esptool-v4.6-win64.zip",
+          "url": "https://github.com/espressif/arduino-esp32/releases/download/2.0.9/esptool-v4.6-win64.zip",
+          "size": 6638480
+        },
+        {
+          "checksum": "SHA-256:c7c68cd1aa520cbfce488ff6a77818ece272272eb012831b9d9ab1280a7c393f",
+          "host": "i686-mingw32",
+          "archive_filename": "esptool-v4.6-win64.zip",
+          "url": "https://github.com/espressif/arduino-esp32/releases/download/2.0.9/esptool-v4.6-win64.zip",
+          "size": 6638480
+        }
+      ]
+    },
+    {
+      "packager": "esp32",
+      "name": "mklittlefs",
+      "version": "3.0.0-gnu12-dc7f933",
+      "systems": [
+        {
+          "checksum": "SHA-256:fc56e389383749e4cf4fab0fcf75cc0ebc41e59383caf6c2eff1c3d9794af200",
+          "host": "aarch64-linux-gnu",
+          "archive_filename": "aarch64-linux-gnu.mklittlefs-c41e51a.200706.tar.gz",
+          "url": "https://github.com/earlephilhower/esp-quick-toolchain/releases/download/3.0.0-gnu12/aarch64-linux-gnu.mklittlefs-c41e51a.200706.tar.gz",
+          "size": 44651
+        },
+        {
+          "checksum": "SHA-256:52b642dd0545eb3bd8dfb75dde6601df21700e4867763fd2696274be279294c5",
+          "host": "arm-linux-gnueabihf",
+          "archive_filename": "arm-linux-gnueabihf.mklittlefs-c41e51a.200706.tar.gz",
+          "url": "https://github.com/earlephilhower/esp-quick-toolchain/releases/download/3.0.0-gnu12/arm-linux-gnueabihf.mklittlefs-c41e51a.200706.tar.gz",
+          "size": 37211
+        },
+        {
+          "checksum": "SHA-256:7886051d8ccc54aed0af2e7cdf6ff992bb51638df86f3b545955697720b6d062",
+          "host": "i686-pc-linux-gnu",
+          "archive_filename": "i686-linux-gnu.mklittlefs-c41e51a.200706.tar.gz",
+          "url": "https://github.com/earlephilhower/esp-quick-toolchain/releases/download/3.0.0-gnu12/i686-linux-gnu.mklittlefs-c41e51a.200706.tar.gz",
+          "size": 48033
+        },
+        {
+          "checksum": "SHA-256:43740db30ce451454f2337331f10ab4ed41bd83dbf0fa0cb4387107388b59f42",
+          "host": "i686-mingw32",
+          "archive_filename": "i686-w64-mingw32.mklittlefs-c41e51a.200706.zip",
+          "url": "https://github.com/earlephilhower/esp-quick-toolchain/releases/download/3.0.0-gnu12/i686-w64-mingw32.mklittlefs-c41e51a.200706.zip",
+          "size": 332655
+        },
+        {
+          "checksum": "SHA-256:e3edd5e05b70db3c7df6b9d626558348ad04804022fe955c799aeb51808c7dc3",
+          "host": "x86_64-apple-darwin",
+          "archive_filename": "x86_64-apple-darwin14.mklittlefs-c41e51a.200706.tar.gz",
+          "url": "https://github.com/earlephilhower/esp-quick-toolchain/releases/download/3.0.0-gnu12/x86_64-apple-darwin14.mklittlefs-c41e51a.200706.tar.gz",
+          "size": 362608
+        },
+        {
+          "checksum": "SHA-256:66e84dda0aad747517da3785125e05738a540948aab2b7eaa02855167a1eea53",
+          "host": "x86_64-pc-linux-gnu",
+          "archive_filename": "x86_64-linux-gnu.mklittlefs-c41e51a.200706.tar.gz",
+          "url": "https://github.com/earlephilhower/esp-quick-toolchain/releases/download/3.0.0-gnu12/x86_64-linux-gnu.mklittlefs-c41e51a.200706.tar.gz",
+          "size": 46778
+        },
+        {
+          "checksum": "SHA-256:2e319077491f8e832e96eb4f2f7a70dd919333cee4b388c394e0e848d031d542",
+          "host": "x86_64-mingw32",
+          "archive_filename": "x86_64-w64-mingw32.mklittlefs-c41e51a.200706.zip",
+          "url": "https://github.com/earlephilhower/esp-quick-toolchain/releases/download/3.0.0-gnu12/x86_64-w64-mingw32.mklittlefs-c41e51a.200706.zip",
+          "size": 345132
+        }
+      ]
+    },
+    {
+      "packager": "esp32",
+      "name": "mkspiffs",
+      "version": "0.2.3",
+      "systems": [
+        {
+          "checksum": "SHA-256:b647f2c2efe6949819c85ea9404271b55c7c9c25bcb98d3b98a1d0ba771adf56",
+          "host": "i686-mingw32",
+          "archive_filename": "mkspiffs-0.2.3-arduino-esp32-win32.zip",
+          "url": "https://github.com/igrr/mkspiffs/releases/download/0.2.3/mkspiffs-0.2.3-arduino-esp32-win32.zip",
+          "size": 249809
+        },
+        {
+          "checksum": "SHA-256:9f43fc74a858cf564966b5035322c3e5e61c31a647c5a1d71b388ed6efc48423",
+          "host": "x86_64-apple-darwin",
+          "archive_filename": "mkspiffs-0.2.3-arduino-esp32-osx.tar.gz",
+          "url": "https://github.com/igrr/mkspiffs/releases/download/0.2.3/mkspiffs-0.2.3-arduino-esp32-osx.tar.gz",
+          "size": 130270
+        },
+        {
+          "checksum": "SHA-256:9f43fc74a858cf564966b5035322c3e5e61c31a647c5a1d71b388ed6efc48423",
+          "host": "i386-apple-darwin",
+          "archive_filename": "mkspiffs-0.2.3-arduino-esp32-osx.tar.gz",
+          "url": "https://github.com/igrr/mkspiffs/releases/download/0.2.3/mkspiffs-0.2.3-arduino-esp32-osx.tar.gz",
+          "size": 130270
+        },
+        {
+          "checksum": "SHA-256:5e1a4ff41385e842f389f6b5254102a547e566a06b49babeffa93ef37115cb5d",
+          "host": "x86_64-pc-linux-gnu",
+          "archive_filename": "mkspiffs-0.2.3-arduino-esp32-linux64.tar.gz",
+          "url": "https://github.com/igrr/mkspiffs/releases/download/0.2.3/mkspiffs-0.2.3-arduino-esp32-linux64.tar.gz",
+          "size": 50646
+        },
+        {
+          "checksum": "SHA-256:464463a93e8833209cdc29ba65e1a12fec31718dc10075c195a2445b2c3f6cb0",
+          "host": "i686-pc-linux-gnu",
+          "archive_filename": "mkspiffs-0.2.3-arduino-esp32-linux32.tar.gz",
+          "url": "https://github.com/igrr/mkspiffs/releases/download/0.2.3/mkspiffs-0.2.3-arduino-esp32-linux32.tar.gz",
+          "size": 48751
+        },
+        {
+          "checksum": "SHA-256:ade3dc00117912ac08a1bdbfbfe76b12d21a34bc5fa1de0cfc45fe7a8d0a0185",
+          "host": "arm-linux-gnueabihf",
+          "archive_filename": "mkspiffs-0.2.3-arduino-esp32-linux-armhf.tar.gz",
+          "url": "https://github.com/igrr/mkspiffs/releases/download/0.2.3/mkspiffs-0.2.3-arduino-esp32-linux-armhf.tar.gz",
+          "size": 40665
+        },
+        {
+          "checksum": "SHA-256:ade3dc00117912ac08a1bdbfbfe76b12d21a34bc5fa1de0cfc45fe7a8d0a0185",
+          "host": "aarch64-linux-gnu",
+          "archive_filename": "mkspiffs-0.2.3-arduino-esp32-linux-armhf.tar.gz",
+          "url": "https://github.com/igrr/mkspiffs/releases/download/0.2.3/mkspiffs-0.2.3-arduino-esp32-linux-armhf.tar.gz",
+          "size": 40665
+        }
+      ]
+    },
+    {
+      "packager": "esp32",
+      "name": "openocd-esp32",
+      "version": "v0.12.0-esp32-20240821",
+      "systems": [
+        {
+          "checksum": "SHA-256:4d6e263d84e447354dc685848557d6c284dda7fe007ee451f729a7edfa7baad7",
+          "host": "aarch64-linux-gnu",
+          "archive_filename": "openocd-esp32-linux-arm64-0.12.0-esp32-20240821.tar.gz",
+          "url": "https://github.com/espressif/openocd-esp32/releases/download/v0.12.0-esp32-20240821/openocd-esp32-linux-arm64-0.12.0-esp32-20240821.tar.gz",
+          "size": 2251272
+        },
+        {
+          "checksum": "SHA-256:9d45679f2c4cf450d5e2350047cf57bb76dde2487d30cebce0a72c9173b5c45b",
+          "host": "arm-linux-gnueabihf",
+          "archive_filename": "openocd-esp32-linux-armel-0.12.0-esp32-20240821.tar.gz",
+          "url": "https://github.com/espressif/openocd-esp32/releases/download/v0.12.0-esp32-20240821/openocd-esp32-linux-armel-0.12.0-esp32-20240821.tar.gz",
+          "size": 2390074
+        },
+        {
+          "checksum": "SHA-256:68c5c7cf3d15b9810939a5edabc6ff2c9f4fc32262de91fc292a180bc5cc0637",
+          "host": "arm64-apple-darwin",
+          "archive_filename": "openocd-esp32-macos-arm64-0.12.0-esp32-20240821.tar.gz",
+          "url": "https://github.com/espressif/openocd-esp32/releases/download/v0.12.0-esp32-20240821/openocd-esp32-macos-arm64-0.12.0-esp32-20240821.tar.gz",
+          "size": 2530336
+        },
+        {
+          "checksum": "SHA-256:463fc2903ddaf03f86ff50836c5c63cc696550b0446140159eddfd2e85570c5d",
+          "host": "i686-mingw32",
+          "archive_filename": "openocd-esp32-win32-0.12.0-esp32-20240821.zip",
+          "url": "https://github.com/espressif/openocd-esp32/releases/download/v0.12.0-esp32-20240821/openocd-esp32-win32-0.12.0-esp32-20240821.zip",
+          "size": 2916409
+        },
+        {
+          "checksum": "SHA-256:565c8fabc5f19a6e7a0864a294d74b307eec30b9291d16d3fc90e273f0330cb4",
+          "host": "x86_64-apple-darwin",
+          "archive_filename": "openocd-esp32-macos-0.12.0-esp32-20240821.tar.gz",
+          "url": "https://github.com/espressif/openocd-esp32/releases/download/v0.12.0-esp32-20240821/openocd-esp32-macos-0.12.0-esp32-20240821.tar.gz",
+          "size": 2485320
+        },
+        {
+          "checksum": "SHA-256:550f57369f1f1f6cc600b5dffa3378fd6164d8ea8db7c567cf41091771f090cb",
+          "host": "x86_64-mingw32",
+          "archive_filename": "openocd-esp32-win64-0.12.0-esp32-20240821.zip",
+          "url": "https://github.com/espressif/openocd-esp32/releases/download/v0.12.0-esp32-20240821/openocd-esp32-win64-0.12.0-esp32-20240821.zip",
+          "size": 2916408
+        },
+        {
+          "checksum": "SHA-256:f8c68541fa38307bc0c0763b7e1e3fe4e943d5d45da07d817a73b492e103b652",
+          "host": "x86_64-pc-linux-gnu",
+          "archive_filename": "openocd-esp32-linux-amd64-0.12.0-esp32-20240821.tar.gz",
+          "url": "https://github.com/espressif/openocd-esp32/releases/download/v0.12.0-esp32-20240821/openocd-esp32-linux-amd64-0.12.0-esp32-20240821.tar.gz",
+          "size": 2373094
+        }
+      ]
+    },
+    {
+      "packager": "esp32",
+      "name": "riscv32-esp-elf-gdb",
+      "version": "12.1_20231023",
+      "systems": [
+        {
+          "checksum": "SHA-256:2c78b806be176b1e449e07ff83429d38dfc39a13f89a127ac1ffa6c1230537a0",
+          "host": "x86_64-pc-linux-gnu",
+          "archive_filename": "riscv32-esp-elf-gdb-12.1_20231023-x86_64-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/riscv32-esp-elf-gdb-12.1_20231023-x86_64-linux-gnu.tar.gz",
+          "size": 36630145
+        },
+        {
+          "checksum": "SHA-256:33f80117c8777aaff9179e27953e41764c5c46b3c576dc96a37ecc7a368807ec",
+          "host": "aarch64-linux-gnu",
+          "archive_filename": "riscv32-esp-elf-gdb-12.1_20231023-aarch64-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/riscv32-esp-elf-gdb-12.1_20231023-aarch64-linux-gnu.tar.gz",
+          "size": 36980143
+        },
+        {
+          "checksum": "SHA-256:292e6ec0a9381c1480bbadf5caae25e86428b68fb5d030c9be7deda5e7f070e0",
+          "host": "arm-linux-gnueabihf",
+          "archive_filename": "riscv32-esp-elf-gdb-12.1_20231023-arm-linux-gnueabi.tar.gz",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/riscv32-esp-elf-gdb-12.1_20231023-arm-linux-gnueabi.tar.gz",
+          "size": 34950318
+        },
+        {
+          "checksum": "SHA-256:68a25fbcfc6371ec4dbe503ec92211977eb2006f0c29e67dbce6b93c70c6b7ec",
+          "host": "i686-pc-linux-gnu",
+          "archive_filename": "riscv32-esp-elf-gdb-12.1_20231023-i586-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/riscv32-esp-elf-gdb-12.1_20231023-i586-linux-gnu.tar.gz",
+          "size": 35801607
+        },
+        {
+          "checksum": "SHA-256:322c722e6c12225ed8cd97f95a0375105756dc5113d369958ce0858ad1a90257",
+          "host": "x86_64-apple-darwin",
+          "archive_filename": "riscv32-esp-elf-gdb-12.1_20231023-x86_64-apple-darwin14.tar.gz",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/riscv32-esp-elf-gdb-12.1_20231023-x86_64-apple-darwin14.tar.gz",
+          "size": 52618688
+        },
+        {
+          "checksum": "SHA-256:c2224b3a8d02451c530cf004c29653292d963a1b4021b4b472b862b6dbe97e0b",
+          "host": "arm64-apple-darwin",
+          "archive_filename": "riscv32-esp-elf-gdb-12.1_20231023-aarch64-apple-darwin21.1.tar.gz",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/riscv32-esp-elf-gdb-12.1_20231023-aarch64-apple-darwin21.1.tar.gz",
+          "size": 33149392
+        },
+        {
+          "checksum": "SHA-256:4b42149a99dd87ee7e6dde25c99bad966c7f964253fa8f771593d7cef69f5602",
+          "host": "i686-mingw32",
+          "archive_filename": "riscv32-esp-elf-gdb-12.1_20231023-i686-w64-mingw32.zip",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/riscv32-esp-elf-gdb-12.1_20231023-i686-w64-mingw32.zip",
+          "size": 31635103
+        },
+        {
+          "checksum": "SHA-256:728231546ad5006d34463f972658b2a89e52f660a42abab08a29bedd4a8046ad",
+          "host": "x86_64-mingw32",
+          "archive_filename": "riscv32-esp-elf-gdb-12.1_20231023-x86_64-w64-mingw32.zip",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/riscv32-esp-elf-gdb-12.1_20231023-x86_64-w64-mingw32.zip",
+          "size": 33400816
+        }
+      ]
+    },
+    {
+      "packager": "esp32",
+      "name": "xtensa-esp-elf-gdb",
+      "version": "12.1_20231023",
+      "systems": [
+        {
+          "checksum": "SHA-256:d0743ec43cd92c35452a9097f7863281de4e72f04120d63cfbcf9d591a373529",
+          "host": "x86_64-pc-linux-gnu",
+          "archive_filename": "xtensa-esp-elf-gdb-12.1_20231023-x86_64-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/xtensa-esp-elf-gdb-12.1_20231023-x86_64-linux-gnu.tar.gz",
+          "size": 36942094
+        },
+        {
+          "checksum": "SHA-256:bc1fac0366c6a08e26c45896ca21c8c90efc2cdd431b8ba084e8772e15502d0e",
+          "host": "aarch64-linux-gnu",
+          "archive_filename": "xtensa-esp-elf-gdb-12.1_20231023-aarch64-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/xtensa-esp-elf-gdb-12.1_20231023-aarch64-linux-gnu.tar.gz",
+          "size": 37134601
+        },
+        {
+          "checksum": "SHA-256:25efc51d52b71f097ccec763c5c885c8f5026b432fec4b5badd6a5f36fe34d04",
+          "host": "arm-linux-gnueabihf",
+          "archive_filename": "xtensa-esp-elf-gdb-12.1_20231023-arm-linux-gnueabi.tar.gz",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/xtensa-esp-elf-gdb-12.1_20231023-arm-linux-gnueabi.tar.gz",
+          "size": 34579556
+        },
+        {
+          "checksum": "SHA-256:e0af0b3b4a6b29a843cd5f47e331a966d9258f7d825b4656c6251490f71b05b2",
+          "host": "i686-pc-linux-gnu",
+          "archive_filename": "xtensa-esp-elf-gdb-12.1_20231023-i586-linux-gnu.tar.gz",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/xtensa-esp-elf-gdb-12.1_20231023-i586-linux-gnu.tar.gz",
+          "size": 35676578
+        },
+        {
+          "checksum": "SHA-256:bd146fd99a52b2d71c7ce0f62b9e18f3423d6cae7b2b2c954046b0dd7a23142f",
+          "host": "x86_64-apple-darwin",
+          "archive_filename": "xtensa-esp-elf-gdb-12.1_20231023-x86_64-apple-darwin14.tar.gz",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/xtensa-esp-elf-gdb-12.1_20231023-x86_64-apple-darwin14.tar.gz",
+          "size": 52863941
+        },
+        {
+          "checksum": "SHA-256:5edc76565bf9d2fadf24e443ddf3df7567354f336a65d4af5b2ee805cdfcec24",
+          "host": "arm64-apple-darwin",
+          "archive_filename": "xtensa-esp-elf-gdb-12.1_20231023-aarch64-apple-darwin21.1.tar.gz",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/xtensa-esp-elf-gdb-12.1_20231023-aarch64-apple-darwin21.1.tar.gz",
+          "size": 33504923
+        },
+        {
+          "checksum": "SHA-256:ea4f3ee6b95ad1ad2e07108a21a50037a3e64a420cdeb34b2ba95d612faed898",
+          "host": "i686-mingw32",
+          "archive_filename": "xtensa-esp-elf-gdb-12.1_20231023-i686-w64-mingw32.zip",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/xtensa-esp-elf-gdb-12.1_20231023-i686-w64-mingw32.zip",
+          "size": 31068749
+        },
+        {
+          "checksum": "SHA-256:13bb97f39173948d1cfb6e651d9b335ea9d52f1fdd0dda1eda3a2d23d8c63644",
+          "host": "x86_64-mingw32",
+          "archive_filename": "xtensa-esp-elf-gdb-12.1_20231023-x86_64-w64-mingw32.zip",
+          "url": "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v12.1_20231023/xtensa-esp-elf-gdb-12.1_20231023-x86_64-w64-mingw32.zip",
+          "size": 33514906
+        }
+      ]
+    }
+  ],
+  "config_options": [
+    {
+      "option": "UploadSpeed",
+      "option_label": "Upload Speed",
+      "values": [
+        {
+          "value": "921600",
+          "value_label": "921600",
+          "selected": true
+        },
+        {
+          "value": "115200",
+          "value_label": "115200"
+        },
+        {
+          "value": "256000",
+          "value_label": "256000"
+        },
+        {
+          "value": "230400",
+          "value_label": "230400"
+        },
+        {
+          "value": "512000",
+          "value_label": "512000"
+        }
+      ]
+    },
+    {
+      "option": "USBMode",
+      "option_label": "USB Mode",
+      "values": [
+        {
+          "value": "hwcdc",
+          "value_label": "Hardware CDC and JTAG",
+          "selected": true
+        },
+        {
+          "value": "default",
+          "value_label": "USB-OTG (TinyUSB)"
+        }
+      ]
+    },
+    {
+      "option": "CDCOnBoot",
+      "option_label": "USB CDC On Boot",
+      "values": [
+        {
+          "value": "default",
+          "value_label": "Disabled",
+          "selected": true
+        },
+        {
+          "value": "cdc",
+          "value_label": "Enabled"
+        }
+      ]
+    },
+    {
+      "option": "MSCOnBoot",
+      "option_label": "USB Firmware MSC On Boot",
+      "values": [
+        {
+          "value": "default",
+          "value_label": "Disabled",
+          "selected": true
+        },
+        {
+          "value": "msc",
+          "value_label": "Enabled (Requires USB-OTG Mode)"
+        }
+      ]
+    },
+    {
+      "option": "DFUOnBoot",
+      "option_label": "USB DFU On Boot",
+      "values": [
+        {
+          "value": "default",
+          "value_label": "Disabled",
+          "selected": true
+        },
+        {
+          "value": "dfu",
+          "value_label": "Enabled (Requires USB-OTG Mode)"
+        }
+      ]
+    },
+    {
+      "option": "UploadMode",
+      "option_label": "Upload Mode",
+      "values": [
+        {
+          "value": "default",
+          "value_label": "UART0 / Hardware CDC",
+          "selected": true
+        },
+        {
+          "value": "cdc",
+          "value_label": "USB-OTG CDC (TinyUSB)"
+        }
+      ]
+    },
+    {
+      "option": "CPUFreq",
+      "option_label": "CPU Frequency",
+      "values": [
+        {
+          "value": "240",
+          "value_label": "240MHz (WiFi)",
+          "selected": true
+        },
+        {
+          "value": "160",
+          "value_label": "160MHz (WiFi)"
+        },
+        {
+          "value": "80",
+          "value_label": "80MHz (WiFi)"
+        },
+        {
+          "value": "40",
+          "value_label": "40MHz"
+        },
+        {
+          "value": "20",
+          "value_label": "20MHz"
+        },
+        {
+          "value": "10",
+          "value_label": "10MHz"
+        }
+      ]
+    },
+    {
+      "option": "FlashMode",
+      "option_label": "Flash Mode",
+      "values": [
+        {
+          "value": "qio",
+          "value_label": "QIO 80MHz",
+          "selected": true
+        },
+        {
+          "value": "qio120",
+          "value_label": "QIO 120MHz"
+        },
+        {
+          "value": "dio",
+          "value_label": "DIO 80MHz"
+        },
+        {
+          "value": "opi",
+          "value_label": "OPI 80MHz"
+        }
+      ]
+    },
+    {
+      "option": "FlashSize",
+      "option_label": "Flash Size",
+      "values": [
+        {
+          "value": "4M",
+          "value_label": "4MB (32Mb)",
+          "selected": true
+        },
+        {
+          "value": "8M",
+          "value_label": "8MB (64Mb)"
+        },
+        {
+          "value": "16M",
+          "value_label": "16MB (128Mb)"
+        },
+        {
+          "value": "32M",
+          "value_label": "32MB (256Mb)"
+        }
+      ]
+    },
+    {
+      "option": "PartitionScheme",
+      "option_label": "Partition Scheme",
+      "values": [
+        {
+          "value": "default",
+          "value_label": "Default 4MB with spiffs (1.2MB APP/1.5MB SPIFFS)",
+          "selected": true
+        },
+        {
+          "value": "defaultffat",
+          "value_label": "Default 4MB with ffat (1.2MB APP/1.5MB FATFS)"
+        },
+        {
+          "value": "default_8MB",
+          "value_label": "8M with spiffs (3MB APP/1.5MB SPIFFS)"
+        },
+        {
+          "value": "minimal",
+          "value_label": "Minimal (1.3MB APP/700KB SPIFFS)"
+        },
+        {
+          "value": "no_fs",
+          "value_label": "No FS 4MB (2MB APP x2)"
+        },
+        {
+          "value": "no_ota",
+          "value_label": "No OTA (2MB APP/2MB SPIFFS)"
+        },
+        {
+          "value": "noota_3g",
+          "value_label": "No OTA (1MB APP/3MB SPIFFS)"
+        },
+        {
+          "value": "noota_ffat",
+          "value_label": "No OTA (2MB APP/2MB FATFS)"
+        },
+        {
+          "value": "noota_3gffat",
+          "value_label": "No OTA (1MB APP/3MB FATFS)"
+        },
+        {
+          "value": "huge_app",
+          "value_label": "Huge APP (3MB No OTA/1MB SPIFFS)"
+        },
+        {
+          "value": "min_spiffs",
+          "value_label": "Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)"
+        },
+        {
+          "value": "fatflash",
+          "value_label": "16M Flash (2MB APP/12.5MB FATFS)"
+        },
+        {
+          "value": "app3M_fat9M_16MB",
+          "value_label": "16M Flash (3MB APP/9.9MB FATFS)"
+        },
+        {
+          "value": "rainmaker",
+          "value_label": "RainMaker 4MB"
+        },
+        {
+          "value": "rainmaker_4MB",
+          "value_label": "RainMaker 4MB No OTA"
+        },
+        {
+          "value": "rainmaker_8MB",
+          "value_label": "RainMaker 8MB"
+        },
+        {
+          "value": "app5M_fat24M_32MB",
+          "value_label": "32M Flash (4.8MB APP/22MB FATFS)"
+        },
+        {
+          "value": "app5M_little24M_32MB",
+          "value_label": "32M Flash (4.8MB APP/22MB LittleFS)"
+        },
+        {
+          "value": "esp_sr_16",
+          "value_label": "ESP SR 16M (3MB APP/7MB SPIFFS/2.9MB MODEL)"
+        },
+        {
+          "value": "zigbee_zczr",
+          "value_label": "Zigbee ZCZR 4MB with spiffs"
+        },
+        {
+          "value": "custom",
+          "value_label": "Custom"
+        }
+      ]
+    },
+    {
+      "option": "DebugLevel",
+      "option_label": "Core Debug Level",
+      "values": [
+        {
+          "value": "none",
+          "value_label": "None",
+          "selected": true
+        },
+        {
+          "value": "error",
+          "value_label": "Error"
+        },
+        {
+          "value": "warn",
+          "value_label": "Warn"
+        },
+        {
+          "value": "info",
+          "value_label": "Info"
+        },
+        {
+          "value": "debug",
+          "value_label": "Debug"
+        },
+        {
+          "value": "verbose",
+          "value_label": "Verbose"
+        }
+      ]
+    },
+    {
+      "option": "PSRAM",
+      "option_label": "PSRAM",
+      "values": [
+        {
+          "value": "disabled",
+          "value_label": "Disabled",
+          "selected": true
+        },
+        {
+          "value": "enabled",
+          "value_label": "QSPI PSRAM"
+        },
+        {
+          "value": "opi",
+          "value_label": "OPI PSRAM"
+        }
+      ]
+    },
+    {
+      "option": "LoopCore",
+      "option_label": "Arduino Runs On",
+      "values": [
+        {
+          "value": "1",
+          "value_label": "Core 1",
+          "selected": true
+        },
+        {
+          "value": "0",
+          "value_label": "Core 0"
+        }
+      ]
+    },
+    {
+      "option": "EventsCore",
+      "option_label": "Events Run On",
+      "values": [
+        {
+          "value": "1",
+          "value_label": "Core 1",
+          "selected": true
+        },
+        {
+          "value": "0",
+          "value_label": "Core 0"
+        }
+      ]
+    },
+    {
+      "option": "EraseFlash",
+      "option_label": "Erase All Flash Before Sketch Upload",
+      "values": [
+        {
+          "value": "none",
+          "value_label": "Disabled",
+          "selected": true
+        },
+        {
+          "value": "all",
+          "value_label": "Enabled"
+        }
+      ]
+    },
+    {
+      "option": "JTAGAdapter",
+      "option_label": "JTAG Adapter",
+      "values": [
+        {
+          "value": "default",
+          "value_label": "Disabled",
+          "selected": true
+        },
+        {
+          "value": "builtin",
+          "value_label": "Integrated USB JTAG"
+        },
+        {
+          "value": "external",
+          "value_label": "FTDI Adapter"
+        },
+        {
+          "value": "bridge",
+          "value_label": "ESP USB Bridge"
+        }
+      ]
+    },
+    {
+      "option": "ZigbeeMode",
+      "option_label": "Zigbee Mode",
+      "values": [
+        {
+          "value": "default",
+          "value_label": "Disabled",
+          "selected": true
+        },
+        {
+          "value": "zczr",
+          "value_label": "Zigbee ZCZR (coordinator)"
+        }
+      ]
+    }
+  ],
+  "programmers": [
+    {
+      "platform": "esp32",
+      "id": "esptool",
+      "name": "Esptool"
+    }
+  ],
+  "build_properties": [
+    "_id=esp32s3",
+    "bootloader.tool.default=esptool_py",
+    "bootloader.tool=esptool_py",
+    "build.arch=ESP32",
+    "build.board.platform.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5",
+    "build.board=ESP32S3_DEV",
+    "build.boot=qio",
+    "build.boot_freq=80m",
+    "build.bootloader_addr=0x0",
+    "build.cdc_on_boot=0",
+    "build.code_debug=0",
+    "build.copy_jtag_files=0",
+    "build.core.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\cores\\esp32",
+    "build.core.platform.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5",
+    "build.core=esp32",
+    "build.custom_bootloader=bootloader",
+    "build.custom_partitions=partitions",
+    "build.defines=",
+    "build.dfu_on_boot=0",
+    "build.event_core=-DARDUINO_EVENT_RUNNING_CORE=1",
+    "build.extra_flags.esp32=-DARDUINO_USB_CDC_ON_BOOT=0",
+    "build.extra_flags.esp32c2=-DARDUINO_USB_CDC_ON_BOOT=0",
+    "build.extra_flags.esp32c3=-DARDUINO_USB_MODE=1 -DARDUINO_USB_CDC_ON_BOOT=0",
+    "build.extra_flags.esp32c6=-DARDUINO_USB_MODE=1 -DARDUINO_USB_CDC_ON_BOOT=0",
+    "build.extra_flags.esp32h2=-DARDUINO_USB_MODE=1 -DARDUINO_USB_CDC_ON_BOOT=0",
+    "build.extra_flags.esp32s2=-DARDUINO_USB_MODE=0 -DARDUINO_USB_CDC_ON_BOOT=0 -DARDUINO_USB_MSC_ON_BOOT=0 -DARDUINO_USB_DFU_ON_BOOT=0",
+    "build.extra_flags.esp32s3=-DARDUINO_USB_MODE=1 -DARDUINO_USB_CDC_ON_BOOT=0 -DARDUINO_USB_MSC_ON_BOOT=0 -DARDUINO_USB_DFU_ON_BOOT=0",
+    "build.extra_flags=-DARDUINO_HOST_OS=\"windows\" -DARDUINO_FQBN=\"esp32:esp32:esp32s3\" -DESP32 -DCORE_DEBUG_LEVEL=0 -DARDUINO_RUNNING_CORE=1 -DARDUINO_EVENT_RUNNING_CORE=1  -DARDUINO_USB_MODE=1 -DARDUINO_USB_CDC_ON_BOOT=0 -DARDUINO_USB_MSC_ON_BOOT=0 -DARDUINO_USB_DFU_ON_BOOT=0 ",
+    "build.extra_libs=",
+    "build.f_cpu=240000000L",
+    "build.flash_freq=80m",
+    "build.flash_mode=dio",
+    "build.flash_size=4MB",
+    "build.fqbn=esp32:esp32:esp32s3",
+    "build.img_freq=80m",
+    "build.library_discovery_phase=0",
+    "build.loop_core=-DARDUINO_RUNNING_CORE=1",
+    "build.mcu=esp32s3",
+    "build.memory_type=qio_qspi",
+    "build.msc_on_boot=0",
+    "build.opt.name=build_opt.h",
+    "build.opt.path={build.path}/build_opt.h",
+    "build.partitions=default",
+    "build.psram_type=qspi",
+    "build.system.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\system",
+    "build.tarch=xtensa",
+    "build.target=esp32s3",
+    "build.usb_mode=1",
+    "build.variant.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\variants\\esp32s3",
+    "build.variant=esp32s3",
+    "build.zigbee_libs=",
+    "build.zigbee_mode=",
+    "compiler.S.cmd=xtensa-esp32s3-elf-gcc",
+    "compiler.S.extra_flags=-MMD -c -x assembler-with-cpp",
+    "compiler.S.flags=\"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/S_flags\" -w -Os",
+    "compiler.ar.cmd=xtensa-esp32s3-elf-gcc-ar",
+    "compiler.ar.extra_flags=",
+    "compiler.ar.flags=cr",
+    "compiler.as.cmd=xtensa-esp32s3-elf-as",
+    "compiler.c.cmd=xtensa-esp32s3-elf-gcc",
+    "compiler.c.elf.cmd=xtensa-esp32s3-elf-g++",
+    "compiler.c.elf.extra_flags=\"-Wl,--Map={build.path}/{build.project_name}.map\" \"-LC:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/lib\" \"-LC:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/ld\" \"-LC:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/qio_qspi\" \"-Wl,--wrap=esp_panic_handler\"",
+    "compiler.c.elf.flags=\"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/ld_flags\" \"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/ld_scripts\"",
+    "compiler.c.elf.libs=\"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/ld_libs\"",
+    "compiler.c.extra_flags=-MMD -c",
+    "compiler.c.flags=\"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/c_flags\" -w -Os -Werror=return-type",
+    "compiler.common_werror_flags=-Werror=return-type",
+    "compiler.cpp.cmd=xtensa-esp32s3-elf-g++",
+    "compiler.cpp.extra_flags=-MMD -c",
+    "compiler.cpp.flags=\"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/cpp_flags\" -w -Os -Werror=return-type",
+    "compiler.cpreprocessor.flags=\"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/defines\" \"-I{build.source.path}\" -iprefix \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/include/\" \"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/includes\" \"-IC:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/qio_qspi/include\"",
+    "compiler.elf2hex.extra_flags=",
+    "compiler.libraries.ldflags=",
+    "compiler.objcopy.eep.extra_flags=",
+    "compiler.optimization_flags.debug=-Og -g3",
+    "compiler.optimization_flags.release=-Os",
+    "compiler.optimization_flags=-Os",
+    "compiler.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-xs3\\2302/bin/",
+    "compiler.prefix=xtensa-esp32s3-elf-",
+    "compiler.sdk.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3",
+    "compiler.size.cmd=xtensa-esp32s3-elf-size",
+    "compiler.warning_flags.all=-Wall -Wextra",
+    "compiler.warning_flags.default=",
+    "compiler.warning_flags.more=-Wall",
+    "compiler.warning_flags.none=-w",
+    "compiler.warning_flags=-w",
+    "debug.additional_config=debug_config.esp32s3",
+    "debug.cortex-debug.custom.objdumpPath=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-xs3\\2302/bin/xtensa-esp32s3-elf-objdump",
+    "debug.cortex-debug.custom.request=attach",
+    "debug.executable={build.path}/{build.project_name}.elf",
+    "debug.server.openocd.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\openocd-esp32\\v0.12.0-esp32-20240821/bin/openocd",
+    "debug.server.openocd.scripts.0=board/esp32s3-builtin.cfg",
+    "debug.server.openocd.scripts_dir=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\openocd-esp32\\v0.12.0-esp32-20240821\\share\\openocd\\scripts\\",
+    "debug.server=openocd",
+    "debug.svd_file=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5/tools/ide-debug/svd/esp32s3.svd",
+    "debug.toolchain.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\xtensa-esp-elf-gdb\\12.1_20231023/bin/",
+    "debug.toolchain.prefix=xtensa-esp32s3-elf",
+    "debug.toolchain=gcc",
+    "debug_config.esp32.cortex-debug.custom.name=Arduino on ESP32",
+    "debug_config.esp32.cortex-debug.custom.overrideRestartCommands.0=monitor reset halt",
+    "debug_config.esp32.cortex-debug.custom.overrideRestartCommands.1=monitor gdb_sync",
+    "debug_config.esp32.cortex-debug.custom.overrideRestartCommands.2=thb setup",
+    "debug_config.esp32.cortex-debug.custom.overrideRestartCommands.3=c",
+    "debug_config.esp32.cortex-debug.custom.postAttachCommands.0=set remote hardware-watchpoint-limit 2",
+    "debug_config.esp32.cortex-debug.custom.postAttachCommands.1=monitor reset halt",
+    "debug_config.esp32.cortex-debug.custom.postAttachCommands.2=monitor gdb_sync",
+    "debug_config.esp32.cortex-debug.custom.postAttachCommands.3=thb setup",
+    "debug_config.esp32.cortex-debug.custom.postAttachCommands.4=c",
+    "debug_config.esp32c3.cortex-debug.custom.name=Arduino on ESP32-C3",
+    "debug_config.esp32c3.cortex-debug.custom.overrideAttachCommands.0=set remote hardware-watchpoint-limit 8",
+    "debug_config.esp32c3.cortex-debug.custom.overrideAttachCommands.1=monitor reset",
+    "debug_config.esp32c3.cortex-debug.custom.overrideAttachCommands.2=monitor halt",
+    "debug_config.esp32c3.cortex-debug.custom.overrideAttachCommands.3=monitor gdb_sync",
+    "debug_config.esp32c3.cortex-debug.custom.overrideAttachCommands.4=thb setup",
+    "debug_config.esp32c3.cortex-debug.custom.overrideRestartCommands.0=monitor reset",
+    "debug_config.esp32c3.cortex-debug.custom.overrideRestartCommands.1=monitor halt",
+    "debug_config.esp32c3.cortex-debug.custom.overrideRestartCommands.2=monitor gdb_sync",
+    "debug_config.esp32c3.cortex-debug.custom.overrideRestartCommands.3=thb setup",
+    "debug_config.esp32c3.cortex-debug.custom.serverArgs.0=-d3",
+    "debug_config.esp32c6=",
+    "debug_config.esp32h2=",
+    "debug_config.esp32s2.cortex-debug.custom.name=Arduino on ESP32-S2",
+    "debug_config.esp32s2.cortex-debug.custom.overrideRestartCommands.0=monitor reset halt",
+    "debug_config.esp32s2.cortex-debug.custom.overrideRestartCommands.1=monitor gdb_sync",
+    "debug_config.esp32s2.cortex-debug.custom.overrideRestartCommands.2=thb setup",
+    "debug_config.esp32s2.cortex-debug.custom.overrideRestartCommands.3=c",
+    "debug_config.esp32s2.cortex-debug.custom.postAttachCommands.0=set remote hardware-watchpoint-limit 2",
+    "debug_config.esp32s2.cortex-debug.custom.postAttachCommands.1=monitor reset halt",
+    "debug_config.esp32s2.cortex-debug.custom.postAttachCommands.2=monitor gdb_sync",
+    "debug_config.esp32s2.cortex-debug.custom.postAttachCommands.3=thb setup",
+    "debug_config.esp32s2.cortex-debug.custom.postAttachCommands.4=c",
+    "debug_config.esp32s3.cortex-debug.custom.name=Arduino on ESP32-S3",
+    "debug_config.esp32s3.cortex-debug.custom.overrideAttachCommands.0=set remote hardware-watchpoint-limit 2",
+    "debug_config.esp32s3.cortex-debug.custom.overrideAttachCommands.1=monitor reset halt",
+    "debug_config.esp32s3.cortex-debug.custom.overrideAttachCommands.2=monitor gdb_sync",
+    "debug_config.esp32s3.cortex-debug.custom.overrideAttachCommands.3=thb setup",
+    "debug_config.esp32s3.cortex-debug.custom.overrideAttachCommands.4=c",
+    "debug_config.esp32s3.cortex-debug.custom.overrideRestartCommands.0=monitor reset halt",
+    "debug_config.esp32s3.cortex-debug.custom.overrideRestartCommands.1=monitor gdb_sync",
+    "debug_script.esp32=esp32-wrover-kit-3.3v.cfg",
+    "debug_script.esp32c3=esp32c3-builtin.cfg",
+    "debug_script.esp32c6=esp32c6-builtin.cfg",
+    "debug_script.esp32h2=esp32h2-builtin.cfg",
+    "debug_script.esp32s2=esp32s2-kaluga-1.cfg",
+    "debug_script.esp32s3=esp32s3-builtin.cfg",
+    "extra.time.dst=0",
+    "extra.time.local=1730748245",
+    "extra.time.utc=1730766245",
+    "extra.time.zone=-18000",
+    "file_opts.path={build.path}/file_opts",
+    "ide_version=10607",
+    "menu.CDCOnBoot.cdc.build.cdc_on_boot=1",
+    "menu.CDCOnBoot.cdc=Enabled",
+    "menu.CDCOnBoot.default.build.cdc_on_boot=0",
+    "menu.CDCOnBoot.default=Disabled",
+    "menu.CPUFreq.10.build.f_cpu=10000000L",
+    "menu.CPUFreq.10=10MHz",
+    "menu.CPUFreq.160.build.f_cpu=160000000L",
+    "menu.CPUFreq.160=160MHz (WiFi)",
+    "menu.CPUFreq.20.build.f_cpu=20000000L",
+    "menu.CPUFreq.20=20MHz",
+    "menu.CPUFreq.240.build.f_cpu=240000000L",
+    "menu.CPUFreq.240=240MHz (WiFi)",
+    "menu.CPUFreq.40.build.f_cpu=40000000L",
+    "menu.CPUFreq.40=40MHz",
+    "menu.CPUFreq.80.build.f_cpu=80000000L",
+    "menu.CPUFreq.80=80MHz (WiFi)",
+    "menu.DFUOnBoot.default.build.dfu_on_boot=0",
+    "menu.DFUOnBoot.default=Disabled",
+    "menu.DFUOnBoot.dfu.build.dfu_on_boot=1",
+    "menu.DFUOnBoot.dfu=Enabled (Requires USB-OTG Mode)",
+    "menu.DebugLevel.debug.build.code_debug=4",
+    "menu.DebugLevel.debug=Debug",
+    "menu.DebugLevel.error.build.code_debug=1",
+    "menu.DebugLevel.error=Error",
+    "menu.DebugLevel.info.build.code_debug=3",
+    "menu.DebugLevel.info=Info",
+    "menu.DebugLevel.none.build.code_debug=0",
+    "menu.DebugLevel.none=None",
+    "menu.DebugLevel.verbose.build.code_debug=5",
+    "menu.DebugLevel.verbose=Verbose",
+    "menu.DebugLevel.warn.build.code_debug=2",
+    "menu.DebugLevel.warn=Warn",
+    "menu.EraseFlash.all.upload.erase_cmd=-e",
+    "menu.EraseFlash.all=Enabled",
+    "menu.EraseFlash.none.upload.erase_cmd=",
+    "menu.EraseFlash.none=Disabled",
+    "menu.EventsCore.0.build.event_core=-DARDUINO_EVENT_RUNNING_CORE=0",
+    "menu.EventsCore.0=Core 0",
+    "menu.EventsCore.1.build.event_core=-DARDUINO_EVENT_RUNNING_CORE=1",
+    "menu.EventsCore.1=Core 1",
+    "menu.FlashMode.dio.build.boot=dio",
+    "menu.FlashMode.dio.build.boot_freq=80m",
+    "menu.FlashMode.dio.build.flash_freq=80m",
+    "menu.FlashMode.dio.build.flash_mode=dio",
+    "menu.FlashMode.dio=DIO 80MHz",
+    "menu.FlashMode.opi.build.boot=opi",
+    "menu.FlashMode.opi.build.boot_freq=80m",
+    "menu.FlashMode.opi.build.flash_freq=80m",
+    "menu.FlashMode.opi.build.flash_mode=dout",
+    "menu.FlashMode.opi=OPI 80MHz",
+    "menu.FlashMode.qio.build.boot=qio",
+    "menu.FlashMode.qio.build.boot_freq=80m",
+    "menu.FlashMode.qio.build.flash_freq=80m",
+    "menu.FlashMode.qio.build.flash_mode=dio",
+    "menu.FlashMode.qio120.build.boot=qio",
+    "menu.FlashMode.qio120.build.boot_freq=120m",
+    "menu.FlashMode.qio120.build.flash_freq=80m",
+    "menu.FlashMode.qio120.build.flash_mode=dio",
+    "menu.FlashMode.qio120=QIO 120MHz",
+    "menu.FlashMode.qio=QIO 80MHz",
+    "menu.FlashSize.16M.build.flash_size=16MB",
+    "menu.FlashSize.16M=16MB (128Mb)",
+    "menu.FlashSize.32M.build.flash_size=32MB",
+    "menu.FlashSize.32M.build.partitions=app5M_fat24M_32MB",
+    "menu.FlashSize.32M=32MB (256Mb)",
+    "menu.FlashSize.4M.build.flash_size=4MB",
+    "menu.FlashSize.4M=4MB (32Mb)",
+    "menu.FlashSize.8M.build.flash_size=8MB",
+    "menu.FlashSize.8M.build.partitions=default_8MB",
+    "menu.FlashSize.8M=8MB (64Mb)",
+    "menu.JTAGAdapter.bridge.build.copy_jtag_files=1",
+    "menu.JTAGAdapter.bridge.build.openocdscript=esp32s3-bridge.cfg",
+    "menu.JTAGAdapter.bridge=ESP USB Bridge",
+    "menu.JTAGAdapter.builtin.build.copy_jtag_files=1",
+    "menu.JTAGAdapter.builtin.build.openocdscript=esp32s3-builtin.cfg",
+    "menu.JTAGAdapter.builtin=Integrated USB JTAG",
+    "menu.JTAGAdapter.default.build.copy_jtag_files=0",
+    "menu.JTAGAdapter.default=Disabled",
+    "menu.JTAGAdapter.external.build.copy_jtag_files=1",
+    "menu.JTAGAdapter.external.build.openocdscript=esp32s3-ftdi.cfg",
+    "menu.JTAGAdapter.external=FTDI Adapter",
+    "menu.LoopCore.0.build.loop_core=-DARDUINO_RUNNING_CORE=0",
+    "menu.LoopCore.0=Core 0",
+    "menu.LoopCore.1.build.loop_core=-DARDUINO_RUNNING_CORE=1",
+    "menu.LoopCore.1=Core 1",
+    "menu.MSCOnBoot.default.build.msc_on_boot=0",
+    "menu.MSCOnBoot.default=Disabled",
+    "menu.MSCOnBoot.msc.build.msc_on_boot=1",
+    "menu.MSCOnBoot.msc=Enabled (Requires USB-OTG Mode)",
+    "menu.PSRAM.disabled.build.defines=",
+    "menu.PSRAM.disabled.build.psram_type=qspi",
+    "menu.PSRAM.disabled=Disabled",
+    "menu.PSRAM.enabled.build.defines=-DBOARD_HAS_PSRAM",
+    "menu.PSRAM.enabled.build.psram_type=qspi",
+    "menu.PSRAM.enabled=QSPI PSRAM",
+    "menu.PSRAM.opi.build.defines=-DBOARD_HAS_PSRAM",
+    "menu.PSRAM.opi.build.psram_type=opi",
+    "menu.PSRAM.opi=OPI PSRAM",
+    "menu.PartitionScheme.app3M_fat9M_16MB.build.partitions=app3M_fat9M_16MB",
+    "menu.PartitionScheme.app3M_fat9M_16MB.upload.maximum_size=3145728",
+    "menu.PartitionScheme.app3M_fat9M_16MB=16M Flash (3MB APP/9.9MB FATFS)",
+    "menu.PartitionScheme.app5M_fat24M_32MB.build.partitions=large_fat_32MB",
+    "menu.PartitionScheme.app5M_fat24M_32MB.upload.maximum_size=4718592",
+    "menu.PartitionScheme.app5M_fat24M_32MB=32M Flash (4.8MB APP/22MB FATFS)",
+    "menu.PartitionScheme.app5M_little24M_32MB.build.partitions=large_littlefs_32MB",
+    "menu.PartitionScheme.app5M_little24M_32MB.upload.maximum_size=4718592",
+    "menu.PartitionScheme.app5M_little24M_32MB=32M Flash (4.8MB APP/22MB LittleFS)",
+    "menu.PartitionScheme.custom.build.partitions=",
+    "menu.PartitionScheme.custom.upload.maximum_size=16777216",
+    "menu.PartitionScheme.custom=Custom",
+    "menu.PartitionScheme.default.build.partitions=default",
+    "menu.PartitionScheme.default=Default 4MB with spiffs (1.2MB APP/1.5MB SPIFFS)",
+    "menu.PartitionScheme.default_8MB.build.partitions=default_8MB",
+    "menu.PartitionScheme.default_8MB.upload.maximum_size=3342336",
+    "menu.PartitionScheme.default_8MB=8M with spiffs (3MB APP/1.5MB SPIFFS)",
+    "menu.PartitionScheme.defaultffat.build.partitions=default_ffat",
+    "menu.PartitionScheme.defaultffat=Default 4MB with ffat (1.2MB APP/1.5MB FATFS)",
+    "menu.PartitionScheme.esp_sr_16.build.partitions=esp_sr_16",
+    "menu.PartitionScheme.esp_sr_16.upload.extra_flags=0xD10000 {build.path}/srmodels.bin",
+    "menu.PartitionScheme.esp_sr_16.upload.maximum_size=3145728",
+    "menu.PartitionScheme.esp_sr_16=ESP SR 16M (3MB APP/7MB SPIFFS/2.9MB MODEL)",
+    "menu.PartitionScheme.fatflash.build.partitions=ffat",
+    "menu.PartitionScheme.fatflash.upload.maximum_size=2097152",
+    "menu.PartitionScheme.fatflash=16M Flash (2MB APP/12.5MB FATFS)",
+    "menu.PartitionScheme.huge_app.build.partitions=huge_app",
+    "menu.PartitionScheme.huge_app.upload.maximum_size=3145728",
+    "menu.PartitionScheme.huge_app=Huge APP (3MB No OTA/1MB SPIFFS)",
+    "menu.PartitionScheme.min_spiffs.build.partitions=min_spiffs",
+    "menu.PartitionScheme.min_spiffs.upload.maximum_size=1966080",
+    "menu.PartitionScheme.min_spiffs=Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)",
+    "menu.PartitionScheme.minimal.build.partitions=minimal",
+    "menu.PartitionScheme.minimal=Minimal (1.3MB APP/700KB SPIFFS)",
+    "menu.PartitionScheme.no_fs.build.partitions=no_fs",
+    "menu.PartitionScheme.no_fs.upload.maximum_size=2031616",
+    "menu.PartitionScheme.no_fs=No FS 4MB (2MB APP x2)",
+    "menu.PartitionScheme.no_ota.build.partitions=no_ota",
+    "menu.PartitionScheme.no_ota.upload.maximum_size=2097152",
+    "menu.PartitionScheme.no_ota=No OTA (2MB APP/2MB SPIFFS)",
+    "menu.PartitionScheme.noota_3g.build.partitions=noota_3g",
+    "menu.PartitionScheme.noota_3g.upload.maximum_size=1048576",
+    "menu.PartitionScheme.noota_3g=No OTA (1MB APP/3MB SPIFFS)",
+    "menu.PartitionScheme.noota_3gffat.build.partitions=noota_3gffat",
+    "menu.PartitionScheme.noota_3gffat.upload.maximum_size=1048576",
+    "menu.PartitionScheme.noota_3gffat=No OTA (1MB APP/3MB FATFS)",
+    "menu.PartitionScheme.noota_ffat.build.partitions=noota_ffat",
+    "menu.PartitionScheme.noota_ffat.upload.maximum_size=2097152",
+    "menu.PartitionScheme.noota_ffat=No OTA (2MB APP/2MB FATFS)",
+    "menu.PartitionScheme.rainmaker.build.partitions=rainmaker",
+    "menu.PartitionScheme.rainmaker.upload.maximum_size=1966080",
+    "menu.PartitionScheme.rainmaker=RainMaker 4MB",
+    "menu.PartitionScheme.rainmaker_4MB.build.partitions=rainmaker_4MB_no_ota",
+    "menu.PartitionScheme.rainmaker_4MB.upload.maximum_size=4038656",
+    "menu.PartitionScheme.rainmaker_4MB=RainMaker 4MB No OTA",
+    "menu.PartitionScheme.rainmaker_8MB.build.partitions=rainmaker_8MB",
+    "menu.PartitionScheme.rainmaker_8MB.upload.maximum_size=4116480",
+    "menu.PartitionScheme.rainmaker_8MB=RainMaker 8MB",
+    "menu.PartitionScheme.zigbee_zczr.build.partitions=zigbee_zczr",
+    "menu.PartitionScheme.zigbee_zczr.upload.maximum_size=1310720",
+    "menu.PartitionScheme.zigbee_zczr=Zigbee ZCZR 4MB with spiffs",
+    "menu.USBMode.default.build.usb_mode=0",
+    "menu.USBMode.default=USB-OTG (TinyUSB)",
+    "menu.USBMode.hwcdc.build.usb_mode=1",
+    "menu.USBMode.hwcdc=Hardware CDC and JTAG",
+    "menu.UploadMode.cdc.upload.use_1200bps_touch=true",
+    "menu.UploadMode.cdc.upload.wait_for_upload_port=true",
+    "menu.UploadMode.cdc=USB-OTG CDC (TinyUSB)",
+    "menu.UploadMode.default.upload.use_1200bps_touch=false",
+    "menu.UploadMode.default.upload.wait_for_upload_port=false",
+    "menu.UploadMode.default=UART0 / Hardware CDC",
+    "menu.UploadSpeed.115200.upload.speed=115200",
+    "menu.UploadSpeed.115200=115200",
+    "menu.UploadSpeed.230400.upload.speed=230400",
+    "menu.UploadSpeed.230400=230400",
+    "menu.UploadSpeed.256000.upload.speed=256000",
+    "menu.UploadSpeed.256000=256000",
+    "menu.UploadSpeed.460800.linux=460800",
+    "menu.UploadSpeed.460800.macosx=460800",
+    "menu.UploadSpeed.460800.upload.speed=460800",
+    "menu.UploadSpeed.512000.upload.speed=512000",
+    "menu.UploadSpeed.512000=512000",
+    "menu.UploadSpeed.921600.upload.speed=921600",
+    "menu.UploadSpeed.921600=921600",
+    "menu.ZigbeeMode.default.build.zigbee_libs=",
+    "menu.ZigbeeMode.default.build.zigbee_mode=",
+    "menu.ZigbeeMode.default=Disabled",
+    "menu.ZigbeeMode.zczr.build.zigbee_libs=-lesp_zb_api_zczr -lesp_zb_cli_command -lzboss_stack.zczr -lzboss_port",
+    "menu.ZigbeeMode.zczr.build.zigbee_mode=-DZIGBEE_MODE_ZCZR",
+    "menu.ZigbeeMode.zczr=Zigbee ZCZR (coordinator)",
+    "monitor_port.serial.dtr=on",
+    "monitor_port.serial.rts=on",
+    "name=ESP32S3 Dev Module",
+    "pluggable_discovery.required.0=builtin:serial-discovery",
+    "pluggable_discovery.required.1=builtin:mdns-discovery",
+    "pluggable_monitor.required.serial=builtin:serial-monitor",
+    "recipe.S.o.pattern=\"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-xs3\\2302/bin/xtensa-esp32s3-elf-gcc\" -MMD -c -x assembler-with-cpp \"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/S_flags\" -w -Os -DF_CPU=240000000L -DARDUINO=10607 -DARDUINO_ESP32S3_DEV -DARDUINO_ARCH_ESP32 -DARDUINO_BOARD=\"ESP32S3_DEV\" -DARDUINO_VARIANT=\"esp32s3\" -DARDUINO_PARTITION_default -DARDUINO_HOST_OS=\"windows\" -DARDUINO_FQBN=\"esp32:esp32:esp32s3\" -DESP32 -DCORE_DEBUG_LEVEL=0 -DARDUINO_RUNNING_CORE=1 -DARDUINO_EVENT_RUNNING_CORE=1  -DARDUINO_USB_MODE=1 -DARDUINO_USB_CDC_ON_BOOT=0 -DARDUINO_USB_MSC_ON_BOOT=0 -DARDUINO_USB_DFU_ON_BOOT=0  \"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/defines\" \"-I{build.source.path}\" -iprefix \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/include/\" \"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/includes\" \"-IC:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/qio_qspi/include\" {includes} \"@{build.path}/build_opt.h\" \"@{build.path}/file_opts\" \"{source_file}\" -o \"{object_file}\"",
+    "recipe.ar.pattern=\"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-xs3\\2302/bin/xtensa-esp32s3-elf-gcc-ar\" cr  \"{archive_file_path}\" \"{object_file}\"",
+    "recipe.c.combine.pattern=\"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-xs3\\2302/bin/xtensa-esp32s3-elf-g++\" \"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/ld_flags\" \"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/ld_scripts\" \"-Wl,--Map={build.path}/{build.project_name}.map\" \"-LC:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/lib\" \"-LC:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/ld\" \"-LC:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/qio_qspi\" \"-Wl,--wrap=esp_panic_handler\" -Wl,--start-group {object_files} \"{archive_file_path}\"   \"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/ld_libs\"  -Wl,--end-group -Wl,-EL -o \"{build.path}/{build.project_name}.elf\"",
+    "recipe.c.o.pattern=\"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-xs3\\2302/bin/xtensa-esp32s3-elf-gcc\" -MMD -c \"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/c_flags\" -w -Os -Werror=return-type -DF_CPU=240000000L -DARDUINO=10607 -DARDUINO_ESP32S3_DEV -DARDUINO_ARCH_ESP32 -DARDUINO_BOARD=\"ESP32S3_DEV\" -DARDUINO_VARIANT=\"esp32s3\" -DARDUINO_PARTITION_default -DARDUINO_HOST_OS=\"windows\" -DARDUINO_FQBN=\"esp32:esp32:esp32s3\" -DESP32 -DCORE_DEBUG_LEVEL=0 -DARDUINO_RUNNING_CORE=1 -DARDUINO_EVENT_RUNNING_CORE=1  -DARDUINO_USB_MODE=1 -DARDUINO_USB_CDC_ON_BOOT=0 -DARDUINO_USB_MSC_ON_BOOT=0 -DARDUINO_USB_DFU_ON_BOOT=0  \"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/defines\" \"-I{build.source.path}\" -iprefix \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/include/\" \"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/includes\" \"-IC:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/qio_qspi/include\" {includes} \"@{build.path}/build_opt.h\" \"@{build.path}/file_opts\" \"{source_file}\" -o \"{object_file}\"",
+    "recipe.cpp.o.pattern=\"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-xs3\\2302/bin/xtensa-esp32s3-elf-g++\" -MMD -c \"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/cpp_flags\" -w -Os -Werror=return-type -DF_CPU=240000000L -DARDUINO=10607 -DARDUINO_ESP32S3_DEV -DARDUINO_ARCH_ESP32 -DARDUINO_BOARD=\"ESP32S3_DEV\" -DARDUINO_VARIANT=\"esp32s3\" -DARDUINO_PARTITION_default -DARDUINO_HOST_OS=\"windows\" -DARDUINO_FQBN=\"esp32:esp32:esp32s3\" -DESP32 -DCORE_DEBUG_LEVEL=0 -DARDUINO_RUNNING_CORE=1 -DARDUINO_EVENT_RUNNING_CORE=1  -DARDUINO_USB_MODE=1 -DARDUINO_USB_CDC_ON_BOOT=0 -DARDUINO_USB_MSC_ON_BOOT=0 -DARDUINO_USB_DFU_ON_BOOT=0  \"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/defines\" \"-I{build.source.path}\" -iprefix \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/include/\" \"@C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/flags/includes\" \"-IC:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3/qio_qspi/include\" {includes} \"@{build.path}/build_opt.h\" \"@{build.path}/file_opts\" \"{source_file}\" -o \"{object_file}\"",
+    "recipe.hooks.core.postbuild.1.pattern=cmd /c type nul \u003e \"{build.path}/file_opts\"",
+    "recipe.hooks.core.prebuild.1.pattern=cmd /c echo \"-DARDUINO_CORE_BUILD\" \u003e \"{build.path}/file_opts\"",
+    "recipe.hooks.objcopy.postobjcopy.1.pattern=cmd /c if exist \"{build.path}\\libraries\\Insights\" \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\tools\\gen_insights_package.exe\" {build.path} {build.project_name} \"{build.source.path}\"",
+    "recipe.hooks.objcopy.postobjcopy.1.pattern_args={build.path} {build.project_name} \"{build.source.path}\"",
+    "recipe.hooks.objcopy.postobjcopy.2.pattern=cmd /c if exist \"{build.path}\\libraries\\ESP_SR\" if exist \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3\\esp_sr\\srmodels.bin\" COPY /y \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3\\esp_sr\\srmodels.bin\" \"{build.path}\\srmodels.bin\"",
+    "recipe.hooks.objcopy.postobjcopy.3.pattern.linux=python3 \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esptool_py\\4.6/esptool.exe\" --chip esp32s3 merge_bin -o \"{build.path}/{build.project_name}.merged.bin\" --fill-flash-size 4MB --flash_mode keep --flash_freq keep --flash_size keep 0x0 \"{build.path}/{build.project_name}.bootloader.bin\" 0x8000 \"{build.path}/{build.project_name}.partitions.bin\" 0xe000 \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5/tools/partitions/boot_app0.bin\" 0x10000 \"{build.path}/{build.project_name}.bin\"",
+    "recipe.hooks.objcopy.postobjcopy.3.pattern=\"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esptool_py\\4.6/esptool.exe\" --chip esp32s3 merge_bin -o \"{build.path}/{build.project_name}.merged.bin\" --fill-flash-size 4MB --flash_mode keep --flash_freq keep --flash_size keep 0x0 \"{build.path}/{build.project_name}.bootloader.bin\" 0x8000 \"{build.path}/{build.project_name}.partitions.bin\" 0xe000 \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5/tools/partitions/boot_app0.bin\" 0x10000 \"{build.path}/{build.project_name}.bin\"",
+    "recipe.hooks.objcopy.postobjcopy.3.pattern_args=--chip esp32s3 merge_bin -o \"{build.path}/{build.project_name}.merged.bin\" --fill-flash-size 4MB --flash_mode keep --flash_freq keep --flash_size keep 0x0 \"{build.path}/{build.project_name}.bootloader.bin\" 0x8000 \"{build.path}/{build.project_name}.partitions.bin\" 0xe000 \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5/tools/partitions/boot_app0.bin\" 0x10000 \"{build.path}/{build.project_name}.bin\"",
+    "recipe.hooks.prebuild.1.pattern=cmd /c if exist \"{build.source.path}\\partitions.csv\" COPY /y \"{build.source.path}\\partitions.csv\" \"{build.path}\\partitions.csv\"",
+    "recipe.hooks.prebuild.2.pattern=cmd /c if not exist \"{build.path}\\partitions.csv\" if exist \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\variants\\esp32s3\\partitions.csv\" COPY \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\variants\\esp32s3\\partitions.csv\" \"{build.path}\\partitions.csv\"",
+    "recipe.hooks.prebuild.3.pattern=cmd /c if not exist \"{build.path}\\partitions.csv\" COPY \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\tools\\partitions\\default.csv\" \"{build.path}\\partitions.csv\"",
+    "recipe.hooks.prebuild.4.pattern.linux=/usr/bin/env bash -c \"[ -f \"{build.source.path}\"/bootloader.bin ] \u0026\u0026 cp -f \"{build.source.path}\"/bootloader.bin \"{build.path}\"/{build.project_name}.bootloader.bin || ( [ -f \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\variants\\esp32s3\"/bootloader.bin ] \u0026\u0026 cp \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\variants\\esp32s3\"/bootloader.bin \"{build.path}\"/{build.project_name}.bootloader.bin || python3 \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esptool_py\\4.6\"/esptool.exe --chip esp32s3 elf2image --flash_mode dio --flash_freq 80m --flash_size 4MB -o \"{build.path}\"/{build.project_name}.bootloader.bin \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3\"/bin/bootloader_qio_80m.elf )\"",
+    "recipe.hooks.prebuild.4.pattern=cmd /c IF EXIST \"{build.source.path}\\bootloader.bin\" ( COPY /y \"{build.source.path}\\bootloader.bin\" \"{build.path}\\{build.project_name}.bootloader.bin\" ) ELSE ( IF EXIST \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\variants\\esp32s3\\bootloader.bin\" ( COPY \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\variants\\esp32s3\\bootloader.bin\" \"{build.path}\\{build.project_name}.bootloader.bin\" ) ELSE ( \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esptool_py\\4.6\\esptool.exe\" --chip esp32s3 elf2image --flash_mode dio --flash_freq 80m --flash_size 4MB -o \"{build.path}\\{build.project_name}.bootloader.bin\" \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6\\esp32s3\\bin\\bootloader_qio_80m.elf\" ) )",
+    "recipe.hooks.prebuild.4.pattern_args=--chip esp32s3 elf2image --flash_mode dio --flash_freq 80m --flash_size 4MB -o",
+    "recipe.hooks.prebuild.5.pattern=cmd /c if exist \"{build.source.path}\\build_opt.h\" COPY /y \"{build.source.path}\\build_opt.h\" \"{build.path}\\build_opt.h\"",
+    "recipe.hooks.prebuild.6.pattern=cmd /c if not exist \"{build.path}\\build_opt.h\" type nul \u003e \"{build.path}\\build_opt.h\"",
+    "recipe.hooks.prebuild.7.pattern=cmd /c type nul \u003e \"{build.path}/file_opts\"",
+    "recipe.objcopy.bin.pattern.linux=python3 \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esptool_py\\4.6/esptool.exe\" --chip esp32s3 elf2image --flash_mode \"dio\" --flash_freq \"80m\" --flash_size \"4MB\" --elf-sha256-offset 0xb0 -o \"{build.path}/{build.project_name}.bin\" \"{build.path}/{build.project_name}.elf\"",
+    "recipe.objcopy.bin.pattern=\"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esptool_py\\4.6/esptool.exe\" --chip esp32s3 elf2image --flash_mode \"dio\" --flash_freq \"80m\" --flash_size \"4MB\" --elf-sha256-offset 0xb0 -o \"{build.path}/{build.project_name}.bin\" \"{build.path}/{build.project_name}.elf\"",
+    "recipe.objcopy.bin.pattern_args=--chip esp32s3 elf2image --flash_mode \"dio\" --flash_freq \"80m\" --flash_size \"4MB\" --elf-sha256-offset 0xb0 -o \"{build.path}/{build.project_name}.bin\" \"{build.path}/{build.project_name}.elf\"",
+    "recipe.objcopy.partitions.bin.pattern=\"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\tools\\gen_esp32part.exe\" -q \"{build.path}/partitions.csv\" \"{build.path}/{build.project_name}.partitions.bin\"",
+    "recipe.output.save_file={build.project_name}.esp32s3.bin",
+    "recipe.output.tmp_file={build.project_name}.bin",
+    "recipe.size.pattern=\"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-xs3\\2302/bin/xtensa-esp32s3-elf-size\" -A \"{build.path}/{build.project_name}.elf\"",
+    "recipe.size.regex.data=^(?:\\.dram0\\.data|\\.dram0\\.bss|\\.noinit)\\s+([0-9]+).*",
+    "recipe.size.regex=^(?:\\.iram0\\.text|\\.iram0\\.vectors|\\.dram0\\.data|\\.flash\\.text|\\.flash\\.rodata|)\\s+([0-9]+).*",
+    "runtime.hardware.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32",
+    "runtime.ide.path=C:\\Users\\Charles\\Desktop\\arduino-cli",
+    "runtime.ide.version=10607",
+    "runtime.os=windows",
+    "runtime.platform.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5",
+    "runtime.tools.arduinoOTA-1.3.0.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\arduinoOTA\\1.3.0",
+    "runtime.tools.arduinoOTA.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\arduinoOTA\\1.3.0",
+    "runtime.tools.arm-none-eabi-gcc-7-2017q4.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\7-2017q4",
+    "runtime.tools.arm-none-eabi-gcc.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\7-2017q4",
+    "runtime.tools.avr-gcc-7.3.0-atmel3.6.1-arduino7.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7",
+    "runtime.tools.avr-gcc.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7",
+    "runtime.tools.avrdude-6.3.0-arduino17.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avrdude\\6.3.0-arduino17",
+    "runtime.tools.avrdude.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avrdude\\6.3.0-arduino17",
+    "runtime.tools.bossac-1.9.1-arduino5.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\bossac\\1.9.1-arduino5",
+    "runtime.tools.bossac.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\bossac\\1.9.1-arduino5",
+    "runtime.tools.ctags-5.8-arduino11.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\ctags\\5.8-arduino11",
+    "runtime.tools.ctags.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\ctags\\5.8-arduino11",
+    "runtime.tools.dfu-discovery-0.1.2.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\dfu-discovery\\0.1.2",
+    "runtime.tools.dfu-discovery.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\dfu-discovery\\0.1.2",
+    "runtime.tools.dfu-util-0.11.0-arduino5.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\dfu-util\\0.11.0-arduino5",
+    "runtime.tools.dfu-util.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\dfu-util\\0.11.0-arduino5",
+    "runtime.tools.esp-rv32-2302.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-rv32\\2302",
+    "runtime.tools.esp-rv32.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-rv32\\2302",
+    "runtime.tools.esp-x32-2302.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-x32\\2302",
+    "runtime.tools.esp-x32.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-x32\\2302",
+    "runtime.tools.esp-xs2-2302.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-xs2\\2302",
+    "runtime.tools.esp-xs2.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-xs2\\2302",
+    "runtime.tools.esp-xs3-2302.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-xs3\\2302",
+    "runtime.tools.esp-xs3.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-xs3\\2302",
+    "runtime.tools.esp32-arduino-libs-idf-release_v5.1-33fbade6.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6",
+    "runtime.tools.esp32-arduino-libs.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6",
+    "runtime.tools.esptool_py-4.6.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esptool_py\\4.6",
+    "runtime.tools.esptool_py.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esptool_py\\4.6",
+    "runtime.tools.mdns-discovery-1.0.6.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\mdns-discovery\\1.0.6",
+    "runtime.tools.mdns-discovery-1.0.8.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\mdns-discovery\\1.0.8",
+    "runtime.tools.mdns-discovery-1.0.9.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\mdns-discovery\\1.0.9",
+    "runtime.tools.mdns-discovery.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\mdns-discovery\\1.0.9",
+    "runtime.tools.mklittlefs-3.0.0-gnu12-dc7f933.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\mklittlefs\\3.0.0-gnu12-dc7f933",
+    "runtime.tools.mklittlefs.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\mklittlefs\\3.0.0-gnu12-dc7f933",
+    "runtime.tools.mkspiffs-0.2.3.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\mkspiffs\\0.2.3",
+    "runtime.tools.mkspiffs.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\mkspiffs\\0.2.3",
+    "runtime.tools.openocd-0.11.0-arduino2.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\openocd\\0.11.0-arduino2",
+    "runtime.tools.openocd-esp32-v0.12.0-esp32-20240821.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\openocd-esp32\\v0.12.0-esp32-20240821",
+    "runtime.tools.openocd-esp32.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\openocd-esp32\\v0.12.0-esp32-20240821",
+    "runtime.tools.openocd.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\openocd\\0.11.0-arduino2",
+    "runtime.tools.pqt-gcc-2.3.0-dfd82b2.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-gcc\\2.3.0-dfd82b2",
+    "runtime.tools.pqt-gcc.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-gcc\\2.3.0-dfd82b2",
+    "runtime.tools.pqt-mklittlefs-2.3.0-dfd82b2.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-mklittlefs\\2.3.0-dfd82b2",
+    "runtime.tools.pqt-mklittlefs.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-mklittlefs\\2.3.0-dfd82b2",
+    "runtime.tools.pqt-openocd-2.3.0-dfd82b2.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-openocd\\2.3.0-dfd82b2",
+    "runtime.tools.pqt-openocd.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-openocd\\2.3.0-dfd82b2",
+    "runtime.tools.pqt-picotool-2.3.0-dfd82b2.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-picotool\\2.3.0-dfd82b2",
+    "runtime.tools.pqt-picotool.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-picotool\\2.3.0-dfd82b2",
+    "runtime.tools.pqt-pioasm-2.3.0-dfd82b2.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-pioasm\\2.3.0-dfd82b2",
+    "runtime.tools.pqt-pioasm.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-pioasm\\2.3.0-dfd82b2",
+    "runtime.tools.pqt-python3-1.0.1-base-3a57aed-1.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-python3\\1.0.1-base-3a57aed-1",
+    "runtime.tools.pqt-python3-1.0.1-base-3a57aed.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-python3\\1.0.1-base-3a57aed",
+    "runtime.tools.pqt-python3.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-python3\\1.0.1-base-3a57aed-1",
+    "runtime.tools.riscv32-esp-elf-gdb-12.1_20231023.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\riscv32-esp-elf-gdb\\12.1_20231023",
+    "runtime.tools.riscv32-esp-elf-gdb.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\riscv32-esp-elf-gdb\\12.1_20231023",
+    "runtime.tools.serial-discovery-1.3.2.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\serial-discovery\\1.3.2",
+    "runtime.tools.serial-discovery-1.3.3.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\serial-discovery\\1.3.3",
+    "runtime.tools.serial-discovery-1.3.5.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\serial-discovery\\1.3.5",
+    "runtime.tools.serial-discovery-1.4.0.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\serial-discovery\\1.4.0",
+    "runtime.tools.serial-discovery-1.4.1.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\serial-discovery\\1.4.1",
+    "runtime.tools.serial-discovery.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\serial-discovery\\1.4.1",
+    "runtime.tools.serial-monitor-0.10.0.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\serial-monitor\\0.10.0",
+    "runtime.tools.serial-monitor-0.11.0.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\serial-monitor\\0.11.0",
+    "runtime.tools.serial-monitor-0.12.0.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\serial-monitor\\0.12.0",
+    "runtime.tools.serial-monitor-0.13.0.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\serial-monitor\\0.13.0",
+    "runtime.tools.serial-monitor-0.14.1.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\serial-monitor\\0.14.1",
+    "runtime.tools.serial-monitor.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\builtin\\tools\\serial-monitor\\0.14.1",
+    "runtime.tools.xtensa-esp-elf-gdb-12.1_20231023.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\xtensa-esp-elf-gdb\\12.1_20231023",
+    "runtime.tools.xtensa-esp-elf-gdb.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\xtensa-esp-elf-gdb\\12.1_20231023",
+    "serial.disableDTR=false",
+    "serial.disableRTS=false",
+    "software=ARDUINO",
+    "tools.avrdude.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avrdude\\6.3.0-arduino17",
+    "tools.dfu-util.cmd=dfu-util",
+    "tools.dfu-util.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\dfu-util\\0.11.0-arduino5",
+    "tools.dfu-util.upload.params.quiet=",
+    "tools.dfu-util.upload.params.verbose=-d",
+    "tools.dfu-util.upload.pattern=\"{path}/{cmd}\" --device {vid.0}:{pid.0} -D \"{build.path}/{build.project_name}.bin\" -Q",
+    "tools.esp32-arduino-libs.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp32-arduino-libs\\idf-release_v5.1-33fbade6",
+    "tools.esp_ota.cmd=\"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\tools\\espota.exe\" -r",
+    "tools.esp_ota.upload.field.password.secret=true",
+    "tools.esp_ota.upload.field.password=Password",
+    "tools.esp_ota.upload.pattern={cmd} -i {upload.port.address} -p {upload.port.properties.port} \"--auth={upload.field.password}\" -f \"{build.path}/{build.project_name}.bin\"",
+    "tools.esp_ota.upload.protocol=network",
+    "tools.esptool_py.bootloader.params.quiet=",
+    "tools.esptool_py.bootloader.params.verbose=",
+    "tools.esptool_py.bootloader.pattern=",
+    "tools.esptool_py.bootloader.protocol=serial",
+    "tools.esptool_py.cmd.linux=esptool.py",
+    "tools.esptool_py.cmd=esptool.exe",
+    "tools.esptool_py.erase.params.quiet=",
+    "tools.esptool_py.erase.params.verbose=",
+    "tools.esptool_py.erase.pattern.linux=python3 \"{path}/{cmd}\" {erase.pattern_args}",
+    "tools.esptool_py.erase.pattern=\"{path}/{cmd}\" {erase.pattern_args}",
+    "tools.esptool_py.erase.pattern_args=--chip esp32s3 --port \"{serial.port}\" --baud 921600  --before default_reset --after hard_reset erase_flash",
+    "tools.esptool_py.erase.protocol=serial",
+    "tools.esptool_py.network_cmd=\"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\tools\\espota.exe\" -r",
+    "tools.esptool_py.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esptool_py\\4.6",
+    "tools.esptool_py.program.params.quiet=",
+    "tools.esptool_py.program.params.verbose=",
+    "tools.esptool_py.program.pattern.linux=python3 \"{path}/{cmd}\" {program.pattern_args}",
+    "tools.esptool_py.program.pattern=\"{path}/{cmd}\" {program.pattern_args}",
+    "tools.esptool_py.program.pattern_args=--chip esp32s3 --port \"{serial.port}\" --baud 921600  --before default_reset --after hard_reset write_flash -z --flash_mode keep --flash_freq keep --flash_size keep 0x10000 \"{build.path}/{build.project_name}.bin\"",
+    "tools.esptool_py.upload.network_pattern={network_cmd} -i \"{serial.port}\" -p \"{network.port}\" \"--auth={network.password}\" -f \"{build.path}/{build.project_name}.bin\"",
+    "tools.esptool_py.upload.params.quiet=",
+    "tools.esptool_py.upload.params.verbose=",
+    "tools.esptool_py.upload.pattern.linux=python3 \"{path}/{cmd}\" {upload.pattern_args}",
+    "tools.esptool_py.upload.pattern=\"{path}/{cmd}\" {upload.pattern_args}",
+    "tools.esptool_py.upload.pattern_args=--chip esp32s3 --port \"{serial.port}\" --baud 921600  --before default_reset --after hard_reset write_flash  -z --flash_mode keep --flash_freq keep --flash_size keep 0x0 \"{build.path}/{build.project_name}.bootloader.bin\" 0x8000 \"{build.path}/{build.project_name}.partitions.bin\" 0xe000 \"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5/tools/partitions/boot_app0.bin\" 0x10000 \"{build.path}/{build.project_name}.bin\" ",
+    "tools.esptool_py.upload.protocol=serial",
+    "tools.gen_esp32part.cmd=\"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\tools\\gen_esp32part.exe\"",
+    "tools.gen_insights_pkg.cmd=\"C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.0.5\\tools\\gen_insights_package.exe\"",
+    "tools.riscv32-esp-elf-gcc.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-rv32\\2302",
+    "tools.riscv32-esp-elf-gdb.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\riscv32-esp-elf-gdb\\12.1_20231023",
+    "tools.xtensa-esp-elf-gdb.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\xtensa-esp-elf-gdb\\12.1_20231023",
+    "tools.xtensa-esp32-elf-gcc.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-x32\\2302",
+    "tools.xtensa-esp32s2-elf-gcc.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-xs2\\2302",
+    "tools.xtensa-esp32s3-elf-gcc.path=C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\esp-xs3\\2302",
+    "upload.erase_cmd=",
+    "upload.extra_flags=",
+    "upload.flags=",
+    "upload.maximum_data_size=327680",
+    "upload.maximum_size=1310720",
+    "upload.speed=921600",
+    "upload.tool.default=esptool_py",
+    "upload.tool.network=esp_ota",
+    "upload.tool=esptool_py",
+    "upload.use_1200bps_touch=false",
+    "upload.wait_for_upload_port=false",
+    "version=3.0.5"
+  ]
+}

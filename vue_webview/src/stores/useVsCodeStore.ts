@@ -5,6 +5,7 @@ import mockDataSearchBoards from '@/mock/coresearch.json';
 import mockDataLibrarySearch from '@/mock/libsearch.json';
 import mockDataLibraryInstalled from '@/mock/libinstalled.json';
 import mockDataCliVersion from '@/mock/cliversion.json';
+import mockDataBoardDetails from '@/mock/board_details.json';
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
@@ -37,6 +38,10 @@ export const useVsCodeStore = defineStore('vsCode', {
                         break;
                     case ARDUINO_MESSAGES.CLI_STATUS:
                         message.payload = JSON.stringify(mockDataCliVersion);
+                        this.handleMessage(message);
+                        break;
+                    case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
+                        message.payload = JSON.stringify(mockDataBoardDetails);
                         this.handleMessage(message);
                         break;
                     default:
