@@ -21,8 +21,10 @@ export default defineConfig({
   build: {
     sourcemap: true,
     rollupOptions: {
-      external: ['vscode'],
-      // produce predictable filenames without cache-busting SHA suffix
+      external: [
+        'vscode',
+        /^src\/mock\//, // Exclude any imports from src/mock
+      ],      // produce predictable filenames without cache-busting SHA suffix
       output: {
         entryFileNames: `assets/[name].js`,
         chunkFileNames: `assets/[name].js`,
@@ -35,6 +37,7 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@shared': fileURLToPath(new URL('../src/shared', import.meta.url)),
+      
     },
     extensions: [
       '.js',
