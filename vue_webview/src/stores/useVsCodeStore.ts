@@ -20,22 +20,23 @@ export const useVsCodeStore = defineStore('vsCode', {
     }),
     actions: {
         simulateMessage(message: WebviewToExtensionMessage) {
-            console.log(message);
-            switch (message.command) {
-                case ARDUINO_MESSAGES.CORE_SEARCH:
-                    message.payload = JSON.stringify(mockDataSearchBoards);;
-                    this.handleMessage(message);
-                    break;
-                case ARDUINO_MESSAGES.LIBRARY_SEARCH:
-                    message.payload = JSON.stringify(mockDataLibrarySearch);
-                    this.handleMessage(message);
-                    break;
-                    case ARDUINO_MESSAGES.LIBRARY_INSTALLED:
-                    message.payload = JSON.stringify(mockDataLibraryList);
-                    this.handleMessage(message);
-                    break;
-                default:
-                    break;
+            if(import.meta.env.DEV) {
+                switch (message.command) {
+                    case ARDUINO_MESSAGES.CORE_SEARCH:
+                        message.payload = JSON.stringify(mockDataSearchBoards);;
+                        this.handleMessage(message);
+                        break;
+                    case ARDUINO_MESSAGES.LIBRARY_SEARCH:
+                        message.payload = JSON.stringify(mockDataLibrarySearch);
+                        this.handleMessage(message);
+                        break;
+                        case ARDUINO_MESSAGES.LIBRARY_INSTALLED:
+                        message.payload = JSON.stringify(mockDataLibraryList);
+                        this.handleMessage(message);
+                        break;
+                    default:
+                        break;
+                }
             }
         },
         handleMessage(message: WebviewToExtensionMessage) {
