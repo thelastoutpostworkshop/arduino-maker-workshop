@@ -1,12 +1,6 @@
 import { defineStore } from 'pinia';
 import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
-// import mockDataSearchBoards from '@/mock/coresearch.json';
-// import mockDataLibrarySearch from '@/mock/libsearch.json';
-// import mockDataLibraryInstalled from '@/mock/libinstalled.json';
-// import mockDataCliVersion from '@/mock/cliversion.json';
-// import mockDataBoardDetails from '@/mock/board_details.json';
-// import mockDataArduinoConfiguration from '@/mock/arduino_configuration.json';
 
 async function loadMockData(mockFile: string, jsonToString: boolean = true): Promise<string> {
     try {
