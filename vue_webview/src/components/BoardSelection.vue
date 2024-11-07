@@ -70,17 +70,6 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boar
   return boardStructure;
 });
 
-
-function sendTestMessage() {
-  const message: WebviewToExtensionMessage = {
-    command: ARDUINO_MESSAGES.BOARDS_LIST_ALL,
-    errorMessage: "",
-    payload: import.meta.env.VITE_BOARDS_LISTALL_TEST
-  }
-  vsCodeStore.simulateMessage(message);
-}
-
-const inDevelopment = computed(() => import.meta.env.DEV);
 </script>
 
 <template>
@@ -88,9 +77,6 @@ const inDevelopment = computed(() => import.meta.env.DEV);
     <v-responsive>
       <div class="text-center">
         <h1 class="text-h4 font-weight-bold">Boards Available</h1>
-      </div>
-      <div v-if="inDevelopment">
-        <v-btn @click="sendTestMessage()">Send Test Message</v-btn>
       </div>
       <v-text-field label="Current Board:" :model-value="vsCodeStore.boardConfiguration?.boardConfiguration?.name" readonly>
         <template v-slot:loader>

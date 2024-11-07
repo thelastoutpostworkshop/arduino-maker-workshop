@@ -15,7 +15,7 @@ async function loadMockData(mockFile: string, jsonToString: boolean = true): Pro
             throw new Error(`Failed to fetch ${mockFile}: ${response.statusText}`);
         }
         const mockData = await response.json();
-        if(jsonToString) {
+        if (jsonToString) {
             return JSON.stringify(mockData);
         } else {
             return mockData;
@@ -74,7 +74,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         });
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
-                        loadMockData('arduino_configuration.json',false).then((mockPayload) => {
+                        loadMockData('arduino_configuration.json', false).then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
@@ -82,6 +82,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                         message.payload = "";
                         this.handleMessage(message);
+                        break;
+                    case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
+                        loadMockData('board_search.json').then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
+                        break;
                     default:
                         break;
                 }
