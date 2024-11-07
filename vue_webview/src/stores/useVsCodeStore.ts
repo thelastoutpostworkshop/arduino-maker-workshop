@@ -1,12 +1,30 @@
 import { defineStore } from 'pinia';
 import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
-import mockDataSearchBoards from '@/mock/coresearch.json';
-import mockDataLibrarySearch from '@/mock/libsearch.json';
-import mockDataLibraryInstalled from '@/mock/libinstalled.json';
-import mockDataCliVersion from '@/mock/cliversion.json';
-import mockDataBoardDetails from '@/mock/board_details.json';
-import mockDataArduinoConfiguration from '@/mock/arduino_configuration.json';
+// import mockDataSearchBoards from '@/mock/coresearch.json';
+// import mockDataLibrarySearch from '@/mock/libsearch.json';
+// import mockDataLibraryInstalled from '@/mock/libinstalled.json';
+// import mockDataCliVersion from '@/mock/cliversion.json';
+// import mockDataBoardDetails from '@/mock/board_details.json';
+// import mockDataArduinoConfiguration from '@/mock/arduino_configuration.json';
+
+async function loadMockData(mockFile: string, jsonToString: boolean = true): Promise<string> {
+    try {
+        const response = await fetch(`/mock/${mockFile}`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch ${mockFile}: ${response.statusText}`);
+        }
+        const mockData = await response.json();
+        if(jsonToString) {
+            return JSON.stringify(mockData);
+        } else {
+            return mockData;
+        }
+    } catch (error) {
+        console.error('Error loading mock data:', error);
+        return '';
+    }
+}
 
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
@@ -26,28 +44,40 @@ export const useVsCodeStore = defineStore('vsCode', {
             if (import.meta.env.DEV) {
                 switch (message.command) {
                     case ARDUINO_MESSAGES.CORE_SEARCH:
-                        message.payload = JSON.stringify(mockDataSearchBoards);;
-                        this.handleMessage(message);
+                        loadMockData('coresearch.json').then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
                         break;
                     case ARDUINO_MESSAGES.LIBRARY_SEARCH:
-                        message.payload =  JSON.stringify(mockDataLibrarySearch);
-                        this.handleMessage(message);
+                        loadMockData('libsearch.json').then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
                         break;
                     case ARDUINO_MESSAGES.LIBRARY_INSTALLED:
-                        message.payload = JSON.stringify(mockDataLibraryInstalled);
-                        this.handleMessage(message);
+                        loadMockData('libinstalled.json').then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
                         break;
                     case ARDUINO_MESSAGES.CLI_STATUS:
-                        message.payload = JSON.stringify(mockDataCliVersion);
-                        this.handleMessage(message);
+                        loadMockData('cliversion.json').then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
                         break;
                     case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
-                        message.payload = JSON.stringify(mockDataBoardDetails);
-                        this.handleMessage(message);
+                        loadMockData('board_details.json').then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
-                        message.payload = mockDataArduinoConfiguration;
-                        this.handleMessage(message);
+                        loadMockData('arduino_configuration.json',false).then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                         message.payload = "";
