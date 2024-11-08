@@ -62,6 +62,9 @@ watch([() => store.cliStatus, () => store.projectStatus], () => { }, { immediate
 
 onMounted(() => {
   vscode.postMessage({ command: ARDUINO_MESSAGES.BOARD_CONNECTED, errorMessage: "", payload: "" });
+  if(!store.boardOptions?.config_options) {
+    vscode.postMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
+  }
 });
 
 </script>

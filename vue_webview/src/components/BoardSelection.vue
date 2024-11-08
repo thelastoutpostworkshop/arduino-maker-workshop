@@ -4,7 +4,7 @@ import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, BoardConfiguration, Metadata } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
 
-const vsCodeStore = useVsCodeStore();
+const store = useVsCodeStore();
 const boardSelect = ref<(BoardConfiguration | null)[]>([]); // Updated to track selected boards for each platform
 const boardSelectBefore = ref<(BoardConfiguration | null)[]>([]);
 
@@ -20,7 +20,7 @@ watch(
       if (newVal && newVal !== boardSelectBefore.value[index]) {
         vscode.postMessage({ command: ARDUINO_MESSAGES.SET_BOARD, errorMessage: "", payload: newVal.fqbn });
         boardSelectBefore.value = [...boardSelect.value];
-        vsCodeStore.boardConfiguration = null;
+        store.boardOptions = null;
       }
     });
   },
@@ -29,7 +29,7 @@ watch(
 
 // Computed property for grouping boards by platform and filtering only installed boards
 const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boards: { name: string, fqbn: string }[] } }>(() => {
-  const boards = vsCodeStore.boards?.boards ?? [];
+  const boards = store.boards?.boards ?? [];
 
   // Initialize an empty object to hold the structured board data with metadata
   const boardStructure: { [platform: string]: { metadata: Metadata; boards: { name: string, fqbn: string }[] } } = {};
@@ -78,9 +78,9 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boar
       <div class="text-center">
         <h1 class="text-h4 font-weight-bold">Boards Available</h1>
       </div>
-      <v-text-field label="Current Board:" :model-value="vsCodeStore.boardConfiguration?.boardConfiguration?.name" readonly>
+      <v-text-field label="Current Board:" :model-value="store.boardOptions?.name" readonly>
         <template v-slot:loader>
-          <v-progress-linear :active="!vsCodeStore.boardConfiguration?.boardConfiguration?.name" height="2" indeterminate></v-progress-linear>
+          <v-progress-linear :active="!store.boardOptions?.name" height="2" indeterminate></v-progress-linear>
         </template>
       </v-text-field>
       <div v-if="Object.keys(boardStructure).length === 0">
