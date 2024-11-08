@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { computed, watch, onMounted, ref } from 'vue';
+import { computed, watch, onMounted } from 'vue';
 import { ARDUINO_MESSAGES } from '@shared/messages';
 import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
 
 const router = useRouter()
 const store = useVsCodeStore();
-const portSelected = ref('');
+// const portSelected = ref('');
 
 const projectStatusInfo = computed(() => {
   if (store.projectStatus) {
@@ -84,7 +84,7 @@ onMounted(() => {
                   variant="text"></v-btn>
               </template>
             </v-text-field>
-            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="portSelected"
+            <v-select :disabled="!store.boardConnected?.detected_ports" :model-value="store.projectInfo?.port"
               :items="portsAvailable" density="compact" label="Port">
               <template v-slot:loader>
                 <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2" indeterminate></v-progress-linear>
