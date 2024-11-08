@@ -5,6 +5,8 @@ import { createRouter, createMemoryHistory } from 'vue-router'
 import BoardManager from '@/components/BoardManager.vue';
 import LibraryManager from '@/components/LibraryManager.vue';
 
+export const routerBoardSelectionName = 'board-configuration';
+
 const router = createRouter({
 
     history: createMemoryHistory(),
@@ -25,7 +27,7 @@ const router = createRouter({
       },
       {
         path: '/board-configuration',
-        name: "board-configuration",
+        name: routerBoardSelectionName,
         components: {
           default: BoardConfiguration,
         }

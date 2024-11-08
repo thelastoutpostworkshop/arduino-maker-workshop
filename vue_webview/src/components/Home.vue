@@ -4,6 +4,7 @@ import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { computed, watch } from 'vue';
 import { ARDUINO_MESSAGES } from '@shared/messages';
 import { useRouter } from 'vue-router'
+import { routerBoardSelectionName } from '@/router';
 
 const router = useRouter()
 const vsCodeStore = useVsCodeStore();
@@ -68,7 +69,7 @@ watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { },
                   indeterminate></v-progress-linear>
               </template>
               <template v-if="vsCodeStore.boardConfiguration?.boardConfiguration?.name" v-slot:append>
-                <v-btn @click="router.push({ name: 'boards' })" icon="mdi-pencil" variant="text"></v-btn>
+                <v-btn @click="router.push({ name: routerBoardSelectionName })" icon="mdi-pencil" variant="text"></v-btn>
               </template>
             </v-text-field>
             <v-text-field label="Port" :model-value="vsCodeStore.projectInfo?.port" readonly>
