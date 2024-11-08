@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { computed, watch } from 'vue';
+import { computed, watch ,onMounted} from 'vue';
 import { ARDUINO_MESSAGES } from '@shared/messages';
 import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
@@ -34,6 +34,10 @@ watch(() => vsCodeStore.projectInfo, (newProjectInfo, oldProjectInfo) => {
 }, { immediate: true });
 
 watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { }, { immediate: true });
+
+onMounted(() => {
+  vscode.postMessage({ command: ARDUINO_MESSAGES.BOARD_CONNECTED, errorMessage: "", payload: "" });
+});
 
 </script>
 
