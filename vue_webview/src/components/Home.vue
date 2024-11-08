@@ -38,11 +38,23 @@ watch(() => store.projectInfo, (newProjectInfo) => {
   if (newProjectInfo) {
     vscode.postMessage({ command: ARDUINO_MESSAGES.BOARD_CONFIGURATION, errorMessage: "", payload: store.projectInfo?.board });
   }
-}, {deep:true});
+});
+
+watch(() => store.boardConnected, (boardConnected) => {
+  if (boardConnected) {
+    const projectPort = store.projectInfo?.port;
+
+    // Check if projectPort is in the detected_ports array
+    if (projectPort && boardConnected.detected_ports.some(detectedPort => detectedPort.port.label === projectPort)) {
+      portSelected.value = projectPort;
+    }
+  }
+});
+
 
 watch((portSelected), (newPort) => {
   if (newPort && store.projectInfo) {
-    store.projectInfo.port = newPort;
+    vscode.postMessage({ command: ARDUINO_MESSAGES.SET_PORT, errorMessage: "", payload: newPort });
   }
 });
 

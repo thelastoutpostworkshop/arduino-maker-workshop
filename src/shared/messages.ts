@@ -263,6 +263,7 @@ export const ARDUINO_MESSAGES = {
   BOARD_CONNECTED: 'getBoardConnected',
   SET_BOARD: 'setArduinoBoard',
   SET_BOARD_CONFIGURATION: 'setArduinoBoardConfiguration',
+  SET_PORT:'setArduinoPort',
   OUTDATED: 'checkArduinoOutdated',
   INSTALL_CORE_VERSION: 'installCoreVersion',
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
