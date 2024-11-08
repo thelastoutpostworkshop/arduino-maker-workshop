@@ -2,7 +2,7 @@
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { computed, watch, onMounted, ref } from 'vue';
-import { ARDUINO_MESSAGES, Port } from '@shared/messages';
+import { ARDUINO_MESSAGES } from '@shared/messages';
 import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
 
