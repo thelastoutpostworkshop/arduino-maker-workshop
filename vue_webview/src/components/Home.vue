@@ -72,13 +72,10 @@ watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { },
                 <v-btn @click="router.push({ name: routerBoardSelectionName })" icon="mdi-pencil" variant="text"></v-btn>
               </template>
             </v-text-field>
-            <v-text-field label="Port" :model-value="vsCodeStore.projectInfo?.port" readonly>
+            <v-text-field label="Port" :model-value="vsCodeStore.projectInfo?.port">
               <template v-slot:loader>
                 <v-progress-linear :active="!vsCodeStore.projectInfo?.port" height="2"
                   indeterminate></v-progress-linear>
-              </template>
-              <template v-if="vsCodeStore.projectInfo?.port" v-slot:append>
-                <v-btn  icon="mdi-pencil" variant="text"></v-btn>
               </template>
             </v-text-field>
 
