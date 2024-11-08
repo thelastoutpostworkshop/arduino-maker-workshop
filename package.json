@@ -3,7 +3,7 @@
   "displayName": "VSCode Arduino",
   "publisher": "TheLastOutpostWorkshop",
   "description": "",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -73,7 +73,6 @@
     "test": "vscode-test",
     "build:vue": "cd vue_webview && npm run build",
     "vueapp": "cd vue_webview && npm run dev"
-
   },
   "devDependencies": {
     "@types/mocha": "^10.0.7",
