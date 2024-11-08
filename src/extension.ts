@@ -372,7 +372,9 @@ function vsCommandCompile(): Disposable {
 
 export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true): Promise<string | void> {
 	// outputChannel.clear();
-	showOutput && outputChannel.show(true);
+	if(showOutput) {
+		outputChannel.show(true);
+	}
 	outputChannel.appendLine('Running Arduino CLI...');
 	outputChannel.appendLine(`${command}`);
 	outputChannel.appendLine(args.join(' '));
@@ -384,7 +386,9 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 		// Stream stdout to the output channel and optionally to the buffer
 		child.stdout.on('data', (data: Buffer) => {
 			const output = data.toString();
-			showOutput && outputChannel.show(true);
+			if(showOutput) {
+				outputChannel.append(output);
+			}
 
 			if (returnOutput) {
 				outputBuffer += output;
@@ -394,8 +398,9 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 		// Stream stderr to the output channel and optionally to the buffer
 		child.stderr.on('data', (data: Buffer) => {
 			const error = `Error: ${data.toString()}`;
-			showOutput && outputChannel.show(true);
-
+			if(showOutput) {
+				outputChannel.appendLine(error);
+			}
 			if (returnOutput) {
 				outputBuffer += error;
 			}
