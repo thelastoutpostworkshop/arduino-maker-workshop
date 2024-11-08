@@ -81,7 +81,6 @@ export class ArduinoProject {
         const compileCommand = [
             `${compileCommandArduino}`,
             `${verboseOptionArduino}`,
-            `${noColorOptionArduino}`,
             `${fqbnOptionArduino}`,
             `${this.getBoard()}:${this.getBoardConfiguration()}`,
             `${buildPathArduino}`,
