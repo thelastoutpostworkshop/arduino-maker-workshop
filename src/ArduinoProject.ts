@@ -231,37 +231,40 @@ export class ArduinoProject {
     public isFolderArduinoProject(): ARDUINO_ERRORS {
         try {
             let error: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_INO_FILES;
+    
             // Get the folder name
             const folderName = path.basename(this.getProjectPath());
-
+    
             // Read the contents of the folder
             const files = fs.readdirSync(this.getProjectPath());
-
+    
             // Check if any files have the .ino extension and match the folder name
-            const hasMatchingInoFile = files.some((file: any) => {
+            for (const file of files) {
                 // Get the full path of the file
                 const filePath = path.join(this.getProjectPath(), file);
-
+    
                 // Check if it's a file and has a .ino extension
                 if (fs.statSync(filePath).isFile() && path.extname(file).toLowerCase() === ARDUINO_SKETCH_EXTENSION) {
                     // Get the sketch file name without extension
                     const sketchFileName = path.basename(file, ARDUINO_SKETCH_EXTENSION);
-
-                    // Return true only if the sketch file name matches the folder name
+    
+                    // If the sketch file name matches the folder name, exit the loop with the correct error code
                     if (sketchFileName === folderName) {
                         error = ARDUINO_ERRORS.NO_ERRORS;
+                        break;
                     } else {
                         error = ARDUINO_ERRORS.WRONG_FOLDER_NAME;
                     }
                 }
-            });
-
+            }
+    
             return error;
         } catch (error) {
             console.error('Error reading folder:', error);
             return ARDUINO_ERRORS.INTERNAL;
         }
     }
+    
 
     public generateCppPropertiesFromCompileOutput(output: string) {
         const defines: string[] = [];
