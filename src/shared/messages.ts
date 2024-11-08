@@ -240,11 +240,11 @@ export interface DetectedPort {
 }
 
 export interface Port {
-  address:        string;
-  label:          string;
-  protocol:       string;
-  protocol_label: string;
-  properties:     Properties;
+  address?:        string;
+  label?:          string;
+  protocol?:       string;
+  protocol_label?: string;
+  properties?:     Properties;
   hardware_id?:   string;
 }
 

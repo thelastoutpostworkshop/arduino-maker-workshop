@@ -1,19 +1,20 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { computed, watch ,onMounted} from 'vue';
-import { ARDUINO_MESSAGES } from '@shared/messages';
+import { computed, watch, onMounted, ref } from 'vue';
+import { ARDUINO_MESSAGES, Port } from '@shared/messages';
 import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
 
 const router = useRouter()
-const vsCodeStore = useVsCodeStore();
+const store = useVsCodeStore();
+const portSelected = ref('');
 
 const projectStatusInfo = computed(() => {
-  if (vsCodeStore.projectStatus) {
+  if (store.projectStatus) {
     try {
-      if (vsCodeStore.projectStatus.errorMessage !== "") {
-        return vsCodeStore.projectStatus.errorMessage;
+      if (store.projectStatus.errorMessage !== "") {
+        return store.projectStatus.errorMessage;
       } else {
         vscode.postMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
         return `Ready`;
@@ -26,14 +27,20 @@ const projectStatusInfo = computed(() => {
   }
 });
 
+const portsAvailable = computed(() => {
+  const filtered = store.boardConnected?.detected_ports.map((detectedPort) => {
+    return detectedPort.port.label ?? 'Unknown'; // Provide a default if label is undefined
+  }) ?? []; // Ensure it returns an empty array if detected_ports is undefined
+  return filtered;
+});
 
-watch(() => vsCodeStore.projectInfo, (newProjectInfo, oldProjectInfo) => {
+watch(() => store.projectInfo, (newProjectInfo, oldProjectInfo) => {
   if (newProjectInfo) {
-    vscode.postMessage({ command: ARDUINO_MESSAGES.BOARD_CONFIGURATION, errorMessage: "", payload: vsCodeStore.projectInfo?.board });
+    vscode.postMessage({ command: ARDUINO_MESSAGES.BOARD_CONFIGURATION, errorMessage: "", payload: store.projectInfo?.board });
   }
 }, { immediate: true });
 
-watch([() => vsCodeStore.cliStatus, () => vsCodeStore.projectStatus], () => { }, { immediate: true });
+watch([() => store.cliStatus, () => store.projectStatus], () => { }, { immediate: true });
 
 onMounted(() => {
   vscode.postMessage({ command: ARDUINO_MESSAGES.BOARD_CONNECTED, errorMessage: "", payload: "" });
@@ -49,14 +56,14 @@ onMounted(() => {
         <h1 class="text-h4 font-weight-bold">Arduino Home</h1>
       </div>
       <div>
-        <p>Arduino CLI: v{{ vsCodeStore.cliStatus?.version }} ({{ vsCodeStore.cliStatus?.date }})</p>
+        <p>Arduino CLI: v{{ store.cliStatus?.version }} ({{ store.cliStatus?.date }})</p>
         <p>Project Status: {{ projectStatusInfo }}</p>
       </div>
       <div class="py-4" />
 
       <v-row>
         <v-col cols="12">
-          <v-card class="pa-4" color="blue-grey-darken-4"  prepend-icon="mdi-cog" rounded="lg">
+          <v-card class="pa-4" color="blue-grey-darken-4" prepend-icon="mdi-cog" rounded="lg">
             <template #title>
               <h2 class="text-h6 font-weight-bold">Sketch Configuration</h2>
             </template>
@@ -67,22 +74,22 @@ onMounted(() => {
               </div>
             </template>
 
-            <v-text-field label="Board" :model-value="vsCodeStore.boardConfiguration?.boardConfiguration?.name" readonly>
+            <v-text-field label="Board" :model-value="store.boardConfiguration?.boardConfiguration?.name" readonly>
               <template v-slot:loader>
-                <v-progress-linear :active="!vsCodeStore.boardConfiguration?.boardConfiguration?.name" height="2"
+                <v-progress-linear :active="!store.boardConfiguration?.boardConfiguration?.name" height="2"
                   indeterminate></v-progress-linear>
               </template>
-              <template v-if="vsCodeStore.boardConfiguration?.boardConfiguration?.name" v-slot:append>
-                <v-btn @click="router.push({ name: routerBoardSelectionName })" icon="mdi-pencil" variant="text"></v-btn>
+              <template v-if="store.boardConfiguration?.boardConfiguration?.name" v-slot:append>
+                <v-btn @click="router.push({ name: routerBoardSelectionName })" icon="mdi-pencil"
+                  variant="text"></v-btn>
               </template>
             </v-text-field>
-            <v-text-field label="Port" :model-value="vsCodeStore.projectInfo?.port">
+            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="portSelected"
+              :items="portsAvailable" density="compact" label="Port">
               <template v-slot:loader>
-                <v-progress-linear :active="!vsCodeStore.projectInfo?.port" height="2"
-                  indeterminate></v-progress-linear>
+                <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2" indeterminate></v-progress-linear>
               </template>
-            </v-text-field>
-
+            </v-select>
           </v-card>
         </v-col>
 

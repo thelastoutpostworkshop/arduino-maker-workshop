@@ -151,7 +151,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.BOARD_CONNECTED:
                     try {
-                        this.boards = JSON.parse(message.payload);
+                        this.boardConnected = JSON.parse(message.payload);
                     } catch (error) {
                         console.log("Failed to parse Board Connected information: " + error);
                     }
