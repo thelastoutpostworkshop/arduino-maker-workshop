@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 
 async function loadMockData(mockFile: string, jsonToString: boolean = true): Promise<string> {
@@ -25,7 +25,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         cliStatus: null as ArduinoCLIStatus | null,
         projectInfo: null as ArduinoConfiguration | null,
         projectStatus: null as WebviewToExtensionMessage | null,
-        boardConfiguration: null as ArduinoBoardConfigurationPayload | null,
+        boardOptions: null as BoardConfiguration | null,
         boards: null as PlatformsList | null,
         boardConnected:null as BoardConnected | null,
         platform: null as CorePlatforms | null,
@@ -126,18 +126,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
                     try {
-                        if (message.errorMessage === "") {
-                            this.boardConfiguration = {
-                                errorMessage: "",
-                                boardConfiguration: extractBoardConfiguration(message.payload)
-                            };
-                        } else {
-                            this.boardConfiguration = {
-                                errorMessage: message.errorMessage,
-                                boardConfiguration: null
-                            };
-                        }
-
+                        this.boardOptions = extractBoardConfiguration(message.payload);
                     } catch (error) {
                         console.log("Failed to parse Board Configuration information.");
                     }

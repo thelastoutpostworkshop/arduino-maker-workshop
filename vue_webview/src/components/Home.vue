@@ -92,12 +92,12 @@ onMounted(() => {
               </div>
             </template>
 
-            <v-text-field label="Board" :model-value="store.boardConfiguration?.boardConfiguration?.name" readonly>
+            <v-text-field label="Board" :model-value="store.boardOptions?.name" readonly>
               <template v-slot:loader>
-                <v-progress-linear :active="!store.boardConfiguration?.boardConfiguration?.name" height="2"
+                <v-progress-linear :active="!store.boardOptions?.name" height="2"
                   indeterminate></v-progress-linear>
               </template>
-              <template v-if="store.boardConfiguration?.boardConfiguration?.name" v-slot:append>
+              <template v-if="store.boardOptions?.name" v-slot:append>
                 <v-btn @click="router.push({ name: routerBoardSelectionName })" icon="mdi-pencil"
                   variant="text"></v-btn>
               </template>
