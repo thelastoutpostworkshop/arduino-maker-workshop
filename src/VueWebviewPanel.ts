@@ -61,6 +61,9 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(boardConfiguration);
                         });
                         break;
+                    case ARDUINO_MESSAGES.SET_PORT:
+                        this.setPort(message);
+                        break;
                     case ARDUINO_MESSAGES.OUTDATED:
                         this.runCoreUpdate().then(() => {
                             this.getOutdated().then((outdated) => {
@@ -121,6 +124,12 @@ export class VueWebviewPanel {
         const configuration = message.payload;
         arduinoExtensionChannel.appendLine(`New Configration=:${configuration}`);
         arduinoProject.setConfiguration(configuration);
+    }
+
+    private setPort(message: WebviewToExtensionMessage) {
+        const port = message.payload;
+        arduinoExtensionChannel.appendLine(`New Port=:${port}`);
+        arduinoProject.setPort(port);
     }
 
     private createWebviewMessage(command: string): WebviewToExtensionMessage {
