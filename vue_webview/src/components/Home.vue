@@ -62,9 +62,6 @@ watch([() => store.cliStatus, () => store.projectStatus], () => { }, { immediate
 
 onMounted(() => {
   vscode.postMessage({ command: ARDUINO_MESSAGES.BOARD_CONNECTED, errorMessage: "", payload: "" });
-  if(!store.boardOptions?.config_options) {
-    vscode.postMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
-  }
 });
 
 </script>
@@ -97,8 +94,7 @@ onMounted(() => {
 
             <v-text-field label="Board" :model-value="store.boardOptions?.name" readonly>
               <template v-slot:loader>
-                <v-progress-linear :active="!store.boardOptions?.name" height="2"
-                  indeterminate></v-progress-linear>
+                <v-progress-linear :active="!store.boardOptions?.name" height="2" indeterminate></v-progress-linear>
               </template>
               <template v-if="store.boardOptions?.name" v-slot:append>
                 <v-btn @click="router.push({ name: routerBoardSelectionName })" icon="mdi-pencil"
