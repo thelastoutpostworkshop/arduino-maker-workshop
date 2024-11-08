@@ -259,6 +259,21 @@ export async function getBoardsListAll(): Promise<string> {
 	}
 }
 
+export async function getBoardConnected(): Promise<string> {
+	try {
+		const allBoardArgs = arduinoProject.getBoardConnected();
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, allBoardArgs, true, false);
+		if (!result) {
+			window.showErrorMessage(`No result from getting Boards list`);
+			throw new Error("Command result empty");
+		}
+		return result;
+	} catch (error: any) {
+		window.showErrorMessage(`Failed to get boards list`);
+		throw error;
+	}
+}
+
 export async function getBoardsListAll_old(): Promise<ArduinoBoardsListPayload> {
 	const message: ArduinoBoardsListPayload = {
 		errorMessage: "",

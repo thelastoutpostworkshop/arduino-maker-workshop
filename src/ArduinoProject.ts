@@ -177,6 +177,14 @@ export class ArduinoProject {
         ];
         return searchAllCommand;
     }
+    public getBoardConnected(): string[] {
+        const command = [
+            `${boardCommandArduino}`,
+            `${listOption}`,
+            `${jsonOutputArduino}`
+        ];
+        return command;
+    }
     public getCoreSearchArguments(): string[] {
         const searchAllCommand = [
             `${coreCommandArduino}`,

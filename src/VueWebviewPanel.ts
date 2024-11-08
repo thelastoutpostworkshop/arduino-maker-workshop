@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck, runInstallCoreVersion, runUninstallCoreVersion, searchCore, searchLibrary, searchLibraryInstalled } from "./extension";
+import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardConnected, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck, runInstallCoreVersion, runUninstallCoreVersion, searchCore, searchLibrary, searchLibraryInstalled } from "./extension";
 import { ARDUINO_ERRORS } from "./ArduinoProject";
 
 const path = require('path');
@@ -42,6 +42,11 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
                         this.getBoardListAll().then((boardList) => {
+                            VueWebviewPanel.sendMessage(boardList);
+                        });
+                        break;
+                    case ARDUINO_MESSAGES.BOARD_CONNECTED:
+                        this.getBoardConnected().then((boardList) => {
                             VueWebviewPanel.sendMessage(boardList);
                         });
                         break;
@@ -128,6 +133,14 @@ export class VueWebviewPanel {
     private async getBoardListAll(): Promise<WebviewToExtensionMessage> {
         const outdated = this.createWebviewMessage(ARDUINO_MESSAGES.BOARDS_LIST_ALL);
         const result = await getBoardsListAll();
+        if (result !== "") {
+            outdated.payload = result;
+        }
+        return outdated;
+    }
+    private async getBoardConnected(): Promise<WebviewToExtensionMessage> {
+        const outdated = this.createWebviewMessage(ARDUINO_MESSAGES.BOARD_CONNECTED);
+        const result = await getBoardConnected();
         if (result !== "") {
             outdated.payload = result;
         }
