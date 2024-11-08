@@ -230,12 +230,37 @@ export interface LibraryResources {
 export interface Releases {
 }
 
+// Board connected
+export interface BoardConnected {
+  detected_ports: DetectedPort[];
+}
+
+export interface DetectedPort {
+  port: Port;
+}
+
+export interface Port {
+  address:        string;
+  label:          string;
+  protocol:       string;
+  protocol_label: string;
+  properties:     Properties;
+  hardware_id?:   string;
+}
+
+export interface Properties {
+  pid?:          string;
+  serialNumber?: string;
+  vid?:          string;
+}
+
 export const ARDUINO_MESSAGES = {
   CLI_STATUS: 'getArduinoCLIStatus',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
   ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
   BOARD_CONFIGURATION: 'getArduinoBoardConfiguration',
   BOARDS_LIST_ALL: 'getArduinoBoardsListAll',
+  BOARD_CONNECTED: 'getBoardConnected',
   SET_BOARD: 'setArduinoBoard',
   SET_BOARD_CONFIGURATION: 'setArduinoBoardConfiguration',
   OUTDATED: 'checkArduinoOutdated',

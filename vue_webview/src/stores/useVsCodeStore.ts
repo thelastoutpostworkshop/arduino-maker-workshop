@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoBoardConfigurationPayload, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 
 async function loadMockData(mockFile: string, jsonToString: boolean = true): Promise<string> {
@@ -27,6 +27,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         projectStatus: null as WebviewToExtensionMessage | null,
         boardConfiguration: null as ArduinoBoardConfigurationPayload | null,
         boards: null as PlatformsList | null,
+        boardConnected:null as BoardConnected | null,
         platform: null as CorePlatforms | null,
         libraries: null as Libsearch | null,
         librariesInstalled: null as Liblist | null,
@@ -79,6 +80,12 @@ export const useVsCodeStore = defineStore('vsCode', {
                         break;
                     case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
                         loadMockData('board_search.json').then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
+                        break;
+                    case ARDUINO_MESSAGES.BOARD_CONNECTED:
+                        loadMockData('board_connected.json').then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
@@ -140,6 +147,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                         this.boards = JSON.parse(message.payload);
                     } catch (error) {
                         console.log("Failed to parse Board Configuration information: " + error);
+                    }
+                    break;
+                case ARDUINO_MESSAGES.BOARD_CONNECTED:
+                    try {
+                        this.boards = JSON.parse(message.payload);
+                    } catch (error) {
+                        console.log("Failed to parse Board Connected information: " + error);
                     }
                     break;
                 case ARDUINO_MESSAGES.CORE_SEARCH:

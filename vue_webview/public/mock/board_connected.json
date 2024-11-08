@@ -1,0 +1,27 @@
+{
+  "detected_ports": [
+    {
+      "port": {
+        "address": "COM1",
+        "label": "COM1",
+        "protocol": "serial",
+        "protocol_label": "Serial Port",
+        "properties": {}
+      }
+    },
+    {
+      "port": {
+        "address": "COM5",
+        "label": "COM5",
+        "protocol": "serial",
+        "protocol_label": "Serial Port (USB)",
+        "properties": {
+          "pid": "0x55D3",
+          "serialNumber": "564D008953",
+          "vid": "0x1A86"
+        },
+        "hardware_id": "564D008953"
+      }
+    }
+  ]
+}
