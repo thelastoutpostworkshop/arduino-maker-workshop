@@ -12,9 +12,9 @@ function handleMessageFromVsCode(event: MessageEvent) {
   console.log('Received message:', message);
 
   // Use the store action to handle the message
-  if(import.meta.env.DEV) {
-    vsCodeStore.simulateMessage(message);
-  }else {
+  if (import.meta.env.DEV) {
+    vsCodeStore.mockMessage(message);
+  } else {
     vsCodeStore.handleMessage(message);
   }
 }

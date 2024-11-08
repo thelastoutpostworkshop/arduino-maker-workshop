@@ -34,7 +34,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         libraryUpdating: ""
     }),
     actions: {
-        simulateMessage(message: WebviewToExtensionMessage) {
+        mockMessage(message: WebviewToExtensionMessage) {
             if (import.meta.env.DEV) {
                 switch (message.command) {
                     case ARDUINO_MESSAGES.CORE_SEARCH:
