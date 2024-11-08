@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { computed, watch, onMounted } from 'vue';
+import { computed, watch, onMounted, ref } from 'vue';
 import { ARDUINO_MESSAGES } from '@shared/messages';
 import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
 
 const router = useRouter()
 const store = useVsCodeStore();
-// const portSelected = ref('');
+const portSelected = ref('');
 
 const projectStatusInfo = computed(() => {
   if (store.projectStatus) {
@@ -34,11 +34,17 @@ const portsAvailable = computed(() => {
   return filtered;
 });
 
-watch(() => store.projectInfo, (newProjectInfo, oldProjectInfo) => {
+watch(() => store.projectInfo, (newProjectInfo) => {
   if (newProjectInfo) {
     vscode.postMessage({ command: ARDUINO_MESSAGES.BOARD_CONFIGURATION, errorMessage: "", payload: store.projectInfo?.board });
   }
-}, { immediate: true });
+}, {deep:true});
+
+watch((portSelected), (newPort) => {
+  if (newPort && store.projectInfo) {
+    store.projectInfo.port = newPort;
+  }
+});
 
 watch([() => store.cliStatus, () => store.projectStatus], () => { }, { immediate: true });
 
@@ -84,10 +90,11 @@ onMounted(() => {
                   variant="text"></v-btn>
               </template>
             </v-text-field>
-            <v-select :disabled="!store.boardConnected?.detected_ports" :model-value="store.projectInfo?.port"
-              :items="portsAvailable" density="compact" label="Port">
+            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="portSelected" :items="portsAvailable"
+              density="compact" label="Port">
               <template v-slot:loader>
-                <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2" indeterminate></v-progress-linear>
+                <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
+                  indeterminate></v-progress-linear>
               </template>
             </v-select>
           </v-card>
