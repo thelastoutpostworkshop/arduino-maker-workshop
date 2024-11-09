@@ -70,8 +70,10 @@ export class VueWebviewPanel {
                         this.setBoard(message);
                         arduinoProject.resetBoardConfiguration();
                         arduinoExtensionChannel.appendLine(`Current Board Configuration: ${arduinoProject.getBoardConfiguration()}`);
-                        this.getBoardConfiguration().then((boardConfiguration) => {
-                            VueWebviewPanel.sendMessage(boardConfiguration);
+                        getBoardConfiguration().then((result) => {
+                            const sendMessage = this.createWebviewMessage(ARDUINO_MESSAGES.BOARD_CONFIGURATION);
+                            sendMessage.payload = result;
+                            VueWebviewPanel.sendMessage(sendMessage);
                         });
                         break;
                     case ARDUINO_MESSAGES.SET_PORT:
