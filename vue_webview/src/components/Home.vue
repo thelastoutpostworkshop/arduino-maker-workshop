@@ -30,7 +30,11 @@ watch(() => store.projectStatus, (newStatus) => {
 
 watch(() => store.projectInfo, (newProjectInfo) => {
   if (newProjectInfo) {
-    store.sendMessage({ command: ARDUINO_MESSAGES.BOARD_OPTIONS, errorMessage: "", payload: store.projectInfo?.board });
+    if(newProjectInfo.board.trim() === '') {
+      router.push({ name: 'board-selection' });
+    } else {
+      store.sendMessage({ command: ARDUINO_MESSAGES.BOARD_OPTIONS, errorMessage: "", payload: store.projectInfo?.board });
+    }
   }
 });
 

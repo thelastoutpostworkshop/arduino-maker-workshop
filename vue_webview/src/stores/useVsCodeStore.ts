@@ -158,8 +158,6 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                     this.projectInfo = message.payload;
-                    console.log(this.projectInfo);
-
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                     this.projectStatus = message.payload;
