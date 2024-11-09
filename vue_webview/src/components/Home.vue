@@ -2,7 +2,7 @@
 import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { computed, watch, onMounted, ref } from 'vue';
-import { ARDUINO_MESSAGES } from '@shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES } from '@shared/messages';
 import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
 
@@ -10,21 +10,11 @@ const router = useRouter()
 const store = useVsCodeStore();
 const portSelected = ref('');
 
-const projectStatusInfo = computed(() => {
+const projectStatusInfo = computed<ARDUINO_ERRORS | null>(() => {
   if (store.projectStatus) {
-    try {
-      if (store.projectStatus.errorMessage !== "") {
-        return store.projectStatus.errorMessage;
-      } else {
-        vscode.postMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
-        return `Ready`;
-      }
-    } catch (error) {
-      return "Failed to parse Project Status information.";
-    }
-  } else {
-    return "Project Status failed. No data available.";
+    return store.projectStatus;
   }
+  return null; // You can return a default value or null if no project status is available
 });
 
 const portsAvailable = computed(() => {
@@ -33,6 +23,13 @@ const portsAvailable = computed(() => {
   }) ?? []; // Ensure it returns an empty array if detected_ports is undefined
   return filtered;
 });
+
+watch(() => store.projectStatus, (newStatus) => {
+  if (newStatus === ARDUINO_ERRORS.NO_ERRORS) {
+    vscode.postMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
+  }
+});
+
 
 watch(() => store.projectInfo, (newProjectInfo) => {
   if (newProjectInfo) {

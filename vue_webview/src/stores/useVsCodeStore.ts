@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ARDUINO_ERRORS } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 
 async function loadMockData(mockFile: string, jsonToString: boolean = true): Promise<string> {
@@ -24,7 +24,7 @@ export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
         cliStatus: null as ArduinoCLIStatus | null,
         projectInfo: null as ArduinoConfiguration | null,
-        projectStatus: null as WebviewToExtensionMessage | null,
+        projectStatus: null as ARDUINO_ERRORS | null,
         boardOptions: null as BoardConfiguration | null,
         boards: null as PlatformsList | null,
         boardConnected:null as BoardConnected | null,
@@ -122,7 +122,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.projectInfo = message.payload;
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
-                    this.projectStatus = message;
+                    this.projectStatus = message.payload;
                     break;
                 case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
                     try {
