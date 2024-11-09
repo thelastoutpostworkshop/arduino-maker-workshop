@@ -80,9 +80,11 @@ export class VueWebviewPanel {
                         this.setPort(message);
                         break;
                     case ARDUINO_MESSAGES.OUTDATED:
-                        this.runCoreUpdate().then(() => {
-                            this.getOutdated().then((outdated) => {
-                                VueWebviewPanel.sendMessage(outdated);
+                        getCoreUpdate().then(() => {
+                            getOutdatedBoardAndLib().then((result) => {
+                                const sendMessage = this.createWebviewMessage(ARDUINO_MESSAGES.OUTDATED);
+                                sendMessage.payload = result;
+                                VueWebviewPanel.sendMessage(sendMessage);
                             });
                         });
                         break;
