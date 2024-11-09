@@ -70,15 +70,9 @@ onMounted(() => {
       <div class="text-center">
         <h1 class="text-h4 font-weight-bold">Arduino Home</h1>
       </div>
-      <div>
-        <p>Arduino CLI: v{{ store.cliStatus?.version }} ({{ store.cliStatus?.date }})</p>
-        <p>Project Status: {{ projectStatusInfo }}</p>
-      </div>
-      <div class="py-4" />
-
-      <v-row>
+      <v-row class="mt-4">
         <v-col cols="12">
-          <v-card class="pa-4" color="blue-grey-darken-4" prepend-icon="mdi-cog" rounded="lg">
+          <v-card class="pa-4" color="blue-grey-darken-3" prepend-icon="mdi-cog" rounded="lg">
             <template #title>
               <h2 class="text-h6 font-weight-bold">Sketch Configuration</h2>
             </template>
@@ -105,6 +99,17 @@ onMounted(() => {
                   indeterminate></v-progress-linear>
               </template>
             </v-select>
+          </v-card>
+          <v-card class="pa-4 mt-4" color="blue-grey-darken-4" prepend-icon="mdi-console" rounded="lg">
+            <template #title>
+              <h2 class="text-h6 font-weight-bold">Built-in CLI</h2>
+            </template>
+
+            <template #subtitle>
+              <div class="text-subtitle-1">
+                v{{store.cliStatus?.version}} ({{ store.cliStatus?.date }})
+              </div>
+            </template>
           </v-card>
         </v-col>
       </v-row>
