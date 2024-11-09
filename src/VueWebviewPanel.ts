@@ -90,14 +90,14 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.INSTALL_CORE_VERSION:
                         const coreToUpdate = message.payload;
-                        this.installCoreVersion(coreToUpdate).then((result) => {
+                        runInstallCoreVersion(coreToUpdate).then(() => {
                             message.command = ARDUINO_MESSAGES.CORE_VERSION_INSTALLED;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.UNINSTALL_CORE:
                         const coreToUninstall = message.payload;
-                        this.uninstallCoreVersion(coreToUninstall).then((result) => {
+                        runUninstallCoreVersion(coreToUninstall).then(() => {
                             message.command = ARDUINO_MESSAGES.CORE_UNINSTALLED;
                             VueWebviewPanel.sendMessage(message);
                         });
