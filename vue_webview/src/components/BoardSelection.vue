@@ -75,39 +75,31 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boar
   <v-container>
     <v-responsive>
       <div class="text-center">
-        <h1 class="text-h4 font-weight-bold">Boards Available</h1>
+        <h1 class="text-h4 font-weight-bold mb-4">Board Selection</h1>
       </div>
-      <v-text-field label="Current Board:" :model-value="store.boardOptions?.name" readonly>
-        <template v-slot:loader>
+      <v-text-field v-if="store.boardOptions?.name" label="Current Board:" :model-value="store.boardOptions?.name"
+        readonly>
+        <!-- <template v-slot:loader>
           <v-progress-linear :active="!store.boardOptions?.name" height="2" indeterminate></v-progress-linear>
-        </template>
+        </template> -->
       </v-text-field>
       <div v-if="Object.keys(boardStructure).length === 0">
         Loading Boards
         <v-progress-circular :size="25" color="grey" indeterminate></v-progress-circular>
       </div>
       <div v-else>
-        Choose a board from the platforms installed:
+        <div class="font-weight-bold pl-3 pb-3 text-blue-grey-lighten-3">
+          Choose a board from the platforms installed:
+        </div>
         <v-expansion-panels multiple>
-          <v-expansion-panel
-            v-for="(platformData, platform,index) in boardStructure"
-            :key="platform"
-          >
+          <v-expansion-panel v-for="(platformData, platform, index) in boardStructure" :key="platform">
             <v-expansion-panel-title>{{ platform }} by {{ platformData.metadata.maintainer }}</v-expansion-panel-title>
             <v-expansion-panel-text>
               <span class="text-subtitle-2">
                 <a :href="platformData.metadata.website" target="_blank">Go to Web Site</a><br />
               </span>
-              <v-autocomplete class="pt-2"
-                v-model="boardSelect[index]"
-                :items="platformData.boards"
-                item-title="name"
-                item-value="fqbn"
-                label="Select a Board"
-                outlined
-                dense
-                return-object
-              ></v-autocomplete>
+              <v-autocomplete class="pt-2" v-model="boardSelect[index]" :items="platformData.boards" item-title="name"
+                item-value="fqbn" label="Select a Board" outlined dense return-object></v-autocomplete>
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
@@ -115,4 +107,3 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boar
     </v-responsive>
   </v-container>
 </template>
-
