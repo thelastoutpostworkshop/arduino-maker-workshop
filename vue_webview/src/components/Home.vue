@@ -30,11 +30,7 @@ watch(() => store.projectStatus, (newStatus) => {
 
 watch(() => store.projectInfo, (newProjectInfo) => {
   if (newProjectInfo) {
-    if(newProjectInfo.board.trim() === '') {
-      router.push({ name: 'board-selection' });
-    } else {
-      store.sendMessage({ command: ARDUINO_MESSAGES.BOARD_OPTIONS, errorMessage: "", payload: store.projectInfo?.board });
-    }
+    store.sendMessage({ command: ARDUINO_MESSAGES.BOARD_OPTIONS, errorMessage: "", payload: store.projectInfo?.board });
   }
 });
 
@@ -75,8 +71,8 @@ onMounted(() => {
       </div>
       <v-row class="mt-4">
         <v-col cols="12">
-          <v-card v-if="store.projectStatus == ARDUINO_ERRORS.NO_ERRORS" class="pa-4" color="blue-grey-darken-3"
-            prepend-icon="mdi-cog" rounded="lg">
+          <v-card v-if="store.projectStatus == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board" class="pa-4"
+            color="blue-grey-darken-3" prepend-icon="mdi-cog" rounded="lg">
             <template #title>
               <h2 class="text-h6 font-weight-bold">Sketch Configuration</h2>
             </template>
@@ -122,6 +118,9 @@ onMounted(() => {
               <v-btn @click="createNewSkecth" :disabled="sketchName.trim().length == 0">New Sketch</v-btn>
             </v-card-actions>
           </v-card>
+          <div v-if="!store.projectInfo?.board">
+            <v-btn @click="router.push({ name: 'board-selection' })">Select a board first</v-btn>
+          </div>
           <v-card class="pa-4 mt-4" color="blue-grey-darken-4" prepend-icon="mdi-console" rounded="lg">
             <template #title>
               <h2 class="text-h6 font-weight-bold">Built-in CLI</h2>
