@@ -27,7 +27,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         projectStatus: null as ARDUINO_ERRORS | null,
         boardOptions: null as BoardConfiguration | null,
         boards: null as PlatformsList | null,
-        boardConnected:null as BoardConnected | null,
+        boardConnected: null as BoardConnected | null,
         platform: null as CorePlatforms | null,
         libraries: null as Libsearch | null,
         librariesInstalled: null as Liblist | null,
@@ -62,8 +62,8 @@ export const useVsCodeStore = defineStore('vsCode', {
                             this.handleMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
-                        loadMockData('board_details.json').then((mockPayload) => {
+                    case ARDUINO_MESSAGES.BOARD_OPTIONS:
+                        loadMockData('board_options.json').then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
@@ -95,39 +95,39 @@ export const useVsCodeStore = defineStore('vsCode', {
                 }
             }
         },
-        sendMessage(message:WebviewToExtensionMessage) {
+        sendMessage(message: WebviewToExtensionMessage) {
             switch (message.command) {
                 case ARDUINO_MESSAGES.CLI_STATUS:
-                    if(!this.cliStatus) {
+                    if (!this.cliStatus) {
                         vscode.postMessage(message);
                     }
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
-                    if(!this.projectStatus) {
+                    if (!this.projectStatus) {
                         vscode.postMessage(message);
                     }
                     break;
                 case ARDUINO_MESSAGES.CORE_SEARCH:
-                    if(!this.platform) {
+                    if (!this.platform) {
                         vscode.postMessage(message);
                     }
                     break;
                 case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
-                    if(!this.boards) {
+                    if (!this.boards) {
                         vscode.postMessage(message);
                     }
                     break;
                 case ARDUINO_MESSAGES.LIBRARY_SEARCH:
-                    if(!this.libraries) {
+                    if (!this.libraries) {
                         vscode.postMessage(message);
                     }
                     break;
                 case ARDUINO_MESSAGES.LIBRARY_INSTALLED:
-                    if(!this.librariesInstalled) {
+                    if (!this.librariesInstalled) {
                         vscode.postMessage(message);
                     }
                     break;
-            
+
                 default:
                     vscode.postMessage(message);
                     break;
@@ -158,11 +158,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                     this.projectInfo = message.payload;
+                    console.log(this.projectInfo);
+
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                     this.projectStatus = message.payload;
                     break;
-                case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
+                case ARDUINO_MESSAGES.BOARD_OPTIONS:
                     try {
                         this.boardOptions = extractBoardConfiguration(message.payload);
                     } catch (error) {

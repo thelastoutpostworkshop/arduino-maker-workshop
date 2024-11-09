@@ -265,7 +265,7 @@ export const ARDUINO_MESSAGES = {
   CLI_STATUS: 'getArduinoCLIStatus',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
   ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
-  BOARD_CONFIGURATION: 'getArduinoBoardConfiguration',
+  BOARD_OPTIONS: 'getArduinoBoardOptions',
   BOARDS_LIST_ALL: 'getArduinoBoardsListAll',
   BOARD_CONNECTED: 'getBoardConnected',
   SET_BOARD: 'setArduinoBoard',

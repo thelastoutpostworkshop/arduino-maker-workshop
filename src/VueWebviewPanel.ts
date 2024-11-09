@@ -43,7 +43,7 @@ export class VueWebviewPanel {
                         }
                         VueWebviewPanel.sendMessage(projectInfo);
                         break;
-                    case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
+                    case ARDUINO_MESSAGES.BOARD_OPTIONS:
                         getBoardConfiguration().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
@@ -69,7 +69,7 @@ export class VueWebviewPanel {
                         arduinoProject.resetBoardConfiguration();
                         arduinoExtensionChannel.appendLine(`Current Board Configuration: ${arduinoProject.getBoardConfiguration()}`);
                         getBoardConfiguration().then((result) => {
-                            message.command = ARDUINO_MESSAGES.BOARD_CONFIGURATION;
+                            message.command = ARDUINO_MESSAGES.BOARD_OPTIONS;
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
@@ -156,7 +156,7 @@ export class VueWebviewPanel {
             payload: ""
         };
     }
- 
+
     public static sendMessage(message: WebviewToExtensionMessage) {
         if (VueWebviewPanel.currentPanel) {
             VueWebviewPanel.currentPanel._panel.webview.postMessage(message);

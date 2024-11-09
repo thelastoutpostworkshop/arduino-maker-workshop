@@ -30,7 +30,7 @@ watch(() => store.projectStatus, (newStatus) => {
 
 watch(() => store.projectInfo, (newProjectInfo) => {
   if (newProjectInfo) {
-    store.sendMessage({ command: ARDUINO_MESSAGES.BOARD_CONFIGURATION, errorMessage: "", payload: store.projectInfo?.board });
+    store.sendMessage({ command: ARDUINO_MESSAGES.BOARD_OPTIONS, errorMessage: "", payload: store.projectInfo?.board });
   }
 });
 
