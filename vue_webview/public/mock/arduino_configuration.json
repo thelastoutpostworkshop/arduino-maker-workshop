@@ -1,3 +1,7 @@
 {
-
+  "configuration": "",
+  "board": "esp32:esp32:esp32s3",
+  "sketch": "coralie_radio.ino",
+  "output": "build",
+  "port": "COM12"
 }

@@ -54,22 +54,23 @@ export class ArduinoProject {
             return false;
         }
 
+        const vsCodeFolder = path.join(this.projectFullPath, VSCODE_FOLDER);
+        if(!fs.existsSync(vsCodeFolder)) {
+            fs.mkdirSync(vsCodeFolder);
+        }
+        
         this.arduinoConfigurationPath = path.join(this.projectFullPath, VSCODE_FOLDER, ARDUINO_SETTINGS);
-
-        // Check if the arduino.json file exists
-        if (!fs.existsSync(this.arduinoConfigurationPath)) {
-            // Set defaults values if file do not exist
-            this.setOutput(ARDUINO_DEFAULT_OUTPUT);
+        if(!fs.existsSync(this.arduinoConfigurationPath)) {
+            this.writeVSCodeArduinoConfiguration();
+        } else {
+            try {
+                const configContent = fs.readFileSync(this.arduinoConfigurationPath, 'utf-8');
+                this.configJson = JSON.parse(configContent);
+            } catch (error) {
+                this.writeVSCodeArduinoConfiguration();
+            }
         }
-
-        // Read the arduino.json file
-        const configContent = fs.readFileSync(this.arduinoConfigurationPath, 'utf-8');
-        try {
-            this.configJson = JSON.parse(configContent);
-        } catch (error) {
-            return false;
-        }
-
+        
         return true;
     }
     public getCompileCommandArguments(): string[] {
@@ -122,7 +123,7 @@ export class ArduinoProject {
         ];
         return outdatedCommand;
     }
-    public getNewSketchArguments(name:string): string[] {
+    public getNewSketchArguments(name: string): string[] {
         const outdatedCommand = [
             `${sketchCommandArduino}`,
             `${newOption}`,
@@ -235,23 +236,23 @@ export class ArduinoProject {
     public isFolderArduinoProject(): ARDUINO_ERRORS {
         try {
             let error: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_INO_FILES;
-    
+
             // Get the folder name
             const folderName = path.basename(this.getProjectPath());
-    
+
             // Read the contents of the folder
             const files = fs.readdirSync(this.getProjectPath());
-    
+
             // Check if any files have the .ino extension and match the folder name
             for (const file of files) {
                 // Get the full path of the file
                 const filePath = path.join(this.getProjectPath(), file);
-    
+
                 // Check if it's a file and has a .ino extension
                 if (fs.statSync(filePath).isFile() && path.extname(file).toLowerCase() === ARDUINO_SKETCH_EXTENSION) {
                     // Get the sketch file name without extension
                     const sketchFileName = path.basename(file, ARDUINO_SKETCH_EXTENSION);
-    
+
                     // If the sketch file name matches the folder name, exit the loop with the correct error code
                     if (sketchFileName === folderName) {
                         error = ARDUINO_ERRORS.NO_ERRORS;
@@ -261,14 +262,14 @@ export class ArduinoProject {
                     }
                 }
             }
-    
+
             return error;
         } catch (error) {
             console.error('Error reading folder:', error);
             return ARDUINO_ERRORS.INTERNAL;
         }
     }
-    
+
 
     public generateCppPropertiesFromCompileOutput(output: string) {
         const defines: string[] = [];
