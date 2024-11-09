@@ -56,7 +56,9 @@ watch((portSelected), (newPort) => {
 watch([() => store.cliStatus, () => store.projectStatus], () => { }, { immediate: true });
 
 onMounted(() => {
-  vscode.postMessage({ command: ARDUINO_MESSAGES.BOARD_CONNECTED, errorMessage: "", payload: "" });
+  vscode.postMessage({ command: ARDUINO_MESSAGES.CLI_STATUS, errorMessage: "", payload: "" });
+  vscode.postMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS, errorMessage: "", payload: "" });
+  // vscode.postMessage({ command: ARDUINO_MESSAGES.BOARD_CONNECTED, errorMessage: "", payload: "" });
 });
 
 </script>
