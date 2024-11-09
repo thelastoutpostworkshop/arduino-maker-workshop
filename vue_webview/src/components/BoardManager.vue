@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, Platform } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
@@ -18,7 +17,7 @@ const searchBoards = ref('');
 const filterdBoardsCount = ref(0);
 
 onMounted(() => {
-  vscode.postMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
+  store.sendMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
 });
 
 const headers = [
@@ -43,11 +42,11 @@ watch(
 function updatePlatformVersion(platformID: string) {
   const toInstall = selectedPlatform.value[platformID];
   const version = `${platformID}@${toInstall}`;
-  vscode.postMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: version });
+  store.sendMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: version });
   store.boardUpdating = `Installing board ${platformID} version ${toInstall}`
 }
 function uninstallPlatform(platformID: string) {
-  vscode.postMessage({ command: ARDUINO_MESSAGES.UNINSTALL_CORE, errorMessage: "", payload: platformID });
+  store.sendMessage({ command: ARDUINO_MESSAGES.UNINSTALL_CORE, errorMessage: "", payload: platformID });
   store.boardUpdating = `Uninstalling board ${platformID}`;
 }
 

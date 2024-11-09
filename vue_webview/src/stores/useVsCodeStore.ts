@@ -75,7 +75,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         });
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
-                        message.payload = ARDUINO_ERRORS.NO_INO_FILES;
+                        message.payload = ARDUINO_ERRORS.NO_ERRORS;
                         this.handleMessage(message);
                         break;
                     case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
@@ -104,6 +104,26 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                     if(!this.projectStatus) {
+                        vscode.postMessage(message);
+                    }
+                    break;
+                case ARDUINO_MESSAGES.CORE_SEARCH:
+                    if(!this.platform) {
+                        vscode.postMessage(message);
+                    }
+                    break;
+                case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
+                    if(!this.boards) {
+                        vscode.postMessage(message);
+                    }
+                    break;
+                case ARDUINO_MESSAGES.LIBRARY_SEARCH:
+                    if(!this.libraries) {
+                        vscode.postMessage(message);
+                    }
+                    break;
+                case ARDUINO_MESSAGES.LIBRARY_INSTALLED:
+                    if(!this.librariesInstalled) {
                         vscode.postMessage(message);
                     }
                     break;

@@ -2,7 +2,6 @@
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, ConfigOptionValue } from '@shared/messages';
 import { ref, watch } from 'vue';
-import { vscode } from '@/utilities/vscode';
 
 const store = useVsCodeStore();
 

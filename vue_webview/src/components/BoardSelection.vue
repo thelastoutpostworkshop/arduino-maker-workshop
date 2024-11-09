@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, BoardConfiguration, Metadata } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
@@ -9,7 +8,7 @@ const boardSelect = ref<(BoardConfiguration | null)[]>([]); // Updated to track 
 const boardSelectBefore = ref<(BoardConfiguration | null)[]>([]);
 
 onMounted(() => {
-  vscode.postMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
+  store.sendMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
 });
 
 // Watch for changes in boardSelect
@@ -18,7 +17,7 @@ watch(
   (newValue) => {
     newValue.forEach((newVal, index) => {
       if (newVal && newVal !== boardSelectBefore.value[index]) {
-        vscode.postMessage({ command: ARDUINO_MESSAGES.SET_BOARD, errorMessage: "", payload: newVal.fqbn });
+        store.sendMessage({ command: ARDUINO_MESSAGES.SET_BOARD, errorMessage: "", payload: newVal.fqbn });
         boardSelectBefore.value = [...boardSelect.value];
         store.boardOptions = null;
       }

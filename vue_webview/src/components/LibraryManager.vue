@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, InstalledLibrary, LibraryAvailable } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
@@ -18,8 +17,8 @@ const searchLibrary = ref('');
 const filterdLibrariesCount = ref(0);
 
 onMounted(() => {
-  vscode.postMessage({ command: ARDUINO_MESSAGES.LIBRARY_SEARCH, errorMessage: "", payload: "" });
-  vscode.postMessage({ command: ARDUINO_MESSAGES.LIBRARY_INSTALLED, errorMessage: "", payload: "" });
+  store.sendMessage({ command: ARDUINO_MESSAGES.LIBRARY_SEARCH, errorMessage: "", payload: "" });
+  store.sendMessage({ command: ARDUINO_MESSAGES.LIBRARY_INSTALLED, errorMessage: "", payload: "" });
 });
 
 const headers = [
