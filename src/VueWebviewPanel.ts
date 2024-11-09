@@ -23,8 +23,9 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.CREATE_NEW_SKETCH:
                         break;
                     case ARDUINO_MESSAGES.CLI_STATUS:
-                        this.getCliStatus().then((clistatus) => {
-                            VueWebviewPanel.sendMessage(clistatus);
+                        checkArduinoCLICommand().then((result)=>{
+                            const sendMessage = processArduinoCLICommandCheck(result);
+                            VueWebviewPanel.sendMessage(sendMessage);
                         });
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
