@@ -17,7 +17,7 @@ export class VueWebviewPanel {
     private constructor(panel: WebviewPanel, extensionUri: Uri) {
         this._panel = panel;
 
-        // Handle messages from the web application
+        // Handle messages from the Vue web application
         this._panel.webview.onDidReceiveMessage(
             (message: WebviewToExtensionMessage) => {
                 arduinoExtensionChannel.appendLine(`Message from Vue App: ${message.command}`);
