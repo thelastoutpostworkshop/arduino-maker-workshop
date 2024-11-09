@@ -43,8 +43,10 @@ export class VueWebviewPanel {
                         VueWebviewPanel.sendMessage(projectInfo);
                         break;
                     case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
-                        this.getBoardConfiguration().then((boardConfiguration) => {
-                            VueWebviewPanel.sendMessage(boardConfiguration);
+                        getBoardConfiguration().then((result) => {
+                            const sendMessage = this.createWebviewMessage(ARDUINO_MESSAGES.BOARD_CONFIGURATION);
+                            sendMessage.payload = result;
+                            VueWebviewPanel.sendMessage(sendMessage);
                         });
                         break;
                     case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
