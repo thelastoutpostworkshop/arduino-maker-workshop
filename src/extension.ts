@@ -105,6 +105,20 @@ export function checkArduinoCLICommand(): Promise<string> {
 	});
 }
 
+export async function createNewSketch(name:string):Promise<string> {
+	try {
+		const args = arduinoProject.getNewSketchArguments(name);
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, true, false);
+		if (!result) {
+			window.showErrorMessage(`CLI : No result from create new sketch`);
+			throw new Error("Command result empty");
+		}
+		return result;
+	} catch (error: any) {
+		window.showErrorMessage(`CLI : Failed to create new sketch`);
+		throw error;
+	}
+}
 export async function getOutdatedBoardAndLib(): Promise<string> {
 	try {
 		const outdatedArgs = arduinoProject.getOutdatedArguments();

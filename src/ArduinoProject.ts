@@ -6,6 +6,7 @@ const fs = require('fs');
 
 export const compileCommandArduino: string = 'compile';
 const versionCommandArduino: string = 'version';
+const sketchCommandArduino: string = 'sketch';
 const uploadCommandArduino: string = 'upload';
 const boardCommandArduino: string = 'board';
 const libraryCommandArduino: string = 'lib';
@@ -16,6 +17,7 @@ const jsonOutputArduino: string = '--json';
 const outdatedCommandArduino: string = 'outdated';
 const coreCommandArduino: string = 'core';
 const updateOption: string = 'update-index';
+const newOption: string = 'new';
 const installOption: string = 'install';
 const uninstallOption: string = 'uninstall';
 const searchOption: string = 'search';
@@ -116,6 +118,15 @@ export class ArduinoProject {
     public getOutdatedArguments(): string[] {
         const outdatedCommand = [
             `${outdatedCommandArduino}`,
+            `${jsonOutputArduino}`
+        ];
+        return outdatedCommand;
+    }
+    public getNewSketchArguments(name:string): string[] {
+        const outdatedCommand = [
+            `${sketchCommandArduino}`,
+            `${newOption}`,
+            `${name}`,
             `${jsonOutputArduino}`
         ];
         return outdatedCommand;

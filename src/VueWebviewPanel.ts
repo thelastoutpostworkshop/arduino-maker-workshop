@@ -21,6 +21,7 @@ export class VueWebviewPanel {
                 arduinoExtensionChannel.appendLine(`Message from Vue App: ${message.command}`);
                 switch (message.command) {
                     case ARDUINO_MESSAGES.CREATE_NEW_SKETCH:
+                        console.log(message);
                         break;
                     case ARDUINO_MESSAGES.CLI_STATUS:
                         checkArduinoCLICommand().then((result) => {
