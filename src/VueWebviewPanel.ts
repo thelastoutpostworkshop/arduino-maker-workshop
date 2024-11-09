@@ -1,9 +1,8 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
-import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from './shared/messages';
+import { ARDUINO_MESSAGES, WebviewToExtensionMessage,ARDUINO_ERRORS } from './shared/messages';
 import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardConnected, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck, runInstallCoreVersion, runUninstallCoreVersion, searchCore, searchLibrary, searchLibraryInstalled } from "./extension";
-import { ARDUINO_ERRORS } from "./ArduinoProject";
 
 const path = require('path');
 const fs = require('fs');
@@ -28,8 +27,9 @@ export class VueWebviewPanel {
                         });
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
-                        const projectStatus = this.getArduinoProjectStatus();
-                        VueWebviewPanel.sendMessage(projectStatus);
+                        const projectStatus = arduinoProject.isFolderArduinoProject();
+                        message.payload = projectStatus;
+                        VueWebviewPanel.sendMessage(message);
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                         const projectInfo = this.getArduinoProjectInfo();

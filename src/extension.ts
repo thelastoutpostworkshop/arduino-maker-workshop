@@ -1,8 +1,8 @@
 import { window, ExtensionContext, commands, Disposable, workspace } from "vscode";
-import { ARDUINO_ERRORS, ArduinoProject } from './ArduinoProject';
+import {ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { QuickAccessProvider } from './quickAccessProvider';
-import { ARDUINO_MESSAGES, ArduinoBoardsListPayload, WebviewToExtensionMessage } from "./shared/messages";
+import { ARDUINO_ERRORS,ARDUINO_MESSAGES, ArduinoBoardsListPayload, WebviewToExtensionMessage } from "./shared/messages";
 
 const cp = require('child_process');
 

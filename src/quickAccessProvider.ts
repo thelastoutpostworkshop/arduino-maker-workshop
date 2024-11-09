@@ -1,6 +1,6 @@
 import { TreeDataProvider, EventEmitter, Event, TreeItem, TreeItemCollapsibleState, ThemeIcon, ThemeColor } from "vscode";
 import { arduinoProject } from "./extension";
-import { ARDUINO_ERRORS } from "./ArduinoProject";
+import { ARDUINO_ERRORS } from "./shared/messages";
 
 export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
   private _onDidChangeTreeData: EventEmitter<QuickAccessItem | undefined | null | void> = new EventEmitter<QuickAccessItem | undefined | null | void>();

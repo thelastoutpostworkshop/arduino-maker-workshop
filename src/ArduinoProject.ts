@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ArduinoConfiguration } from './shared/messages';
+import { ARDUINO_ERRORS, ArduinoConfiguration } from './shared/messages';
 
 const path = require('path');
 const fs = require('fs');
@@ -35,13 +35,6 @@ const VSCODE_FOLDER: string = ".vscode";
 const ARDUINO_SETTINGS: string = "arduino.json";
 const ARDUINO_SKETCH_EXTENSION: string = ".ino";
 const ARDUINO_DEFAULT_OUTPUT: string = "build";
-
-export enum ARDUINO_ERRORS {
-    NO_ERRORS,
-    NO_INO_FILES,
-    WRONG_FOLDER_NAME,
-    INTERNAL
-}
 
 export class ArduinoProject {
     private arduinoConfigurationPath: string = "";

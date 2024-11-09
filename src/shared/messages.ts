@@ -254,6 +254,13 @@ export interface Properties {
   vid?:          string;
 }
 
+export enum ARDUINO_ERRORS {
+  NO_ERRORS,
+  NO_INO_FILES,
+  WRONG_FOLDER_NAME,
+  INTERNAL
+}
+
 export const ARDUINO_MESSAGES = {
   CLI_STATUS: 'getArduinoCLIStatus',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
