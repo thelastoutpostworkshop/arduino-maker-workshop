@@ -74,7 +74,7 @@ export interface Platform {
   latest_version: string;
   deprecated?: boolean;
   boards: Board[];
-  name?:string;
+  name?: string;
 }
 
 export interface Release {
@@ -240,18 +240,18 @@ export interface DetectedPort {
 }
 
 export interface Port {
-  address?:        string;
-  label?:          string;
-  protocol?:       string;
+  address?: string;
+  label?: string;
+  protocol?: string;
   protocol_label?: string;
-  properties?:     Properties;
-  hardware_id?:   string;
+  properties?: Properties;
+  hardware_id?: string;
 }
 
 export interface Properties {
-  pid?:          string;
+  pid?: string;
   serialNumber?: string;
-  vid?:          string;
+  vid?: string;
 }
 
 export enum ARDUINO_ERRORS {
@@ -270,13 +270,14 @@ export const ARDUINO_MESSAGES = {
   BOARD_CONNECTED: 'getBoardConnected',
   SET_BOARD: 'setArduinoBoard',
   SET_BOARD_CONFIGURATION: 'setArduinoBoardConfiguration',
-  SET_PORT:'setArduinoPort',
+  SET_PORT: 'setArduinoPort',
   OUTDATED: 'checkArduinoOutdated',
   INSTALL_CORE_VERSION: 'installCoreVersion',
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
-  UNINSTALL_CORE:'uninstallCore',
-  CORE_UNINSTALLED:'coreUninstalled',
+  UNINSTALL_CORE: 'uninstallCore',
+  CORE_UNINSTALLED: 'coreUninstalled',
   CORE_SEARCH: 'coreSearch',
   LIBRARY_SEARCH: 'librarySearch',
-  LIBRARY_INSTALLED: 'libraryInstalled'
+  LIBRARY_INSTALLED: 'libraryInstalled',
+  CREATE_NEW_SKETCH: 'arduinoNewSketch'
 };

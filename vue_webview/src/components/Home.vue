@@ -9,6 +9,7 @@ import { routerBoardSelectionName } from '@/router';
 const router = useRouter()
 const store = useVsCodeStore();
 const portSelected = ref('');
+const sketchName = ref("");
 
 const portsAvailable = computed(() => {
   const filtered = store.boardConnected?.detected_ports.map((detectedPort) => {
@@ -16,6 +17,10 @@ const portsAvailable = computed(() => {
   }) ?? []; // Ensure it returns an empty array if detected_ports is undefined
   return filtered;
 });
+
+function createNewSkecth() {
+  vscode.postMessage({ command: ARDUINO_MESSAGES.CREATE_NEW_SKETCH, errorMessage: "", payload: sketchName.value });
+}
 
 watch(() => store.projectStatus, (newStatus) => {
   if (newStatus === ARDUINO_ERRORS.NO_ERRORS) {
@@ -104,8 +109,12 @@ onMounted(() => {
             <template #title>
               <h2 class="text-h6 font-weight-bold">Create a new sketch</h2>
             </template>
+            <v-text-field label="Sketch Name" v-model="sketchName">
+
+            </v-text-field>
+
             <v-card-actions>
-              <v-btn>New Sketch</v-btn>
+              <v-btn @click="createNewSkecth" :disabled="sketchName.trim().length == 0">New Sketch</v-btn>
             </v-card-actions>
           </v-card>
           <v-card class="pa-4 mt-4" color="blue-grey-darken-4" prepend-icon="mdi-console" rounded="lg">
