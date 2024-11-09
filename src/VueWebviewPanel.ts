@@ -1,8 +1,8 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
-import { ARDUINO_MESSAGES, WebviewToExtensionMessage, ARDUINO_ERRORS } from './shared/messages';
-import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardConnected, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck, runInstallCoreVersion, runUninstallCoreVersion, searchCore, searchLibrary, searchLibraryInstalled } from "./extension";
+import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from './shared/messages';
+import { arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardConnected, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck, runInstallCoreVersion, runUninstallCoreVersion, searchCore, searchLibrary, searchLibraryInstalled } from "./extension";
 
 const path = require('path');
 const fs = require('fs');
@@ -155,123 +155,7 @@ export class VueWebviewPanel {
             payload: ""
         };
     }
-    private async getBoardListAll(): Promise<WebviewToExtensionMessage> {
-        const outdated = this.createWebviewMessage(ARDUINO_MESSAGES.BOARDS_LIST_ALL);
-        const result = await getBoardsListAll();
-        if (result !== "") {
-            outdated.payload = result;
-        }
-        return outdated;
-    }
-    private async getBoardConnected(): Promise<WebviewToExtensionMessage> {
-        const outdated = this.createWebviewMessage(ARDUINO_MESSAGES.BOARD_CONNECTED);
-        const result = await getBoardConnected();
-        if (result !== "") {
-            outdated.payload = result;
-        }
-        return outdated;
-    }
-
-    private async installCoreVersion(version: string): Promise<WebviewToExtensionMessage> {
-        const installCoreVersionResult = this.createWebviewMessage(ARDUINO_MESSAGES.INSTALL_CORE_VERSION);
-        const result = await runInstallCoreVersion(version);
-        if (result !== "") {
-            installCoreVersionResult.payload = result;
-        }
-        return installCoreVersionResult;
-    }
-    private async uninstallCoreVersion(board_id: string): Promise<WebviewToExtensionMessage> {
-        const uninstallCoreVersionResult = this.createWebviewMessage(ARDUINO_MESSAGES.UNINSTALL_CORE);
-        const result = await runUninstallCoreVersion(board_id);
-        if (result !== "") {
-            uninstallCoreVersionResult.payload = result;
-        }
-        return uninstallCoreVersionResult;
-    }
-    private async searchCore(): Promise<WebviewToExtensionMessage> {
-        const coreSearchResult = this.createWebviewMessage(ARDUINO_MESSAGES.CORE_SEARCH);
-        const result = await searchCore();
-        if (result !== "") {
-            coreSearchResult.payload = result;
-        }
-        return coreSearchResult;
-    }
-    private async searchLibraryInstalled(): Promise<WebviewToExtensionMessage> {
-        const libInstalled = this.createWebviewMessage(ARDUINO_MESSAGES.LIBRARY_INSTALLED);
-        const result = await searchLibraryInstalled();
-        if (result !== "") {
-            libInstalled.payload = result;
-        }
-        return libInstalled;
-    }
-    private async searchLibrary(): Promise<WebviewToExtensionMessage> {
-        const libSearchResult = this.createWebviewMessage(ARDUINO_MESSAGES.LIBRARY_SEARCH);
-        const result = await searchLibrary();
-        if (result !== "") {
-            libSearchResult.payload = result;
-        }
-        return libSearchResult;
-    }
-    private async runCoreUpdate(): Promise<WebviewToExtensionMessage> {
-        const coreUpdateResult = this.createWebviewMessage(ARDUINO_MESSAGES.OUTDATED);
-        const result = await getCoreUpdate();
-        if (result !== "") {
-            coreUpdateResult.payload = result;
-        }
-        return coreUpdateResult;
-    }
-    private async getOutdated(): Promise<WebviewToExtensionMessage> {
-        const outdated = this.createWebviewMessage(ARDUINO_MESSAGES.OUTDATED);
-        const result = await getOutdatedBoardAndLib();
-        if (result !== "") {
-            outdated.payload = result;
-        }
-        return outdated;
-    }
-    private async getBoardConfiguration(): Promise<WebviewToExtensionMessage> {
-        const boardConfiguration = this.createWebviewMessage(ARDUINO_MESSAGES.BOARD_CONFIGURATION);
-        const result = await getBoardConfiguration();
-        if (result !== "") {
-            boardConfiguration.payload = result;
-        }
-        return boardConfiguration;
-    }
-
-    private getArduinoProjectInfo(): WebviewToExtensionMessage {
-        const projectInfo = this.createWebviewMessage(ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO);
-        if (loadArduinoConfiguration()) {
-            projectInfo.payload = arduinoProject.getArduinoConfiguration();
-        } else {
-            projectInfo.errorMessage = "Not an Arduino Project";
-        }
-        return projectInfo;
-    }
-
-    private getArduinoProjectStatus(): WebviewToExtensionMessage {
-        const projectStatus = this.createWebviewMessage(ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS);
-        if (!loadArduinoConfiguration()) {
-            switch (arduinoConfigurationLastError) {
-                case ARDUINO_ERRORS.NO_INO_FILES:
-                    projectStatus.errorMessage = "No sketch file (.ino) found";
-                    break;
-                case ARDUINO_ERRORS.WRONG_FOLDER_NAME:
-                    projectStatus.errorMessage = "Folder and sketch name mismatch";
-                    break;
-                default:
-                    projectStatus.errorMessage = "Unknown error in Arduino Project Configuration";
-                    break;
-            }
-        } else {
-            projectStatus.errorMessage = "";
-        }
-        return projectStatus;
-    }
-
-    private async getCliStatus(): Promise<WebviewToExtensionMessage> {
-        const result = await checkArduinoCLICommand();
-        return processArduinoCLICommandCheck(result);
-    }
-
+ 
     public static sendMessage(message: WebviewToExtensionMessage) {
         if (VueWebviewPanel.currentPanel) {
             VueWebviewPanel.currentPanel._panel.webview.postMessage(message);
