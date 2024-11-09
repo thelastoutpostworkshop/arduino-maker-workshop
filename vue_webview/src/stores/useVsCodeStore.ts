@@ -95,6 +95,24 @@ export const useVsCodeStore = defineStore('vsCode', {
                 }
             }
         },
+        sendMessage(message:WebviewToExtensionMessage) {
+            switch (message.command) {
+                case ARDUINO_MESSAGES.CLI_STATUS:
+                    if(!this.cliStatus) {
+                        vscode.postMessage(message);
+                    }
+                    break;
+                case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
+                    if(!this.projectStatus) {
+                        vscode.postMessage(message);
+                    }
+                    break;
+            
+                default:
+                    vscode.postMessage(message);
+                    break;
+            }
+        },
         handleMessage(message: WebviewToExtensionMessage) {
             switch (message.command) {
                 case ARDUINO_MESSAGES.CLI_STATUS:
