@@ -48,11 +48,10 @@ class QuickAccessItem extends TreeItem {
     } else {
       // Update the label to show it's disabled and apply the grey color
       this.label = `${this.label}`;
-      this.tooltip = `${this.tooltip} - This action is currently disabled`;
+      this.tooltip = `${this.tooltip} - disabled not an Arduino Project`;
       if(this.iconName) {
         this.iconPath = new ThemeIcon(this.iconName, new ThemeColor('disabledForeground'));
       }
-      this.color = new ThemeColor('disabledForeground');
     }
 
     if (this.iconName && !disabled) {
