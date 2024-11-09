@@ -15,7 +15,6 @@ export class VueWebviewPanel {
 
     private constructor(panel: WebviewPanel, extensionUri: Uri) {
         this._panel = panel;
-
         // Handle messages from the Vue web application
         this._panel.webview.onDidReceiveMessage(
             (message: WebviewToExtensionMessage) => {
@@ -43,13 +42,17 @@ export class VueWebviewPanel {
                         });
                         break;
                     case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
-                        this.getBoardListAll().then((boardList) => {
-                            VueWebviewPanel.sendMessage(boardList);
+                        getBoardsListAll().then((result) => {
+                            const sendMessage = this.createWebviewMessage(ARDUINO_MESSAGES.BOARDS_LIST_ALL);
+                            sendMessage.payload = result;
+                            VueWebviewPanel.sendMessage(sendMessage);
                         });
                         break;
                     case ARDUINO_MESSAGES.BOARD_CONNECTED:
-                        this.getBoardConnected().then((boardList) => {
-                            VueWebviewPanel.sendMessage(boardList);
+                        getBoardConnected().then((result) => {
+                            const sendMessage = this.createWebviewMessage(ARDUINO_MESSAGES.BOARD_CONNECTED);
+                            sendMessage.payload = result;
+                            VueWebviewPanel.sendMessage(sendMessage);
                         });
                         break;
                     case ARDUINO_MESSAGES.SET_BOARD_CONFIGURATION:
@@ -88,18 +91,24 @@ export class VueWebviewPanel {
                         });
                         break;
                     case ARDUINO_MESSAGES.CORE_SEARCH:
-                        this.searchCore().then((result) => {
-                            VueWebviewPanel.sendMessage(result);
+                        searchCore().then((result) => {
+                            const sendMessage = this.createWebviewMessage(ARDUINO_MESSAGES.CORE_SEARCH);
+                            sendMessage.payload = result;
+                            VueWebviewPanel.sendMessage(sendMessage);
                         });
                         break;
                     case ARDUINO_MESSAGES.LIBRARY_SEARCH:
-                        this.searchLibrary().then((result) => {
-                            VueWebviewPanel.sendMessage(result);
+                        searchLibrary().then((result) => {
+                            const  sendMessage = this.createWebviewMessage(ARDUINO_MESSAGES.LIBRARY_SEARCH);
+                            sendMessage.payload = result;
+                            VueWebviewPanel.sendMessage(sendMessage);
                         });
                         break;
                     case ARDUINO_MESSAGES.LIBRARY_INSTALLED:
-                        this.searchLibraryInstalled().then((result) => {
-                            VueWebviewPanel.sendMessage(result);
+                        searchLibraryInstalled().then((result) => {
+                            const sendMessage = this.createWebviewMessage(ARDUINO_MESSAGES.LIBRARY_INSTALLED);
+                            sendMessage.payload = result;
+                            VueWebviewPanel.sendMessage(sendMessage);
                         });
                         break;
                     default:
