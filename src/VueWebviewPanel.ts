@@ -1,7 +1,7 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
-import { ARDUINO_MESSAGES, WebviewToExtensionMessage,ARDUINO_ERRORS } from './shared/messages';
+import { ARDUINO_MESSAGES, WebviewToExtensionMessage, ARDUINO_ERRORS } from './shared/messages';
 import { arduinoConfigurationLastError, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardConnected, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck, runInstallCoreVersion, runUninstallCoreVersion, searchCore, searchLibrary, searchLibraryInstalled } from "./extension";
 
 const path = require('path');
@@ -21,6 +21,8 @@ export class VueWebviewPanel {
             (message: WebviewToExtensionMessage) => {
                 arduinoExtensionChannel.appendLine(`Message from Vue App: ${message.command}`);
                 switch (message.command) {
+                    case ARDUINO_MESSAGES.CREATE_NEW_SKETCH:
+                        break;
                     case ARDUINO_MESSAGES.CLI_STATUS:
                         this.getCliStatus().then((clistatus) => {
                             VueWebviewPanel.sendMessage(clistatus);
