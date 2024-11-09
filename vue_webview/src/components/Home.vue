@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { vscode } from '@/utilities/vscode';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { computed, watch, onMounted, ref } from 'vue';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES } from '@shared/messages';
