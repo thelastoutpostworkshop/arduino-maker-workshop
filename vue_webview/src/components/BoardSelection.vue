@@ -20,6 +20,8 @@ watch(
         store.sendMessage({ command: ARDUINO_MESSAGES.SET_BOARD, errorMessage: "", payload: newVal.fqbn });
         boardSelectBefore.value = [...boardSelect.value];
         store.boardOptions = null;
+        store.sendMessage({command: ARDUINO_MESSAGES.BOARD_OPTIONS, errorMessage: "", payload: ''})
+        store.sendMessage({command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: ''})
       }
     });
   },
