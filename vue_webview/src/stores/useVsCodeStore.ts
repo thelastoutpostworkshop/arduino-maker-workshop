@@ -75,7 +75,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         });
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
-                        message.payload = "";
+                        message.payload = ARDUINO_ERRORS.NO_INO_FILES;
                         this.handleMessage(message);
                         break;
                     case ARDUINO_MESSAGES.BOARDS_LIST_ALL:

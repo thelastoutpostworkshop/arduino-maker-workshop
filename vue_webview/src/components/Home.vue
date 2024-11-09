@@ -10,13 +10,6 @@ const router = useRouter()
 const store = useVsCodeStore();
 const portSelected = ref('');
 
-const projectStatusInfo = computed<ARDUINO_ERRORS | null>(() => {
-  if (store.projectStatus) {
-    return store.projectStatus;
-  }
-  return null; // You can return a default value or null if no project status is available
-});
-
 const portsAvailable = computed(() => {
   const filtered = store.boardConnected?.detected_ports.map((detectedPort) => {
     return detectedPort.port.label ?? 'Unknown'; // Provide a default if label is undefined
@@ -72,7 +65,8 @@ onMounted(() => {
       </div>
       <v-row class="mt-4">
         <v-col cols="12">
-          <v-card class="pa-4" color="blue-grey-darken-3" prepend-icon="mdi-cog" rounded="lg">
+          <v-card v-if="store.projectStatus == ARDUINO_ERRORS.NO_ERRORS" class="pa-4" color="blue-grey-darken-3"
+            prepend-icon="mdi-cog" rounded="lg">
             <template #title>
               <h2 class="text-h6 font-weight-bold">Sketch Configuration</h2>
             </template>
@@ -82,7 +76,6 @@ onMounted(() => {
                 This is your current configuration
               </div>
             </template>
-
             <v-text-field label="Board" :model-value="store.boardOptions?.name" readonly>
               <template v-slot:loader>
                 <v-progress-linear :active="!store.boardOptions?.name" height="2" indeterminate></v-progress-linear>
@@ -100,6 +93,21 @@ onMounted(() => {
               </template>
             </v-select>
           </v-card>
+          <v-card v-if="store.projectStatus == ARDUINO_ERRORS.WRONG_FOLDER_NAME" class="pa-4" color="blue-grey-darken-3"
+            prepend-icon="mdi-alert-circle-outline" rounded="lg">
+            <template #title>
+              <h2 class="text-h6 font-weight-bold">Sketch name and folder name do not match</h2>
+            </template>
+          </v-card>
+          <v-card v-if="store.projectStatus == ARDUINO_ERRORS.NO_INO_FILES" class="pa-4" color="blue-grey-darken-3"
+            prepend-icon="mdi-folder-plus-outline" rounded="lg">
+            <template #title>
+              <h2 class="text-h6 font-weight-bold">Create a new sketch</h2>
+            </template>
+            <v-card-actions>
+              <v-btn>New Sketch</v-btn>
+            </v-card-actions>
+          </v-card>
           <v-card class="pa-4 mt-4" color="blue-grey-darken-4" prepend-icon="mdi-console" rounded="lg">
             <template #title>
               <h2 class="text-h6 font-weight-bold">Built-in CLI</h2>
@@ -107,7 +115,7 @@ onMounted(() => {
 
             <template #subtitle>
               <div class="text-subtitle-1">
-                v{{store.cliStatus?.version}} ({{ store.cliStatus?.date }})
+                v{{ store.cliStatus?.version }} ({{ store.cliStatus?.date }})
               </div>
             </template>
           </v-card>
