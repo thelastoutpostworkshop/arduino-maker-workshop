@@ -23,7 +23,7 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.CREATE_NEW_SKETCH:
                         break;
                     case ARDUINO_MESSAGES.CLI_STATUS:
-                        checkArduinoCLICommand().then((result)=>{
+                        checkArduinoCLICommand().then((result) => {
                             const sendMessage = processArduinoCLICommandCheck(result);
                             VueWebviewPanel.sendMessage(sendMessage);
                         });
@@ -34,7 +34,12 @@ export class VueWebviewPanel {
                         VueWebviewPanel.sendMessage(message);
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
-                        const projectInfo = this.getArduinoProjectInfo();
+                        const projectInfo = this.createWebviewMessage(ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO);
+                        if (loadArduinoConfiguration()) {
+                            projectInfo.payload = arduinoProject.getArduinoConfiguration();
+                        } else {
+                            projectInfo.errorMessage = "Not an Arduino Project";
+                        }
                         VueWebviewPanel.sendMessage(projectInfo);
                         break;
                     case ARDUINO_MESSAGES.BOARD_CONFIGURATION:
@@ -100,7 +105,7 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.LIBRARY_SEARCH:
                         searchLibrary().then((result) => {
-                            const  sendMessage = this.createWebviewMessage(ARDUINO_MESSAGES.LIBRARY_SEARCH);
+                            const sendMessage = this.createWebviewMessage(ARDUINO_MESSAGES.LIBRARY_SEARCH);
                             sendMessage.payload = result;
                             VueWebviewPanel.sendMessage(sendMessage);
                         });
