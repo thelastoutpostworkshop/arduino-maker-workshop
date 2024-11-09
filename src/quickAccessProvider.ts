@@ -46,11 +46,17 @@ class QuickAccessItem extends TreeItem {
         title: this.label
       };
     } else {
-      this.description = '(Disabled)';
+      // Update the label to show it's disabled and apply the grey color
+      this.label = `${this.label}`;
+      this.tooltip = `${this.tooltip} - This action is currently disabled`;
+      if(this.iconName) {
+        this.iconPath = new ThemeIcon(this.iconName, new ThemeColor('disabledForeground'));
+      }
+      this.color = new ThemeColor('disabledForeground');
     }
 
-    if (this.iconName) {
-      this.iconPath = new ThemeIcon(this.iconName, disabled ? new ThemeColor('disabledForeground') : undefined);
+    if (this.iconName && !disabled) {
+      this.iconPath = new ThemeIcon(this.iconName);
     }
 
     this.contextValue = disabled ? 'disabled' : 'enabled';
