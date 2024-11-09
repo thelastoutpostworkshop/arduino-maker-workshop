@@ -15,11 +15,27 @@ let cliCommandArduinoPath: string = "";
 export let arduinoConfigurationLastError: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_ERRORS;
 
 export function activate(context: ExtensionContext) {
-
 	// Read the arduino-cli path setting
 	const config = workspace.getConfiguration();
 	cliCommandArduinoPath = config.get<string>('cli.path', "");
 	arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${cliCommandArduinoPath}`);
+
+	const quickAccessProvider = new QuickAccessProvider();
+	window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
+
+	// Watch for changes in folder or workspace configuration
+	workspace.onDidChangeWorkspaceFolders(() => {
+		quickAccessProvider.refresh(); // Refresh when the workspace folders change
+	});
+
+	workspace.onDidSaveTextDocument(() => {
+		quickAccessProvider.refresh(); // Refresh when a text document is saved
+	});
+
+	// Check if the current folder is a valid Arduino project
+	if (arduinoProject.isFolderArduinoProject() !== ARDUINO_ERRORS.NO_ERRORS) {
+		quickAccessProvider.refresh();
+	}
 
 	context.subscriptions.push(
 		workspace.onDidChangeConfiguration((e) => {
@@ -36,15 +52,13 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(vsCommandCompile());
 	context.subscriptions.push(vsCommandUpload());
 
-	const quickAccessProvider = new QuickAccessProvider();
-	window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
-
 	context.subscriptions.push(
 		commands.registerCommand('extension.openVueWebview', () => {
 			VueWebviewPanel.render(context.extensionUri);
 		})
 	);
 }
+
 
 export function processArduinoCLICommandCheck(commandResult: string): WebviewToExtensionMessage {
 	let message: string = "";
@@ -387,7 +401,7 @@ function vsCommandCompile(): Disposable {
 
 export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true): Promise<string | void> {
 	// outputChannel.clear();
-	if(showOutput) {
+	if (showOutput) {
 		outputChannel.show(true);
 	}
 	outputChannel.appendLine('Running Arduino CLI...');
@@ -401,7 +415,7 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 		// Stream stdout to the output channel and optionally to the buffer
 		child.stdout.on('data', (data: Buffer) => {
 			const output = data.toString();
-			if(showOutput) {
+			if (showOutput) {
 				outputChannel.append(output);
 			}
 
@@ -413,7 +427,7 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 		// Stream stderr to the output channel and optionally to the buffer
 		child.stderr.on('data', (data: Buffer) => {
 			const error = `Error: ${data.toString()}`;
-			if(showOutput) {
+			if (showOutput) {
 				outputChannel.appendLine(error);
 			}
 			if (returnOutput) {
