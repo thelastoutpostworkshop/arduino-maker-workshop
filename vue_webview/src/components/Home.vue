@@ -19,19 +19,19 @@ const portsAvailable = computed(() => {
 });
 
 function createNewSkecth() {
-  vscode.postMessage({ command: ARDUINO_MESSAGES.CREATE_NEW_SKETCH, errorMessage: "", payload: sketchName.value });
+  store.sendMessage({ command: ARDUINO_MESSAGES.CREATE_NEW_SKETCH, errorMessage: "", payload: sketchName.value });
 }
 
 watch(() => store.projectStatus, (newStatus) => {
   if (newStatus === ARDUINO_ERRORS.NO_ERRORS) {
-    vscode.postMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
+    store.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
   }
 });
 
 
 watch(() => store.projectInfo, (newProjectInfo) => {
   if (newProjectInfo) {
-    vscode.postMessage({ command: ARDUINO_MESSAGES.BOARD_CONFIGURATION, errorMessage: "", payload: store.projectInfo?.board });
+    store.sendMessage({ command: ARDUINO_MESSAGES.BOARD_CONFIGURATION, errorMessage: "", payload: store.projectInfo?.board });
   }
 });
 
@@ -49,7 +49,7 @@ watch(() => store.boardConnected, (boardConnected) => {
 
 watch((portSelected), (newPort) => {
   if (newPort && store.projectInfo) {
-    vscode.postMessage({ command: ARDUINO_MESSAGES.SET_PORT, errorMessage: "", payload: newPort });
+    store.sendMessage({ command: ARDUINO_MESSAGES.SET_PORT, errorMessage: "", payload: newPort });
   }
 });
 
