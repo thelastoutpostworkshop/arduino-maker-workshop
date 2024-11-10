@@ -65,7 +65,7 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.SET_BOARD_CONFIGURATION:
+                    case ARDUINO_MESSAGES.SET_BOARD_OPTIONS:
                         this.setConfiguration(message);
                         break;
                     case ARDUINO_MESSAGES.SET_BOARD:

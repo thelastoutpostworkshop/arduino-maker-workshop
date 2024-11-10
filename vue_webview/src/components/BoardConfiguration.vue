@@ -34,7 +34,7 @@ watch(
             .join(",");
 
         console.log(configuration);
-        store.sendMessage({ command: ARDUINO_MESSAGES.SET_BOARD_CONFIGURATION, errorMessage: "", payload: configuration });
+        store.sendMessage({ command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS, errorMessage: "", payload: configuration });
     },
     { deep: true }
 );
