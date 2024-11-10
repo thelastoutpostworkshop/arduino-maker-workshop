@@ -279,5 +279,7 @@ export const ARDUINO_MESSAGES = {
   SET_PORT: 'setArduinoPort',
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
   CORE_UNINSTALLED: 'coreUninstalled',
-  LIBRARY_INSTALLED: 'libraryInstalled'
+  LIBRARY_INSTALLED: 'libraryInstalled',
+  SET_ADDITIONAL_URLS: 'setAdditionalURLs',
+  GET_ADDITIONAL_URLS: 'getAdditionalURLs'
 };
