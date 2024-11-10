@@ -263,21 +263,21 @@ export enum ARDUINO_ERRORS {
 
 export const ARDUINO_MESSAGES = {
   CLI_STATUS: 'getArduinoCLIStatus',
+  CLI_BOARD_OPTIONS: 'getArduinoBoardOptions',
+  CLI_BOARD_SEARCH: 'getArduinoBoardSearch',
+  CLI_BOARD_CONNECTED: 'getBoardConnected',
+  CLI_UPDATE_INDEX: 'updateArduinoIndexCoresAndLibraries',
+  CLI_INSTALL_CORE_VERSION: 'installCoreVersion',
+  CLI_UNINSTALL_CORE: 'uninstallCore',
+  CLI_CORE_SEARCH: 'coreSearch',
+  CLI_LIBRARY_SEARCH: 'librarySearch',
+  CLI_CREATE_NEW_SKETCH: 'arduinoNewSketch',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
   ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
-  BOARD_OPTIONS: 'getArduinoBoardOptions',
-  BOARDS_LIST_ALL: 'getArduinoBoardsListAll',
-  BOARD_CONNECTED: 'getBoardConnected',
   SET_BOARD: 'setArduinoBoard',
   SET_BOARD_CONFIGURATION: 'setArduinoBoardConfiguration',
   SET_PORT: 'setArduinoPort',
-  UPDATE_INDEX: 'updateArduinoIndexCoresAndLibraries',
-  INSTALL_CORE_VERSION: 'installCoreVersion',
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
-  UNINSTALL_CORE: 'uninstallCore',
   CORE_UNINSTALLED: 'coreUninstalled',
-  CORE_SEARCH: 'coreSearch',
-  LIBRARY_SEARCH: 'librarySearch',
-  LIBRARY_INSTALLED: 'libraryInstalled',
-  CREATE_NEW_SKETCH: 'arduinoNewSketch'
+  LIBRARY_INSTALLED: 'libraryInstalled'
 };

@@ -17,7 +17,7 @@ const searchBoards = ref('');
 const filterdBoardsCount = ref(0);
 
 onMounted(() => {
-  store.sendMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
 });
 
 const headers = [
@@ -42,11 +42,11 @@ watch(
 function updatePlatformVersion(platformID: string) {
   const toInstall = selectedPlatform.value[platformID];
   const version = `${platformID}@${toInstall}`;
-  store.sendMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: version });
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_INSTALL_CORE_VERSION, errorMessage: "", payload: version });
   store.boardUpdating = `Installing board ${platformID} version ${toInstall}`
 }
 function uninstallPlatform(platformID: string) {
-  store.sendMessage({ command: ARDUINO_MESSAGES.UNINSTALL_CORE, errorMessage: "", payload: platformID });
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_UNINSTALL_CORE, errorMessage: "", payload: platformID });
   store.boardUpdating = `Uninstalling board ${platformID}`;
 }
 
@@ -91,15 +91,15 @@ function filterPlatforms(filter: FilterBoards): Platform[] {
         isPlatformInstalled(platform) && !isPlatformUpdatable(platform))
       break;
     case FilterBoards.updatable:
-      filtered = (store.platform?.platforms ?? []).filter((platform) => 
+      filtered = (store.platform?.platforms ?? []).filter((platform) =>
         isPlatformUpdatable(platform) && isPlatformInstalled(platform))
       break;
     case FilterBoards.deprecated:
-      filtered = (store.platform?.platforms ?? []).filter((platform) => 
+      filtered = (store.platform?.platforms ?? []).filter((platform) =>
         isPlatformDepracated(platform))
       break;
     case FilterBoards.not_installed:
-      filtered = (store.platform?.platforms ?? []).filter((platform) => 
+      filtered = (store.platform?.platforms ?? []).filter((platform) =>
         !isPlatformInstalled(platform) && !isPlatformDepracated(platform))
       break;
     default:
@@ -186,7 +186,7 @@ const platformName = (platform_id: string): string => {
             <v-tooltip v-if="!isPlatformInstalled(item) || isPlatformUpdatable(item)">
               <template v-slot:activator="{ props }">
                 <v-btn @click="updatePlatformVersion(item.id)" icon v-bind="props" variant="text">
-                  <v-icon  v-if="!isPlatformInstalled(item) || isPlatformUpdatable(item)">
+                  <v-icon v-if="!isPlatformInstalled(item) || isPlatformUpdatable(item)">
                     mdi-tray-arrow-down
                   </v-icon>
                 </v-btn>

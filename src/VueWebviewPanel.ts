@@ -20,7 +20,7 @@ export class VueWebviewPanel {
             (message: WebviewToExtensionMessage) => {
                 arduinoExtensionChannel.appendLine(`Message from Vue App: ${message.command}`);
                 switch (message.command) {
-                    case ARDUINO_MESSAGES.CREATE_NEW_SKETCH:
+                    case ARDUINO_MESSAGES.CLI_CREATE_NEW_SKETCH:
                         createNewSketch(message.payload);
                         break;
                     case ARDUINO_MESSAGES.CLI_STATUS:
@@ -43,19 +43,19 @@ export class VueWebviewPanel {
                         }
                         VueWebviewPanel.sendMessage(projectInfo);
                         break;
-                    case ARDUINO_MESSAGES.BOARD_OPTIONS:
+                    case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                         getBoardConfiguration().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
+                    case ARDUINO_MESSAGES.CLI_BOARD_SEARCH:
                         getBoardsListAll().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.BOARD_CONNECTED:
+                    case ARDUINO_MESSAGES.CLI_BOARD_CONNECTED:
                         getBoardConnected().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
@@ -69,7 +69,7 @@ export class VueWebviewPanel {
                         arduinoProject.resetBoardConfiguration();
                         arduinoExtensionChannel.appendLine(`Current Board Configuration: ${arduinoProject.getBoardConfiguration()}`);
                         getBoardConfiguration().then((result) => {
-                            message.command = ARDUINO_MESSAGES.BOARD_OPTIONS;
+                            message.command = ARDUINO_MESSAGES.CLI_BOARD_OPTIONS;
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
@@ -77,7 +77,7 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.SET_PORT:
                         this.setPort(message);
                         break;
-                    case ARDUINO_MESSAGES.UPDATE_INDEX:
+                    case ARDUINO_MESSAGES.CLI_UPDATE_INDEX:
                         getCoreUpdate().then(() => {
                             getOutdatedBoardAndLib().then((result) => {
                                 message.payload = result;
@@ -85,27 +85,27 @@ export class VueWebviewPanel {
                             });
                         });
                         break;
-                    case ARDUINO_MESSAGES.INSTALL_CORE_VERSION:
+                    case ARDUINO_MESSAGES.CLI_INSTALL_CORE_VERSION:
                         const coreToUpdate = message.payload;
                         runInstallCoreVersion(coreToUpdate).then(() => {
                             message.command = ARDUINO_MESSAGES.CORE_VERSION_INSTALLED;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.UNINSTALL_CORE:
+                    case ARDUINO_MESSAGES.CLI_UNINSTALL_CORE:
                         const coreToUninstall = message.payload;
                         runUninstallCoreVersion(coreToUninstall).then(() => {
                             message.command = ARDUINO_MESSAGES.CORE_UNINSTALLED;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.CORE_SEARCH:
+                    case ARDUINO_MESSAGES.CLI_CORE_SEARCH:
                         searchCore().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.LIBRARY_SEARCH:
+                    case ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH:
                         searchLibrary().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);

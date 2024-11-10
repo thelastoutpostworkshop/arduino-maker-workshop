@@ -18,7 +18,7 @@ const portsAvailable = computed(() => {
 });
 
 function createNewSkecth() {
-  store.sendMessage({ command: ARDUINO_MESSAGES.CREATE_NEW_SKETCH, errorMessage: "", payload: sketchName.value });
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CREATE_NEW_SKETCH, errorMessage: "", payload: sketchName.value });
 }
 
 watch(() => store.projectStatus, (newStatus) => {
@@ -30,7 +30,7 @@ watch(() => store.projectStatus, (newStatus) => {
 
 watch(() => store.projectInfo, (newProjectInfo) => {
   if (newProjectInfo) {
-    store.sendMessage({ command: ARDUINO_MESSAGES.BOARD_OPTIONS, errorMessage: "", payload: store.projectInfo?.board });
+    store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS, errorMessage: "", payload: store.projectInfo?.board });
   }
 });
 
@@ -57,7 +57,7 @@ watch([() => store.cliStatus, () => store.projectStatus], () => { }, { immediate
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_STATUS, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS, errorMessage: "", payload: "" });
-  store.sendMessage({ command: ARDUINO_MESSAGES.BOARD_CONNECTED, errorMessage: "", payload: "" });
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
 });
 
 </script>

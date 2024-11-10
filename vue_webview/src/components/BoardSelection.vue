@@ -8,7 +8,7 @@ const boardSelect = ref<(BoardConfiguration | null)[]>([]); // Updated to track 
 const boardSelectBefore = ref<(BoardConfiguration | null)[]>([]);
 
 onMounted(() => {
-  store.sendMessage({ command: ARDUINO_MESSAGES.BOARDS_LIST_ALL, errorMessage: "", payload: "" });
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_SEARCH, errorMessage: "", payload: "" });
 });
 
 // Watch for changes in boardSelect
@@ -20,8 +20,8 @@ watch(
         store.sendMessage({ command: ARDUINO_MESSAGES.SET_BOARD, errorMessage: "", payload: newVal.fqbn });
         boardSelectBefore.value = [...boardSelect.value];
         store.boardOptions = null;
-        store.sendMessage({command: ARDUINO_MESSAGES.BOARD_OPTIONS, errorMessage: "", payload: ''})
-        store.sendMessage({command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: ''})
+        store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS, errorMessage: "", payload: '' })
+        store.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: '' })
       }
     });
   },

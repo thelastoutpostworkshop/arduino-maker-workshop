@@ -38,13 +38,13 @@ export const useVsCodeStore = defineStore('vsCode', {
         mockMessage(message: WebviewToExtensionMessage) {
             if (import.meta.env.DEV) {
                 switch (message.command) {
-                    case ARDUINO_MESSAGES.CORE_SEARCH:
+                    case ARDUINO_MESSAGES.CLI_CORE_SEARCH:
                         loadMockData('coresearch.json').then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.LIBRARY_SEARCH:
+                    case ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH:
                         loadMockData('libsearch.json').then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
@@ -62,7 +62,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                             this.handleMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.BOARD_OPTIONS:
+                    case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                         loadMockData('board_options.json').then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
@@ -78,13 +78,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                         message.payload = ARDUINO_ERRORS.NO_ERRORS;
                         this.handleMessage(message);
                         break;
-                    case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
+                    case ARDUINO_MESSAGES.CLI_BOARD_SEARCH:
                         loadMockData('board_search.json').then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.BOARD_CONNECTED:
+                    case ARDUINO_MESSAGES.CLI_BOARD_CONNECTED:
                         loadMockData('board_connected.json').then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
@@ -107,17 +107,17 @@ export const useVsCodeStore = defineStore('vsCode', {
                         vscode.postMessage(message);
                     }
                     break;
-                case ARDUINO_MESSAGES.CORE_SEARCH:
+                case ARDUINO_MESSAGES.CLI_CORE_SEARCH:
                     if (!this.platform) {
                         vscode.postMessage(message);
                     }
                     break;
-                case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
+                case ARDUINO_MESSAGES.CLI_BOARD_SEARCH:
                     if (!this.boards) {
                         vscode.postMessage(message);
                     }
                     break;
-                case ARDUINO_MESSAGES.LIBRARY_SEARCH:
+                case ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH:
                     if (!this.libraries) {
                         vscode.postMessage(message);
                     }
@@ -162,35 +162,35 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                     this.projectStatus = message.payload;
                     break;
-                case ARDUINO_MESSAGES.BOARD_OPTIONS:
+                case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                     try {
                         this.boardOptions = extractBoardConfiguration(message.payload);
                     } catch (error) {
                         console.log("Failed to parse Board Configuration information.");
                     }
                     break;
-                case ARDUINO_MESSAGES.BOARDS_LIST_ALL:
+                case ARDUINO_MESSAGES.CLI_BOARD_SEARCH:
                     try {
                         this.boards = JSON.parse(message.payload);
                     } catch (error) {
                         console.log("Failed to parse Board Configuration information: " + error);
                     }
                     break;
-                case ARDUINO_MESSAGES.BOARD_CONNECTED:
+                case ARDUINO_MESSAGES.CLI_BOARD_CONNECTED:
                     try {
                         this.boardConnected = JSON.parse(message.payload);
                     } catch (error) {
                         console.log("Failed to parse Board Connected information: " + error);
                     }
                     break;
-                case ARDUINO_MESSAGES.CORE_SEARCH:
+                case ARDUINO_MESSAGES.CLI_CORE_SEARCH:
                     try {
                         this.platform = JSON.parse(message.payload);
                     } catch (error) {
                         console.log("Failed to parse core search response: " + error);
                     }
                     break;
-                case ARDUINO_MESSAGES.LIBRARY_SEARCH:
+                case ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH:
                     try {
                         this.libraries = JSON.parse(message.payload);
                     } catch (error) {
@@ -208,7 +208,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.CORE_VERSION_INSTALLED:
                     this.boardUpdating = "";
                     this.platform = null;
-                    vscode.postMessage({ command: ARDUINO_MESSAGES.CORE_SEARCH, errorMessage: "", payload: "" });
+                    vscode.postMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
                     break;
 
                 default:

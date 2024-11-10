@@ -17,7 +17,7 @@ const searchLibrary = ref('');
 const filterdLibrariesCount = ref(0);
 
 onMounted(() => {
-  store.sendMessage({ command: ARDUINO_MESSAGES.LIBRARY_SEARCH, errorMessage: "", payload: "" });
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.LIBRARY_INSTALLED, errorMessage: "", payload: "" });
 });
 
