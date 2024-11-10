@@ -412,7 +412,7 @@ function vsCommandUpload(): Disposable {
 
 		// Execute the Arduino CLI command
 		const uploadCommand = arduinoProject.getUploadArguments();
-		const output = executeArduinoCommand(`${cliCommandArduinoPath}`, uploadCommand, true, true);
+		const output = executeArduinoCommand(`${cliCommandArduinoPath}`, uploadCommand, true, true,compileUploadChannel);
 
 	});
 }
@@ -434,7 +434,7 @@ function vsCommandCompile(): Disposable {
 
 		// Execute the Arduino CLI command
 		const compileCommand = arduinoProject.getCompileCommandArguments();
-		executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true, true)
+		executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true, true,compileUploadChannel)
 			.then(output => {
 				if (output) {
 					// Parse the output and generate c_cpp_properties.json
@@ -492,7 +492,7 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 				resolve(returnOutput ? outputBuffer : undefined);
 			} else {
 				// Command failed
-				channel.appendLine(`Command failed with code ${code}. Check Output window for details.`);
+				channel.appendLine(`Command failed with code ${code}.`);
 				reject(`Command failed with code ${code}`);
 			}
 		});
