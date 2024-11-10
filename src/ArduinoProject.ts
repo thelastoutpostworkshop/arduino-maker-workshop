@@ -146,6 +146,7 @@ export class ArduinoProject {
             `${coreCommandArduino}`,
             `${updateOption}`,
         ];
+        this.addAdditionalBoardURLs(updateCoreCommand);
         return updateCoreCommand;
     }
     public getInstallCoreVersionArguments(version: string): string[] {
@@ -189,6 +190,7 @@ export class ArduinoProject {
             `${searchOption}`,
             `${jsonOutputArduino}`
         ];
+        this.addAdditionalBoardURLs(searchAllCommand);
         return searchAllCommand;
     }
     public getBoardConnected(): string[] {
