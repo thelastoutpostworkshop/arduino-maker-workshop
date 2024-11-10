@@ -10,8 +10,8 @@ const path = require('path');
 const cliPathSetting: string = "cli.path";
 const addtionalBoardURLSetting: string = "additionalBoardsUrl";
 
-const outputChannel = window.createOutputChannel('Arduino');
-export const arduinoExtensionChannel = window.createOutputChannel('Arduino.Extension');
+const outputChannel = window.createOutputChannel('Arduino CLI');
+export const arduinoExtensionChannel = window.createOutputChannel('Arduino Extension');
 arduinoExtensionChannel.appendLine("Arduino Extension started");
 
 export const arduinoProject: ArduinoProject = new ArduinoProject();
