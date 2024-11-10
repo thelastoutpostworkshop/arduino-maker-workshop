@@ -31,7 +31,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         platform: null as CorePlatforms | null,
         libraries: null as Libsearch | null,
         librariesInstalled: null as Liblist | null,
-        additionalBoardURLs:null as string | null,
+        additionalBoardURLs: null as string | null,
         boardUpdating: "",
         libraryUpdating: ""
     }),
@@ -169,6 +169,17 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                     try {
                         this.boardOptions = JSON.parse(message.payload);
+                        let configuration = this.boardOptions?.config_options
+                            .map((configOption) => {
+                                const selectedValue = configOption.values.find(value => value.selected);
+                                if (selectedValue) {
+                                    return `${configOption.option}=${selectedValue.value}`;
+                                }
+                                return null;
+                            })
+                            .filter((optionString) => optionString !== null) // Remove any null values from the array
+                            .join(",");
+                            this.sendMessage({ command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS, errorMessage: "", payload: configuration });
                     } catch (error) {
                         console.log("Failed to parse Board Configuration information.");
                     }
@@ -212,7 +223,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.CORE_VERSION_INSTALLED:
                     this.boardUpdating = "";
                     this.platform = null;
-                    vscode.postMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
+                    this.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
                     break;
 
                 default:

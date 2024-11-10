@@ -26,7 +26,6 @@ const addtionalURLOption: string = '--additional-urls';
 export const verboseOptionArduino: string = '-v';
 export const portOptionArduino: string = '-p';
 export const buildPathArduino: string = '--build-path';
-export const buildCachePathArduino: string = '--build-cache-path';
 export const jobsOptionArduino: string = '--jobs';
 export const fqbnOptionArduino: string = '--fqbn';
 export const inputDirOptionArduino: string = '--input-dir';
@@ -91,8 +90,6 @@ export class ArduinoProject {
             `${this.getBoard()}:${this.getBoardConfiguration()}`,
             `${buildPathArduino}`,
             this.getProjectPath() + '/' + this.getOutput(),
-            `${buildCachePathArduino}`,
-            this.getProjectPath() + '/' + this.getOutput() + '/cache',
             this.getProjectPath()
         ];
         return compileCommand;
