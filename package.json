@@ -3,7 +3,7 @@
   "displayName": "VSCode Arduino",
   "publisher": "TheLastOutpostWorkshop",
   "description": "",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "engines": {
     "vscode": "^1.93.0"
   },
