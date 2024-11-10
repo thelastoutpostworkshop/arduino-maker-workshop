@@ -1,11 +1,14 @@
 import { window, ExtensionContext, commands, Disposable, workspace, Uri } from "vscode";
-import {ArduinoProject } from './ArduinoProject';
+import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { QuickAccessProvider } from './quickAccessProvider';
-import { ARDUINO_ERRORS,ARDUINO_MESSAGES, ArduinoBoardsListPayload, WebviewToExtensionMessage } from "./shared/messages";
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoBoardsListPayload, WebviewToExtensionMessage } from "./shared/messages";
 
 const cp = require('child_process');
 const path = require('path');
+
+const cliPathSetting: string = "cli.path";
+const addtionalBoardURLSetting: string = "additionalBoardsUrl";
 
 const outputChannel = window.createOutputChannel('Arduino');
 export const arduinoExtensionChannel = window.createOutputChannel('Arduino.Extension');
@@ -18,8 +21,12 @@ export let arduinoConfigurationLastError: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_ERR
 export function activate(context: ExtensionContext) {
 	// Read the arduino-cli path setting
 	const config = workspace.getConfiguration();
-	cliCommandArduinoPath = config.get<string>('cli.path', "");
+	cliCommandArduinoPath = config.get<string>(cliPathSetting, "");
 	arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${cliCommandArduinoPath}`);
+
+	const boardsURLS = config.get<string>(addtionalBoardURLSetting, "");
+	arduinoProject.setAdditionalBoardURLs(boardsURLS);
+	arduinoExtensionChannel.appendLine(`Arduino Board URLs: ${arduinoProject.getAdditionalBoardURLs()}`);
 
 	const quickAccessProvider = new QuickAccessProvider();
 	window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
@@ -40,12 +47,22 @@ export function activate(context: ExtensionContext) {
 
 	context.subscriptions.push(
 		workspace.onDidChangeConfiguration((e) => {
-			if (e.affectsConfiguration('cli.path')) {
-				cliCommandArduinoPath = workspace.getConfiguration().get<string>('cli.path', '');
+			if (e.affectsConfiguration(cliPathSetting)) {
+				cliCommandArduinoPath = workspace.getConfiguration().get<string>(cliPathSetting, '');
 				arduinoExtensionChannel.appendLine(`Arduino CLI Path Changed: ${cliCommandArduinoPath}`);
 				checkArduinoCLICommand().then((result) => {
 					VueWebviewPanel.sendMessage(processArduinoCLICommandCheck(result));
 				});
+			}
+		})
+	);
+
+	context.subscriptions.push(
+		workspace.onDidChangeConfiguration((e) => {
+			if (e.affectsConfiguration(addtionalBoardURLSetting)) {
+				const urls = workspace.getConfiguration().get<string>(addtionalBoardURLSetting, '');
+				arduinoProject.setAdditionalBoardURLs(urls);
+				arduinoExtensionChannel.appendLine(`Arduino Addtional Board URLs Changed: ${arduinoProject.getAdditionalBoardURLs()}`);
 			}
 		})
 	);

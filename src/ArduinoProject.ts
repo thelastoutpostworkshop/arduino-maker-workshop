@@ -42,6 +42,7 @@ export class ArduinoProject {
     private arduinoConfigurationPath: string = "";
     private configJson: ArduinoConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "" };
     private projectFullPath: string = "";
+    private additionnlBoardURLs: string = "";
 
     constructor() {
         const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -55,12 +56,12 @@ export class ArduinoProject {
         }
 
         const vsCodeFolder = path.join(this.projectFullPath, VSCODE_FOLDER);
-        if(!fs.existsSync(vsCodeFolder)) {
+        if (!fs.existsSync(vsCodeFolder)) {
             fs.mkdirSync(vsCodeFolder);
         }
-        
+
         this.arduinoConfigurationPath = path.join(this.projectFullPath, VSCODE_FOLDER, ARDUINO_SETTINGS);
-        if(!fs.existsSync(this.arduinoConfigurationPath)) {
+        if (!fs.existsSync(this.arduinoConfigurationPath)) {
             this.writeVSCodeArduinoConfiguration();
         } else {
             try {
@@ -70,7 +71,7 @@ export class ArduinoProject {
                 this.writeVSCodeArduinoConfiguration();
             }
         }
-        
+
         return true;
     }
     public getCompileCommandArguments(): string[] {
@@ -330,7 +331,9 @@ export class ArduinoProject {
 
         vscode.window.showInformationMessage('Generated c_cpp_properties.json for IntelliSense.');
     }
-
+    public setAdditionalBoardURLs(urls: string) {
+        this.additionnlBoardURLs = urls;
+    }
     public setPort(port: string): void {
         // Update the configJson object
         this.configJson.port = port;
@@ -349,6 +352,9 @@ export class ArduinoProject {
 
     private writeVSCodeArduinoConfiguration() {
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
+    }
+    public getAdditionalBoardURLs():string {
+        return this.additionnlBoardURLs;
     }
     private getProjectPath(): string {
         return this.projectFullPath;
