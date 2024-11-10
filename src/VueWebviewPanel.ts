@@ -34,6 +34,10 @@ export class VueWebviewPanel {
                         message.payload = projectStatus;
                         VueWebviewPanel.sendMessage(message);
                         break;
+                    case ARDUINO_MESSAGES.GET_ADDITIONAL_URLS:
+                        message.payload = arduinoProject.getAdditionalBoardURLs();
+                        VueWebviewPanel.sendMessage(message);
+                        break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                         const projectInfo = this.createWebviewMessage(ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO);
                         if (loadArduinoConfiguration()) {
