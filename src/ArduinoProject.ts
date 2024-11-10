@@ -22,6 +22,7 @@ const installOption: string = 'install';
 const uninstallOption: string = 'uninstall';
 const searchOption: string = 'search';
 const listOption: string = 'list';
+const addtionalURLOption:string = ' --additional-urls';
 export const verboseOptionArduino: string = '-v';
 export const portOptionArduino: string = '-p';
 export const buildPathArduino: string = '--build-path';
@@ -136,7 +137,9 @@ export class ArduinoProject {
     public getCoreUpdateArguments(): string[] {
         const updateCoreCommand = [
             `${coreCommandArduino}`,
-            `${updateOption}`
+            `${updateOption}`,
+            `${addtionalURLOption}`,
+            `${this.additionnlBoardURLs}`
         ];
         return updateCoreCommand;
     }
