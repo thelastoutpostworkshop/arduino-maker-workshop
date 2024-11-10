@@ -271,7 +271,7 @@ export const ARDUINO_MESSAGES = {
   SET_BOARD: 'setArduinoBoard',
   SET_BOARD_CONFIGURATION: 'setArduinoBoardConfiguration',
   SET_PORT: 'setArduinoPort',
-  OUTDATED: 'checkArduinoOutdated',
+  UPDATE_INDEX: 'updateArduinoIndexCoresAndLibraries',
   INSTALL_CORE_VERSION: 'installCoreVersion',
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
   UNINSTALL_CORE: 'uninstallCore',

@@ -77,7 +77,7 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.SET_PORT:
                         this.setPort(message);
                         break;
-                    case ARDUINO_MESSAGES.OUTDATED:
+                    case ARDUINO_MESSAGES.UPDDATE_INDEX:
                         getCoreUpdate().then(() => {
                             getOutdatedBoardAndLib().then((result) => {
                                 message.payload = result;
