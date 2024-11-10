@@ -1,4 +1,4 @@
-import { window, ExtensionContext, commands, Disposable, workspace, Uri } from "vscode";
+import { window, ExtensionContext, commands, Disposable, workspace, Uri, OutputChannel } from "vscode";
 import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { QuickAccessProvider } from './quickAccessProvider';
@@ -448,14 +448,14 @@ function vsCommandCompile(): Disposable {
 	});
 }
 
-export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true): Promise<string | void> {
+export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = outputChannel): Promise<string | void> {
 	// outputChannel.clear();
 	if (showOutput) {
-		outputChannel.show(true);
+		channel.show(true);
 	}
-	outputChannel.appendLine('Running Arduino CLI...');
-	outputChannel.appendLine(`${command}`);
-	outputChannel.appendLine(args.join(' '));
+	channel.appendLine('Running Arduino CLI...');
+	channel.appendLine(`${command}`);
+	channel.appendLine(args.join(' '));
 
 	const child = cp.spawn(`${command}`, args);
 	let outputBuffer = '';  // String buffer to store output
@@ -465,7 +465,7 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 		child.stdout.on('data', (data: Buffer) => {
 			const output = data.toString();
 			if (showOutput) {
-				outputChannel.append(output);
+				channel.append(output);
 			}
 
 			if (returnOutput) {
@@ -477,7 +477,7 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 		child.stderr.on('data', (data: Buffer) => {
 			const error = `Error: ${data.toString()}`;
 			if (showOutput) {
-				outputChannel.appendLine(error);
+				channel.appendLine(error);
 			}
 			if (returnOutput) {
 				outputBuffer += error;
@@ -492,14 +492,14 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 				resolve(returnOutput ? outputBuffer : undefined);
 			} else {
 				// Command failed
-				outputChannel.appendLine(`Command failed with code ${code}. Check Output window for details.`);
+				channel.appendLine(`Command failed with code ${code}. Check Output window for details.`);
 				reject(`Command failed with code ${code}`);
 			}
 		});
 
 		// Handle error event in case the command fails to start
 		child.on('error', (err: any) => {
-			outputChannel.appendLine(`Failed to run command: ${err.message}`);
+			channel.appendLine(`Failed to run command: ${err.message}`);
 			reject(`Failed to run command: ${err.message}`);
 		});
 	});
