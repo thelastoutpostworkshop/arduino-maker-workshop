@@ -22,7 +22,7 @@ const installOption: string = 'install';
 const uninstallOption: string = 'uninstall';
 const searchOption: string = 'search';
 const listOption: string = 'list';
-const addtionalURLOption:string = '--additional-urls';
+const addtionalURLOption: string = '--additional-urls';
 export const verboseOptionArduino: string = '-v';
 export const portOptionArduino: string = '-p';
 export const buildPathArduino: string = '--build-path';
@@ -199,6 +199,8 @@ export class ArduinoProject {
             `${coreCommandArduino}`,
             `${searchOption}`,
             `-a`,
+            `${addtionalURLOption}`,
+            `${this.additionnlBoardURLs}`,
             `${jsonOutputArduino}`
         ];
         return searchAllCommand;
@@ -356,7 +358,7 @@ export class ArduinoProject {
     private writeVSCodeArduinoConfiguration() {
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
-    public getAdditionalBoardURLs():string {
+    public getAdditionalBoardURLs(): string {
         return this.additionnlBoardURLs;
     }
     private getProjectPath(): string {
