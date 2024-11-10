@@ -31,6 +31,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         platform: null as CorePlatforms | null,
         libraries: null as Libsearch | null,
         librariesInstalled: null as Liblist | null,
+        additionalBoardURLs:null as string | null,
         boardUpdating: "",
         libraryUpdating: ""
     }),
@@ -158,6 +159,9 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                     this.projectInfo = message.payload;
+                    break;
+                case ARDUINO_MESSAGES.GET_ADDITIONAL_URLS:
+                    this.additionalBoardURLs = message.payload;
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                     this.projectStatus = message.payload;
