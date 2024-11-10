@@ -168,7 +168,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                     try {
-                        this.boardOptions = extractBoardConfiguration(message.payload);
+                        this.boardOptions = JSON.parse(message.payload);
                     } catch (error) {
                         console.log("Failed to parse Board Configuration information.");
                     }
@@ -221,8 +221,3 @@ export const useVsCodeStore = defineStore('vsCode', {
         },
     },
 });
-
-function extractBoardConfiguration(boardConf: string): BoardConfiguration {
-    const currentConfig = JSON.parse(boardConf);
-    return currentConfig;
-}
