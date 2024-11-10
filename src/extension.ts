@@ -11,6 +11,7 @@ const cliPathSetting: string = "cli.path";
 const addtionalBoardURLSetting: string = "additionalBoardsUrl";
 
 const outputChannel = window.createOutputChannel('Arduino CLI');
+const compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
 export const arduinoExtensionChannel = window.createOutputChannel('Arduino Extension');
 arduinoExtensionChannel.appendLine("Arduino Extension started");
 
