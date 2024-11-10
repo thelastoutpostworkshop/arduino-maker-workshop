@@ -51,6 +51,13 @@ export class ArduinoProject {
             this.projectFullPath = workspaceFolders[0].uri.fsPath;
         }
     }
+    private addAdditionalBoardURLs(commandArray: string[]): void {
+        // Only add these if additionnlBoardURLs is not empty
+        if (this.additionnlBoardURLs && this.additionnlBoardURLs.trim() !== '') {
+            commandArray.push(`${addtionalURLOption}`);
+            commandArray.push(`${this.additionnlBoardURLs}`);
+        }
+    }
     public readConfiguration(): boolean {
         if (!this.projectFullPath) {
             return false;
@@ -138,8 +145,6 @@ export class ArduinoProject {
         const updateCoreCommand = [
             `${coreCommandArduino}`,
             `${updateOption}`,
-            `${addtionalURLOption}`,
-            `${this.additionnlBoardURLs}`
         ];
         return updateCoreCommand;
     }
@@ -199,12 +204,12 @@ export class ArduinoProject {
             `${coreCommandArduino}`,
             `${searchOption}`,
             `-a`,
-            `${addtionalURLOption}`,
-            `${this.additionnlBoardURLs}`,
             `${jsonOutputArduino}`
         ];
+        this.addAdditionalBoardURLs(searchAllCommand);
         return searchAllCommand;
     }
+
     public getLibrarySearchArguments(): string[] {
         const libSearchCommand = [
             `${libraryCommandArduino}`,
