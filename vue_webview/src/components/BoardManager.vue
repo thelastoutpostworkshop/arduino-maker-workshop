@@ -205,53 +205,18 @@ const platformName = (platform_id: string): string => {
             </v-tooltip>
           </template>
         </v-data-table>
-
-        <!-- <v-card v-for="(platform) in filteredPlatforms" :key="platform.id" color="blue-grey-darken-4" class="mb-5 mt-5">
-          <v-card-title>
-            {{ platformName(platform.id) }}
-            <span class="text-subtitle-2 pl-5"> <a :href="platform.website" target="_blank">Info</a></span>
-          </v-card-title>
-          <v-card-subtitle>
-            {{ "by " + platform.maintainer }}
-            <span>
-              {{ platform.installed_version }} installed
-            </span>
-            <span class="text-green font-weight-bold">
-              ({{ platform.latest_version }} is the newest)
-            </span>
-          </v-card-subtitle>
-          <v-card-text>
-            <v-row>
-              <v-col>
-                <v-select v-if="platform.releases" v-model="selectedPlatform[platform.id]" :items="releases(platform)"
-                  item-title="version" item-value="version" return-object density="compact">
-                </v-select>
-              </v-col>
-              <v-col v-if="!isPlatformInstalled(platform)">
-                <v-btn>Install</v-btn>
-              </v-col>
-              <v-col v-if="isPlatformInstalled(platform) && !isPlatformUpdatable(platform)">
-                <v-btn @click="updatePlatformVersion(platform.id)"
-                  :disabled="selectedPlatform[platform.id] === platform.latest_version">Install older
-                  version</v-btn>
-              </v-col>
-              <v-col v-if="isPlatformUpdatable(platform) && isPlatformInstalled(platform)">
-                <v-btn @click="updatePlatformVersion(platform.id)"
-                  v-if="selectedPlatform[platform.id] === platform.latest_version">Update</v-btn>
-                <v-btn @click="updatePlatformVersion(platform.id)"
-                  v-if="(selectedPlatform[platform.id] !== platform.latest_version) && (selectedPlatform[platform.id] !== platform.installed_version)">Install
-                  older version</v-btn>
-                <span v-else-if="selectedPlatform[platform.id] === platform.installed_version">(this version is
-                  currently
-                  installed)</span>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card> -->
       </div>
       <div v-else>
-        {{ store.boardUpdating }}
-        <v-progress-linear color="grey" indeterminate></v-progress-linear>
+        <v-card class="mt-5">
+          <v-card-item :title="store.boardUpdating">
+            <template v-slot:subtitle>
+              Please wait
+            </template>
+          </v-card-item>
+          <v-card-text class="py-0">
+            <v-progress-linear color="grey" indeterminate></v-progress-linear>
+          </v-card-text>
+        </v-card>
       </div>
     </v-responsive>
   </v-container>
