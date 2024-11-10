@@ -105,6 +105,7 @@ export function checkArduinoCLICommand(): Promise<string> {
 			.then((result) => {
 				if (result) {
 					try {
+						getCoreUpdate();
 						resolve(result);
 					} catch (parseError) {
 						arduinoExtensionChannel.appendLine('Failed to get Arduino CLI version information.');
