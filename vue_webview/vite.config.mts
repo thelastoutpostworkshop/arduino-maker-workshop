@@ -19,6 +19,7 @@ export default defineConfig({
     Components(),
   ],
   build: {
+    copyPublicDir:false,
     sourcemap: true,
     rollupOptions: {
       external: [
