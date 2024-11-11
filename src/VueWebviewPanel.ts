@@ -198,7 +198,6 @@ export class VueWebviewPanel {
     public dispose() {
         VueWebviewPanel.currentPanel = undefined;
 
-        // Clean up resources
         this._panel.dispose();
 
         while (this._disposables.length) {
@@ -214,7 +213,6 @@ export class VueWebviewPanel {
         const scriptUri = getUri(webview, extensionUri, ["vue_webview", "dist", "assets", "index.js"]);
 
         const nonce = getNonce();
-        // arduinoExtensionChannel.appendLine(nonce);
 
         const hmltcontent = /*html*/ `
         <!DOCTYPE html>

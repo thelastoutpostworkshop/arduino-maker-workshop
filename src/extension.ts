@@ -20,7 +20,6 @@ let cliCommandArduinoPath: string = "";
 export let arduinoConfigurationLastError: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_ERRORS;
 
 export function activate(context: ExtensionContext) {
-	// Read the arduino-cli path setting
 	const config = workspace.getConfiguration();
 	cliCommandArduinoPath = config.get<string>(cliPathSetting, "");
 	arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${cliCommandArduinoPath}`);
@@ -32,13 +31,12 @@ export function activate(context: ExtensionContext) {
 	const quickAccessProvider = new QuickAccessProvider();
 	window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
 
-	// Watch for changes in folder or workspace configuration
 	workspace.onDidChangeWorkspaceFolders(() => {
-		quickAccessProvider.refresh(); // Refresh when the workspace folders change
+		quickAccessProvider.refresh(); 
 	});
 
 	workspace.onDidSaveTextDocument(() => {
-		quickAccessProvider.refresh(); // Refresh when a text document is saved
+		quickAccessProvider.refresh(); 
 	});
 
 	// Check if the current folder is a valid Arduino project
@@ -360,26 +358,21 @@ export async function getBoardsListAll_old(): Promise<ArduinoBoardsListPayload> 
 			throw new Error("Command result empty");
 		}
 
-		// Parse board list
 		const boardList = JSON.parse(result).boards;
 
-		// Initialize an empty object to hold the structured board data
 		const boardStructure: { [platform: string]: { name: string, fqbn: string }[] } = {};
 		const uniqueFqbnSet = new Set<string>();
 
 		boardList.forEach((board: any) => {
 			const platformName = board.platform.release.name; // Get the platform release name
 
-			// Initialize the platform in the structure if it doesn't exist
 			if (!boardStructure[platformName]) {
 				boardStructure[platformName] = [];
 			}
 
-			// Loop through each board under this platform
 			board.platform.release.boards.forEach((boardInfo: any) => {
 				const { name, fqbn } = boardInfo;
 
-				// Only add if the fqbn is not a duplicate
 				if (!uniqueFqbnSet.has(fqbn)) {
 					uniqueFqbnSet.add(fqbn);
 					boardStructure[platformName].push({ name, fqbn });
@@ -410,7 +403,6 @@ function vsCommandUpload(): Disposable {
 			window.showInformationMessage('Port not found, cannot upload');
 		}
 
-		// Execute the Arduino CLI command
 		const uploadCommand = arduinoProject.getUploadArguments();
 		const output = executeArduinoCommand(`${cliCommandArduinoPath}`, uploadCommand, true, true,compileUploadChannel);
 
@@ -432,7 +424,6 @@ function vsCommandCompile(): Disposable {
 			window.showInformationMessage('Output not found, cannot compile');
 		}
 
-		// Execute the Arduino CLI command
 		const compileCommand = arduinoProject.getCompileCommandArguments();
 		executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true, true,compileUploadChannel)
 			.then(output => {
@@ -453,12 +444,13 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 	if (showOutput) {
 		channel.show(true);
 	}
+	channel.appendLine('');
 	channel.appendLine('Running Arduino CLI...');
 	channel.appendLine(`${command}`);
 	channel.appendLine(args.join(' '));
 
 	const child = cp.spawn(`${command}`, args);
-	let outputBuffer = '';  // String buffer to store output
+	let outputBuffer = '';  
 
 	return new Promise((resolve, reject) => {
 		// Stream stdout to the output channel and optionally to the buffer
@@ -484,20 +476,18 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 			}
 		});
 
-		// Handle the process exit event
 		child.on('close', (code: number) => {
 			if (code === 0) {
-				// Successful completion
-				// vscode.window.showInformationMessage('Command executed successfully.');
+				if (showOutput) {
+					channel.appendLine('Command executed successfully.');
+				}
 				resolve(returnOutput ? outputBuffer : undefined);
 			} else {
-				// Command failed
 				channel.appendLine(`Command failed with code ${code}.`);
 				reject(`Command failed with code ${code}`);
 			}
 		});
 
-		// Handle error event in case the command fails to start
 		child.on('error', (err: any) => {
 			channel.appendLine(`Failed to run command: ${err.message}`);
 			reject(`Failed to run command: ${err.message}`);

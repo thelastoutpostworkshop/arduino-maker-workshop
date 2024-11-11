@@ -247,23 +247,15 @@ export class ArduinoProject {
         try {
             let error: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_INO_FILES;
 
-            // Get the folder name
             const folderName = path.basename(this.getProjectPath());
-
-            // Read the contents of the folder
             const files = fs.readdirSync(this.getProjectPath());
 
-            // Check if any files have the .ino extension and match the folder name
             for (const file of files) {
-                // Get the full path of the file
                 const filePath = path.join(this.getProjectPath(), file);
 
-                // Check if it's a file and has a .ino extension
                 if (fs.statSync(filePath).isFile() && path.extname(file).toLowerCase() === ARDUINO_SKETCH_EXTENSION) {
-                    // Get the sketch file name without extension
                     const sketchFileName = path.basename(file, ARDUINO_SKETCH_EXTENSION);
 
-                    // If the sketch file name matches the folder name, exit the loop with the correct error code
                     if (sketchFileName === folderName) {
                         error = ARDUINO_ERRORS.NO_ERRORS;
                         break;
@@ -334,7 +326,6 @@ export class ArduinoProject {
             version: 4
         };
 
-        // Write the c_cpp_properties.json file
         const cppPropertiesPath = path.join(this.getProjectPath(), VSCODE_FOLDER, CPP_PROPERTIES);
         fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
 
@@ -344,18 +335,11 @@ export class ArduinoProject {
         this.additionnlBoardURLs = urls;
     }
     public setPort(port: string): void {
-        // Update the configJson object
         this.configJson.port = port;
-
-        // Write the updated configuration back to the arduino.json file
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
     public updateBoardConfiguration(newConfig: string): void {
-
-        // Step 2: Replace the configuration in configJson with the new configuration string
         this.configJson.configuration = newConfig;
-
-        // Step 3: Write the updated configuration back to the arduino.json file
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
 
