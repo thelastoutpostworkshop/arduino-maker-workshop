@@ -272,6 +272,7 @@ export const ARDUINO_MESSAGES = {
   CLI_CORE_SEARCH: 'cli_coreSearch',
   CLI_LIBRARY_SEARCH: 'cli_librarySearch',
   CLI_CREATE_NEW_SKETCH: 'cli_arduinoNewSketch',
+  CLI_INSTALL_LIBRARY: 'cliIInstallLibrary',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
   ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
   SET_BOARD: 'setArduinoBoard',

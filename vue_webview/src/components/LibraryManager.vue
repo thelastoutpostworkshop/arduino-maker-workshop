@@ -42,12 +42,11 @@ watch(
   }
 );
 
-// function updatePlatformVersion(platformID: string) {
-//   const toInstall = selectedLibrary.value[platformID];
-//   const version = `${platformID}@${toInstall}`;
-//   vscode.postMessage({ command: ARDUINO_MESSAGES.INSTALL_CORE_VERSION, errorMessage: "", payload: version });
-//   store.boardUpdating = version;
-// }
+function installLibrary(name: string, version: string) {
+  const toInstall = `${name}@${version}`;
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_INSTALL_LIBRARY, errorMessage: "", payload: toInstall });
+  store.libraryUpdating = `Installing library ${toInstall}`;
+}
 
 function isLibraryInstalled(library: LibraryAvailable): boolean {
   const installedLibrary = findLibrary(library.name);
@@ -64,10 +63,6 @@ function isLibraryDeprecated(library: LibraryAvailable): boolean {
   const paragraph = library.latest.paragraph?.toLowerCase() ?? "";
   return sentence.includes("deprecated") || paragraph.includes("deprecated");
 }
-// function installedVersion(library: LibraryAvailable): string {
-//   const installedLibrary = findLibrary(library.name);
-//   return installedLibrary?.library.version ?? '';
-// }
 
 function findLibrary(name: string): InstalledLibrary | undefined {
   const foundLibrary = store.librariesInstalled?.installed_libraries.find(
@@ -159,7 +154,8 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
                     <v-col>
                       <v-tooltip>
                         <template v-slot:activator="{ props }">
-                          <v-btn icon v-bind="props" variant="text">
+                          <v-btn @click="installLibrary(item.name, selectedLibrary[item.name])" icon v-bind="props"
+                            variant="text">
                             <v-icon>
                               mdi-tray-arrow-down
                             </v-icon>
@@ -176,7 +172,7 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
           <template v-slot:item.actions="{ item }">
             <v-tooltip>
               <template v-slot:activator="{ props }">
-                <v-btn icon v-bind="props" variant="text">
+                <v-btn icon @click="installLibrary(item.name, item.latest.version)" v-bind="props" variant="text">
                   <v-icon v-if="!isLibraryInstalled(item) || isLibraryUpdatable(item)">
                     mdi-tray-arrow-down
                   </v-icon>
@@ -201,8 +197,16 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
         </v-data-table>
       </div>
       <div v-else>
-        Installing board, please wait
-        <v-progress-linear color="grey" indeterminate></v-progress-linear>
+        <v-card class="mt-5">
+          <v-card-item :title="store.libraryUpdating">
+            <template v-slot:subtitle>
+              Please wait
+            </template>
+          </v-card-item>
+          <v-card-text class="py-0">
+            <v-progress-linear color="grey" indeterminate></v-progress-linear>
+          </v-card-text>
+        </v-card>
       </div>
     </v-responsive>
   </v-container>
