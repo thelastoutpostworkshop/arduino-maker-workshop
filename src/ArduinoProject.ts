@@ -156,6 +156,14 @@ export class ArduinoProject {
         ];
         return installCoreVersionCommand;
     }
+    public getInstallLibraryVersionArguments(version: string): string[] {
+        const command = [
+            `${libraryCommandArduino}`,
+            `${installOption}`,
+            `${version}`
+        ];
+        return command;
+    }
     public getUninstallCoreArguments(board_id: string): string[] {
         const installCoreVersionCommand = [
             `${coreCommandArduino}`,

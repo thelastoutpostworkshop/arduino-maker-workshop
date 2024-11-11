@@ -210,6 +210,20 @@ export async function searchLibraryInstalled(): Promise<string> {
 	}
 }
 
+export async function runInstallLibraryVersion(library: string): Promise<string> {
+	try {
+		const args = arduinoProject.getInstallLibraryVersionArguments(library);
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, true, true);
+		if (!result) {
+			window.showErrorMessage(`CLI : No result from library version installation`);
+			throw new Error("Command result empty");
+		}
+		return result;
+	} catch (error: any) {
+		window.showErrorMessage(`CLI : Error from library version installation`);
+		throw error;
+	}
+}
 export async function runInstallCoreVersion(board_id: string): Promise<string> {
 	try {
 		const coreUninstallVersionArgs = arduinoProject.getInstallCoreVersionArguments(board_id);
