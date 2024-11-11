@@ -219,10 +219,11 @@ export const useVsCodeStore = defineStore('vsCode', {
                         console.log("Failed to parse library search response: " + error);
                     }
                     break;
+                case ARDUINO_MESSAGES.LIBRARY_UNINSTALLED:
                 case ARDUINO_MESSAGES.LIBRARY_VERSION_INSTALLED:
-                    this.libraryUpdating="";
-                    this.librariesInstalled=null;
-                    this.libraries=null;
+                    this.libraryUpdating = "";
+                    this.librariesInstalled = null;
+                    this.libraries = null;
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: "", payload: "" });
                     break;

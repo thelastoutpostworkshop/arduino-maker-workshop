@@ -238,6 +238,21 @@ export async function runInstallCoreVersion(board_id: string): Promise<string> {
 		throw error;
 	}
 }
+export async function runUninstallLibrary(version: string): Promise<string> {
+	try {
+		const coreInstallVersionArgs = arduinoProject.getUninstallLibraryArguments(version);
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, coreInstallVersionArgs, true, true);
+		if (!result) {
+			window.showErrorMessage(`CLI : No result from library uninstall`);
+			throw new Error("Command result empty");
+		}
+		return result;
+	} catch (error: any) {
+		window.showErrorMessage(`CLI : Error from library uninstall`);
+		throw error;
+	}
+}
+
 export async function runUninstallCoreVersion(version: string): Promise<string> {
 	try {
 		const coreInstallVersionArgs = arduinoProject.getUninstallCoreArguments(version);

@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, createNewSketch, getBoardConfiguration, getBoardConnected, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck, runInstallCoreVersion, runInstallLibraryVersion, runUninstallCoreVersion, searchCore, searchLibrary, searchLibraryInstalled } from "./extension";
+import { arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, createNewSketch, getBoardConfiguration, getBoardConnected, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, processArduinoCLICommandCheck, runInstallCoreVersion, runInstallLibraryVersion, runUninstallCoreVersion, runUninstallLibrary, searchCore, searchLibrary, searchLibraryInstalled } from "./extension";
 
 const path = require('path');
 const fs = require('fs');
@@ -100,6 +100,12 @@ export class VueWebviewPanel {
                         const libToInstall = message.payload;
                         runInstallLibraryVersion(libToInstall).then(() => {
                             message.command = ARDUINO_MESSAGES.LIBRARY_VERSION_INSTALLED;
+                            VueWebviewPanel.sendMessage(message);
+                        });
+                        break;
+                    case ARDUINO_MESSAGES.CLI_UNINSTALL_LIBRARY:
+                        runUninstallLibrary(message.payload).then(() => {
+                            message.command = ARDUINO_MESSAGES.LIBRARY_UNINSTALLED;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;

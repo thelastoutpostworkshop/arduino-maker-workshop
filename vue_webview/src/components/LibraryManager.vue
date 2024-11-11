@@ -185,7 +185,7 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
                   </v-icon>
                 </v-btn>
                 <v-btn v-if="isLibraryInstalled(item) && !isLibraryUpdatable(item)" icon
-                  @click="uninstallLibrary(item.name, item.latest.version)" v-bind="props" variant="text">
+                  @click="uninstallLibrary(item.name)" v-bind="props" variant="text">
                   <v-icon>
                     mdi-trash-can
                   </v-icon>

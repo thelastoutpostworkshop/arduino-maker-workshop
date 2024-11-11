@@ -283,6 +283,7 @@ export const ARDUINO_MESSAGES = {
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
   CORE_UNINSTALLED: 'coreUninstalled',
   LIBRARY_VERSION_INSTALLED: 'libraryVersionInstalled',
+  LIBRARY_UNINSTALLED: 'libraryVersionInstalled',
   SET_ADDITIONAL_URLS: 'setAdditionalURLs',
   GET_ADDITIONAL_URLS: 'getAdditionalURLs'
 };
