@@ -364,59 +364,6 @@ export async function getBoardConnected(): Promise<string> {
 	}
 }
 
-export async function getBoardsListAll_old(): Promise<ArduinoBoardsListPayload> {
-	const message: ArduinoBoardsListPayload = {
-		errorMessage: "",
-		boardStructure: undefined,
-	};
-
-	try {
-		if (!loadArduinoConfiguration()) {
-			throw new Error("Unable to load Project Configuration");
-		}
-
-		if (!arduinoProject.getBoard()) {
-			throw new Error("Unable to get Project Board");
-		}
-
-		const allBoardArgs = arduinoProject.getBoardsListArguments();
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, allBoardArgs, true, false);
-
-		if (!result) {
-			window.showErrorMessage(`CLI : No result from get board list`);
-			throw new Error("Command result empty");
-		}
-
-		const boardList = JSON.parse(result).boards;
-
-		const boardStructure: { [platform: string]: { name: string, fqbn: string }[] } = {};
-		const uniqueFqbnSet = new Set<string>();
-
-		boardList.forEach((board: any) => {
-			const platformName = board.platform.release.name; // Get the platform release name
-
-			if (!boardStructure[platformName]) {
-				boardStructure[platformName] = [];
-			}
-
-			board.platform.release.boards.forEach((boardInfo: any) => {
-				const { name, fqbn } = boardInfo;
-
-				if (!uniqueFqbnSet.has(fqbn)) {
-					uniqueFqbnSet.add(fqbn);
-					boardStructure[platformName].push({ name, fqbn });
-				}
-			});
-		});
-
-		message.boardStructure = boardStructure;
-	} catch (error: any) {
-		message.errorMessage = error.message;
-		window.showErrorMessage(`CLI : Error from get board list`);
-	}
-	return message;
-}
-
 function vsCommandUpload(): Disposable {
 	return commands.registerCommand('quickAccessView.upload', () => {
 		if (!loadArduinoConfiguration()) {
