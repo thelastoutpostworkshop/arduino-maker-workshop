@@ -273,6 +273,7 @@ export const ARDUINO_MESSAGES = {
   CLI_LIBRARY_SEARCH: 'cli_librarySearch',
   CLI_CREATE_NEW_SKETCH: 'cli_arduinoNewSketch',
   CLI_INSTALL_LIBRARY: 'cli_InstallLibrary',
+  CLI_UNINSTALL_LIBRARY: 'cli_UnInstallLibrary',
   CLI_LIBRARY_INSTALLED: 'cli_libraryInstalled',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
   ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',

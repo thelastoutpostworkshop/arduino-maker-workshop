@@ -47,7 +47,7 @@ function updatePlatformVersion(platformID: string) {
 }
 function uninstallPlatform(platformID: string) {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_UNINSTALL_CORE, errorMessage: "", payload: platformID });
-  store.boardUpdating = `Uninstalling board ${platformID}`;
+  store.boardUpdating = `Removing board ${platformID}`;
 }
 
 function releases(platform: Platform): string[] {

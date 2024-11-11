@@ -48,6 +48,12 @@ function installLibrary(name: string, version: string) {
   store.libraryUpdating = `Installing library ${toInstall}`;
 }
 
+function uninstallLibrary(name: string) {
+  const toUnInstall = `${name}`;
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_UNINSTALL_LIBRARY, errorMessage: "", payload: toUnInstall });
+  store.libraryUpdating = `Removing library ${toUnInstall}`;
+}
+
 function isLibraryInstalled(library: LibraryAvailable): boolean {
   const installedLibrary = findLibrary(library.name);
   return installedLibrary !== undefined;
@@ -172,11 +178,15 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
           <template v-slot:item.actions="{ item }">
             <v-tooltip>
               <template v-slot:activator="{ props }">
-                <v-btn icon @click="installLibrary(item.name, item.latest.version)" v-bind="props" variant="text">
-                  <v-icon v-if="!isLibraryInstalled(item) || isLibraryUpdatable(item)">
+                <v-btn v-if="!isLibraryInstalled(item) || isLibraryUpdatable(item)" icon
+                  @click="installLibrary(item.name, item.latest.version)" v-bind="props" variant="text">
+                  <v-icon>
                     mdi-tray-arrow-down
                   </v-icon>
-                  <v-icon v-if="isLibraryInstalled(item) && !isLibraryUpdatable(item)">
+                </v-btn>
+                <v-btn v-if="isLibraryInstalled(item) && !isLibraryUpdatable(item)" icon
+                  @click="uninstallLibrary(item.name, item.latest.version)" v-bind="props" variant="text">
+                  <v-icon>
                     mdi-trash-can
                   </v-icon>
                 </v-btn>
