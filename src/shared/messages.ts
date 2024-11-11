@@ -273,6 +273,7 @@ export const ARDUINO_MESSAGES = {
   CLI_LIBRARY_SEARCH: 'cli_librarySearch',
   CLI_CREATE_NEW_SKETCH: 'cli_arduinoNewSketch',
   CLI_INSTALL_LIBRARY: 'cliIInstallLibrary',
+  CLI_LIBRARY_INSTALLED: 'libraryInstalled',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
   ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
   SET_BOARD: 'setArduinoBoard',
@@ -280,7 +281,7 @@ export const ARDUINO_MESSAGES = {
   SET_PORT: 'setArduinoPort',
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
   CORE_UNINSTALLED: 'coreUninstalled',
-  LIBRARY_INSTALLED: 'libraryInstalled',
+  LIBRARY_VERSION_INSTALLED: 'libraryVersionInstalled',
   SET_ADDITIONAL_URLS: 'setAdditionalURLs',
   GET_ADDITIONAL_URLS: 'getAdditionalURLs'
 };

@@ -115,7 +115,7 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.LIBRARY_INSTALLED:
+                    case ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED:
                         searchLibraryInstalled().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);

@@ -51,7 +51,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                             this.handleMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.LIBRARY_INSTALLED:
+                    case ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED:
                         loadMockData('libinstalled.json').then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
@@ -123,7 +123,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         vscode.postMessage(message);
                     }
                     break;
-                case ARDUINO_MESSAGES.LIBRARY_INSTALLED:
+                case ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED:
                     if (!this.librariesInstalled) {
                         vscode.postMessage(message);
                     }
@@ -179,7 +179,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                             })
                             .filter((optionString) => optionString !== null) // Remove any null values from the array
                             .join(",");
-                            this.sendMessage({ command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS, errorMessage: "", payload: configuration });
+                        this.sendMessage({ command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS, errorMessage: "", payload: configuration });
                     } catch (error) {
                         console.log("Failed to parse Board Configuration information.");
                     }
@@ -212,7 +212,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         console.log("Failed to parse library search response: " + error);
                     }
                     break;
-                case ARDUINO_MESSAGES.LIBRARY_INSTALLED:
+                case ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED:
                     try {
                         this.librariesInstalled = JSON.parse(message.payload);
                     } catch (error) {
