@@ -23,7 +23,8 @@ onMounted(() => {
 
 const headers = [
   { title: 'Name', value: 'name', key: 'name', sortable: true },
-  { title: 'Version', value: 'latest.version', key: 'latest.version', align: 'center' as const, sortable: false, width: '15%' },
+  { title: 'Installed', value: 'installedVersion', key: 'installedVersion', align: 'center' as const, sortable: false, width: '15%' },
+  { title: 'Latest', value: 'latest.version', key: 'latest.version', align: 'center' as const, sortable: false, width: '15%' },
   { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '10%' },
 ];
 
@@ -79,6 +80,12 @@ function findLibrary(name: string): InstalledLibrary | undefined {
 
 const filteredLibraries = computed(() => {
   const filtered = filterLibs(filterLibraries.value);
+  filtered.forEach((library) => {
+    const lib = findLibrary(library.name);
+    if (lib) {
+      library.installedVersion = lib.library.version;
+    }
+  })
   filterdLibrariesCount.value = filtered.length;
   return filtered
 })

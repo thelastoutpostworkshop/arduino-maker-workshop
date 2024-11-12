@@ -195,6 +195,7 @@ export interface LibraryAvailable {
   name: string;
   releases: Releases;
   latest: LatestLibrary;
+  installedVersion?: string;
   available_versions: string[];
 }
 
