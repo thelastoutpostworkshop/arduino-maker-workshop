@@ -104,7 +104,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     }
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
-                    if (!this.projectStatus) {
+                    if (this.projectStatus === null) {
                         vscode.postMessage(message);
                     }
                     break;
@@ -125,6 +125,11 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED:
                     if (!this.librariesInstalled) {
+                        vscode.postMessage(message);
+                    }
+                    break;
+                case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
+                    if (!this.boardOptions) {
                         vscode.postMessage(message);
                     }
                     break;
