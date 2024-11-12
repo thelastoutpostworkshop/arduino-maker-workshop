@@ -20,6 +20,10 @@ async function loadMockData(mockFile: string, jsonToString: boolean = true): Pro
     }
 }
 
+function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
         cliStatus: null as ArduinoCLIStatus | null,
@@ -36,8 +40,9 @@ export const useVsCodeStore = defineStore('vsCode', {
         libraryUpdating: ""
     }),
     actions: {
-        mockMessage(message: WebviewToExtensionMessage) {
+       async mockMessage(message: WebviewToExtensionMessage) {
             if (import.meta.env.DEV) {
+                await sleep(1000);  // Simulate delay
                 switch (message.command) {
                     case ARDUINO_MESSAGES.CLI_CORE_SEARCH:
                         loadMockData('coresearch.json').then((mockPayload) => {

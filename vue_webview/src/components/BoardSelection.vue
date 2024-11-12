@@ -85,10 +85,16 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boar
           <v-progress-linear :active="!store.boardOptions?.name" height="2" indeterminate></v-progress-linear>
         </template> -->
       </v-text-field>
-      <div v-if="Object.keys(boardStructure).length === 0">
-        Loading Boards
-        <v-progress-circular :size="25" color="grey" indeterminate></v-progress-circular>
-      </div>
+      <v-card v-if="Object.keys(boardStructure).length === 0" class="mt-5">
+        <v-card-item title="Loading boards">
+          <template v-slot:subtitle>
+            Please wait
+          </template>
+        </v-card-item>
+        <v-card-text class="py-0">
+          <v-progress-linear color="grey" indeterminate></v-progress-linear>
+        </v-card-text>
+      </v-card>
       <div v-else>
         <div class="font-weight-bold pl-3 pb-3 text-blue-grey-lighten-3">
           Choose a board from the platforms installed:

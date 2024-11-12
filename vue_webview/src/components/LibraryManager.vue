@@ -132,10 +132,16 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
       <div class="text-center">
         <h1 class="text-h4 font-weight-bold">Library Manager</h1>
       </div>
-      <div v-if="!store.libraries?.libraries">
-        Loading Libraries
-        <v-progress-circular :size="25" color="grey" indeterminate></v-progress-circular>
-      </div>
+      <v-card v-if="!store.libraries?.libraries" class="mt-5">
+          <v-card-item title="Loading Libraries">
+            <template v-slot:subtitle>
+              Please wait
+            </template>
+          </v-card-item>
+          <v-card-text class="py-0">
+            <v-progress-linear color="grey" indeterminate></v-progress-linear>
+          </v-card-text>
+        </v-card>
       <div v-else-if="!store.libraryUpdating">
         <v-chip-group selected-class="text-primary" mandatory v-model="filterLibraries">
           <v-chip filter :value="FilterLibraries.installed">Installed & Up to date</v-chip>
