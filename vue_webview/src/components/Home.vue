@@ -118,20 +118,34 @@ onMounted(() => {
               <v-btn @click="createNewSkecth" :disabled="sketchName.trim().length == 0">New Sketch</v-btn>
             </v-card-actions>
           </v-card>
-          <div v-if="!store.projectInfo?.board">
-            <v-btn @click="router.push({ name: 'board-selection' })">Select a board first</v-btn>
+          <div v-if="store.projectStatus === null && !store.projectInfo?.board">
+            <v-card class="mt-5">
+              <v-card-item title="Getting Project Information">
+                <template v-slot:subtitle>
+                  Please wait
+                </template>
+              </v-card-item>
+              <v-card-text class="py-0">
+                <v-progress-linear color="grey" indeterminate></v-progress-linear>
+              </v-card-text>
+            </v-card>
           </div>
-          <v-card class="pa-4 mt-4" color="blue-grey-darken-4" prepend-icon="mdi-console" rounded="lg">
-            <template #title>
-              <h2 class="text-h6 font-weight-bold">Built-in CLI</h2>
-            </template>
+          <div v-else>
+            <div v-if="store.boardOptions && store.boardOptions.fqbn.trim() === ''">
+              <v-btn @click="router.push({ name: 'board-selection' })">Select a board first</v-btn>
+            </div>
+            <v-card class="pa-4 mt-4" color="blue-grey-darken-4" prepend-icon="mdi-console" rounded="lg">
+              <template #title>
+                <h2 class="text-h6 font-weight-bold">Built-in CLI</h2>
+              </template>
 
-            <template #subtitle>
-              <div class="text-subtitle-1">
-                v{{ store.cliStatus?.version }} ({{ store.cliStatus?.date }})
-              </div>
-            </template>
-          </v-card>
+              <template #subtitle>
+                <div class="text-subtitle-1">
+                  v{{ store.cliStatus?.version }} ({{ store.cliStatus?.date }})
+                </div>
+              </template>
+            </v-card>
+          </div>
         </v-col>
       </v-row>
     </v-responsive>
