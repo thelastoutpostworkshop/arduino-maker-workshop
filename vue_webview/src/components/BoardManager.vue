@@ -22,7 +22,8 @@ onMounted(() => {
 
 const headers = [
   { title: 'Name', value: 'name', key: 'name', sortable: true },
-  { title: 'Version', value: 'latest_version', key: 'latest_version', align: 'center' as const, sortable: false, width: '15%' },
+  { title: 'Installed', value: 'installed_version', key: 'installed_version', align: 'center' as const, sortable: false, width: '15%' },
+  { title: 'Latest', value: 'latest_version', key: 'latest_version', align: 'center' as const, sortable: false, width: '15%' },
   { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '10%' },
 ];
 
