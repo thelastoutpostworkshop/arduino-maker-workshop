@@ -32,11 +32,11 @@ export function activate(context: ExtensionContext) {
 	window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
 
 	workspace.onDidChangeWorkspaceFolders(() => {
-		quickAccessProvider.refresh(); 
+		quickAccessProvider.refresh();
 	});
 
 	workspace.onDidSaveTextDocument(() => {
-		quickAccessProvider.refresh(); 
+		quickAccessProvider.refresh();
 	});
 
 	// Check if the current folder is a valid Arduino project
@@ -152,135 +152,68 @@ export async function createNewSketch(name: string): Promise<string> {
 		throw error;
 	}
 }
+
 export async function getOutdatedBoardAndLib(): Promise<string> {
-	try {
-		const outdatedArgs = arduinoProject.getOutdatedArguments();
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, outdatedArgs, true, false);
-		if (!result) {
-			window.showErrorMessage(`CLI : No result from outdated Board and Libraries information`);
-			throw new Error("Command result empty");
-		}
-		return result;
-	} catch (error: any) {
-		window.showErrorMessage(`CLI : Failed to get outdated Board and Libraries information`);
-		throw error;
-	}
+	return runArduinoCommand(
+		() => arduinoProject.getOutdatedArguments(),
+		"CLI : Failed to get outdated Board and Libraries information"
+	);
 }
+
 export async function searchCore(): Promise<string> {
-	try {
-		const searchCoreArgs = arduinoProject.getCoreSearchArguments();
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, searchCoreArgs, true, false);
-		if (!result) {
-			window.showErrorMessage(`CLI : No result from search core`);
-			throw new Error("Command result empty");
-		}
-		return result;
-	} catch (error: any) {
-		window.showErrorMessage(`CLI : Error from search core`);
-		throw error;
-	}
+	return runArduinoCommand(
+		() => arduinoProject.getCoreSearchArguments(),
+		"CLI: Failed to get boards available"
+	);
 }
 
 export async function searchLibrary(): Promise<string> {
-	try {
-		const searchLibraryArgs = arduinoProject.getLibrarySearchArguments();
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, searchLibraryArgs, true, false);
-		if (!result) {
-			window.showErrorMessage(`CLI : No result from library search`);
-			throw new Error("Command result empty");
-		}
-		return result;
-	} catch (error: any) {
-		window.showErrorMessage(`CLI : Error from library search`);
-		throw error;
-	}
+	return runArduinoCommand(
+		() => arduinoProject.getLibrarySearchArguments(),
+		"CLI: Failed to get library available"
+	);
 }
+
 export async function searchLibraryInstalled(): Promise<string> {
-	try {
-		const searchLibraryArgs = arduinoProject.getLibraryInstalledArguments();
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, searchLibraryArgs, true, false);
-		if (!result) {
-			window.showErrorMessage(`CLI : No result from library installed`);
-			throw new Error("Command result empty");
-		}
-		return result;
-	} catch (error: any) {
-		window.showErrorMessage(`CLI : Error from library installed`);
-		throw error;
-	}
+	return runArduinoCommand(
+		() => arduinoProject.getLibraryInstalledArguments(),
+		"CLI: Failed to get library installed"
+	);
 }
 
 export async function runInstallLibraryVersion(library: string): Promise<string> {
-	try {
-		const args = arduinoProject.getInstallLibraryVersionArguments(library);
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, true, true);
-		if (!result) {
-			window.showErrorMessage(`CLI : No result from library version installation`);
-			throw new Error("Command result empty");
-		}
-		return result;
-	} catch (error: any) {
-		window.showErrorMessage(`CLI : Error from library version installation`);
-		throw error;
-	}
+	return runArduinoCommand(
+		() => arduinoProject.getInstallLibraryVersionArguments(library),
+		"CLI: Failed to install library",true,true
+	);
 }
+
 export async function runInstallCoreVersion(board_id: string): Promise<string> {
-	try {
-		const coreUninstallVersionArgs = arduinoProject.getInstallCoreVersionArguments(board_id);
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, coreUninstallVersionArgs, true, true);
-		if (!result) {
-			window.showErrorMessage(`CLI : No result from core version installation`);
-			throw new Error("Command result empty");
-		}
-		return result;
-	} catch (error: any) {
-		window.showErrorMessage(`CLI : Error from core version installation`);
-		throw error;
-	}
+	return runArduinoCommand(
+		() => arduinoProject.getInstallCoreVersionArguments(board_id),
+		"CLI: Failed to install board",true,true
+	);
 }
+
 export async function runUninstallLibrary(version: string): Promise<string> {
-	try {
-		const coreInstallVersionArgs = arduinoProject.getUninstallLibraryArguments(version);
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, coreInstallVersionArgs, true, true);
-		if (!result) {
-			window.showErrorMessage(`CLI : No result from library uninstall`);
-			throw new Error("Command result empty");
-		}
-		return result;
-	} catch (error: any) {
-		window.showErrorMessage(`CLI : Error from library uninstall`);
-		throw error;
-	}
+	return runArduinoCommand(
+		() => arduinoProject.getUninstallLibraryArguments(version),
+		"CLI: Failed to remove library",true,true
+	);
 }
 
 export async function runUninstallCoreVersion(version: string): Promise<string> {
-	try {
-		const coreInstallVersionArgs = arduinoProject.getUninstallCoreArguments(version);
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, coreInstallVersionArgs, true, true);
-		if (!result) {
-			window.showErrorMessage(`CLI : No result from core uninstall`);
-			throw new Error("Command result empty");
-		}
-		return result;
-	} catch (error: any) {
-		window.showErrorMessage(`CLI : Error from core uninstall`);
-		throw error;
-	}
+	return runArduinoCommand(
+		() => arduinoProject.getUninstallCoreArguments(version),
+		"CLI: Failed to remove board",true,true
+	);
 }
 
 export async function getCoreUpdate(): Promise<string> {
-	try {
-		const coreUpdateArgs = arduinoProject.getCoreUpdateArguments();
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, coreUpdateArgs, true, false);
-		if (!result) {
-			window.showErrorMessage(`CLI : No result from core update`);
-			throw new Error("Command result empty");
-		}
-		return result;
-	} catch (error: any) {
-		window.showErrorMessage(`CLI : Error from core update`);
-		throw error;
-	}
+	return runArduinoCommand(
+		() => arduinoProject.getCoreUpdateArguments(),
+		"CLI: Failed to get board update information"
+	);
 }
 
 export async function getBoardConfiguration(): Promise<string> {
@@ -335,33 +268,17 @@ export function loadArduinoConfiguration(): boolean {
 }
 
 export async function getBoardsListAll(): Promise<string> {
-	try {
-		const allBoardArgs = arduinoProject.getBoardsListArguments();
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, allBoardArgs, true, false);
-		if (!result) {
-			window.showErrorMessage(`No result from getting Boards list`);
-			throw new Error("Command result empty");
-		}
-		return result;
-	} catch (error: any) {
-		window.showErrorMessage(`Failed to get boards list`);
-		throw error;
-	}
+	return runArduinoCommand(
+		() => arduinoProject.getBoardsListArguments(),
+		"CLI: Failed to get boards list "
+	);
 }
 
 export async function getBoardConnected(): Promise<string> {
-	try {
-		const allBoardArgs = arduinoProject.getBoardConnected();
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, allBoardArgs, true, false);
-		if (!result) {
-			window.showErrorMessage(`No result from getting Boards list`);
-			throw new Error("Command result empty");
-		}
-		return result;
-	} catch (error: any) {
-		window.showErrorMessage(`Failed to get boards list`);
-		throw error;
-	}
+	return runArduinoCommand(
+		() => arduinoProject.getBoardConnectedArguments(),
+		"CLI: Failed to get Boards "
+	);
 }
 
 function vsCommandUpload(): Disposable {
@@ -380,7 +297,7 @@ function vsCommandUpload(): Disposable {
 		}
 
 		const uploadCommand = arduinoProject.getUploadArguments();
-		const output = executeArduinoCommand(`${cliCommandArduinoPath}`, uploadCommand, true, true,compileUploadChannel);
+		const output = executeArduinoCommand(`${cliCommandArduinoPath}`, uploadCommand, true, true, compileUploadChannel);
 
 	});
 }
@@ -401,7 +318,7 @@ function vsCommandCompile(): Disposable {
 		}
 
 		const compileCommand = arduinoProject.getCompileCommandArguments();
-		executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true, true,compileUploadChannel)
+		executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true, true, compileUploadChannel)
 			.then(output => {
 				if (output) {
 					// Parse the output and generate c_cpp_properties.json
@@ -415,6 +332,28 @@ function vsCommandCompile(): Disposable {
 	});
 }
 
+async function runArduinoCommand(
+	getArguments: () => string[],
+	errorMessagePrefix: string,
+	returnOutput: boolean = true,
+	showOutput: boolean = false,
+	channel: OutputChannel = outputChannel
+): Promise<string> {
+	try {
+		const args = getArguments();
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, returnOutput, showOutput, channel);
+		if (!result) {
+			const errorMsg = `${errorMessagePrefix}: No result`;
+			window.showErrorMessage(errorMsg);
+			throw new Error("Command result empty");
+		}
+		return result;
+	} catch (error: any) {
+		window.showErrorMessage(`${errorMessagePrefix}: ${error.message}`);
+		throw error;
+	}
+}
+
 export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = outputChannel): Promise<string | void> {
 	// outputChannel.clear();
 	if (showOutput) {
@@ -426,7 +365,7 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 	channel.appendLine(args.join(' '));
 
 	const child = cp.spawn(`${command}`, args);
-	let outputBuffer = '';  
+	let outputBuffer = '';
 
 	return new Promise((resolve, reject) => {
 		// Stream stdout to the output channel and optionally to the buffer

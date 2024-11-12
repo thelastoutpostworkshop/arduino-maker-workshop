@@ -154,6 +154,7 @@ export class ArduinoProject {
             `--run-pre-uninstall`,
             `${version}`
         ];
+        this.addAdditionalBoardURLs(installCoreVersionCommand);
         return installCoreVersionCommand;
     }
     public getInstallLibraryVersionArguments(version: string): string[] {
@@ -180,6 +181,7 @@ export class ArduinoProject {
             `--run-pre-uninstall`,
             `${board_id}`
         ];
+        this.addAdditionalBoardURLs(installCoreVersionCommand);
         return installCoreVersionCommand;
     }
     public getPortListArguments(): string[] {
@@ -206,7 +208,7 @@ export class ArduinoProject {
         this.addAdditionalBoardURLs(searchAllCommand);
         return searchAllCommand;
     }
-    public getBoardConnected(): string[] {
+    public getBoardConnectedArguments(): string[] {
         const command = [
             `${boardCommandArduino}`,
             `${listOption}`,
