@@ -12,7 +12,6 @@ enum FilterBoards {
 const store = useVsCodeStore();
 const filterBoards = ref(FilterBoards.installed);
 const selectedPlatform = ref<Record<string, string>>({});
-const updatableCount = ref(0);
 const searchBoards = ref('');
 const filterdBoardsCount = ref(0);
 
@@ -35,7 +34,7 @@ watch(
         selectedPlatform.value[platform.id] = platform.latest_version;
         platform.name = platformName(platform.id); // Patch because name is not provided by the CLI
       })
-      updatableCount.value = filterPlatforms(FilterBoards.updatable).length;
+      store.updatableBoardCount = filterPlatforms(FilterBoards.updatable).length;
     }
   },
 );
@@ -141,8 +140,8 @@ const platformName = (platform_id: string): string => {
       <div v-else-if="!store.boardUpdating">
         <v-chip-group selected-class="text-primary" mandatory v-model="filterBoards">
           <v-chip filter :value="FilterBoards.installed">Installed & Up to date</v-chip>
-          <v-chip :disabled="updatableCount == 0" filter :value="FilterBoards.updatable">Updatable
-            <v-badge v-if="updatableCount > 0" color="green" :content="updatableCount" inline>
+          <v-chip :disabled="store.updatableBoardCount == 0" filter :value="FilterBoards.updatable">Updatable
+            <v-badge v-if="store.updatableBoardCount > 0" color="green" :content="store.updatableBoardCount" inline>
 
             </v-badge>
           </v-chip>

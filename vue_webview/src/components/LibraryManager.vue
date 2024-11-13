@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, InstalledLibrary, LibraryAvailable } from '@shared/messages';
-import { onMounted, watch, computed, ref,onActivated } from 'vue';
+import { onMounted, watch, computed, ref } from 'vue';
 
 enum FilterLibraries {
   installed,
