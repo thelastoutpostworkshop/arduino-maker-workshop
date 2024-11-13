@@ -196,7 +196,7 @@ export class VueWebviewPanel {
                 ViewColumn.One,
                 {
                     enableScripts: true,
-                    // retainContextWhenHidden: true,
+                    retainContextWhenHidden: true,
                     localResourceRoots: [
                         Uri.joinPath(extensionUri, "build"),
                         Uri.joinPath(extensionUri, "vue_webview/dist")
