@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, Platform } from '@shared/messages';
-import { onMounted, watch, computed, ref } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 
 enum FilterBoards {
   installed,
@@ -26,18 +26,17 @@ const headers = [
   { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '10%' },
 ];
 
-watch(
-  () => store.platform,
-  (newConfig) => {
-    if (newConfig) {
-      store.platform?.platforms.forEach((platform) => {
-        selectedPlatform.value[platform.id] = platform.latest_version;
-        platform.name = platformName(platform.id); // Patch because name is not provided by the CLI
-      })
-      store.updatableBoardCount = filterPlatforms(FilterBoards.updatable).length;
-    }
-  },
-);
+const updatableBoardCount = computed(() => {
+  let count = 0;
+  if (store.platform?.platforms) {
+    store.platform?.platforms.forEach((platform) => {
+      selectedPlatform.value[platform.id] = platform.latest_version;
+      platform.name = platformName(platform.id); // Patch because name is not provided by the CLI
+    })
+    count = filterPlatforms(FilterBoards.updatable).length
+  };
+  return count;
+});
 
 function updatePlatformVersion(platformID: string) {
   const toInstall = selectedPlatform.value[platformID];
@@ -128,20 +127,20 @@ const platformName = (platform_id: string): string => {
         <h1 class="text-h4 font-weight-bold">Boards Manager</h1>
       </div>
       <v-card v-if="!store.platform?.platforms" class="mt-5">
-          <v-card-item title="Loading Boards">
-            <template v-slot:subtitle>
-              Please wait
-            </template>
-          </v-card-item>
-          <v-card-text class="py-0">
-            <v-progress-linear color="grey" indeterminate></v-progress-linear>
-          </v-card-text>
-        </v-card>
+        <v-card-item title="Loading Boards">
+          <template v-slot:subtitle>
+            Please wait
+          </template>
+        </v-card-item>
+        <v-card-text class="py-0">
+          <v-progress-linear color="grey" indeterminate></v-progress-linear>
+        </v-card-text>
+      </v-card>
       <div v-else-if="!store.boardUpdating">
         <v-chip-group selected-class="text-primary" mandatory v-model="filterBoards">
           <v-chip filter :value="FilterBoards.installed">Installed & Up to date</v-chip>
-          <v-chip :disabled="store.updatableBoardCount == 0" filter :value="FilterBoards.updatable">Updatable
-            <v-badge v-if="store.updatableBoardCount > 0" color="green" :content="store.updatableBoardCount" inline>
+          <v-chip :disabled="updatableBoardCount == 0" filter :value="FilterBoards.updatable">Updatable
+            <v-badge v-if="updatableBoardCount > 0" color="green" :content="updatableBoardCount" inline>
 
             </v-badge>
           </v-chip>

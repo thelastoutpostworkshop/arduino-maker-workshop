@@ -36,8 +36,6 @@ export const useVsCodeStore = defineStore('vsCode', {
         libraries: null as Libsearch | null,
         librariesInstalled: null as Liblist | null,
         additionalBoardURLs: null as string | null,
-        updatableLibraryCount: 0 as number,
-        updatableBoardCount:0 as number,
         boardUpdating: "",
         libraryUpdating: ""
     }),

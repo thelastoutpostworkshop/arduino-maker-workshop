@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, InstalledLibrary, LibraryAvailable } from '@shared/messages';
-import { onMounted, watch, computed, ref } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 
 enum FilterLibraries {
   installed,
@@ -28,20 +28,17 @@ const headers = [
   { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '10%' },
 ];
 
-watch(
-  () => store.libraries,
-  (newConfig) => {
-    if (newConfig) {
-      store.updatableLibraryCount = 0;
-      store.libraries?.libraries.forEach((library) => {
-        selectedLibrary.value[library.name] = library.latest.version;
-        if (isLibraryUpdatable(library) && isLibraryInstalled(library)) {
-          store.updatableLibraryCount++;
-        }
-      })
-    }
+const updatableLibraryCount = computed(() => {
+  let count = 0;
+  if (store.libraries?.libraries) {
+    store.libraries.libraries.forEach((library) => {
+      if (isLibraryUpdatable(library) && isLibraryInstalled(library)) {
+        count++;
+      }
+    });
   }
-);
+  return count;
+});
 
 function installLibrary(name: string, version: string) {
   const toInstall = `${name}@${version}`;
@@ -145,8 +142,8 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
       <div v-else-if="!store.libraryUpdating">
         <v-chip-group selected-class="text-primary" mandatory v-model="filterLibraries">
           <v-chip filter :value="FilterLibraries.installed">Installed & Up to date</v-chip>
-          <v-chip :disabled="store.updatableLibraryCount == 0" filter :value="FilterLibraries.updatable">Updatable
-            <v-badge v-if="store.updatableLibraryCount > 0" color="green" :content="store.updatableLibraryCount" inline>
+          <v-chip :disabled="updatableLibraryCount == 0" filter :value="FilterLibraries.updatable">Updatable
+            <v-badge v-if="updatableLibraryCount > 0" color="green" :content="updatableLibraryCount" inline>
 
             </v-badge>
           </v-chip>
