@@ -2,7 +2,7 @@ import { window, ExtensionContext, commands, Disposable, workspace, Uri, OutputC
 import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { QuickAccessProvider } from './quickAccessProvider';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoBoardsListPayload, WebviewToExtensionMessage } from "./shared/messages";
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, WebviewToExtensionMessage } from "./shared/messages";
 
 const cp = require('child_process');
 const path = require('path');
