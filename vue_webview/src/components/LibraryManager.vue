@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, InstalledLibrary, LibraryAvailable } from '@shared/messages';
-import { onMounted, watch, computed, ref } from 'vue';
+import { onMounted, watch, computed, ref,onActivated } from 'vue';
 
 enum FilterLibraries {
   installed,
@@ -12,7 +12,6 @@ enum FilterLibraries {
 const store = useVsCodeStore();
 const filterLibraries = ref(FilterLibraries.installed);
 const selectedLibrary = ref<Record<string, string>>({});
-const updatableCount = ref(0);
 const searchLibrary = ref('');
 const filterdLibrariesCount = ref(0);
 
@@ -20,6 +19,7 @@ onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: "", payload: "" });
 });
+
 
 const headers = [
   { title: 'Name', value: 'name', key: 'name', sortable: true },
@@ -32,11 +32,11 @@ watch(
   () => store.libraries,
   (newConfig) => {
     if (newConfig) {
-      updatableCount.value = 0;
+      store.updatableLibraryCount = 0;
       store.libraries?.libraries.forEach((library) => {
         selectedLibrary.value[library.name] = library.latest.version;
         if (isLibraryUpdatable(library) && isLibraryInstalled(library)) {
-          updatableCount.value++;
+          store.updatableLibraryCount++;
         }
       })
     }
@@ -145,8 +145,8 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
       <div v-else-if="!store.libraryUpdating">
         <v-chip-group selected-class="text-primary" mandatory v-model="filterLibraries">
           <v-chip filter :value="FilterLibraries.installed">Installed & Up to date</v-chip>
-          <v-chip :disabled="updatableCount == 0" filter :value="FilterLibraries.updatable">Updatable
-            <v-badge v-if="updatableCount > 0" color="green" :content="updatableCount" inline>
+          <v-chip :disabled="store.updatableLibraryCount == 0" filter :value="FilterLibraries.updatable">Updatable
+            <v-badge v-if="store.updatableLibraryCount > 0" color="green" :content="store.updatableLibraryCount" inline>
 
             </v-badge>
           </v-chip>
