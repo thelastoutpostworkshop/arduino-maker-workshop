@@ -106,12 +106,6 @@ export function processArduinoCLICommandCheck(commandResult: string): WebviewToE
 
 export function checkArduinoCLICommand(): Promise<string> {
 	return new Promise((resolve) => {
-		if (cliCommandArduinoPath === '') {
-			window.showErrorMessage('Arduino CLI Path not set in your settings');
-			resolve("");
-			return;
-		}
-
 		const arduinoVersionArgs = arduinoProject.getVersionArguments();
 
 		executeArduinoCommand(`${cliCommandArduinoPath}`, arduinoVersionArgs, true, false)
