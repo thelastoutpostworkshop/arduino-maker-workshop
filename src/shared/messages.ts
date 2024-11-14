@@ -12,8 +12,11 @@ export interface ArduinoConfiguration {
 };
 
 export interface ArduinoCLIStatus {
-  version: string;
-  date: string;
+  Application?:   string;
+  VersionString: string;
+  Commit?:        string;
+  Status?:        string;
+  Date:          string;
 }
 
 export interface ArduinoBoardsListPayload {

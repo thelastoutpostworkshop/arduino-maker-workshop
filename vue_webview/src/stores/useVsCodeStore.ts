@@ -149,20 +149,20 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.CLI_STATUS:
                     if (message.errorMessage !== "") {
                         this.cliStatus = {
-                            version: "?",
-                            date: "Arduino CLI not set or wrong"
+                            VersionString: "?",
+                            Date: "Arduino CLI not set or wrong"
                         };
                     } else {
                         try {
                             const cliInfo = JSON.parse(message.payload);
                             this.cliStatus = {
-                                version: cliInfo.VersionString,
-                                date: cliInfo.Date
+                                VersionString: cliInfo.VersionString,
+                                Date: cliInfo.Date
                             };
                         } catch (error) {
                             this.cliStatus = {
-                                version: "?",
-                                date: `${error}`
+                                VersionString: "?",
+                                Date: `${error}`
                             };
                         }
                     }

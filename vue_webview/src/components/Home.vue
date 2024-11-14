@@ -141,7 +141,7 @@ onMounted(() => {
 
               <template #subtitle>
                 <div class="text-subtitle-1">
-                  v{{ store.cliStatus?.version }} ({{ store.cliStatus?.date }})
+                  v{{ store.cliStatus?.VersionString }} ({{ store.cliStatus?.Date }})
                 </div>
               </template>
             </v-card>
