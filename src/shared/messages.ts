@@ -1,7 +1,7 @@
 export interface WebviewToExtensionMessage {
   command: string;
   errorMessage: string,
-  payload: any | ArduinoProjectInfoPayload | ArduinoCLIStatus | ArduinoBoardsListPayload;
+  payload: any | ArduinoProjectInfoPayload | ArduinoCLIStatus ;
 }
 
 export interface ArduinoConfiguration {
@@ -17,11 +17,6 @@ export interface ArduinoCLIStatus {
   Commit?:        string;
   Status?:        string;
   Date:          string;
-}
-
-export interface ArduinoBoardsListPayload {
-  errorMessage: string;
-  boardStructure: any;
 }
 
 export interface ArduinoProjectInfoPayload {
