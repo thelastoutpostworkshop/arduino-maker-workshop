@@ -47,13 +47,6 @@ export function activate(context: ExtensionContext) {
 
 	context.subscriptions.push(
 		workspace.onDidChangeConfiguration((e) => {
-			if (e.affectsConfiguration(cliPathSetting)) {
-				cliCommandArduinoPath = workspace.getConfiguration().get<string>(cliPathSetting, '');
-				arduinoExtensionChannel.appendLine(`Arduino CLI Path Changed: ${cliCommandArduinoPath}`);
-				checkArduinoCLICommand().then((result) => {
-					VueWebviewPanel.sendMessage(processArduinoCLICommandCheck(result));
-				});
-			}
 		})
 	);
 
