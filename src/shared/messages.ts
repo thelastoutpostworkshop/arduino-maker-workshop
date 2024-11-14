@@ -1,7 +1,7 @@
 export interface WebviewToExtensionMessage {
   command: string;
   errorMessage: string,
-  payload: any | ArduinoProjectInfoPayload | ArduinoCLIStatus ;
+  payload: any  | ArduinoCLIStatus ;
 }
 
 export interface ArduinoConfiguration {
@@ -19,15 +19,8 @@ export interface ArduinoCLIStatus {
   Date:          string;
 }
 
-export interface ArduinoProjectInfoPayload {
-  errorMessage: string;
-  configuration: string;
-  board: string;
-  sketch: string;
-  output: string;
-  port: string;
-}
-
+// Boards interfacesà
+//
 export interface BoardConfiguration {
   fqbn: string;
   name: string;
@@ -130,7 +123,8 @@ export interface ReleaseData {
   compatible: boolean;
 }
 
-// Library
+// Library interfaces
+//
 export interface Liblist {
   installed_libraries: InstalledLibrary[];
 }
@@ -222,11 +216,14 @@ export interface LibraryResources {
 export interface Releases {
 }
 
-// Board connected
+// Board connected interfaces
+//
 export interface BoardConnected {
   detected_ports: DetectedPort[];
 }
 
+// Port interfaces
+//
 export interface DetectedPort {
   port: Port;
 }
