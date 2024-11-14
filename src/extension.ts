@@ -6,6 +6,7 @@ import { ARDUINO_ERRORS, ARDUINO_MESSAGES, WebviewToExtensionMessage } from "./s
 
 const cp = require('child_process');
 const path = require('path');
+const os = require('os');
 
 const cliPathSetting: string = "cli.path";
 const addtionalBoardURLSetting: string = "additionalBoardsUrl";
@@ -21,7 +22,7 @@ export let arduinoConfigurationLastError: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_ERR
 
 export function activate(context: ExtensionContext) {
 	const config = workspace.getConfiguration();
-	cliCommandArduinoPath = config.get<string>(cliPathSetting, "");
+	cliCommandArduinoPath = getArduinoCliPath(context);
 	arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${cliCommandArduinoPath}`);
 
 	const boardsURLS = config.get<string>(addtionalBoardURLSetting, "");
@@ -76,6 +77,26 @@ export function activate(context: ExtensionContext) {
 	);
 }
 
+ function getArduinoCliPath(context: ExtensionContext): string {
+	const platform = os.platform();
+	let arduinoCliPath = '';
+  
+	switch (platform) {
+	  case 'win32':
+		arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'win32', 'arduino-cli.exe');
+		break;
+	  case 'darwin':
+		arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'darwin', 'arduino-cli');
+		break;
+	  case 'linux':
+		arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'linux', 'arduino-cli');
+		break;
+	  default:
+		throw new Error(`Unsupported platform: ${platform}`);
+	}
+  
+	return arduinoCliPath;
+  }
 
 export function processArduinoCLICommandCheck(commandResult: string): WebviewToExtensionMessage {
 	let message: string = "";
