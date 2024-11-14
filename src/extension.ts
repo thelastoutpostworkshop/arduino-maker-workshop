@@ -91,18 +91,6 @@ export function activate(context: ExtensionContext) {
 	return arduinoCliPath;
   }
 
-export function processArduinoCLICommandCheck(commandResult: string): WebviewToExtensionMessage {
-	let message: string = "";
-	if (commandResult === "") {
-		message = "Arduino CLI Path wrong or not set in settings";
-	}
-	const cliStatusMessage: WebviewToExtensionMessage = {
-		command: ARDUINO_MESSAGES.CLI_STATUS,
-		errorMessage: message,
-		payload: commandResult
-	};
-	return cliStatusMessage
-}
 
 export function checkArduinoCLICommand(): Promise<string> {
 	return new Promise((resolve) => {

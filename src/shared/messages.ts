@@ -1,7 +1,7 @@
 export interface WebviewToExtensionMessage {
   command: string;
   errorMessage: string,
-  payload: any  | ArduinoCLIStatus ;
+  payload: any  | ArduinoProjectStatus ;
 }
 
 export interface ArduinoConfiguration {
@@ -10,6 +10,18 @@ export interface ArduinoConfiguration {
   output: string;
   board: string;
 };
+
+export enum ARDUINO_ERRORS {
+  NO_ERRORS,
+  NO_INO_FILES,
+  WRONG_FOLDER_NAME,
+  INTERNAL
+}
+
+export interface ArduinoProjectStatus {
+  cli_status:ArduinoCLIStatus;
+  project_status:ARDUINO_ERRORS;
+}
 
 export interface ArduinoCLIStatus {
   Application?:   string;
@@ -243,15 +255,7 @@ export interface Properties {
   vid?: string;
 }
 
-export enum ARDUINO_ERRORS {
-  NO_ERRORS,
-  NO_INO_FILES,
-  WRONG_FOLDER_NAME,
-  INTERNAL
-}
-
 export const ARDUINO_MESSAGES = {
-  CLI_STATUS: 'cli_getArduinoStatus',
   CLI_BOARD_OPTIONS: 'cli_getArduinoBoardOptions',
   CLI_BOARD_SEARCH: 'cli_getArduinoBoardSearch',
   CLI_BOARD_CONNECTED: 'cli_getBoardConnected',
