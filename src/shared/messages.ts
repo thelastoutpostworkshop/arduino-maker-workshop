@@ -1,14 +1,7 @@
-// Define the types of messages your extension and webview can exchange
-
 export interface WebviewToExtensionMessage {
   command: string;
   errorMessage: string,
   payload: any | ArduinoProjectInfoPayload | ArduinoCLIStatus | ArduinoBoardsListPayload;
-}
-
-export interface ArduinoBoardConfigurationPayload {
-  errorMessage: string;
-  boardConfiguration: BoardConfiguration | null;
 }
 
 export interface ArduinoConfiguration {
