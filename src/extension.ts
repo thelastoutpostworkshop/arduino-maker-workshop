@@ -2,13 +2,12 @@ import { window, ExtensionContext, commands, Disposable, workspace, Uri, OutputC
 import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { QuickAccessProvider } from './quickAccessProvider';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, WebviewToExtensionMessage } from "./shared/messages";
+import { ARDUINO_ERRORS, ArduinoCLIStatus } from "./shared/messages";
 
 const cp = require('child_process');
 const path = require('path');
 const os = require('os');
 
-const cliPathSetting: string = "cli.path";
 const addtionalBoardURLSetting: string = "additionalBoardsUrl";
 
 const outputChannel = window.createOutputChannel('Arduino CLI');
@@ -70,29 +69,29 @@ export function activate(context: ExtensionContext) {
 	);
 }
 
- function getArduinoCliPath(context: ExtensionContext): string {
+function getArduinoCliPath(context: ExtensionContext): string {
 	const platform = os.platform();
 	let arduinoCliPath = '';
-  
+
 	switch (platform) {
-	  case 'win32':
-		arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'win32', 'arduino-cli.exe');
-		break;
-	  case 'darwin':
-		arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'darwin', 'arduino-cli');
-		break;
-	  case 'linux':
-		arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'linux', 'arduino-cli');
-		break;
-	  default:
-		throw new Error(`Unsupported platform: ${platform}`);
+		case 'win32':
+			arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'win32', 'arduino-cli.exe');
+			break;
+		case 'darwin':
+			arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'darwin', 'arduino-cli');
+			break;
+		case 'linux':
+			arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'linux', 'arduino-cli');
+			break;
+		default:
+			throw new Error(`Unsupported platform: ${platform}`);
 	}
-  
+
 	return arduinoCliPath;
-  }
+}
 
 
-export function checkArduinoCLICommand(): Promise<string> {
+export function checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
 	return new Promise((resolve) => {
 		const arduinoVersionArgs = arduinoProject.getVersionArguments();
 
@@ -101,20 +100,29 @@ export function checkArduinoCLICommand(): Promise<string> {
 				if (result) {
 					try {
 						getCoreUpdate();
-						resolve(result);
+						resolve(JSON.parse(result));
 					} catch (parseError) {
 						arduinoExtensionChannel.appendLine('Failed to get Arduino CLI version information.');
 						window.showErrorMessage(`Failed to get Arduino CLI version information.`);
-						resolve("");
+						resolve({
+							VersionString: "unknown",
+							Date: 'CLI Error'
+						});
 					}
 				} else {
 					window.showErrorMessage(`No result returned by checking the CLI version`);
-					resolve("");
+					resolve({
+						VersionString: "unknown",
+						Date: 'CLI Error'
+					});
 				}
 			})
 			.catch((error) => {
 				window.showErrorMessage(`Arduino CLI path is wrong in your settings: ${error}`);
-				resolve("");
+				resolve({
+					VersionString: "unknown",
+					Date: 'CLI Error'
+				});
 			});
 	});
 }
@@ -180,28 +188,28 @@ export async function searchLibraryInstalled(): Promise<string> {
 export async function runInstallLibraryVersion(library: string): Promise<string> {
 	return runArduinoCommand(
 		() => arduinoProject.getInstallLibraryVersionArguments(library),
-		"CLI: Failed to install library",true,true
+		"CLI: Failed to install library", true, true
 	);
 }
 
 export async function runInstallCoreVersion(board_id: string): Promise<string> {
 	return runArduinoCommand(
 		() => arduinoProject.getInstallCoreVersionArguments(board_id),
-		"CLI: Failed to install board",true,true
+		"CLI: Failed to install board", true, true
 	);
 }
 
 export async function runUninstallLibrary(version: string): Promise<string> {
 	return runArduinoCommand(
 		() => arduinoProject.getUninstallLibraryArguments(version),
-		"CLI: Failed to remove library",true,true
+		"CLI: Failed to remove library", true, true
 	);
 }
 
 export async function runUninstallCoreVersion(version: string): Promise<string> {
 	return runArduinoCommand(
 		() => arduinoProject.getUninstallCoreArguments(version),
-		"CLI: Failed to remove board",true,true
+		"CLI: Failed to remove board", true, true
 	);
 }
 
