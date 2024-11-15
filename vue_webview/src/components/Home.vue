@@ -21,21 +21,22 @@ function createNewSkecth() {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CREATE_NEW_SKETCH, errorMessage: "", payload: sketchName.value });
 }
 
-watch(() => store.projectStatus, (newStatus) => {
-  if (newStatus === ARDUINO_ERRORS.NO_ERRORS) {
+watch(() => store.projectStatus?.project_status, (newStatus) => {
+  if (newStatus == ARDUINO_ERRORS.NO_ERRORS) {
     store.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
   }
-});
+}, { deep: true });
 
 
 watch(() => store.projectInfo, (newProjectInfo) => {
   if (newProjectInfo) {
     store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS, errorMessage: "", payload: store.projectInfo?.board });
   }
-});
+}, { deep: true });
 
 watch(() => store.boardConnected, (boardConnected) => {
   if (boardConnected) {
+
     const projectPort = store.projectInfo?.port;
 
     // Check if projectPort is in the detected_ports array
@@ -56,7 +57,6 @@ watch([() => store.cliStatus, () => store.projectStatus], () => { }, { immediate
 
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS, errorMessage: "", payload: "" });
-  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_STATUS, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
 });
 
@@ -71,8 +71,8 @@ onMounted(() => {
       </div>
       <v-row class="mt-4">
         <v-col cols="12">
-          <v-card v-if="store.projectStatus == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board" class="pa-4"
-            color="blue-grey-darken-3" prepend-icon="mdi-cog" rounded="lg">
+          <v-card v-if="store.projectStatus?.project_status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board"
+            class="pa-4" color="blue-grey-darken-3" prepend-icon="mdi-cog" rounded="lg">
             <template #title>
               <h2 class="text-h6 font-weight-bold">Sketch Configuration</h2>
             </template>
@@ -99,14 +99,14 @@ onMounted(() => {
               </template>
             </v-select>
           </v-card>
-          <v-card v-if="store.projectStatus == ARDUINO_ERRORS.WRONG_FOLDER_NAME" class="pa-4" color="blue-grey-darken-3"
-            prepend-icon="mdi-alert-circle-outline" rounded="lg">
+          <v-card v-if="store.projectStatus?.project_status == ARDUINO_ERRORS.WRONG_FOLDER_NAME" class="pa-4"
+            color="blue-grey-darken-3" prepend-icon="mdi-alert-circle-outline" rounded="lg">
             <template #title>
               <h2 class="text-h6 font-weight-bold">Sketch name and folder name do not match</h2>
             </template>
           </v-card>
-          <v-card v-if="store.projectStatus == ARDUINO_ERRORS.NO_INO_FILES" class="pa-4" color="blue-grey-darken-3"
-            prepend-icon="mdi-folder-plus-outline" rounded="lg">
+          <v-card v-if="store.projectStatus?.project_status == ARDUINO_ERRORS.NO_INO_FILES" class="pa-4"
+            color="blue-grey-darken-3" prepend-icon="mdi-folder-plus-outline" rounded="lg">
             <template #title>
               <h2 class="text-h6 font-weight-bold">Create a new sketch</h2>
             </template>
@@ -141,7 +141,7 @@ onMounted(() => {
 
               <template #subtitle>
                 <div class="text-subtitle-1">
-                  v{{ store.cliStatus?.VersionString }} ({{ store.cliStatus?.Date }})
+                  v{{ store.projectStatus?.cli_status?.VersionString }} ({{ store.projectStatus?.cli_status?.Date }})
                 </div>
               </template>
             </v-card>

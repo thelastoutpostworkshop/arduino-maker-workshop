@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ARDUINO_ERRORS } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 
 async function loadMockData(mockFile: string, jsonToString: boolean = true): Promise<string> {
@@ -28,7 +28,7 @@ export const useVsCodeStore = defineStore('vsCode', {
     state: () => ({
         cliStatus: null as ArduinoCLIStatus | null,
         projectInfo: null as ArduinoConfiguration | null,
-        projectStatus: null as ARDUINO_ERRORS | null,
+        projectStatus: null as ArduinoProjectStatus | null,
         boardOptions: null as BoardConfiguration | null,
         boards: null as PlatformsList | null,
         boardConnected: null as BoardConnected | null,
@@ -40,7 +40,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         libraryUpdating: ""
     }),
     actions: {
-       async mockMessage(message: WebviewToExtensionMessage) {
+        async mockMessage(message: WebviewToExtensionMessage) {
             if (import.meta.env.DEV) {
                 await sleep(1000);  // Simulate delay
                 switch (message.command) {
@@ -62,12 +62,6 @@ export const useVsCodeStore = defineStore('vsCode', {
                             this.handleMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.CLI_STATUS:
-                        loadMockData('cliversion.json').then((mockPayload) => {
-                            message.payload = mockPayload;
-                            this.handleMessage(message);
-                        });
-                        break;
                     case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                         loadMockData('board_options.json').then((mockPayload) => {
                             message.payload = mockPayload;
@@ -81,8 +75,10 @@ export const useVsCodeStore = defineStore('vsCode', {
                         });
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
-                        message.payload = ARDUINO_ERRORS.NO_ERRORS;
-                        this.handleMessage(message);
+                        loadMockData('project_status.json',false).then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
                         break;
                     case ARDUINO_MESSAGES.CLI_BOARD_SEARCH:
                         loadMockData('board_search.json').then((mockPayload) => {
@@ -103,11 +99,6 @@ export const useVsCodeStore = defineStore('vsCode', {
         },
         sendMessage(message: WebviewToExtensionMessage) {
             switch (message.command) {
-                case ARDUINO_MESSAGES.CLI_STATUS:
-                    if (!this.cliStatus) {
-                        vscode.postMessage(message);
-                    }
-                    break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                     if (this.projectStatus === null) {
                         vscode.postMessage(message);
@@ -146,27 +137,6 @@ export const useVsCodeStore = defineStore('vsCode', {
         },
         handleMessage(message: WebviewToExtensionMessage) {
             switch (message.command) {
-                case ARDUINO_MESSAGES.CLI_STATUS:
-                    if (message.errorMessage !== "") {
-                        this.cliStatus = {
-                            VersionString: "?",
-                            Date: "Arduino CLI not set or wrong"
-                        };
-                    } else {
-                        try {
-                            const cliInfo = JSON.parse(message.payload);
-                            this.cliStatus = {
-                                VersionString: cliInfo.VersionString,
-                                Date: cliInfo.Date
-                            };
-                        } catch (error) {
-                            this.cliStatus = {
-                                VersionString: "?",
-                                Date: `${error}`
-                            };
-                        }
-                    }
-                    break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                     this.projectInfo = message.payload;
                     break;
