@@ -69,13 +69,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                         });
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
-                        loadMockData('arduino_configuration_initial.json', false).then((mockPayload) => {
+                        loadMockData('arduino_configuration.json', false).then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
-                        loadMockData('project_status.json',false).then((mockPayload) => {
+                        loadMockData('project_status.json', false).then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
@@ -139,6 +139,9 @@ export const useVsCodeStore = defineStore('vsCode', {
             switch (message.command) {
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                     this.projectInfo = message.payload;
+                    if (this.projectInfo?.board) {
+                        this.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS, errorMessage: "", payload: this.projectInfo.board });
+                    }
                     break;
                 case ARDUINO_MESSAGES.GET_ADDITIONAL_URLS:
                     this.additionalBoardURLs = message.payload;
