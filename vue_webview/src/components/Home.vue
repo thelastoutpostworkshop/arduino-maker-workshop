@@ -28,11 +28,14 @@ watch(() => store.projectStatus?.project_status, (newStatus) => {
 }, { deep: true });
 
 
-watch(() => store.projectInfo, (newProjectInfo) => {
-  if (newProjectInfo) {
-    store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS, errorMessage: "", payload: store.projectInfo?.board });
-  }
-}, { deep: true });
+// watch(() => store.projectInfo, (newProjectInfo) => {
+//   if (newProjectInfo) {
+//     console.log('newProjectInfo board:'+newProjectInfo.board);
+//     if (newProjectInfo.board) {
+//       store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS, errorMessage: "", payload: store.projectInfo?.board });
+//     }
+//   }
+// }, { deep: true });
 
 watch(() => store.boardConnected, (boardConnected) => {
   if (boardConnected) {
@@ -131,7 +134,7 @@ onMounted(() => {
             </v-card>
           </div>
           <div v-else>
-            <div v-if="store.boardOptions && store.boardOptions.fqbn.trim() === ''">
+            <div v-if="store.projectStatus?.project_status == ARDUINO_ERRORS.NO_ERRORS && !store.projectInfo?.board">
               <v-btn @click="router.push({ name: 'board-selection' })">Select a board first</v-btn>
             </div>
             <v-card class="pa-4 mt-4" color="blue-grey-darken-4" prepend-icon="mdi-console" rounded="lg">
