@@ -1,7 +1,7 @@
 import { window, ExtensionContext, commands, Disposable, workspace, Uri, OutputChannel } from "vscode";
 import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
-import { QuickAccessProvider } from './quickAccessProvider';
+import { compileCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ArduinoCLIStatus } from "./shared/messages";
 
 const cp = require('child_process');
@@ -76,11 +76,11 @@ function updateStateCompileUpload() {
 	if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS &&
 		arduinoProject.getArduinoConfiguration().board.trim() !== '' &&
 		arduinoProject.getArduinoConfiguration().configuration.trim() !== '') {
-		quickAccessProvider.enableItem('Compile');
-		quickAccessProvider.enableItem('Upload');
+		quickAccessProvider.enableItem(compileCommandName);
+		quickAccessProvider.enableItem(uploadCommandName);
 	} else {
-		quickAccessProvider.disableItem('Compile');
-		quickAccessProvider.disableItem('Upload');
+		quickAccessProvider.disableItem(compileCommandName);
+		quickAccessProvider.disableItem(uploadCommandName);
 	}
 }
 

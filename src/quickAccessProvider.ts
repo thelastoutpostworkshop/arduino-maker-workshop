@@ -1,14 +1,19 @@
 import { TreeDataProvider, EventEmitter, Event, TreeItem, TreeItemCollapsibleState, ThemeIcon, ThemeColor } from "vscode";
 
+export const compileCommandName = 'Compile';
+export const uploadCommandName = 'Upload';
+export const homeCommandName = 'Arduino Home';
+
 export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
   private _onDidChangeTreeData: EventEmitter<QuickAccessItem | undefined | null | void> = new EventEmitter<QuickAccessItem | undefined | null | void>();
   readonly onDidChangeTreeData: Event<QuickAccessItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
+
   // State to track disabled items
   private disabledItemsState: { [key: string]: boolean } = {
-    'Compile': true,
-    'Upload': true,
-    'Arduino Home':false
+    compileCommandName: true,
+    uploadCommandName: true,
+    homeCommandName:false
   };
 
   getTreeItem(element: QuickAccessItem): TreeItem {
@@ -22,9 +27,9 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
   // Modify the getQuickAccessItems to use the disabledItemsState object
   private getQuickAccessItems(): QuickAccessItem[] {
     const items = [
-      new QuickAccessItem('Arduino Home', 'extension.openVueWebview', 'Open the Arduino Home', 'home', this.disabledItemsState['Arduino Home']),
-      new QuickAccessItem('Compile', 'quickAccessView.compile', 'Compile the current sketch', 'check', this.disabledItemsState['Compile']),
-      new QuickAccessItem('Upload', 'quickAccessView.upload', 'Upload to the board', 'cloud-upload', this.disabledItemsState['Upload']),
+      new QuickAccessItem(homeCommandName, 'extension.openVueWebview', 'Open the Arduino Home', 'home', this.disabledItemsState[homeCommandName]),
+      new QuickAccessItem(compileCommandName, 'quickAccessView.compile', 'Compile the current sketch', 'check', this.disabledItemsState[compileCommandName]),
+      new QuickAccessItem(uploadCommandName, 'quickAccessView.upload', 'Upload to the board', 'cloud-upload', this.disabledItemsState[uploadCommandName]),
     ];
     return items;
   }
