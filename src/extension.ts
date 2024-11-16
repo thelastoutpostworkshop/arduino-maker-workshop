@@ -13,7 +13,7 @@ const os = require('os');
 
 const addtionalBoardURLSetting: string = "additionalBoardsUrl";
 
-const outputChannel = window.createOutputChannel('Arduino CLI');
+const arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
 const compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
 export const arduinoExtensionChannel = window.createOutputChannel('Arduino Extension');
 arduinoExtensionChannel.appendLine("Arduino Extension started");
@@ -372,7 +372,7 @@ async function runArduinoCommand(
 	errorMessagePrefix: string,
 	returnOutput: boolean = true,
 	showOutput: boolean = false,
-	channel: OutputChannel = outputChannel
+	channel: OutputChannel = arduinoCLIChannel
 ): Promise<string> {
 	try {
 		const args = getArguments();
@@ -389,15 +389,15 @@ async function runArduinoCommand(
 	}
 }
 
-export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = outputChannel): Promise<string | void> {
+export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = arduinoCLIChannel): Promise<string | void> {
 	// outputChannel.clear();
 	if (showOutput) {
 		channel.show(true);
 	}
-	channel.appendLine('');
-	channel.appendLine('Running Arduino CLI...');
-	channel.appendLine(`${command}`);
-	channel.appendLine(args.join(' '));
+	arduinoCLIChannel.appendLine('');
+	arduinoCLIChannel.appendLine('Running Arduino CLI...');
+	arduinoCLIChannel.appendLine(`${command}`);
+	arduinoCLIChannel.appendLine(args.join(' '));
 
 	const child = cp.spawn(`${command}`, args);
 	let outputBuffer = '';
