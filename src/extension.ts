@@ -32,10 +32,6 @@ export function activate(context: ExtensionContext) {
 	// 	quickAccessProvider.refresh();
 	// });
 
-	// workspace.onDidSaveTextDocument(() => {
-	// 	quickAccessProvider.refresh();
-	// });
-
 	// // Check if the current folder is a valid Arduino project
 	// if (arduinoProject.isFolderArduinoProject() !== ARDUINO_ERRORS.NO_ERRORS) {
 	// 	quickAccessProvider.refresh();
@@ -66,19 +62,24 @@ export function activate(context: ExtensionContext) {
 	);
 
 	window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
-	
+	changeStateCompileUpload();
+	workspace.onDidChangeTextDocument((document) => {
+		if (document.document.fileName === arduinoProject.getarduinoConfigurationPath()) {
+			changeStateCompileUpload();
+		}
+	});
 
 }
 
 function changeStateCompileUpload() {
 	arduinoProject.readConfiguration();
-    if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS && arduinoProject.getArduinoConfiguration().board.trim() !== '') {
-        quickAccessProvider.enableItem('Compile');
-        quickAccessProvider.enableItem('Upload');
-    } else {
-        quickAccessProvider.disableItem('Compile');
-        quickAccessProvider.disableItem('Upload');
-    }
+	if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS && arduinoProject.getArduinoConfiguration().board.trim() !== '') {
+		quickAccessProvider.enableItem('Compile');
+		quickAccessProvider.enableItem('Upload');
+	} else {
+		quickAccessProvider.disableItem('Compile');
+		quickAccessProvider.disableItem('Upload');
+	}
 }
 
 function getArduinoCliPath(context: ExtensionContext): string {

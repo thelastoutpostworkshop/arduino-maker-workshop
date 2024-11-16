@@ -57,6 +57,9 @@ export class ArduinoProject {
             commandArray.push(`${this.additionnlBoardURLs}`);
         }
     }
+    public getarduinoConfigurationPath():string {
+        return this.arduinoConfigurationPath;
+    }
     public readConfiguration(): boolean {
         if (!this.projectFullPath) {
             return false;
