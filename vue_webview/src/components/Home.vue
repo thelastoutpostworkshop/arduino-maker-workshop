@@ -27,32 +27,28 @@ watch(() => store.projectStatus?.project_status, (newStatus) => {
   }
 }, { deep: true });
 
+watch(
+  [() => store.boardConnected, () => store.projectInfo],
+  ([boardConnected, projectInfo]) => {
+    if (boardConnected) {
+      const projectPort = projectInfo?.port;
 
-// watch(() => store.projectInfo, (newProjectInfo) => {
-//   if (newProjectInfo) {
-//     console.log('newProjectInfo board:'+newProjectInfo.board);
-//     if (newProjectInfo.board) {
-//       store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS, errorMessage: "", payload: store.projectInfo?.board });
-//     }
-//   }
-// }, { deep: true });
-
-watch(() => store.boardConnected, (boardConnected) => {
-  if (boardConnected) {
-    const projectPort = store.projectInfo?.port;
-
-    // Check if projectPort is in the detected_ports array
-    if (projectPort && boardConnected.detected_ports.some(detectedPort => detectedPort.port.label === projectPort)) {
-      portSelected.value = projectPort;
-    } else {
-      // Set portSelected to the first detected port, if available
-      if (boardConnected.detected_ports.length > 0) {
-        if (boardConnected.detected_ports[0].port.label)
-          portSelected.value = boardConnected.detected_ports[0].port.label;
+      // Check if projectPort is in the detected_ports array
+      if (projectPort && boardConnected.detected_ports.some(detectedPort => detectedPort.port.label === projectPort)) {
+        portSelected.value = projectPort;
+      } else {
+        // Set portSelected to the first detected port, if available
+        if (boardConnected.detected_ports.length > 0) {
+          if (boardConnected.detected_ports[0].port.label) {
+            portSelected.value = boardConnected.detected_ports[0].port.label;
+          }
+        }
       }
     }
-  }
-});
+  },
+  { immediate: true } // This ensures the watcher runs immediately on setup
+);
+
 
 
 watch((portSelected), (newPort) => {
