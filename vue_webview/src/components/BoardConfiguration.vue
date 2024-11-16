@@ -26,6 +26,23 @@ const boardOption = ref<Record<string, ConfigOptionValue>>({});
 //     { immediate: true }
 // );
 
+// Watch for changes in the store boardOptions and initialize boardOption
+watch(
+    () => store.boardOptions?.config_options,
+    (newConfig) => {
+        if (newConfig) {
+            newConfig.forEach((option) => {
+                option.values.forEach((value) => {
+                    if (value.selected) {
+                        boardOption.value[option.option] = value;
+                    }
+                });
+            });
+        }
+    },
+    { immediate: true }
+);
+
 watch(
     boardOption,
     () => {
