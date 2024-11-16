@@ -1,10 +1,15 @@
 import { TreeDataProvider, EventEmitter, Event, TreeItem, TreeItemCollapsibleState, ThemeIcon, ThemeColor } from "vscode";
-import { arduinoProject } from "./extension";
-import { ARDUINO_ERRORS } from "./shared/messages";
 
 export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
   private _onDidChangeTreeData: EventEmitter<QuickAccessItem | undefined | null | void> = new EventEmitter<QuickAccessItem | undefined | null | void>();
   readonly onDidChangeTreeData: Event<QuickAccessItem | undefined | null | void> = this._onDidChangeTreeData.event;
+
+  // State to track disabled items
+  private disabledItemsState: { [key: string]: boolean } = {
+    'Compile': true,
+    'Upload': true,
+    'Arduino Home':false
+  };
 
   getTreeItem(element: QuickAccessItem): TreeItem {
     return element;
@@ -14,19 +19,31 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
     return Promise.resolve(this.getQuickAccessItems());
   }
 
+  // Modify the getQuickAccessItems to use the disabledItemsState object
   private getQuickAccessItems(): QuickAccessItem[] {
-    const arduinoProjectValid = arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS;
-
     const items = [
-      new QuickAccessItem('Arduino Home', 'extension.openVueWebview', 'Open the Arduino Home', 'home'),
-      new QuickAccessItem('Compile', 'quickAccessView.compile', 'Compile the current sketch', 'check', !arduinoProjectValid),
-      new QuickAccessItem('Upload', 'quickAccessView.upload', 'Upload to the board', 'cloud-upload', !arduinoProjectValid)
+      new QuickAccessItem('Arduino Home', 'extension.openVueWebview', 'Open the Arduino Home', 'home', this.disabledItemsState['Arduino Home']),
+      new QuickAccessItem('Compile', 'quickAccessView.compile', 'Compile the current sketch', 'check', this.disabledItemsState['Compile']),
+      new QuickAccessItem('Upload', 'quickAccessView.upload', 'Upload to the board', 'cloud-upload', this.disabledItemsState['Upload']),
     ];
     return items;
   }
 
+  // Method to refresh the view
   refresh(): void {
     this._onDidChangeTreeData.fire();
+  }
+
+  // Public method to disable an item
+  disableItem(label: string) {
+    this.disabledItemsState[label] = true;
+    this.refresh();
+  }
+
+  // Public method to enable an item
+  enableItem(label: string) {
+    this.disabledItemsState[label] = false;
+    this.refresh();
   }
 }
 
@@ -48,8 +65,8 @@ class QuickAccessItem extends TreeItem {
     } else {
       // Update the label to show it's disabled and apply the grey color
       this.label = `${this.label}`;
-      this.tooltip = `${this.tooltip} - disabled not an Arduino Project`;
-      if(this.iconName) {
+      this.tooltip = `${this.tooltip} - disabled, not an Arduino Project`;
+      if (this.iconName) {
         this.iconPath = new ThemeIcon(this.iconName, new ThemeColor('disabledForeground'));
       }
     }

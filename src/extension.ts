@@ -14,6 +14,7 @@ const outputChannel = window.createOutputChannel('Arduino CLI');
 const compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
 export const arduinoExtensionChannel = window.createOutputChannel('Arduino Extension');
 arduinoExtensionChannel.appendLine("Arduino Extension started");
+const quickAccessProvider = new QuickAccessProvider();
 
 export const arduinoProject: ArduinoProject = new ArduinoProject();
 let cliCommandArduinoPath: string = "";
@@ -28,21 +29,18 @@ export function activate(context: ExtensionContext) {
 	arduinoProject.setAdditionalBoardURLs(boardsURLS);
 	arduinoExtensionChannel.appendLine(`Arduino Board URLs: ${arduinoProject.getAdditionalBoardURLs()}`);
 
-	const quickAccessProvider = new QuickAccessProvider();
-	window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
+	// workspace.onDidChangeWorkspaceFolders(() => {
+	// 	quickAccessProvider.refresh();
+	// });
 
-	workspace.onDidChangeWorkspaceFolders(() => {
-		quickAccessProvider.refresh();
-	});
+	// workspace.onDidSaveTextDocument(() => {
+	// 	quickAccessProvider.refresh();
+	// });
 
-	workspace.onDidSaveTextDocument(() => {
-		quickAccessProvider.refresh();
-	});
-
-	// Check if the current folder is a valid Arduino project
-	if (arduinoProject.isFolderArduinoProject() !== ARDUINO_ERRORS.NO_ERRORS) {
-		quickAccessProvider.refresh();
-	}
+	// // Check if the current folder is a valid Arduino project
+	// if (arduinoProject.isFolderArduinoProject() !== ARDUINO_ERRORS.NO_ERRORS) {
+	// 	quickAccessProvider.refresh();
+	// }
 
 	context.subscriptions.push(
 		workspace.onDidChangeConfiguration((e) => {
@@ -67,6 +65,21 @@ export function activate(context: ExtensionContext) {
 			VueWebviewPanel.render(context.extensionUri);
 		})
 	);
+
+	window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
+	
+
+}
+
+function changeStateCompileUpload() {
+	arduinoProject.readConfiguration();
+    if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS && arduinoProject.getArduinoConfiguration().board.trim() !== '') {
+        quickAccessProvider.enableItem('Compile');
+        quickAccessProvider.enableItem('Upload');
+    } else {
+        quickAccessProvider.disableItem('Compile');
+        quickAccessProvider.disableItem('Upload');
+    }
 }
 
 function getArduinoCliPath(context: ExtensionContext): string {
