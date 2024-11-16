@@ -73,7 +73,9 @@ export function activate(context: ExtensionContext) {
 
 function updateStateCompileUpload() {
 	arduinoProject.readConfiguration();
-	if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS && arduinoProject.getArduinoConfiguration().board.trim() !== '') {
+	if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS &&
+		arduinoProject.getArduinoConfiguration().board.trim() !== '' &&
+		arduinoProject.getArduinoConfiguration().configuration.trim() !== '') {
 		quickAccessProvider.enableItem('Compile');
 		quickAccessProvider.enableItem('Upload');
 	} else {
