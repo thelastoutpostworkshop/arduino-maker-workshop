@@ -324,9 +324,10 @@ function vsCommandUpload(): Disposable {
 
 		const uploadCommand = arduinoProject.getUploadArguments();
 		if (serialMoniorAPI) {
-			serialMoniorAPI.stopMonitoringPort(arduinoProject.getPort());
+			const port = arduinoProject.getPort();
+			serialMoniorAPI.stopMonitoringPort(port);
 		}
-		executeArduinoCommand(`${cliCommandArduinoPath}`, uploadCommand, true, true, compileUploadChannel).then(() => {
+		executeArduinoCommand(`${cliCommandArduinoPath}`, uploadCommand, false, true, compileUploadChannel).then(() => {
 			if (serialMoniorAPI) {
 				serialMoniorAPI.startMonitoringPort({ port: arduinoProject.getPort(), baudRate: 115200, lineEnding: LineEnding.None, dataBits: 8, stopBits: StopBits.One, parity: Parity.None }).then((port) => {
 				});
@@ -433,13 +434,13 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 				resolve(returnOutput ? outputBuffer : undefined);
 			} else {
 				channel.appendLine(`Command failed with code ${code}.`);
-				reject(`Command failed with code ${code}`);
+				resolve(undefined);
 			}
 		});
 
 		child.on('error', (err: any) => {
 			channel.appendLine(`Failed to run command: ${err.message}`);
-			reject(`Failed to run command: ${err.message}`);
+			resolve(undefined);
 		});
 	});
 }
