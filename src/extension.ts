@@ -62,16 +62,16 @@ export function activate(context: ExtensionContext) {
 	);
 
 	window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
-	changeStateCompileUpload();
+	updateStateCompileUpload();
 	workspace.onDidChangeTextDocument((document) => {
 		if (document.document.fileName === arduinoProject.getarduinoConfigurationPath()) {
-			changeStateCompileUpload();
+			updateStateCompileUpload();
 		}
 	});
 
 }
 
-function changeStateCompileUpload() {
+function updateStateCompileUpload() {
 	arduinoProject.readConfiguration();
 	if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS && arduinoProject.getArduinoConfiguration().board.trim() !== '') {
 		quickAccessProvider.enableItem('Compile');
