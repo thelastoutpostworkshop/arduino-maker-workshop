@@ -152,6 +152,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                     try {
                         this.boardOptions = JSON.parse(message.payload);
+                        this.boardOptions?.config_options.forEach((configOption) => {
+                            configOption.values.forEach((value) => {
+                                if (value.selected === undefined) {
+                                    value.selected = false;
+                                }
+                            });
+                        });
                         let configuration = this.boardOptions?.config_options
                             .map((configOption) => {
                                 const selectedValue = configOption.values.find(value => value.selected);

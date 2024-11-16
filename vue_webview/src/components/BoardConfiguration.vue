@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, ConfigOptionValue } from '@shared/messages';
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter()
@@ -10,21 +10,21 @@ const store = useVsCodeStore();
 // Define boardOption as an object indexed by string keys
 const boardOption = ref<Record<string, ConfigOptionValue>>({});
 
-watch(
-    () => store.boardOptions?.config_options,
-    (newConfig) => {
-        if (newConfig) {
-            newConfig.forEach((option) => {
-                option.values.forEach((value) => {
-                    if (value.selected) {
-                        boardOption.value[option.option] = value;
-                    }
-                });
-            });
-        }
-    },
-    { immediate: true }
-);
+// watch(
+//     () => store.boardOptions?.config_options,
+//     (newConfig) => {
+//         if (newConfig) {
+//             newConfig.forEach((option) => {
+//                 option.values.forEach((value) => {
+//                     if (value.selected) {
+//                         boardOption.value[option.option] = value;
+//                     }
+//                 });
+//             });
+//         }
+//     },
+//     { immediate: true }
+// );
 
 watch(
     boardOption,
@@ -33,11 +33,32 @@ watch(
             .map(([key, option]) => `${key}=${option.value}`)
             .join(",");
 
-        console.log(configuration);
+        // Update the store with the selected value
+        if (store.boardOptions?.config_options) {
+            store.boardOptions.config_options.forEach((option) => {
+                if (boardOption.value[option.option]) {
+                    option.values.forEach((value) => {
+                        value.selected = value.value === boardOption.value[option.option].value;
+                    });
+                }
+            });
+        }
         store.sendMessage({ command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS, errorMessage: "", payload: configuration });
     },
     { deep: true }
 );
+
+onMounted(() => {
+    if (store.boardOptions?.config_options) {
+        store.boardOptions?.config_options.forEach((option) => {
+            option.values.forEach((value) => {
+                if (value.selected) {
+                    boardOption.value[option.option] = value;
+                }
+            });
+        });
+    }
+});
 
 </script>
 
