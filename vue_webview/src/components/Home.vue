@@ -39,12 +39,17 @@ watch(() => store.projectStatus?.project_status, (newStatus) => {
 
 watch(() => store.boardConnected, (boardConnected) => {
   if (boardConnected) {
-
     const projectPort = store.projectInfo?.port;
 
     // Check if projectPort is in the detected_ports array
     if (projectPort && boardConnected.detected_ports.some(detectedPort => detectedPort.port.label === projectPort)) {
       portSelected.value = projectPort;
+    } else {
+      // Set portSelected to the first detected port, if available
+      if (boardConnected.detected_ports.length > 0) {
+        if (boardConnected.detected_ports[0].port.label)
+          portSelected.value = boardConnected.detected_ports[0].port.label;
+      }
     }
   }
 });
