@@ -18,7 +18,6 @@ const quickAccessProvider = new QuickAccessProvider();
 
 export const arduinoProject: ArduinoProject = new ArduinoProject();
 let cliCommandArduinoPath: string = "";
-export let arduinoConfigurationLastError: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_ERRORS;
 
 export function activate(context: ExtensionContext) {
 	const config = workspace.getConfiguration();
@@ -260,10 +259,10 @@ export async function getBoardConfiguration(): Promise<string> {
 
 export function loadArduinoConfiguration(): boolean {
 
-	arduinoConfigurationLastError = arduinoProject.isFolderArduinoProject();
-	if (arduinoConfigurationLastError !== ARDUINO_ERRORS.NO_ERRORS) {
+	const projectError = arduinoProject.isFolderArduinoProject();
+	if (projectError !== ARDUINO_ERRORS.NO_ERRORS) {
 		let message: string = "";
-		switch (arduinoConfigurationLastError) {
+		switch (projectError) {
 			case ARDUINO_ERRORS.NO_INO_FILES:
 				message = "No sketch file (.ino) found";
 				break;
