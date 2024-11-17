@@ -96,7 +96,14 @@ const filteredLibrariesCountText = computed(() => {
 })
 
 function getVersions(library: LibraryAvailable): string[] {
-  return [...library.available_versions].reverse();
+  const result = [...library.available_versions].reverse();
+  const libInstalled = findLibrary(library.name);
+  if (libInstalled) {
+    selectedLibrary.value[libInstalled.library.name] = libInstalled.library.version;
+  } else {
+    selectedLibrary.value[library.name] = result[0];
+  }
+  return result;
 }
 
 function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
@@ -130,15 +137,15 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
         <h1 class="text-h4 font-weight-bold">Library Manager</h1>
       </div>
       <v-card v-if="!store.libraries?.libraries" class="mt-5">
-          <v-card-item title="Loading Libraries">
-            <template v-slot:subtitle>
-              Please wait
-            </template>
-          </v-card-item>
-          <v-card-text class="py-0">
-            <v-progress-linear color="grey" indeterminate></v-progress-linear>
-          </v-card-text>
-        </v-card>
+        <v-card-item title="Loading Libraries">
+          <template v-slot:subtitle>
+            Please wait
+          </template>
+        </v-card-item>
+        <v-card-text class="py-0">
+          <v-progress-linear color="grey" indeterminate></v-progress-linear>
+        </v-card-text>
+      </v-card>
       <div v-else-if="!store.libraryUpdating">
         <v-chip-group selected-class="text-primary" mandatory v-model="filterLibraries">
           <v-chip filter :value="FilterLibraries.installed">Installed & Up to date</v-chip>
