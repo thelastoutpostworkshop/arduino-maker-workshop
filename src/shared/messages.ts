@@ -31,6 +31,61 @@ export interface ArduinoCLIStatus {
   Date:          string;
 }
 
+// Compile output interfaces
+export interface Compile {
+  compiler_out:   string;
+  compiler_err:   string;
+  builder_result: BuilderResult;
+  upload_result:  UploadResult;
+  success:        boolean;
+}
+
+export interface BuilderResult {
+  build_path:               string;
+  used_libraries:           UsedLibrary[];
+  executable_sections_size: ExecutableSectionsSize[];
+  board_platform:           DPlatform;
+  build_platform:           DPlatform;
+  build_properties:         string[];
+}
+
+export interface DPlatform {
+  id:          string;
+  version:     string;
+  install_dir: string;
+  package_url: string;
+}
+
+export interface ExecutableSectionsSize {
+  name:     string;
+  size:     number;
+  max_size: number;
+}
+
+export interface UsedLibrary {
+  name:                string;
+  author:              string;
+  maintainer:          string;
+  sentence:            string;
+  paragraph?:          string;
+  website?:            string;
+  category:            string;
+  architectures:       string[];
+  install_dir:         string;
+  source_dir:          string;
+  version:             string;
+  license:             string;
+  properties:          UploadResult;
+  location:            string;
+  layout:              string;
+  examples?:           string[];
+  provides_includes:   string[];
+  compatible_with:     UploadResult;
+  container_platform?: string;
+}
+
+export interface UploadResult {
+}
 // Boards interfacesà
 //
 export interface BoardConfiguration {

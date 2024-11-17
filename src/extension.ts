@@ -2,7 +2,7 @@ import { window, ExtensionContext, commands, Disposable, workspace, Uri, OutputC
 import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
-import { ARDUINO_ERRORS, ArduinoCLIStatus } from "./shared/messages";
+import { ARDUINO_ERRORS, ArduinoCLIStatus, Compile } from "./shared/messages";
 import { SerialMonitorApi, Version, getSerialMonitorApi, LineEnding, Parity, StopBits, Port } from '@microsoft/vscode-serial-monitor-api';
 
 const cp = require('child_process');
@@ -354,19 +354,24 @@ function vsGenerateIntellisense(): Disposable {
 		}
 
 		const compileCommand = arduinoProject.getCompileCommandArguments(true);
-		executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true, true, compileUploadChannel)
+		executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true, false, compileUploadChannel)
 			.then(output => {
 				if (output) {
 					// Parse the output and generate c_cpp_properties.json
-					console.log(output);
+					createIntellisenseFile(output);
 					// arduinoProject.generateCppPropertiesFromCompileOutput(output);
 				}
-			})
-			.catch(error => {
-				window.showErrorMessage(`Failed to generate c_cpp_properties.json: ${error}`);
 			});
-
 	});
+}
+
+function createIntellisenseFile(compileJsonOutput:string) {
+	try {
+		const compileInfo:Compile = JSON.parse(compileJsonOutput);
+		console.log(compileInfo);
+	} catch (error) {
+		window.showErrorMessage(`Failed to generate intellisense c_cpp_properties.json: ${error}`);
+	}
 }
 
 function vsCommandCompile(): Disposable {
