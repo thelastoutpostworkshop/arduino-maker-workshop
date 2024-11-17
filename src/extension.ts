@@ -18,7 +18,7 @@ export const arduinoExtensionChannel = window.createOutputChannel('Arduino Exten
 arduinoExtensionChannel.appendLine("Arduino Extension started");
 const quickAccessProvider = new QuickAccessProvider();
 let serialMoniorAPI: SerialMonitorApi | undefined = undefined;
-
+let compileOrUploadRunning:boolean = false;
 
 export const arduinoProject: ArduinoProject = new ArduinoProject();
 let cliCommandArduinoPath: string = "";
@@ -436,6 +436,11 @@ function createIntellisenseFile(compileJsonOutput: string) {
 
 function vsCommandCompile(): Disposable {
 	return commands.registerCommand('quickAccessView.compile', () => {
+		if(compileOrUploadRunning) {
+			compileUploadChannel.show();
+			return;
+		}
+		compileOrUploadRunning = true;
 		if (!loadArduinoConfiguration()) {
 			return;
 		}
@@ -455,9 +460,11 @@ function vsCommandCompile(): Disposable {
 				if (output) {
 					// Parse the output and generate c_cpp_properties.json
 					// arduinoProject.generateCppPropertiesFromCompileOutput(output);
+					compileOrUploadRunning = false;
 				}
 			})
 			.catch(error => {
+				compileOrUploadRunning = false;
 				window.showErrorMessage(`Failed to generate c_cpp_properties.json: ${error}`);
 			});
 
