@@ -1,4 +1,4 @@
-import { window, ExtensionContext, commands, Disposable, workspace, Uri, OutputChannel } from "vscode";
+import { window, ExtensionContext, commands, Disposable, workspace, Uri, OutputChannel, ProgressLocation } from "vscode";
 import { ArduinoProject, CPP_PROPERTIES, VSCODE_FOLDER } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
@@ -352,9 +352,14 @@ function vsGenerateIntellisense(): Disposable {
 			window.showInformationMessage('Output not found, cannot generate intellisense');
 		}
 
-		const compileCommand = arduinoProject.getCompileCommandArguments(true);
-		executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true, false, compileUploadChannel)
-			.then(output => {
+		window.withProgress(
+			{
+				location: ProgressLocation.Notification,
+				title: "Generating IntelliSense Configuration...",
+				cancellable: false
+			}, async (progress) => {
+				const compileCommand = arduinoProject.getCompileCommandArguments(true);
+				const output = await executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true, false, compileUploadChannel);
 				if (output) {
 					// Parse the output and generate c_cpp_properties.json
 					createIntellisenseFile(output);
@@ -365,67 +370,67 @@ function vsGenerateIntellisense(): Disposable {
 }
 
 function createIntellisenseFile(compileJsonOutput: string) {
-    try {
-        const compileInfo: Compile = JSON.parse(compileJsonOutput);
+	try {
+		const compileInfo: Compile = JSON.parse(compileJsonOutput);
 
-        // Extract include paths from used libraries
+		// Extract include paths from used libraries
 		const includePaths = new Set<string>();
-        compileInfo.builder_result.used_libraries.forEach(library => {
-            includePaths.add(`${library.source_dir}/**`); // Add recursive include
-        });
+		compileInfo.builder_result.used_libraries.forEach(library => {
+			includePaths.add(`${library.source_dir}/**`); // Add recursive include
+		});
 
-        // Add core paths (e.g., ESP32 core and variant paths)
-        const corePath = compileInfo.builder_result.build_platform.install_dir;
-        includePaths.add(`${corePath}/**`);
+		// Add core paths (e.g., ESP32 core and variant paths)
+		const corePath = compileInfo.builder_result.build_platform.install_dir;
+		includePaths.add(`${corePath}/**`);
 
-        // Extract defines
-        const defines = compileInfo.builder_result.build_properties
-            .filter(prop => prop.startsWith("-D"))
-            .map(prop => prop.substring(2)); // Remove "-D" prefix
+		// Extract defines
+		const defines = compileInfo.builder_result.build_properties
+			.filter(prop => prop.startsWith("-D"))
+			.map(prop => prop.substring(2)); // Remove "-D" prefix
 
-        // Extract compiler path if available
-        const compilerPathProperty = compileInfo.builder_result.build_properties.find(prop =>
-            prop.startsWith("compiler.path")
-        );
-        const compilerPath = compilerPathProperty
-            ? compilerPathProperty.split("=")[1].trim() // Extract the path
-            : "/path/to/compiler"; // Default placeholder if not found
+		// Extract compiler path if available
+		const compilerPathProperty = compileInfo.builder_result.build_properties.find(prop =>
+			prop.startsWith("compiler.path")
+		);
+		const compilerPath = compilerPathProperty
+			? compilerPathProperty.split("=")[1].trim() // Extract the path
+			: "/path/to/compiler"; // Default placeholder if not found
 
-        // Extract compiler path if available
-        const compilerCommand = compileInfo.builder_result.build_properties.find(prop =>
-            prop.startsWith("compiler.cpp.cmd")
-        );
-        const compilerName = compilerCommand
-            ? compilerCommand.split("=")[1].trim() // Extract the path
-            : "(compiler name)"; // Default placeholder if not found
+		// Extract compiler path if available
+		const compilerCommand = compileInfo.builder_result.build_properties.find(prop =>
+			prop.startsWith("compiler.cpp.cmd")
+		);
+		const compilerName = compilerCommand
+			? compilerCommand.split("=")[1].trim() // Extract the path
+			: "(compiler name)"; // Default placeholder if not found
 
-        // Create c_cpp_properties.json
-        const cppProperties = {
-            configurations: [
-                {
-                    name: "Arduino",
-                    includePath: Array.from(includePaths),
-                    defines: defines,
-                    compilerPath: `${compilerPath}/${compilerName}`,
-                    cStandard: "c17",
-                    cppStandard: "c++17",
-                    intelliSenseMode: "gcc-x86"
-                }
-            ],
-            version: 4
-        };
+		// Create c_cpp_properties.json
+		const cppProperties = {
+			configurations: [
+				{
+					name: "Arduino",
+					includePath: Array.from(includePaths),
+					defines: defines,
+					compilerPath: `${compilerPath}/${compilerName}`,
+					cStandard: "c17",
+					cppStandard: "c++17",
+					intelliSenseMode: "gcc-x86"
+				}
+			],
+			version: 4
+		};
 
-        const cppPropertiesPath = path.join(
-            arduinoProject.getProjectPath(),
-            VSCODE_FOLDER,
-            CPP_PROPERTIES
-        );
-        fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
+		const cppPropertiesPath = path.join(
+			arduinoProject.getProjectPath(),
+			VSCODE_FOLDER,
+			CPP_PROPERTIES
+		);
+		fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
 
-        window.showInformationMessage("Generated c_cpp_properties.json for IntelliSense.");
-    } catch (error) {
-        window.showErrorMessage(`Failed to generate intellisense c_cpp_properties.json: ${error}`);
-    }
+		window.showInformationMessage("Generated c_cpp_properties.json for IntelliSense.");
+	} catch (error) {
+		window.showErrorMessage(`Failed to generate intellisense c_cpp_properties.json: ${error}`);
+	}
 }
 
 
