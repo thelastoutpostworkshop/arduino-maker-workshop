@@ -1,8 +1,16 @@
 <script setup lang="ts">
 import arduinoIcon from '@/assets/arduino_icon.webp';
 import { useRouter } from 'vue-router'
+import { useVsCodeStore } from '../stores/useVsCodeStore';
+import { onMounted } from 'vue';
+import { ARDUINO_MESSAGES } from '@shared/messages';
 
+const store = useVsCodeStore();
 const router = useRouter()
+
+onMounted(() => {
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_OUTDATED, errorMessage: "", payload: "" });
+});
 
 </script>
 
