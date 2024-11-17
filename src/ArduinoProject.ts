@@ -92,7 +92,7 @@ export class ArduinoProject {
             `${fqbnOptionArduino}`,
             `${this.getBoard()}:${this.getBoardConfiguration()}`,
             `${buildPathArduino}`,
-            this.getProjectPath() + '/' + this.getOutput(),
+            this.getProjectPath() + '\\' + this.getOutput(),
             this.getProjectPath()
         ];
         return compileCommand;
