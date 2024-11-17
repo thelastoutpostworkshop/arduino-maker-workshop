@@ -62,7 +62,9 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boar
         boardStructure[platformName].boards.push({ name, fqbn });
       }
     });
+    boardStructure[platformName].boards.sort((a, b) => a.name.localeCompare(b.name));
   });
+
 
   // Ensure boardSelect is initialized properly for each platform
   const platformCount = Object.keys(boardStructure).length;
