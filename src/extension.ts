@@ -369,15 +369,14 @@ function createIntellisenseFile(compileJsonOutput: string) {
         const compileInfo: Compile = JSON.parse(compileJsonOutput);
 
         // Extract include paths from used libraries
-        const includePaths = new Set<string>();
+		const includePaths = new Set<string>();
         compileInfo.builder_result.used_libraries.forEach(library => {
-            includePaths.add(library.source_dir);
+            includePaths.add(`${library.source_dir}/**`); // Add recursive include
         });
 
         // Add core paths (e.g., ESP32 core and variant paths)
         const corePath = compileInfo.builder_result.build_platform.install_dir;
-        includePaths.add(`${corePath}/cores/${compileInfo.builder_result.board_platform.id}`);
-        includePaths.add(`${corePath}/variants/${compileInfo.builder_result.board_platform.id}`);
+        includePaths.add(`${corePath}/**`);
 
         // Extract defines
         const defines = compileInfo.builder_result.build_properties
