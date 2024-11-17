@@ -81,11 +81,11 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boar
       <div class="text-center">
         <h1 class="text-h4 font-weight-bold mb-4">Board Selection</h1>
       </div>
-      <v-text-field v-if="store.boardOptions?.name" label="Current Board:" :model-value="store.boardOptions?.name"
+      <v-text-field  label="Current Board:" :model-value="store.boardOptions?.name"
         readonly>
-        <!-- <template v-slot:loader>
+        <template v-slot:loader>
           <v-progress-linear :active="!store.boardOptions?.name" height="2" indeterminate></v-progress-linear>
-        </template> -->
+        </template>
       </v-text-field>
       <v-card v-if="Object.keys(boardStructure).length === 0" class="mt-5">
         <v-card-item title="Loading boards">
