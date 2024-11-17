@@ -31,6 +31,11 @@ export interface ArduinoCLIStatus {
   Date:          string;
 }
 
+export interface Outdated {
+  platforms: any;
+  libraries: any;
+}
+
 // Compile output interfaces
 export interface Compile {
   compiler_out:   string;
@@ -323,6 +328,7 @@ export const ARDUINO_MESSAGES = {
   CLI_INSTALL_LIBRARY: 'cli_InstallLibrary',
   CLI_UNINSTALL_LIBRARY: 'cli_UnInstallLibrary',
   CLI_LIBRARY_INSTALLED: 'cli_libraryInstalled',
+  CLI_OUTDATED:'cli_outdated',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
   ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
   SET_BOARD: 'setArduinoBoard',

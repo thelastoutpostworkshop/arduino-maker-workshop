@@ -36,6 +36,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         libraries: null as Libsearch | null,
         librariesInstalled: null as Liblist | null,
         additionalBoardURLs: null as string | null,
+        outdated: null as string | null,
         boardUpdating: "",
         libraryUpdating: ""
     }),
@@ -92,6 +93,12 @@ export const useVsCodeStore = defineStore('vsCode', {
                             this.handleMessage(message);
                         });
                         break;
+                    case ARDUINO_MESSAGES.CLI_OUTDATED:
+                        loadMockData('outdated.json').then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
+                        break;
                     default:
                         break;
                 }
@@ -131,6 +138,11 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                     if (!this.boardOptions) {
+                        vscode.postMessage(message);
+                    }
+                    break;
+                case ARDUINO_MESSAGES.CLI_OUTDATED:
+                    if (!this.outdated) {
                         vscode.postMessage(message);
                     }
                     break;
@@ -228,7 +240,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.platform = null;
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
                     break;
-
+                case ARDUINO_MESSAGES.CLI_OUTDATED:
+                    try {
+                        this.outdated = JSON.parse(message.payload);
+                    } catch (error) {
+                        console.log("Failed to parse outdated response: " + error);
+                    }
+                    break;
                 default:
                     console.warn('Unknown command received:', message.command);
             }
