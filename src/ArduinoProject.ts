@@ -341,7 +341,7 @@ export class ArduinoProject {
                 includePath: Array.from(includePaths),
                 defines: defines,
                 // compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
-                cStandard: "c11",
+                cStandard: "c17",
                 cppStandard: "c++17",
                 intelliSenseMode: "gcc-x86"
             }],
