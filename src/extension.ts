@@ -474,7 +474,7 @@ function vsCommandCompile(): Disposable {
 				() => arduinoProject.getCompileCommandArguments(),
 				"CLI: Failed to compile project", true, true, compileUploadChannel
 			);
-			genere
+			generateIntellisense();
 		} catch (error) {
 			console.log(error);
 		}
