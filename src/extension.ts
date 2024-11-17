@@ -550,13 +550,13 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 				resolve(returnOutput ? outputBuffer : undefined);
 			} else {
 				channel.appendLine(`Command failed with code ${code}.`);
-				resolve(undefined);
+				reject(undefined);
 			}
 		});
 
 		child.on('error', (err: any) => {
 			channel.appendLine(`Failed to run command: ${err.message}`);
-			resolve(undefined);
+			reject(undefined);
 		});
 	});
 }
