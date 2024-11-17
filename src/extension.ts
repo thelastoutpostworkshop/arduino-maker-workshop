@@ -372,8 +372,10 @@ function generateIntellisense() {
 			title: "Generating IntelliSense Configuration...",
 			cancellable: false
 		}, async (progress) => {
-			const compileCommand = arduinoProject.getCompileCommandArguments(true);
-			const output = await executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true, false, compileUploadChannel);
+			const output = await runArduinoCommand(
+				() => arduinoProject.getCompileCommandArguments(true),
+				"CLI: Failed to compile for intellisense", true, false, compileUploadChannel
+			);
 			if (output) {
 				// Parse the output and generate c_cpp_properties.json
 				createIntellisenseFile(output);
