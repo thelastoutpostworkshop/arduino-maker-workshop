@@ -298,64 +298,64 @@ export class ArduinoProject {
     }
 
 
-    public generateCppPropertiesFromCompileOutput(output: string) {
-        const defines: string[] = [];
+    // public generateCppPropertiesFromCompileOutput(output: string) {
+    //     const defines: string[] = [];
 
-        // Regular expressions to match include paths and defines
-        const defineRegex = /-D([^\s]+)/g;
-        const includeRegex = /"-I([^"]+)"/g;
+    //     // Regular expressions to match include paths and defines
+    //     const defineRegex = /-D([^\s]+)/g;
+    //     const includeRegex = /"-I([^"]+)"/g;
 
-        const includePaths = new Set();
+    //     const includePaths = new Set();
 
-        let match;
+    //     let match;
 
-        while ((match = includeRegex.exec(output)) !== null) {
-            let path = match[1]; // Capture the path inside the quotes
+    //     while ((match = includeRegex.exec(output)) !== null) {
+    //         let path = match[1]; // Capture the path inside the quotes
 
-            // Normalize the path (handle backslashes, especially on Windows)
-            path = path.replace(/\\\\/g, "\\"); // Convert backslashes to forward slashes for consistency
+    //         // Normalize the path (handle backslashes, especially on Windows)
+    //         path = path.replace(/\\\\/g, "\\"); // Convert backslashes to forward slashes for consistency
 
-            includePaths.add(path + "\\**"); // Use a Set to avoid duplicates
-        }
+    //         includePaths.add(path + "\\**"); // Use a Set to avoid duplicates
+    //     }
 
-        while ((match = defineRegex.exec(output)) !== null) {
-            defines.push(match[1]);
-        }
+    //     while ((match = defineRegex.exec(output)) !== null) {
+    //         defines.push(match[1]);
+    //     }
 
-        includePaths.add(this.getProjectPath() + "\\**");
-        try {
-            const includeDataPath = path.join(this.getProjectPath(), this.getOutput(), "includes.cache");
-            const includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
-            includeData.forEach((entry: any) => {
-                if (entry.Includepath) {
-                    includePaths.add(entry.Includepath + "\\**");
-                }
-            });
+    //     includePaths.add(this.getProjectPath() + "\\**");
+    //     try {
+    //         const includeDataPath = path.join(this.getProjectPath(), this.getOutput(), "includes.cache");
+    //         const includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
+    //         includeData.forEach((entry: any) => {
+    //             if (entry.Includepath) {
+    //                 includePaths.add(entry.Includepath + "\\**");
+    //             }
+    //         });
 
-        } catch (error) {
-            vscode.window.showErrorMessage('Cannot generate IntelliSense includes.cache not found');
-            return;
-        }
+    //     } catch (error) {
+    //         vscode.window.showErrorMessage('Cannot generate IntelliSense includes.cache not found');
+    //         return;
+    //     }
 
-        // Create c_cpp_properties.json
-        const cppProperties = {
-            configurations: [{
-                name: "Arduino",
-                includePath: Array.from(includePaths),
-                defines: defines,
-                // compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
-                cStandard: "c17",
-                cppStandard: "c++17",
-                intelliSenseMode: "gcc-x86"
-            }],
-            version: 4
-        };
+    //     // Create c_cpp_properties.json
+    //     const cppProperties = {
+    //         configurations: [{
+    //             name: "Arduino",
+    //             includePath: Array.from(includePaths),
+    //             defines: defines,
+    //             // compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
+    //             cStandard: "c17",
+    //             cppStandard: "c++17",
+    //             intelliSenseMode: "gcc-x86"
+    //         }],
+    //         version: 4
+    //     };
 
-        const cppPropertiesPath = path.join(this.getProjectPath(), VSCODE_FOLDER, CPP_PROPERTIES);
-        fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
+    //     const cppPropertiesPath = path.join(this.getProjectPath(), VSCODE_FOLDER, CPP_PROPERTIES);
+    //     fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
 
-        vscode.window.showInformationMessage('Generated c_cpp_properties.json for IntelliSense.');
-    }
+    //     vscode.window.showInformationMessage('Generated c_cpp_properties.json for IntelliSense.');
+    // }
     public setAdditionalBoardURLs(urls: string) {
         this.additionnlBoardURLs = urls;
     }
