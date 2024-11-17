@@ -99,6 +99,22 @@ export const useVsCodeStore = defineStore('vsCode', {
                             this.handleMessage(message);
                         });
                         break;
+                    case ARDUINO_MESSAGES.CLI_UNINSTALL_CORE:
+                        message.command = ARDUINO_MESSAGES.CORE_UNINSTALLED;
+                        this.handleMessage(message);
+                        break;
+                    case ARDUINO_MESSAGES.CLI_INSTALL_CORE_VERSION:
+                        message.command = ARDUINO_MESSAGES.CORE_VERSION_INSTALLED;
+                        this.handleMessage(message);
+                        break;
+                    case ARDUINO_MESSAGES.CLI_INSTALL_LIBRARY:
+                        message.command = ARDUINO_MESSAGES.LIBRARY_VERSION_INSTALLED;
+                        this.handleMessage(message);
+                        break;
+                    case ARDUINO_MESSAGES.CLI_UNINSTALL_LIBRARY:
+                        message.command = ARDUINO_MESSAGES.LIBRARY_UNINSTALLED;
+                        this.handleMessage(message);
+                        break;
                     default:
                         break;
                 }
@@ -231,6 +247,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.libraryUpdating = "";
                     this.librariesInstalled = null;
                     this.libraries = null;
+                    this.outdated = null;
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: "", payload: "" });
                     break;
@@ -238,6 +255,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.CORE_VERSION_INSTALLED:
                     this.boardUpdating = "";
                     this.platform = null;
+                    this.outdated = null;
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
                     break;
                 case ARDUINO_MESSAGES.CLI_UPDATE_INDEX:
