@@ -130,6 +130,12 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
+                    case ARDUINO_MESSAGES.CLI_OUTDATED:
+                        getOutdatedBoardAndLib().then((result) => {
+                            message.payload = result;
+                            VueWebviewPanel.sendMessage(message);
+                        });
+                        break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);
                 }

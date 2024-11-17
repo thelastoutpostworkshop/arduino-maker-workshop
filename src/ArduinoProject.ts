@@ -133,6 +133,7 @@ export class ArduinoProject {
             `${outdatedCommandArduino}`,
             `${jsonOutputArduino}`
         ];
+        this.addAdditionalBoardURLs(outdatedCommand);
         return outdatedCommand;
     }
     public getNewSketchArguments(name: string): string[] {
