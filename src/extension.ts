@@ -474,7 +474,7 @@ function vsCommandCompile(): Disposable {
 		try {
 			await runArduinoCommand(
 				() => arduinoProject.getCompileCommandArguments(),
-				"CLI: Failed to compile project", true, true, compileUploadChannel
+				"CLI: Failed to compile project", true, true, compileUploadChannel,"Compilation success!"
 			);
 			generateIntellisense();
 		} catch (error) {
@@ -489,11 +489,12 @@ async function runArduinoCommand(
 	errorMessagePrefix: string,
 	returnOutput: boolean = true,
 	showOutput: boolean = false,
-	channel: OutputChannel = arduinoCLIChannel
+	channel: OutputChannel = arduinoCLIChannel,
+	successMSG:string = ""
 ): Promise<string> {
 	try {
 		const args = getArguments();
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, returnOutput, showOutput, channel);
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, returnOutput, showOutput, channel,successMSG);
 		if (!result && returnOutput) {
 			const errorMsg = `${errorMessagePrefix}: No result`;
 			window.showErrorMessage(errorMsg);
@@ -506,7 +507,7 @@ async function runArduinoCommand(
 	}
 }
 
-export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = arduinoCLIChannel): Promise<string | void> {
+export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = arduinoCLIChannel,successMsg:string =""): Promise<string | void> {
 	// outputChannel.clear();
 	if (showOutput) {
 		channel.show(true);
@@ -547,6 +548,9 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 			if (code === 0) {
 				if (showOutput) {
 					channel.appendLine('Command executed successfully.');
+				}
+				if(successMsg) {
+					window.showInformationMessage(successMsg);
 				}
 				resolve(returnOutput ? outputBuffer : undefined);
 			} else {
