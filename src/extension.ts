@@ -59,6 +59,7 @@ export function activate(context: ExtensionContext) {
 
 	context.subscriptions.push(vsCommandCompile());
 	context.subscriptions.push(vsCommandUpload());
+	context.subscriptions.push(vsGenerateIntellisense());
 
 	context.subscriptions.push(
 		commands.registerCommand('extension.openVueWebview', () => {
@@ -337,6 +338,37 @@ function vsCommandUpload(): Disposable {
 	});
 }
 
+function vsGenerateIntellisense(): Disposable {
+	return commands.registerCommand('intellisense', () => {
+		if (!loadArduinoConfiguration()) {
+			return;
+		}
+		if (!arduinoProject.getBoard()) {
+			window.showInformationMessage('Board info not found, cannot generate intellisense');
+		}
+		if (!arduinoProject.getBoardConfiguration()) {
+			window.showInformationMessage('Board configuration not found, cannot generate intellisense');
+		}
+		if (!arduinoProject.getOutput()) {
+			window.showInformationMessage('Output not found, cannot generate intellisense');
+		}
+
+		const compileCommand = arduinoProject.getCompileCommandArguments(true);
+		executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true, true, compileUploadChannel)
+			.then(output => {
+				if (output) {
+					// Parse the output and generate c_cpp_properties.json
+					console.log(output);
+					// arduinoProject.generateCppPropertiesFromCompileOutput(output);
+				}
+			})
+			.catch(error => {
+				window.showErrorMessage(`Failed to generate c_cpp_properties.json: ${error}`);
+			});
+
+	});
+}
+
 function vsCommandCompile(): Disposable {
 	return commands.registerCommand('quickAccessView.compile', () => {
 		if (!loadArduinoConfiguration()) {
@@ -357,7 +389,7 @@ function vsCommandCompile(): Disposable {
 			.then(output => {
 				if (output) {
 					// Parse the output and generate c_cpp_properties.json
-					arduinoProject.generateCppPropertiesFromCompileOutput(output);
+					// arduinoProject.generateCppPropertiesFromCompileOutput(output);
 				}
 			})
 			.catch(error => {

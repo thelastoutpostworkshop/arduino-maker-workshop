@@ -84,7 +84,7 @@ export class ArduinoProject {
 
         return true;
     }
-    public getCompileCommandArguments(): string[] {
+    public getCompileCommandArguments(jsonOutput:boolean = false): string[] {
         const compileCommand = [
             `${compileCommandArduino}`,
             `${verboseOptionArduino}`,
@@ -95,6 +95,9 @@ export class ArduinoProject {
             this.getProjectPath() + '\\' + this.getOutput(),
             this.getProjectPath()
         ];
+        if(jsonOutput) {
+            compileCommand.push(`${jsonOutputArduino}`);
+        }
         return compileCommand;
     }
     public getPreprocessCommandArguments(): string[] {
