@@ -462,13 +462,13 @@ function vsCommandCompile(): Disposable {
 			return;
 		}
 		if (!arduinoProject.getBoard()) {
-			window.showInformationMessage('Board info not found, cannot compile');
+			window.showErrorMessage('Board info not found, cannot compile');
 		}
 		if (!arduinoProject.getBoardConfiguration()) {
-			window.showInformationMessage('Board configuration not found, cannot compile');
+			window.showErrorMessage('Board configuration not found, cannot compile');
 		}
 		if (!arduinoProject.getOutput()) {
-			window.showInformationMessage('Output not found, cannot compile');
+			window.showErrorMessage('Output not found, cannot compile');
 		}
 
 		try {
