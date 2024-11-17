@@ -250,6 +250,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.outdated = null;
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: "", payload: "" });
+                    this.sendMessage({ command: ARDUINO_MESSAGES.CLI_UPDATE_INDEX, errorMessage: "", payload: "" });
                     break;
                 case ARDUINO_MESSAGES.CORE_UNINSTALLED:
                 case ARDUINO_MESSAGES.CORE_VERSION_INSTALLED:
@@ -257,6 +258,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.platform = null;
                     this.outdated = null;
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
+                    this.sendMessage({ command: ARDUINO_MESSAGES.CLI_UPDATE_INDEX, errorMessage: "", payload: "" });
                     break;
                 case ARDUINO_MESSAGES.CLI_UPDATE_INDEX:
                     try {
