@@ -18,7 +18,7 @@ export const arduinoExtensionChannel = window.createOutputChannel('Arduino Exten
 arduinoExtensionChannel.appendLine("Arduino Extension started");
 const quickAccessProvider = new QuickAccessProvider();
 let serialMoniorAPI: SerialMonitorApi | undefined = undefined;
-let compileOrUploadRunning:boolean = false;
+let compileOrUploadRunning: boolean = false;
 
 export const arduinoProject: ArduinoProject = new ArduinoProject();
 let cliCommandArduinoPath: string = "";
@@ -311,7 +311,7 @@ export async function getBoardConnected(): Promise<string> {
 }
 function vsCommandUpload(): Disposable {
 	return commands.registerCommand('quickAccessView.upload', () => {
-		if(compileOrUploadRunning) {
+		if (compileOrUploadRunning) {
 			compileUploadChannel.show();
 			return;
 		}
@@ -341,7 +341,7 @@ function vsCommandUpload(): Disposable {
 				});
 			}
 			compileOrUploadRunning = false;
-		}).catch((error)=>{
+		}).catch((error) => {
 			compileOrUploadRunning = false;
 		});
 
@@ -445,9 +445,9 @@ function createIntellisenseFile(compileJsonOutput: string) {
 }
 
 
-function vsCommandCompile(): Disposable {
-	return commands.registerCommand('quickAccessView.compile', () => {
-		if(compileOrUploadRunning) {
+ function vsCommandCompile(): Disposable {
+	return commands.registerCommand('quickAccessView.compile', async () => {
+		if (compileOrUploadRunning) {
 			compileUploadChannel.show();
 			return;
 		}
@@ -466,20 +466,11 @@ function vsCommandCompile(): Disposable {
 			window.showInformationMessage('Output not found, cannot compile');
 		}
 
-		const compileCommand = arduinoProject.getCompileCommandArguments();
-		executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true, true, compileUploadChannel)
-			.then(output => {
-				if (output) {
-					// Parse the output and generate c_cpp_properties.json
-					// arduinoProject.generateCppPropertiesFromCompileOutput(output);
-					compileOrUploadRunning = false;
-				}
-			})
-			.catch(error => {
-				compileOrUploadRunning = false;
-				window.showErrorMessage(`Failed to generate c_cpp_properties.json: ${error}`);
-			});
-
+		await runArduinoCommand(
+			() => arduinoProject.getCompileCommandArguments(),
+			"CLI: Failed to compile project", false, true, compileUploadChannel
+		);
+		compileOrUploadRunning = false;
 	});
 }
 
@@ -493,12 +484,12 @@ async function runArduinoCommand(
 	try {
 		const args = getArguments();
 		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, returnOutput, showOutput, channel);
-		if (!result) {
+		if (!result && returnOutput) {
 			const errorMsg = `${errorMessagePrefix}: No result`;
 			window.showErrorMessage(errorMsg);
 			throw new Error("Command result empty");
 		}
-		return result;
+		return result || '';
 	} catch (error: any) {
 		window.showErrorMessage(`${errorMessagePrefix}: ${error.message}`);
 		throw error;
