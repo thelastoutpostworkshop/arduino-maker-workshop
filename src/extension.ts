@@ -1,7 +1,7 @@
 import { window, ExtensionContext, commands, Disposable, workspace, Uri, OutputChannel, ProgressLocation } from "vscode";
 import { ArduinoProject, CPP_PROPERTIES, VSCODE_FOLDER } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
-import { compileCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
+import { compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ArduinoCLIStatus, Compile } from "./shared/messages";
 import { SerialMonitorApi, Version, getSerialMonitorApi, LineEnding, Parity, StopBits, Port } from '@microsoft/vscode-serial-monitor-api';
 
@@ -86,9 +86,11 @@ function updateStateCompileUpload() {
 		arduinoProject.getArduinoConfiguration().configuration.trim() !== '') {
 		quickAccessProvider.enableItem(compileCommandName);
 		quickAccessProvider.enableItem(uploadCommandName);
+		quickAccessProvider.enableItem(intellisenseCommandName);
 	} else {
 		quickAccessProvider.disableItem(compileCommandName);
 		quickAccessProvider.disableItem(uploadCommandName);
+		quickAccessProvider.disableItem(intellisenseCommandName);
 	}
 }
 
