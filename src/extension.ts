@@ -174,7 +174,6 @@ export async function createNewSketch(name: string): Promise<string> {
 		// Open the new sketch folder in Visual Studio Code
 		const newProjectUri = Uri.file(fullName);
 		await commands.executeCommand('vscode.openFolder', newProjectUri, { forceNewWindow: false });
-		updateStateCompileUpload();
 		return result;
 	} catch (error: any) {
 		window.showErrorMessage(`CLI: Failed to create new sketch - ${error.message}`);
@@ -262,6 +261,7 @@ export async function getBoardConfiguration(): Promise<string> {
 			window.showErrorMessage(`CLI : No result from get board configuration`);
 			throw new Error("Command result empty");
 		}
+		updateStateCompileUpload();
 		return result;
 
 	} catch (error: any) {
