@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 
 async function loadMockData(mockFile: string, jsonToString: boolean = true): Promise<string> {
@@ -36,7 +36,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         libraries: null as Libsearch | null,
         librariesInstalled: null as Liblist | null,
         additionalBoardURLs: null as string | null,
-        outdated: null as string | null,
+        outdated: null as Outdated | null,
         boardUpdating: "",
         libraryUpdating: ""
     }),
