@@ -385,11 +385,19 @@ function createIntellisenseFile(compileJsonOutput: string) {
 
         // Extract compiler path if available
         const compilerPathProperty = compileInfo.builder_result.build_properties.find(prop =>
-            prop.startsWith("compiler.c.cmd")
+            prop.startsWith("compiler.path")
         );
         const compilerPath = compilerPathProperty
             ? compilerPathProperty.split("=")[1].trim() // Extract the path
             : "/path/to/compiler"; // Default placeholder if not found
+
+        // Extract compiler path if available
+        const compilerCommand = compileInfo.builder_result.build_properties.find(prop =>
+            prop.startsWith("compiler.cpp.cmd")
+        );
+        const compilerName = compilerCommand
+            ? compilerCommand.split("=")[1].trim() // Extract the path
+            : "(compiler name)"; // Default placeholder if not found
 
         // Create c_cpp_properties.json
         const cppProperties = {
@@ -398,7 +406,7 @@ function createIntellisenseFile(compileJsonOutput: string) {
                     name: "Arduino",
                     includePath: Array.from(includePaths),
                     defines: defines,
-                    compilerPath: compilerPath,
+                    compilerPath: `${compilerPath}/${compilerName}`,
                     cStandard: "c17",
                     cppStandard: "c++17",
                     intelliSenseMode: "gcc-x86"
