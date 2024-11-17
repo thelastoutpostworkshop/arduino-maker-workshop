@@ -313,6 +313,7 @@ function vsCommandUpload(): Disposable {
 			compileUploadChannel.show();
 			return;
 		}
+		compileUploadChannel.appendLine("Upload starting...");
 		compileOrUploadRunning = true;
 		if (!loadArduinoConfiguration()) {
 			return;
@@ -449,6 +450,7 @@ function vsCommandCompile(): Disposable {
 			return;
 		}
 		compileOrUploadRunning = true;
+		compileUploadChannel.appendLine("Compile project starting...");
 		if (!loadArduinoConfiguration()) {
 			return;
 		}
