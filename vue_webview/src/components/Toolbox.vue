@@ -9,7 +9,7 @@ const store = useVsCodeStore();
 const router = useRouter()
 
 onMounted(() => {
-    store.sendMessage({ command: ARDUINO_MESSAGES.CLI_OUTDATED, errorMessage: "", payload: "" });
+    store.sendMessage({ command: ARDUINO_MESSAGES.CLI_UPDATE_INDEX, errorMessage: "", payload: "" });
 });
 
 const libraryToUpdate = computed(() => {

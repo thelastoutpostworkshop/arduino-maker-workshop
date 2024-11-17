@@ -93,7 +93,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                             this.handleMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.CLI_OUTDATED:
+                    case ARDUINO_MESSAGES.CLI_UPDATE_INDEX:
                         loadMockData('outdated.json').then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
@@ -141,7 +141,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         vscode.postMessage(message);
                     }
                     break;
-                case ARDUINO_MESSAGES.CLI_OUTDATED:
+                case ARDUINO_MESSAGES.CLI_UPDATE_INDEX:
                     if (!this.outdated) {
                         vscode.postMessage(message);
                     }
@@ -240,7 +240,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.platform = null;
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
                     break;
-                case ARDUINO_MESSAGES.CLI_OUTDATED:
+                case ARDUINO_MESSAGES.CLI_UPDATE_INDEX:
                     try {
                         this.outdated = JSON.parse(message.payload);
                     } catch (error) {
