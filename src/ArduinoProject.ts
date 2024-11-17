@@ -32,8 +32,8 @@ export const inputDirOptionArduino: string = '--input-dir';
 export const noColorOptionArduino: string = '--no-color';
 export const preprocessCompileOptionArduino: string = '--preprocess';
 
-const CPP_PROPERTIES: string = "c_cpp_properties.json";
-const VSCODE_FOLDER: string = ".vscode";
+export const CPP_PROPERTIES: string = "c_cpp_properties.json";
+export const VSCODE_FOLDER: string = ".vscode";
 const ARDUINO_SETTINGS: string = "arduino.json";
 const ARDUINO_SKETCH_EXTENSION: string = ".ino";
 const ARDUINO_DEFAULT_OUTPUT: string = "build";
@@ -374,7 +374,7 @@ export class ArduinoProject {
     public getAdditionalBoardURLs(): string {
         return this.additionnlBoardURLs;
     }
-    private getProjectPath(): string {
+    public getProjectPath(): string {
         return this.projectFullPath;
     }
     public setBoard(board: string) {
