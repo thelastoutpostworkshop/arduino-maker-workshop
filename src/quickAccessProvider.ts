@@ -3,6 +3,7 @@ import { TreeDataProvider, EventEmitter, Event, TreeItem, TreeItemCollapsibleSta
 export const compileCommandName = 'Compile';
 export const uploadCommandName = 'Upload';
 export const homeCommandName = 'Arduino Home';
+export const intellisenseCommandName = 'intellisense';
 
 export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
   private _onDidChangeTreeData: EventEmitter<QuickAccessItem | undefined | null | void> = new EventEmitter<QuickAccessItem | undefined | null | void>();
@@ -13,7 +14,8 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
   private disabledItemsState: { [key: string]: boolean } = {
     compileCommandName: true,
     uploadCommandName: true,
-    homeCommandName:false
+    homeCommandName:false,
+    intellisenseCommandName:true,
   };
 
   getTreeItem(element: QuickAccessItem): TreeItem {
@@ -30,6 +32,7 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
       new QuickAccessItem(homeCommandName, 'extension.openVueWebview', 'Open the Arduino Home', 'home', this.disabledItemsState[homeCommandName]),
       new QuickAccessItem(compileCommandName, 'quickAccessView.compile', 'Compile the current sketch', 'check', this.disabledItemsState[compileCommandName]),
       new QuickAccessItem(uploadCommandName, 'quickAccessView.upload', 'Upload to the board', 'cloud-upload', this.disabledItemsState[uploadCommandName]),
+      new QuickAccessItem(intellisenseCommandName, intellisenseCommandName, 'Generate Intellisense file', 'bug', this.disabledItemsState[intellisenseCommandName]),
     ];
     return items;
   }
