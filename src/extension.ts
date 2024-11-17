@@ -348,34 +348,39 @@ function vsCommandUpload(): Disposable {
 
 function vsGenerateIntellisense(): Disposable {
 	return commands.registerCommand('intellisense', () => {
-		if (!loadArduinoConfiguration()) {
-			return;
-		}
-		if (!arduinoProject.getBoard()) {
-			window.showInformationMessage('Board info not found, cannot generate intellisense');
-		}
-		if (!arduinoProject.getBoardConfiguration()) {
-			window.showInformationMessage('Board configuration not found, cannot generate intellisense');
-		}
-		if (!arduinoProject.getOutput()) {
-			window.showInformationMessage('Output not found, cannot generate intellisense');
-		}
-
-		window.withProgress(
-			{
-				location: ProgressLocation.Notification,
-				title: "Generating IntelliSense Configuration...",
-				cancellable: false
-			}, async (progress) => {
-				const compileCommand = arduinoProject.getCompileCommandArguments(true);
-				const output = await executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true, false, compileUploadChannel);
-				if (output) {
-					// Parse the output and generate c_cpp_properties.json
-					createIntellisenseFile(output);
-					// arduinoProject.generateCppPropertiesFromCompileOutput(output);
-				}
-			});
+		generateIntellisense();
 	});
+}
+
+function generateIntellisense() {
+	if (!loadArduinoConfiguration()) {
+		return;
+	}
+	if (!arduinoProject.getBoard()) {
+		window.showInformationMessage('Board info not found, cannot generate intellisense');
+	}
+	if (!arduinoProject.getBoardConfiguration()) {
+		window.showInformationMessage('Board configuration not found, cannot generate intellisense');
+	}
+	if (!arduinoProject.getOutput()) {
+		window.showInformationMessage('Output not found, cannot generate intellisense');
+	}
+
+	window.withProgress(
+		{
+			location: ProgressLocation.Notification,
+			title: "Generating IntelliSense Configuration...",
+			cancellable: false
+		}, async (progress) => {
+			const compileCommand = arduinoProject.getCompileCommandArguments(true);
+			const output = await executeArduinoCommand(`${cliCommandArduinoPath}`, compileCommand, true, false, compileUploadChannel);
+			if (output) {
+				// Parse the output and generate c_cpp_properties.json
+				createIntellisenseFile(output);
+				// arduinoProject.generateCppPropertiesFromCompileOutput(output);
+			}
+		});
+
 }
 
 function createIntellisenseFile(compileJsonOutput: string) {
@@ -443,7 +448,7 @@ function createIntellisenseFile(compileJsonOutput: string) {
 }
 
 
- function vsCommandCompile(): Disposable {
+function vsCommandCompile(): Disposable {
 	return commands.registerCommand('quickAccessView.compile', async () => {
 		if (compileOrUploadRunning) {
 			compileUploadChannel.show();
@@ -464,10 +469,15 @@ function createIntellisenseFile(compileJsonOutput: string) {
 			window.showInformationMessage('Output not found, cannot compile');
 		}
 
-		await runArduinoCommand(
-			() => arduinoProject.getCompileCommandArguments(),
-			"CLI: Failed to compile project", false, true, compileUploadChannel
-		);
+		try {
+			await runArduinoCommand(
+				() => arduinoProject.getCompileCommandArguments(),
+				"CLI: Failed to compile project", true, true, compileUploadChannel
+			);
+			genere
+		} catch (error) {
+			console.log(error);
+		}
 		compileOrUploadRunning = false;
 	});
 }
@@ -489,7 +499,7 @@ async function runArduinoCommand(
 		}
 		return result || '';
 	} catch (error: any) {
-		window.showErrorMessage(`${errorMessagePrefix}: ${error.message}`);
+		window.showErrorMessage(`${errorMessagePrefix}`);
 		throw error;
 	}
 }
