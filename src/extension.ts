@@ -310,7 +310,7 @@ export async function getBoardConnected(): Promise<string> {
 	);
 }
 function vsCommandUpload(): Disposable {
-	return commands.registerCommand('quickAccessView.upload', () => {
+	return commands.registerCommand('quickAccessView.upload', async () => {
 		if (compileOrUploadRunning) {
 			compileUploadChannel.show();
 			return;
@@ -330,21 +330,19 @@ function vsCommandUpload(): Disposable {
 			window.showInformationMessage('Port not found, cannot upload');
 		}
 
-		const uploadCommand = arduinoProject.getUploadArguments();
 		if (serialMoniorAPI) {
 			const port = arduinoProject.getPort();
 			serialMoniorAPI.stopMonitoringPort(port);
 		}
-		executeArduinoCommand(`${cliCommandArduinoPath}`, uploadCommand, false, true, compileUploadChannel).then(() => {
-			if (serialMoniorAPI) {
-				serialMoniorAPI.startMonitoringPort({ port: arduinoProject.getPort(), baudRate: 115200, lineEnding: LineEnding.None, dataBits: 8, stopBits: StopBits.One, parity: Parity.None }).then((port) => {
-				});
-			}
-			compileOrUploadRunning = false;
-		}).catch((error) => {
-			compileOrUploadRunning = false;
-		});
-
+		await runArduinoCommand(
+			() => arduinoProject.getUploadArguments(),
+			"CLI: Failed to upload", false, true, compileUploadChannel
+		);
+		if (serialMoniorAPI) {
+			serialMoniorAPI.startMonitoringPort({ port: arduinoProject.getPort(), baudRate: 115200, lineEnding: LineEnding.None, dataBits: 8, stopBits: StopBits.One, parity: Parity.None }).then((port) => {
+			});
+		}
+		compileOrUploadRunning = false;
 	});
 }
 
