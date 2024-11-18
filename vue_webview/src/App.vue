@@ -7,7 +7,6 @@ const vsCodeStore = useVsCodeStore();
 
 function handleMessageFromVsCode(event: MessageEvent) {
   const message = event.data; // The message sent from the extension
-  console.log('Received message:', message);
 
   // Use the store action to handle the message
   if (import.meta.env.DEV) {
