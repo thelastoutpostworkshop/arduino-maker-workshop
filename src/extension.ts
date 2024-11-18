@@ -32,15 +32,6 @@ export function activate(context: ExtensionContext) {
 	arduinoProject.setAdditionalBoardURLs(boardsURLS);
 	arduinoExtensionChannel.appendLine(`Arduino Board URLs: ${arduinoProject.getAdditionalBoardURLs()}`);
 
-	// workspace.onDidChangeWorkspaceFolders(() => {
-	// 	quickAccessProvider.refresh();
-	// });
-
-	// // Check if the current folder is a valid Arduino project
-	// if (arduinoProject.isFolderArduinoProject() !== ARDUINO_ERRORS.NO_ERRORS) {
-	// 	quickAccessProvider.refresh();
-	// }
-
 	context.subscriptions.push(
 		workspace.onDidChangeConfiguration((e) => {
 		})
@@ -377,9 +368,7 @@ function generateIntellisense() {
 				"CLI: Failed to compile for intellisense", true, false, compileUploadChannel
 			);
 			if (output) {
-				// Parse the output and generate c_cpp_properties.json
 				createIntellisenseFile(output);
-				// arduinoProject.generateCppPropertiesFromCompileOutput(output);
 			}
 		});
 
