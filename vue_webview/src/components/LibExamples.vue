@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ARDUINO_MESSAGES } from '@shared/messages';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 
 const store = useVsCodeStore();
+const selectedExample = ref<string[]>([]); // v-model as an array
 
+// Utility function to build a tree structure with the required format
 function buildTree(paths: string[]): any[] {
   const tree: Record<string, any> = {};
 
@@ -17,14 +19,17 @@ function buildTree(paths: string[]): any[] {
 
       relevantParts.forEach((part) => {
         if (!currentLevel[part]) {
-          currentLevel[part] = { id: Math.random(), title: part, children: {} }; // Unique ID
+          currentLevel[part] = {
+            id: path, // Use full path as the unique identifier
+            title: part,
+            children: {},
+          };
         }
         currentLevel = currentLevel[part].children;
       });
     }
   });
 
-  // Convert the tree object into the required v-treeview format
   const convertToTreeView = (obj: Record<string, any>): any[] =>
     Object.values(obj).map(({ id, title, children }) => ({
       id,
@@ -35,7 +40,6 @@ function buildTree(paths: string[]): any[] {
   return convertToTreeView(tree);
 }
 
-// Computed property to build tree data for each library
 const libraryExamplesTree = computed(() =>
   store.librariesInstalled?.installed_libraries.map((library) => ({
     name: library.library.name,
@@ -82,12 +86,19 @@ onMounted(() => {
                 :items="library.examplesTree"
                 item-text="title"
                 item-value="id"
+                v-model:selected="selectedExample"
                 open-on-click
                 activatable
+                selectable
+                density="compact"
               ></v-treeview>
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
+        <div class="mt-4">
+          <h3>Selected Example:</h3>
+          <p >{{ selectedExample }}</p>
+        </div>
       </div>
     </v-responsive>
   </v-container>
