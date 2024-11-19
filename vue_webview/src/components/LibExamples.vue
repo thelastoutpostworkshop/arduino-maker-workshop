@@ -37,8 +37,7 @@ onMounted(() => {
                 {{ library.library.paragraph }}
                 <span class="text-subtitle-2"> <a :href="library.library.website" target="_blank">More Info</a></span>
               </div>
-              <!-- <v-autocomplete class="pt-2" v-model="boardSelect[index]" :items="platformData.boards" item-title="name"
-                item-value="fqbn" label="Select a Board" outlined dense return-object></v-autocomplete> -->
+              // Show treeview here
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
