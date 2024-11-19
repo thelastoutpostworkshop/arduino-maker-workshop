@@ -4,6 +4,7 @@ import BoardConfiguration from '@/components/BoardConfiguration.vue';
 import { createRouter, createMemoryHistory } from 'vue-router'
 import BoardManager from '@/components/BoardManager.vue';
 import LibraryManager from '@/components/LibraryManager.vue';
+import LibExamples from '@/components/LibExamples.vue';
 
 export const routerBoardSelectionName = 'board-selection';
 export const routerBoardConfigurationName = 'board-configuration';
@@ -45,6 +46,13 @@ const router = createRouter({
         name: "library-manager",
         components: {
           default: LibraryManager,
+        }
+      },
+      {
+        path: '/library-examples',
+        name: "library-examples",
+        components: {
+          default: LibExamples,
         }
       },
 
