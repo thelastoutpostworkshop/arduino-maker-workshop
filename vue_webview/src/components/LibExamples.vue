@@ -5,6 +5,7 @@ import { onMounted, computed, ref } from 'vue';
 
 const store = useVsCodeStore();
 const selectedExample = ref<string[]>([]); // v-model as an array
+let uniqueIdCounter = 1; // Counter for generating unique numeric IDs
 
 // Utility function to build a tree structure with the required format
 function buildTree(paths: string[]): any[] {
@@ -20,7 +21,8 @@ function buildTree(paths: string[]): any[] {
       relevantParts.forEach((part) => {
         if (!currentLevel[part]) {
           currentLevel[part] = {
-            id: path, // Use full path as the unique identifier
+            id: uniqueIdCounter++, // Use full path as the unique identifier
+            path:path,
             title: part,
             children: {},
           };
@@ -31,9 +33,10 @@ function buildTree(paths: string[]): any[] {
   });
 
   const convertToTreeView = (obj: Record<string, any>): any[] =>
-    Object.values(obj).map(({ id, title, children }) => ({
+    Object.values(obj).map(({ id, title, children,path }) => ({
       id,
       title,
+      path,
       ...(Object.keys(children).length > 0 && { children: convertToTreeView(children) }), // Only include children if not empty
     }));
 
@@ -85,12 +88,13 @@ onMounted(() => {
               <v-treeview
                 :items="library.examplesTree"
                 item-text="title"
-                item-value="id"
+                item-value="path"
                 v-model:selected="selectedExample"
                 open-on-click
-                activatable
                 selectable
+                select-strategy="single-leaf"
                 density="compact"
+                return-object
               ></v-treeview>
             </v-expansion-panel-text>
           </v-expansion-panel>
