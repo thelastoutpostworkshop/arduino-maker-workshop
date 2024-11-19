@@ -87,14 +87,13 @@ onMounted(() => {
               <!-- Treeview rendering -->
               <v-treeview
                 :items="library.examplesTree"
-                item-text="title"
-                item-value="path"
-                v-model:selected="selectedExample"
-                open-on-click
+                v-model="selectedExample"
                 selectable
+                item-text="title"
+                item-value="id"
+                open-on-click
                 select-strategy="single-leaf"
                 density="compact"
-                return-object
               ></v-treeview>
             </v-expansion-panel-text>
           </v-expansion-panel>

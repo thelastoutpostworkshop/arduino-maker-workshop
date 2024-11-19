@@ -10,7 +10,6 @@ declare module 'vue' {
     BoardConfiguration: typeof import('./src/components/BoardConfiguration.vue')['default']
     BoardManager: typeof import('./src/components/BoardManager.vue')['default']
     BoardSelection: typeof import('./src/components/BoardSelection.vue')['default']
-    copy: typeof import('./src/components/BoardSelection copy.vue')['default']
     Home: typeof import('./src/components/Home.vue')['default']
     LibExamples: typeof import('./src/components/LibExamples.vue')['default']
     LibraryManager: typeof import('./src/components/LibraryManager.vue')['default']
