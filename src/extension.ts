@@ -143,6 +143,11 @@ export function checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
 	});
 }
 
+export function openExample(examplePath: string) {
+	const uriPath = Uri.file(examplePath);
+	commands.executeCommand('vscode.openFolder', uriPath, { forceNewWindow: true });
+}
+
 export async function createNewSketch(name: string): Promise<string> {
 	try {
 		// Get the current workspace folder (assumes that there's an active workspace)
@@ -380,7 +385,7 @@ function createIntellisenseFile(compileJsonOutput: string) {
 
 		// Extract include paths from used libraries
 		const includePaths = new Set<string>();
-		if(compileInfo.builder_result.used_libraries) {
+		if (compileInfo.builder_result.used_libraries) {
 			compileInfo.builder_result.used_libraries.forEach(library => {
 				includePaths.add(`${library.source_dir}/**`); // Add recursive include
 			});
@@ -465,7 +470,7 @@ function vsCommandCompile(): Disposable {
 		try {
 			await runArduinoCommand(
 				() => arduinoProject.getCompileCommandArguments(),
-				"CLI: Failed to compile project", true, true, compileUploadChannel,"Compilation success!"
+				"CLI: Failed to compile project", true, true, compileUploadChannel, "Compilation success!"
 			);
 			generateIntellisense();
 		} catch (error) {
@@ -481,11 +486,11 @@ async function runArduinoCommand(
 	returnOutput: boolean = true,
 	showOutput: boolean = false,
 	channel: OutputChannel = arduinoCLIChannel,
-	successMSG:string = ""
+	successMSG: string = ""
 ): Promise<string> {
 	try {
 		const args = getArguments();
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, returnOutput, showOutput, channel,successMSG);
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, returnOutput, showOutput, channel, successMSG);
 		if (!result && returnOutput) {
 			const errorMsg = `${errorMessagePrefix}: No result`;
 			window.showErrorMessage(errorMsg);
@@ -498,7 +503,7 @@ async function runArduinoCommand(
 	}
 }
 
-export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = arduinoCLIChannel,successMsg:string =""): Promise<string | void> {
+export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = arduinoCLIChannel, successMsg: string = ""): Promise<string | void> {
 	// outputChannel.clear();
 	if (showOutput) {
 		channel.show(true);
@@ -540,7 +545,7 @@ export function executeArduinoCommand(command: string, args: string[], returnOut
 				if (showOutput) {
 					channel.appendLine('Command executed successfully.');
 				}
-				if(successMsg) {
+				if (successMsg) {
 					window.showInformationMessage(successMsg);
 				}
 				resolve(returnOutput ? outputBuffer : undefined);
