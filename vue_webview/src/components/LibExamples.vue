@@ -6,11 +6,16 @@ import { onMounted } from 'vue';
 const store = useVsCodeStore();
 
 function examplesItems(examples: string[]): any[] {
-  return examples.map((example) => ({
-    title: example, 
-    value: example,           
-  }));
+  return examples.map((example) => {
+    const parts = example.split('examples\\');
+    const title = parts.length > 1 ? parts[1] : example; // Use the portion after 'examples\\' or fallback to the full path
+    return {
+      title, // Extracted title
+      value: example, // Full path for the value
+    };
+  });
 }
+
 
 
 onMounted(() => {
@@ -46,9 +51,13 @@ onMounted(() => {
                 {{ library.library.paragraph }}
                 <span class="text-subtitle-2"> <a :href="library.library.website" target="_blank">More Info</a></span>
               </div>
-              <v-list v-if="library.library.examples" density="compact" :items="examplesItems(library.library.examples)">
-  
+              <v-list v-if="library.library.examples" density="compact"
+                :items="examplesItems(library.library.examples)">
+
               </v-list>
+              <div v-else>
+                Library does not provide any examples
+              </div>
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
