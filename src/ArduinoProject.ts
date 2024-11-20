@@ -11,13 +11,13 @@ const uploadCommandArduino: string = 'upload';
 const boardCommandArduino: string = 'board';
 const libraryCommandArduino: string = 'lib';
 const listFunctionArduino: string = 'list';
-const listAllFunctionArduino: string = 'listall';
 const detailsFunctionArduino: string = 'details';
 const jsonOutputArduino: string = '--json';
 const outdatedCommandArduino: string = 'outdated';
 const coreCommandArduino: string = 'core';
 const updateOption: string = 'update-index';
 const newOption: string = 'new';
+const compileCleanOption: string = '--clean';
 const installOption: string = 'install';
 const uninstallOption: string = 'uninstall';
 const searchOption: string = 'search';
@@ -57,7 +57,7 @@ export class ArduinoProject {
             commandArray.push(`${this.additionnlBoardURLs}`);
         }
     }
-    public getarduinoConfigurationPath():string {
+    public getarduinoConfigurationPath(): string {
         return this.arduinoConfigurationPath;
     }
     public readConfiguration(): boolean {
@@ -84,7 +84,7 @@ export class ArduinoProject {
 
         return true;
     }
-    public getCompileCommandArguments(jsonOutput:boolean = false): string[] {
+    public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false): string[] {
         const compileCommand = [
             `${compileCommandArduino}`,
             `${verboseOptionArduino}`,
@@ -95,8 +95,11 @@ export class ArduinoProject {
             this.getProjectPath() + '\\' + this.getOutput(),
             this.getProjectPath()
         ];
-        if(jsonOutput) {
+        if (jsonOutput) {
             compileCommand.push(`${jsonOutputArduino}`);
+        }
+        if(clean) {
+            compileCommand.push(`${compileCleanOption}`);
         }
         return compileCommand;
     }

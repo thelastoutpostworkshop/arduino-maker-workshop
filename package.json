@@ -57,6 +57,11 @@
         "category": "Arduino"
       },
       {
+        "command": "compile.clean",
+        "title": "Compile (clean)",
+        "category": "Arduino"
+      },
+      {
         "command": "quickAccessView.upload",
         "title": "Upload",
         "category": "Arduino"

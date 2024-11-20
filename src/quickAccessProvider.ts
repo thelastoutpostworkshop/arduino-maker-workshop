@@ -1,6 +1,7 @@
 import { TreeDataProvider, EventEmitter, Event, TreeItem, TreeItemCollapsibleState, ThemeIcon, ThemeColor } from "vscode";
 
 export const compileCommandName = 'Compile';
+export const compileCommandCleanName = 'Compile (clean)';
 export const uploadCommandName = 'Upload';
 export const homeCommandName = 'Arduino Home';
 export const intellisenseCommandName = 'intellisense';
@@ -31,6 +32,7 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
     const items = [
       new QuickAccessItem(homeCommandName, 'extension.openVueWebview', 'Open the Arduino Home', 'home', this.disabledItemsState[homeCommandName]),
       new QuickAccessItem(compileCommandName, 'quickAccessView.compile', 'Compile the current sketch', 'check', this.disabledItemsState[compileCommandName]),
+      new QuickAccessItem(compileCommandCleanName, 'compile.clean', 'Compile (rebuild clean) the current sketch', 'check', this.disabledItemsState[compileCommandCleanName]),
       new QuickAccessItem(uploadCommandName, 'quickAccessView.upload', 'Upload to the board', 'cloud-upload', this.disabledItemsState[uploadCommandName]),
       new QuickAccessItem(intellisenseCommandName, intellisenseCommandName, 'Generate Intellisense file', 'bug', this.disabledItemsState[intellisenseCommandName]),
     ];

@@ -1,7 +1,7 @@
 import { window, ExtensionContext, commands, Disposable, workspace, Uri, OutputChannel, ProgressLocation } from "vscode";
 import { ArduinoProject, CPP_PROPERTIES, VSCODE_FOLDER } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
-import { compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
+import { compileCommandCleanName, compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ArduinoCLIStatus, Compile } from "./shared/messages";
 import { SerialMonitorApi, Version, getSerialMonitorApi, LineEnding, Parity, StopBits, Port } from '@microsoft/vscode-serial-monitor-api';
 
@@ -48,6 +48,7 @@ export function activate(context: ExtensionContext) {
 	);
 
 	context.subscriptions.push(vsCommandCompile());
+	context.subscriptions.push(vsCommandCompileClean());
 	context.subscriptions.push(vsCommandUpload());
 	context.subscriptions.push(vsGenerateIntellisense());
 
@@ -76,10 +77,12 @@ function updateStateCompileUpload() {
 		arduinoProject.getArduinoConfiguration().board.trim() !== '' &&
 		arduinoProject.getArduinoConfiguration().configuration.trim() !== '') {
 		quickAccessProvider.enableItem(compileCommandName);
+		quickAccessProvider.enableItem(compileCommandCleanName);
 		quickAccessProvider.enableItem(uploadCommandName);
 		quickAccessProvider.enableItem(intellisenseCommandName);
 	} else {
 		quickAccessProvider.disableItem(compileCommandName);
+		quickAccessProvider.disableItem(compileCommandCleanName);
 		quickAccessProvider.disableItem(uploadCommandName);
 		quickAccessProvider.disableItem(intellisenseCommandName);
 	}
@@ -445,39 +448,47 @@ function createIntellisenseFile(compileJsonOutput: string) {
 	}
 }
 
-
-function vsCommandCompile(): Disposable {
-	return commands.registerCommand('quickAccessView.compile', async () => {
-		if (compileOrUploadRunning) {
-			compileUploadChannel.show();
-			return;
-		}
-		compileOrUploadRunning = true;
-		compileUploadChannel.appendLine("Compile project starting...");
-		if (!loadArduinoConfiguration()) {
-			return;
-		}
-		if (!arduinoProject.getBoard()) {
-			window.showErrorMessage('Board info not found, cannot compile');
-		}
-		if (!arduinoProject.getBoardConfiguration()) {
-			window.showErrorMessage('Board configuration not found, cannot compile');
-		}
-		if (!arduinoProject.getOutput()) {
-			window.showErrorMessage('Output not found, cannot compile');
-		}
-
-		try {
-			await runArduinoCommand(
-				() => arduinoProject.getCompileCommandArguments(),
-				"CLI: Failed to compile project", true, true, compileUploadChannel, "Compilation success!"
-			);
-			generateIntellisense();
-		} catch (error) {
-			console.log(error);
-		}
-		compileOrUploadRunning = false;
+function vsCommandCompileClean(): Disposable {
+	return commands.registerCommand('compile.clean', async () => {
+		compile(true);
 	});
+}
+function vsCommandCompile(clean: boolean = false): Disposable {
+	return commands.registerCommand('quickAccessView.compile', async () => {
+		compile(false);
+	});
+}
+
+async function compile(clean: boolean = false) {
+	if (compileOrUploadRunning) {
+		compileUploadChannel.show();
+		return;
+	}
+	compileOrUploadRunning = true;
+	compileUploadChannel.appendLine("Compile project starting...");
+	if (!loadArduinoConfiguration()) {
+		return;
+	}
+	if (!arduinoProject.getBoard()) {
+		window.showErrorMessage('Board info not found, cannot compile');
+	}
+	if (!arduinoProject.getBoardConfiguration()) {
+		window.showErrorMessage('Board configuration not found, cannot compile');
+	}
+	if (!arduinoProject.getOutput()) {
+		window.showErrorMessage('Output not found, cannot compile');
+	}
+
+	try {
+		await runArduinoCommand(
+			() => arduinoProject.getCompileCommandArguments(false, clean),
+			"CLI: Failed to compile project", true, true, compileUploadChannel, "Compilation success!"
+		);
+		generateIntellisense();
+	} catch (error) {
+		console.log(error);
+	}
+	compileOrUploadRunning = false;
 }
 
 async function runArduinoCommand(
