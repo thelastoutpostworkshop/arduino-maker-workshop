@@ -167,6 +167,13 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
                   {{ item.latest.paragraph }}
                   <span class="text-subtitle-2"> <a :href="item.latest.website" target="_blank">More Info</a></span>
                 </div>
+                <div v-if="item.latest.dependencies">
+                  Dependencies:
+                  <span v-for="(dependancy) in item.latest.dependencies">
+                    {{ dependancy.name }},
+                  </span>
+                </div>
+                <div v-else>This library has no dependencies</div>
                 <div class="pt-2">
                   <v-row>
                     <v-col cols="3">
