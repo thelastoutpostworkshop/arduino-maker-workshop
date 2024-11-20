@@ -339,5 +339,6 @@ export const ARDUINO_MESSAGES = {
   LIBRARY_VERSION_INSTALLED: 'libraryVersionInstalled',
   LIBRARY_UNINSTALLED: 'libraryVersionInstalled',
   SET_ADDITIONAL_URLS: 'setAdditionalURLs',
-  GET_ADDITIONAL_URLS: 'getAdditionalURLs'
+  GET_ADDITIONAL_URLS: 'getAdditionalURLs',
+  OPEN_LIBRARY:'openLibrary'
 };

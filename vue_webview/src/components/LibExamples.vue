@@ -5,6 +5,10 @@ import { onMounted } from 'vue';
 
 const store = useVsCodeStore();
 
+function openExample(examplePath:string) {
+  store.sendMessage({ command: ARDUINO_MESSAGES.OPEN_LIBRARY, errorMessage: "", payload: examplePath });
+}
+
 function examplesItems(examples: string[]): any[] {
   const groupedItems: any[] = []; // Final array of grouped items
   const groups: Record<string, any[]> = {}; // Groups to hold examples under subheaders
@@ -93,7 +97,11 @@ onMounted(() => {
               </div>
               <v-list v-if="library.library.examples" density="compact"
                 :items="examplesItems(library.library.examples)">
-
+                <template v-slot:append="{ item }">
+                  <v-list-item-action start>
+                    <v-btn @click="openExample(item.value)">Open</v-btn>
+                  </v-list-item-action>
+                </template>
               </v-list>
               <div v-else>
                 Library does not provide any examples
