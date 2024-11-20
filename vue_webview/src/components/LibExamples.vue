@@ -5,7 +5,7 @@ import { onMounted } from 'vue';
 
 const store = useVsCodeStore();
 
-function openExample(examplePath:string) {
+function openExample(examplePath: string) {
   store.sendMessage({ command: ARDUINO_MESSAGES.OPEN_LIBRARY, errorMessage: "", payload: examplePath });
 }
 
@@ -88,17 +88,23 @@ onMounted(() => {
           <v-expansion-panel v-for="(library) in store.librariesInstalled.installed_libraries"
             :key="library.library.name">
             <v-expansion-panel-title>
-              {{ library.library.name }} by {{ library.library.maintainer }}
+              {{ library.library.name }}
             </v-expansion-panel-title>
             <v-expansion-panel-text>
-              <div class="text-grey mb-4">
+              <div class="text-grey">
+                <div>
+                  by {{ library.library.maintainer }}
+                </div>
                 {{ library.library.paragraph }}
                 <span class="text-subtitle-2"> <a :href="library.library.website" target="_blank">More Info</a></span>
               </div>
+              <div class="mt-1">
+                Examples provided with the library:
+              </div>
               <v-list v-if="library.library.examples" density="compact"
                 :items="examplesItems(library.library.examples)">
-                <template v-slot:append="{ item }">
-                  <v-list-item-action start>
+                <template v-slot:append="{ item,isSelected }">
+                  <v-list-item-action v-if="isSelected" start >
                     <v-btn @click="openExample(item.value)">Open</v-btn>
                   </v-list-item-action>
                 </template>

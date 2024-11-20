@@ -39,6 +39,8 @@ class VSCodeAPIWrapper {
       this.vsCodeApi.postMessage(message);
     } else {
       if(this.inDevelopment()) {
+        console.log("Message sent:");
+        console.log(message);
         window.postMessage(message);
       }
     }
