@@ -12,12 +12,9 @@ enum FilterBoards {
 const store = useVsCodeStore();
 const filterBoards = ref(FilterBoards.installed);
 const selectedPlatform = ref<Record<string, string>>({});
-const selectedURLs = ref<string>(""); // Track selected items
 
 const searchBoards = ref('');
 const filterdBoardsCount = ref(0);
-
-const areButtonsDisabled = computed(() => selectedURLs.value.length === 0);
 
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
@@ -133,8 +130,8 @@ const platformName = (platform_id: string): string => {
   return name;
 };
 
-function deleteURL() {
-  console.log(selectedURLs.value[0]);
+function deleteURL(item:any) {
+  console.log(item)
 }
 </script>
 
@@ -249,18 +246,17 @@ function deleteURL() {
           Manage additional boards
         </v-card-subtitle>
         <v-card-text>
-          <v-list :items="additionalBoardURLs" selectable density="compact" v-model:selected="selectedURLs">
-            <template v-slot:prepend="{ isSelected }" >
-              <v-list-item-action start >
-                <v-checkbox-btn :model-value="isSelected" ></v-checkbox-btn>
-              </v-list-item-action>
-            </template>
+          <v-list density="compact" selectable>
+            <v-list-item v-for="(item, index) in additionalBoardURLs" :title="item.title" :key="index">
+              <template v-slot:append="{ isActive }">
+                <v-btn v-if="isActive" icon="mdi-pencil" variant="text"></v-btn>
+                <v-btn v-if="isActive" @click="deleteURL(item)" icon="mdi-trash-can" variant="text"></v-btn>
+              </template>
+            </v-list-item>
           </v-list>
         </v-card-text>
         <v-card-actions>
-          <v-btn icon="mdi-plus" size="large"></v-btn>
-          <v-btn @click="deleteURL" icon="mdi-trash-can" size="large" :disabled="areButtonsDisabled"></v-btn>
-          <v-btn icon="mdi-pencil" size="large" :disabled="areButtonsDisabled"></v-btn>
+          <v-text-field hide-details="auto" label="First name"></v-text-field>
         </v-card-actions>
       </v-card>
     </v-responsive>
