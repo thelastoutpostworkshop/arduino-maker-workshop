@@ -3,7 +3,7 @@ import { ArduinoProject, CPP_PROPERTIES, VSCODE_FOLDER } from './ArduinoProject'
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ArduinoCLIStatus, Compile } from "./shared/messages";
-import { SerialMonitorApi, Version, getSerialMonitorApi, LineEnding, Parity, StopBits, Port } from '@microsoft/vscode-serial-monitor-api';
+import { SerialMonitorApi, Version, getSerialMonitorApi, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
 
 const cp = require('child_process');
 const path = require('path');
