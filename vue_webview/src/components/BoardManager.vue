@@ -12,8 +12,12 @@ enum FilterBoards {
 const store = useVsCodeStore();
 const filterBoards = ref(FilterBoards.installed);
 const selectedPlatform = ref<Record<string, string>>({});
+const selectedURLs = ref<string[]>([]); // Track selected items
+
 const searchBoards = ref('');
 const filterdBoardsCount = ref(0);
+
+const areButtonsDisabled = computed(() => selectedURLs.value.length === 0);
 
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
@@ -241,17 +245,18 @@ const platformName = (platform_id: string): string => {
           Manage additional boards
         </v-card-subtitle>
         <v-card-text>
-          <v-list :items="additionalBoardURLs">
-            <template v-slot:prepend="{ isSelected }">
-              <v-list-item-action start>
-                <v-checkbox-btn :model-value="isSelected"></v-checkbox-btn>
+          <v-list :items="additionalBoardURLs" selectable density="compact" v-model:selected="selectedURLs">
+            <template v-slot:prepend="{ isSelected }" >
+              <v-list-item-action start >
+                <v-checkbox-btn :model-value="isSelected" ></v-checkbox-btn>
               </v-list-item-action>
             </template>
           </v-list>
         </v-card-text>
         <v-card-actions>
-          <v-btn>Add</v-btn>
-          <v-btn>Remove</v-btn>
+          <v-btn icon="mdi-plus" size="large"></v-btn>
+          <v-btn icon="mdi-trash-can" size="large" :disabled="areButtonsDisabled"></v-btn>
+          <v-btn icon="mdi-pencil" size="large" :disabled="areButtonsDisabled"></v-btn>
         </v-card-actions>
       </v-card>
     </v-responsive>
