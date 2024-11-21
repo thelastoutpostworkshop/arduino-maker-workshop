@@ -115,6 +115,10 @@ export const useVsCodeStore = defineStore('vsCode', {
                         message.command = ARDUINO_MESSAGES.LIBRARY_UNINSTALLED;
                         this.handleMessage(message);
                         break;
+                    case ARDUINO_MESSAGES.GET_ADDITIONAL_URLS:
+                        message.payload="https://espressif.github.io/arduino-esp32/package_esp32_index.json,https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json";
+                        this.handleMessage(message);
+                        break;
                     default:
                         break;
                 }
@@ -162,7 +166,11 @@ export const useVsCodeStore = defineStore('vsCode', {
                         vscode.postMessage(message);
                     }
                     break;
-
+                case ARDUINO_MESSAGES.GET_ADDITIONAL_URLS:
+                    if (!this.additionalBoardURLs) {
+                        vscode.postMessage(message);
+                    }
+                    break;
                 default:
                     vscode.postMessage(message);
                     break;

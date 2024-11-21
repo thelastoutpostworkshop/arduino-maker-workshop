@@ -17,6 +17,7 @@ const filterdBoardsCount = ref(0);
 
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
+  store.sendMessage({ command: ARDUINO_MESSAGES.GET_ADDITIONAL_URLS, errorMessage: "", payload: "" });
 });
 
 const headers = [
@@ -223,6 +224,14 @@ const platformName = (platform_id: string): string => {
           </v-card-text>
         </v-card>
       </div>
+      <v-card v-if="store.additionalBoardURLs" class="mt-5">
+        <v-card-title>
+          Addtional Boards URLs
+        </v-card-title>
+        <v-card-subtitle>
+          Manage additional boards
+        </v-card-subtitle>
+      </v-card>
     </v-responsive>
   </v-container>
 </template>
