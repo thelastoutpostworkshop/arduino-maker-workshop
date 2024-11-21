@@ -83,6 +83,15 @@ const filteredPlatforms = computed(() => {
   return filtered;
 })
 
+const additionalBoardURLs = computed(() => {
+  return store.additionalBoardURLs
+    ? store.additionalBoardURLs.split(',').map((url, index) => ({
+      title: url.trim(),
+      value: url.trim(),
+    }))
+    : [];
+});
+
 function filterPlatforms(filter: FilterBoards): Platform[] {
   let filtered: Platform[] = [];
   switch (filter) {
@@ -224,13 +233,26 @@ const platformName = (platform_id: string): string => {
           </v-card-text>
         </v-card>
       </div>
-      <v-card v-if="store.additionalBoardURLs" class="mt-5">
+      <v-card v-if="store.additionalBoardURLs != null" class="mt-5">
         <v-card-title>
           Addtional Boards URLs
         </v-card-title>
         <v-card-subtitle>
           Manage additional boards
         </v-card-subtitle>
+        <v-card-text>
+          <v-list :items="additionalBoardURLs">
+            <template v-slot:prepend="{ isSelected }">
+              <v-list-item-action start>
+                <v-checkbox-btn :model-value="isSelected"></v-checkbox-btn>
+              </v-list-item-action>
+            </template>
+          </v-list>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn>Add</v-btn>
+          <v-btn>Remove</v-btn>
+        </v-card-actions>
       </v-card>
     </v-responsive>
   </v-container>
