@@ -18,7 +18,8 @@ const filterdBoardsCount = ref(0);
 
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
-  store.sendMessage({ command: ARDUINO_MESSAGES.GET_ADDITIONAL_URLS, errorMessage: "", payload: "" });
+  // store.sendMessage({ command: ARDUINO_MESSAGES.GET_ADDITIONAL_URLS, errorMessage: "", payload: "" });
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_GET_CONFIG, errorMessage: "", payload: "" });
 });
 
 const headers = [
@@ -245,7 +246,7 @@ function deleteURL(item:any) {
         <v-card-subtitle>
           Manage additional boards
         </v-card-subtitle>
-        <v-card-text>
+        <!-- <v-card-text>
           <v-list density="compact" selectable>
             <v-list-item v-for="(item, index) in additionalBoardURLs" :title="item.title" :key="index">
               <template v-slot:append="{ isActive }">
@@ -257,7 +258,7 @@ function deleteURL(item:any) {
         </v-card-text>
         <v-card-actions>
           <v-text-field hide-details="auto" label="First name"></v-text-field>
-        </v-card-actions>
+        </v-card-actions> -->
       </v-card>
     </v-responsive>
   </v-container>
