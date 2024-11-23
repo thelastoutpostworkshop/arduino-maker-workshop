@@ -34,14 +34,17 @@ watch(
       const projectPort = projectInfo?.port;
 
       // Check if projectPort is in the detected_ports array
-      if (projectPort && boardConnected.detected_ports.some(detectedPort => detectedPort.port.label === projectPort)) {
+      if (projectPort && boardConnected.detected_ports.some(detectedPort => detectedPort.port.label === projectPort) && projectPort !== "COM1") {
         portSelected.value = projectPort;
       } else {
         // Set portSelected to the first detected port, if available
         if (boardConnected.detected_ports.length > 0) {
-          if (boardConnected.detected_ports[0].port.label) {
-            portSelected.value = boardConnected.detected_ports[0].port.label;
-          }
+          if (boardConnected.detected_ports[1].port.label) {
+            portSelected.value = boardConnected.detected_ports[1].port.label;
+          } else
+            if (boardConnected.detected_ports[0].port.label) {
+              portSelected.value = boardConnected.detected_ports[0].port.label;
+            }
         }
       }
     }
