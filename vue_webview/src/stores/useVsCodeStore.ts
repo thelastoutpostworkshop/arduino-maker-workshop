@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated, ArduinoConfig } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 
 async function loadMockData(mockFile: string, jsonToString: boolean = true): Promise<string> {
@@ -37,6 +37,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         librariesInstalled: null as Liblist | null,
         additionalBoardURLs: null as string | null,
         outdated: null as Outdated | null,
+        cliConfig: null as ArduinoConfig | null,
         boardUpdating: "",
         libraryUpdating: ""
     }),
@@ -47,6 +48,12 @@ export const useVsCodeStore = defineStore('vsCode', {
                 switch (message.command) {
                     case ARDUINO_MESSAGES.CLI_CORE_SEARCH:
                         loadMockData('coresearch.json').then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
+                        break;
+                    case ARDUINO_MESSAGES.CLI_GET_CONFIG:
+                        loadMockData('config.json').then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
@@ -144,7 +151,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.CLI_BOARD_SEARCH:
                     if (!this.boards) {
                         vscode.postMessage(message);
-                    } 
+                    }
                     break;
                 case ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH:
                     if (!this.libraries) {
@@ -222,6 +229,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                         this.boards = JSON.parse(message.payload);
                     } catch (error) {
                         console.log("Failed to parse Board Configuration information: " + error);
+                    }
+                    break;
+                case ARDUINO_MESSAGES.CLI_GET_CONFIG:
+                    try {
+                        this.cliConfig = JSON.parse(message.payload);
+                    } catch (error) {
+                        console.log("Failed to parse CLI Configuration: " + error);
                     }
                     break;
                 case ARDUINO_MESSAGES.REQUEST_BOARD_CONNECTED:

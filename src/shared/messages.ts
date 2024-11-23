@@ -388,6 +388,7 @@ export const ARDUINO_MESSAGES = {
   CLI_UNINSTALL_LIBRARY: 'cli_UnInstallLibrary',
   CLI_LIBRARY_INSTALLED: 'cli_libraryInstalled',
   CLI_OUTDATED: 'cli_outdated',
+  CLI_GET_CONFIG: 'cli_getConfig',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
   ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
   SET_BOARD: 'setArduinoBoard',
