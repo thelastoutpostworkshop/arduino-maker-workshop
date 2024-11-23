@@ -29,8 +29,16 @@ const boardHeaders = [
   { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '10%' },
 ];
 const urlHeaders = [
-  { title: 'URL', value: 'name', key: 'name', sortable: true }
+  { title: 'URLs', value: 'title' }
 ];
+
+const additionalBoardURLs = computed(() => {
+  return store.cliConfig?.config.board_manager?.additional_urls
+    ? store.cliConfig.config.board_manager.additional_urls.map((url) => ({
+      title: url.trim(),
+    }))
+    : [];
+});
 
 const updatableBoardCount = computed(() => {
   let count = 0;
@@ -125,7 +133,7 @@ const platformName = (platform_id: string): string => {
   return name;
 };
 
-function deleteURL(item:any) {
+function deleteURL(item: any) {
   console.log(item)
 }
 </script>
@@ -241,8 +249,8 @@ function deleteURL(item:any) {
           Manage additional boards
         </v-card-subtitle>
         <v-card-text>
-          <v-data-table :items="store.cliConfig?.config.board_manager?.additional_urls" :headers="urlHeaders" density="compact" show-expand item-value="name"
-          :sort-by="[{ key: 'name', order: 'asc' }]" :search="searchBoards">
+          <v-data-table :items="additionalBoardURLs" :headers="urlHeaders"
+            density="compact" item-value="name">
           </v-data-table>
         </v-card-text>
         <!-- <v-card-actions>
