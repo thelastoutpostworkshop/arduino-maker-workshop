@@ -22,11 +22,14 @@ onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_GET_CONFIG, errorMessage: "", payload: "" });
 });
 
-const headers = [
+const boardHeaders = [
   { title: 'Name', value: 'name', key: 'name', sortable: true },
   { title: 'Installed', value: 'installed_version', key: 'installed_version', align: 'center' as const, sortable: false, width: '15%' },
   { title: 'Latest', value: 'latest_version', key: 'latest_version', align: 'center' as const, sortable: false, width: '15%' },
   { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '10%' },
+];
+const urlHeaders = [
+  { title: 'URL', value: 'name', key: 'name', sortable: true }
 ];
 
 const updatableBoardCount = computed(() => {
@@ -84,15 +87,6 @@ const filteredPlatforms = computed(() => {
   filterdBoardsCount.value = filtered.length;
   return filtered;
 })
-
-const additionalBoardURLs = computed(() => {
-  return store.additionalBoardURLs
-    ? store.additionalBoardURLs.split(',').map((url, index) => ({
-      title: url.trim(),
-      value: url.trim(),
-    }))
-    : [];
-});
 
 function filterPlatforms(filter: FilterBoards): Platform[] {
   let filtered: Platform[] = [];
@@ -163,7 +157,7 @@ function deleteURL(item:any) {
           <v-chip filter :value="FilterBoards.not_installed">Not Installed</v-chip>
           <v-chip filter :value="FilterBoards.deprecated">Deprecated</v-chip>
         </v-chip-group>
-        <v-data-table :items="filteredPlatforms" :headers="headers" density="compact" show-expand item-value="name"
+        <v-data-table :items="filteredPlatforms" :headers="boardHeaders" density="compact" show-expand item-value="name"
           :sort-by="[{ key: 'name', order: 'asc' }]" :search="searchBoards">
 
           <template v-slot:expanded-row="{ columns, item }">
@@ -239,24 +233,19 @@ function deleteURL(item:any) {
           </v-card-text>
         </v-card>
       </div>
-      <v-card v-if="store.additionalBoardURLs != null" class="mt-5">
+      <v-card v-if="store.cliConfig?.config.board_manager?.additional_urls != null" class="mt-5">
         <v-card-title>
           Addtional Boards URLs
         </v-card-title>
         <v-card-subtitle>
           Manage additional boards
         </v-card-subtitle>
-        <!-- <v-card-text>
-          <v-list density="compact" selectable>
-            <v-list-item v-for="(item, index) in additionalBoardURLs" :title="item.title" :key="index">
-              <template v-slot:append="{ isActive }">
-                <v-btn v-if="isActive" icon="mdi-pencil" variant="text"></v-btn>
-                <v-btn v-if="isActive" @click="deleteURL(item)" icon="mdi-trash-can" variant="text"></v-btn>
-              </template>
-            </v-list-item>
-          </v-list>
+        <v-card-text>
+          <v-data-table :items="store.cliConfig?.config.board_manager?.additional_urls" :headers="urlHeaders" density="compact" show-expand item-value="name"
+          :sort-by="[{ key: 'name', order: 'asc' }]" :search="searchBoards">
+          </v-data-table>
         </v-card-text>
-        <v-card-actions>
+        <!-- <v-card-actions>
           <v-text-field hide-details="auto" label="First name"></v-text-field>
         </v-card-actions> -->
       </v-card>
