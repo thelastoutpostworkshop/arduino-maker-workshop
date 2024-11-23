@@ -4,6 +4,65 @@ export interface WebviewToExtensionMessage {
   payload: any | ArduinoProjectStatus;
 }
 
+// Arduino Config file interface
+export interface ArduinoConfig {
+  config: Config;
+}
+
+export interface Config {
+  board_manager?: BoardManager;
+  daemon?:        Daemon;
+  directories?:   Directories;
+  library?:       Library;
+  logging?:       Logging;
+  metrics?:       Metrics;
+  output?:        Output;
+  sketch?:        Sketch;
+  updater?:       Updater;
+}
+
+export interface BoardManager {
+  additional_urls: any[];
+}
+
+export interface Daemon {
+  port: string;
+}
+
+export interface Directories {
+  data:      string;
+  downloads: string;
+  user:      string;
+}
+
+export interface Library {
+  enable_unsafe_install: boolean;
+}
+
+export interface Logging {
+  file:   string;
+  format: string;
+  level:  string;
+}
+
+export interface Metrics {
+  addr:    string;
+  enabled: boolean;
+}
+
+export interface Output {
+  no_color: boolean;
+}
+
+export interface Sketch {
+  always_export_binaries: boolean;
+}
+
+export interface Updater {
+  enable_notification: boolean;
+}
+
+// Arduino Project Configuration
 export interface ArduinoProjectConfiguration {
   port: string;
   configuration: string;

@@ -9,12 +9,14 @@ const versionCommandArduino: string = 'version';
 const sketchCommandArduino: string = 'sketch';
 const uploadCommandArduino: string = 'upload';
 const boardCommandArduino: string = 'board';
+const configCommandArduino: string = 'config';
 const libraryCommandArduino: string = 'lib';
 const listFunctionArduino: string = 'list';
 const detailsFunctionArduino: string = 'details';
 const jsonOutputArduino: string = '--json';
 const outdatedCommandArduino: string = 'outdated';
 const coreCommandArduino: string = 'core';
+const dumpOption: string = 'dump';
 const updateOption: string = 'update-index';
 const newOption: string = 'new';
 const compileCleanOption: string = '--clean';
@@ -130,6 +132,14 @@ export class ArduinoProject {
             this.getProjectPath()
         ];
         return compileCommand;
+    }
+    public getConfigDump(): string[] {
+        const command = [
+            `${configCommandArduino}`,
+            `${dumpOption}`,
+            `${jsonOutputArduino}`
+        ];
+        return command;
     }
     public getOutdatedArguments(): string[] {
         const outdatedCommand = [

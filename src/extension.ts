@@ -2,7 +2,7 @@ import { window, ExtensionContext, commands, Disposable, workspace, Uri, OutputC
 import { ArduinoProject, CPP_PROPERTIES, VSCODE_FOLDER } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
-import { ARDUINO_ERRORS, ArduinoCLIStatus, Compile } from "./shared/messages";
+import { ARDUINO_ERRORS, ArduinoCLIStatus, ArduinoConfig, Compile } from "./shared/messages";
 import { SerialMonitorApi, Version, getSerialMonitorApi, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
 
 const cp = require('child_process');
@@ -34,6 +34,7 @@ export function activate(context: ExtensionContext) {
 		throw new Error(error);
 	}
 
+	checkArduinoConfiguration();
 	const boardsURLS = config.get<string>(addtionalBoardURLSetting, "");
 	arduinoProject.setAdditionalBoardURLs(boardsURLS);
 	arduinoExtensionChannel.appendLine(`Arduino Board URLs: ${arduinoProject.getAdditionalBoardURLs()}`);
@@ -73,6 +74,25 @@ export function activate(context: ExtensionContext) {
 	});
 	getSerialMonitorApi(Version.latest, context).then((api) => {
 		serialMoniorAPI = api;
+	});
+}
+
+ function  checkArduinoConfiguration() {
+	runArduinoCommand(
+		() => arduinoProject.getConfigDump(),
+		"CLI : Failed to get arduino configuration information"
+	).then((result)=>{
+		try {
+			const config:ArduinoConfig = JSON.parse(result);
+			if(Object.keys(config.config).length === 0) {
+				// There is no arduino config file, let's create one
+				
+			}
+		} catch (error) {
+			window.showErrorMessage(`Someting is wrong with the CLI`);
+		}
+	}).catch((error)=> {
+		window.showErrorMessage(`${error}`);
 	});
 }
 
