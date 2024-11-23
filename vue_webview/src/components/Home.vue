@@ -41,6 +41,7 @@ watch(
         if (boardConnected.detected_ports.length > 0) {
           if (boardConnected.detected_ports[1].port.label) {
             portSelected.value = boardConnected.detected_ports[1].port.label;
+            store.sendMessage({ command: ARDUINO_MESSAGES.SET_PORT, errorMessage: "", payload: portSelected.value  });
           } else
             if (boardConnected.detected_ports[0].port.label) {
               portSelected.value = boardConnected.detected_ports[0].port.label;
