@@ -212,6 +212,8 @@ export const useVsCodeStore = defineStore('vsCode', {
                             .join(",");
                         this.sendMessage({ command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS, errorMessage: "", payload: configuration });
                     } catch (error) {
+                        this.boardOptions = null;
+                        this.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
                         console.log("Failed to parse Board Configuration information.");
                     }
                     break;

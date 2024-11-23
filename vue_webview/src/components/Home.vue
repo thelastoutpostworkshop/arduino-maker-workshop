@@ -126,7 +126,7 @@ onMounted(() => {
               <v-btn @click="createNewSkecth" :disabled="sketchName.trim().length == 0">New Sketch</v-btn>
             </v-card-actions>
           </v-card>
-          <div v-if="store.projectStatus === null && !store.projectInfo?.board">
+          <div v-if="store.projectStatus == null && !store.projectInfo?.board == null">
             <v-card class="mt-5">
               <v-card-item title="Getting Project Information">
                 <template v-slot:subtitle>

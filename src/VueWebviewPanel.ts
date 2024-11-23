@@ -56,6 +56,13 @@ export class VueWebviewPanel {
                         getBoardConfiguration().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
+                        }).catch(()=>{
+                            // Board info is wrong or not installed
+                            arduinoProject.setBoard("");
+                            arduinoProject.setConfiguration("");
+                            arduinoProject.setPort("");
+                            message.payload="";
+                            VueWebviewPanel.sendMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_BOARD_SEARCH:
