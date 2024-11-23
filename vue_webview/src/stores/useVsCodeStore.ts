@@ -143,6 +143,11 @@ export const useVsCodeStore = defineStore('vsCode', {
                         vscode.postMessage(message);
                     }
                     break;
+                case ARDUINO_MESSAGES.CLI_GET_CONFIG:
+                    if (!this.cliConfig) {
+                        vscode.postMessage(message);
+                    }
+                    break;
                 case ARDUINO_MESSAGES.CLI_BOARD_CONNECTED:
                     if (!this.boardConnected) {
                         vscode.postMessage(message);
