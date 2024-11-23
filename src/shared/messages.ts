@@ -1,10 +1,10 @@
 export interface WebviewToExtensionMessage {
   command: string;
   errorMessage: string,
-  payload: any  | ArduinoProjectStatus ;
+  payload: any | ArduinoProjectStatus;
 }
 
-export interface ArduinoConfiguration {
+export interface ArduinoProjectConfiguration {
   port: string;
   configuration: string;
   output: string;
@@ -19,16 +19,16 @@ export enum ARDUINO_ERRORS {
 }
 
 export interface ArduinoProjectStatus {
-  cli_status:ArduinoCLIStatus;
-  project_status:ARDUINO_ERRORS;
+  cli_status: ArduinoCLIStatus;
+  project_status: ARDUINO_ERRORS;
 }
 
 export interface ArduinoCLIStatus {
-  Application?:   string;
+  Application?: string;
   VersionString: string;
-  Commit?:        string;
-  Status?:        string;
-  Date:          string;
+  Commit?: string;
+  Status?: string;
+  Date: string;
 }
 
 export interface Outdated {
@@ -38,54 +38,54 @@ export interface Outdated {
 
 // Compile output interfaces
 export interface Compile {
-  compiler_out:   string;
-  compiler_err:   string;
+  compiler_out: string;
+  compiler_err: string;
   builder_result: BuilderResult;
-  upload_result:  UploadResult;
-  success:        boolean;
+  upload_result: UploadResult;
+  success: boolean;
 }
 
 export interface BuilderResult {
-  build_path:               string;
-  used_libraries:           UsedLibrary[];
+  build_path: string;
+  used_libraries: UsedLibrary[];
   executable_sections_size: ExecutableSectionsSize[];
-  board_platform:           DPlatform;
-  build_platform:           DPlatform;
-  build_properties:         string[];
+  board_platform: DPlatform;
+  build_platform: DPlatform;
+  build_properties: string[];
 }
 
 export interface DPlatform {
-  id:          string;
-  version:     string;
+  id: string;
+  version: string;
   install_dir: string;
   package_url: string;
 }
 
 export interface ExecutableSectionsSize {
-  name:     string;
-  size:     number;
+  name: string;
+  size: number;
   max_size: number;
 }
 
 export interface UsedLibrary {
-  name:                string;
-  author:              string;
-  maintainer:          string;
-  sentence:            string;
-  paragraph?:          string;
-  website?:            string;
-  category:            string;
-  architectures:       string[];
-  install_dir:         string;
-  source_dir:          string;
-  version:             string;
-  license:             string;
-  properties:          UploadResult;
-  location:            string;
-  layout:              string;
-  examples?:           string[];
-  provides_includes:   string[];
-  compatible_with:     UploadResult;
+  name: string;
+  author: string;
+  maintainer: string;
+  sentence: string;
+  paragraph?: string;
+  website?: string;
+  category: string;
+  architectures: string[];
+  install_dir: string;
+  source_dir: string;
+  version: string;
+  license: string;
+  properties: UploadResult;
+  location: string;
+  layout: string;
+  examples?: string[];
+  provides_includes: string[];
+  compatible_with: UploadResult;
   container_platform?: string;
 }
 
@@ -328,7 +328,7 @@ export const ARDUINO_MESSAGES = {
   CLI_INSTALL_LIBRARY: 'cli_InstallLibrary',
   CLI_UNINSTALL_LIBRARY: 'cli_UnInstallLibrary',
   CLI_LIBRARY_INSTALLED: 'cli_libraryInstalled',
-  CLI_OUTDATED:'cli_outdated',
+  CLI_OUTDATED: 'cli_outdated',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
   ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
   SET_BOARD: 'setArduinoBoard',
@@ -340,6 +340,6 @@ export const ARDUINO_MESSAGES = {
   LIBRARY_UNINSTALLED: 'libraryVersionInstalled',
   SET_ADDITIONAL_URLS: 'setAdditionalURLs',
   GET_ADDITIONAL_URLS: 'getAdditionalURLs',
-  OPEN_LIBRARY:'openExample',
-  REQUEST_BOARD_CONNECTED:"requestBoardConnected"
+  OPEN_LIBRARY: 'openExample',
+  REQUEST_BOARD_CONNECTED: "requestBoardConnected"
 };

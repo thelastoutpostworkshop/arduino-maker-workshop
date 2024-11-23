@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ARDUINO_ERRORS, ArduinoConfiguration } from './shared/messages';
+import { ARDUINO_ERRORS, ArduinoProjectConfiguration } from './shared/messages';
 
 const path = require('path');
 const fs = require('fs');
@@ -40,7 +40,7 @@ const ARDUINO_DEFAULT_OUTPUT: string = "build";
 
 export class ArduinoProject {
     private arduinoConfigurationPath: string = "";
-    private configJson: ArduinoConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "" };
+    private configJson: ArduinoProjectConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "" };
     private projectFullPath: string = "";
     private additionnlBoardURLs: string = "";
 
@@ -98,7 +98,7 @@ export class ArduinoProject {
         if (jsonOutput) {
             compileCommand.push(`${jsonOutputArduino}`);
         }
-        if(clean) {
+        if (clean) {
             compileCommand.push(`${compileCleanOption}`);
         }
         return compileCommand;
@@ -399,7 +399,7 @@ export class ArduinoProject {
         this.configJson.configuration = "";
         this.writeVSCodeArduinoConfiguration();
     }
-    public getArduinoConfiguration(): ArduinoConfiguration {
+    public getArduinoConfiguration(): ArduinoProjectConfiguration {
         return this.configJson;
     }
     public getPort(): string {
