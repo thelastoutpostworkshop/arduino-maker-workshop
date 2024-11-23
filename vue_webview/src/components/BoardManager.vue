@@ -39,8 +39,8 @@ const urlHeaders = [
 const additionalBoardURLs = computed(() => {
   return store.cliConfig?.config.board_manager?.additional_urls
     ? store.cliConfig.config.board_manager.additional_urls.map((url) => ({
-        title: url.trim(),
-      }))
+      title: url.trim(),
+    }))
     : [];
 });
 
@@ -269,7 +269,7 @@ function openAddURLDialog() {
           </v-card-text>
         </v-card>
       </div>
-      <v-card v-if="store.cliConfig?.config.board_manager?.additional_urls != null" class="mt-5">
+      <v-card class="mt-5">
         <v-card-title>
           Additional Boards URLs
         </v-card-title>
@@ -277,10 +277,13 @@ function openAddURLDialog() {
           Manage additional boards
         </v-card-subtitle>
         <v-card-text>
-          <v-data-table :items="additionalBoardURLs" :headers="urlHeaders" density="compact" item-value="name">
+          <v-data-table :items="additionalBoardURLs" :headers="urlHeaders" density="compact" item-value="name"
+            :loading="store.cliConfig?.config.board_manager?.additional_urls == null">
+            <template v-slot:loading>
+              <v-skeleton-loader></v-skeleton-loader>
+            </template>
             <template v-slot:top>
               <div>
-                <v-spacer />
                 <v-dialog v-model="dialogURL" max-width="500px">
                   <template v-slot:activator="{ props }">
                     <v-btn v-bind="props" @click="openAddURLDialog">
