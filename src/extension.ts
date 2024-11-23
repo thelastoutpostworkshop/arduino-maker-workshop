@@ -293,7 +293,7 @@ export async function getBoardConfiguration(): Promise<string> {
 		return result;
 
 	} catch (error: any) {
-		window.showErrorMessage(`CLI : Error from get board configuration`);
+		window.showErrorMessage(`CLI : Error from get board configuration, you may have to installed the board using the board manager`);
 		throw error;
 	}
 }
