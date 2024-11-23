@@ -34,7 +34,7 @@ export function activate(context: ExtensionContext) {
 		throw new Error(error);
 	}
 
-	checkArduinoConfiguration();
+	// checkArduinoConfiguration();
 	const boardsURLS = config.get<string>(addtionalBoardURLSetting, "");
 	arduinoProject.setAdditionalBoardURLs(boardsURLS);
 	arduinoExtensionChannel.appendLine(`Arduino Board URLs: ${arduinoProject.getAdditionalBoardURLs()}`);
@@ -77,24 +77,28 @@ export function activate(context: ExtensionContext) {
 	});
 }
 
- function  checkArduinoConfiguration() {
-	runArduinoCommand(
-		() => arduinoProject.getConfigDump(),
-		"CLI : Failed to get arduino configuration information"
-	).then((result)=>{
-		try {
-			const config:ArduinoConfig = JSON.parse(result);
-			if(Object.keys(config.config).length === 0) {
-				// There is no arduino config file, let's create one
-				
-			}
-		} catch (error) {
-			window.showErrorMessage(`Someting is wrong with the CLI`);
-		}
-	}).catch((error)=> {
-		window.showErrorMessage(`${error}`);
-	});
-}
+// function checkArduinoConfiguration() {
+// 	runArduinoCommand(
+// 		() => arduinoProject.getConfigDumpArgs(),
+// 		"CLI : Failed to get arduino configuration information"
+// 	).then((result) => {
+// 		try {
+// 			const config: ArduinoConfig = JSON.parse(result);
+// 			if (Object.keys(config.config).length === 0) {
+// 				// There is no arduino config file, let's create one
+// 				runArduinoCommand(
+// 					() => arduinoProject.getConfigInitArgs(),
+// 					"CLI : Failed to create arduino config file",
+// 					false, true
+// 				);
+// 			}
+// 		} catch (error) {
+// 			window.showErrorMessage(`Someting is wrong with the CLI`);
+// 		}
+// 	}).catch((error) => {
+// 		window.showErrorMessage(`${error}`);
+// 	});
+// }
 
 function updateStateCompileUpload() {
 	arduinoProject.readConfiguration();

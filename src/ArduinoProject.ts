@@ -19,6 +19,7 @@ const coreCommandArduino: string = 'core';
 const dumpOption: string = 'dump';
 const updateOption: string = 'update-index';
 const newOption: string = 'new';
+const initOption: string = 'init';
 const compileCleanOption: string = '--clean';
 const installOption: string = 'install';
 const uninstallOption: string = 'uninstall';
@@ -133,11 +134,18 @@ export class ArduinoProject {
         ];
         return compileCommand;
     }
-    public getConfigDump(): string[] {
+    public getConfigDumpArgs(): string[] {
         const command = [
             `${configCommandArduino}`,
             `${dumpOption}`,
             `${jsonOutputArduino}`
+        ];
+        return command;
+    }
+    public getConfigInitArgs(): string[] {
+        const command = [
+            `${configCommandArduino}`,
+            `${initOption}`
         ];
         return command;
     }
