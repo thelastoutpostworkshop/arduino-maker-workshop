@@ -25,8 +25,14 @@ let cliCommandArduinoPath: string = "";
 
 export function activate(context: ExtensionContext) {
 	const config = workspace.getConfiguration();
-	cliCommandArduinoPath = getArduinoCliPath(context);
-	arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${cliCommandArduinoPath}`);
+	try {
+		cliCommandArduinoPath = getArduinoCliPath(context);
+		arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${cliCommandArduinoPath}`);
+	} catch (error: any) {
+		arduinoExtensionChannel.appendLine(error);
+		window.showErrorMessage(error);
+		throw new Error(error);
+	}
 
 	const boardsURLS = config.get<string>(addtionalBoardURLSetting, "");
 	arduinoProject.setAdditionalBoardURLs(boardsURLS);
