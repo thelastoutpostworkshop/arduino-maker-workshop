@@ -29,7 +29,8 @@ const boardHeaders = [
   { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '10%' },
 ];
 const urlHeaders = [
-  { title: 'URLs', value: 'title' }
+  { title: 'URLs', value: 'title' },
+  { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '20%' },
 ];
 
 const additionalBoardURLs = computed(() => {
@@ -249,8 +250,29 @@ function deleteURL(item: any) {
           Manage additional boards
         </v-card-subtitle>
         <v-card-text>
-          <v-data-table :items="additionalBoardURLs" :headers="urlHeaders"
-            density="compact" item-value="name">
+          <v-data-table :items="additionalBoardURLs" :headers="urlHeaders" density="compact" item-value="name">
+            <template v-slot:item.actions="{ item }">
+              <v-tooltip>
+                <template v-slot:activator="{ props }">
+                  <v-btn icon v-bind="props" variant="text">
+                    <v-icon>
+                      mdi-pencil
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span> Edit</span>
+              </v-tooltip>
+              <v-tooltip>
+                <template v-slot:activator="{ props }">
+                  <v-btn v-bind="props" variant="text">
+                    <v-icon>
+                      mdi-trash-can
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span>Remove</span>
+              </v-tooltip>
+            </template>
           </v-data-table>
         </v-card-text>
         <!-- <v-card-actions>
