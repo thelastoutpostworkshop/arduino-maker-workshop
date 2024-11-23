@@ -15,6 +15,8 @@ const selectedPlatform = ref<Record<string, string>>({});
 
 const searchBoards = ref('');
 const filterdBoardsCount = ref(0);
+const dialogURL = ref(false);
+const URL = ref("");
 
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
@@ -251,6 +253,38 @@ function deleteURL(item: any) {
         </v-card-subtitle>
         <v-card-text>
           <v-data-table :items="additionalBoardURLs" :headers="urlHeaders" density="compact" item-value="name">
+            <template v-slot:top>
+              <div>
+                <v-spacer></v-spacer>
+                <v-dialog v-model="dialogURL" max-width="500px">
+                  <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props">
+                      Add URL
+                    </v-btn>
+                  </template>
+                  <v-card>
+                    <v-card-title>
+                      <span class="text-h5">Add URL</span>
+                    </v-card-title>
+
+                    <v-card-text>
+                      <v-text-field v-model="URL" label="URL"></v-text-field>
+                    </v-card-text>
+
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn color="blue-darken-1" variant="text">
+                        Cancel
+                      </v-btn>
+                      <v-btn color="blue-darken-1" variant="text">
+                        Save
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+
+              </div>
+            </template>
             <template v-slot:item.actions="{ item }">
               <v-tooltip>
                 <template v-slot:activator="{ props }">
@@ -275,9 +309,6 @@ function deleteURL(item: any) {
             </template>
           </v-data-table>
         </v-card-text>
-        <!-- <v-card-actions>
-          <v-text-field hide-details="auto" label="First name"></v-text-field>
-        </v-card-actions> -->
       </v-card>
     </v-responsive>
   </v-container>
