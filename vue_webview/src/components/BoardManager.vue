@@ -16,11 +16,12 @@ const selectedPlatform = ref<Record<string, string>>({});
 const searchBoards = ref('');
 const filterdBoardsCount = ref(0);
 const dialogURL = ref(false);
-const URL = ref("");
+const URL = ref('');
+const editMode = ref(false);
+const editingIndex = ref<number | null>(null);
 
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
-  // store.sendMessage({ command: ARDUINO_MESSAGES.GET_ADDITIONAL_URLS, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_GET_CONFIG, errorMessage: "", payload: "" });
 });
 
@@ -38,8 +39,8 @@ const urlHeaders = [
 const additionalBoardURLs = computed(() => {
   return store.cliConfig?.config.board_manager?.additional_urls
     ? store.cliConfig.config.board_manager.additional_urls.map((url) => ({
-      title: url.trim(),
-    }))
+        title: url.trim(),
+      }))
     : [];
 });
 
@@ -48,7 +49,7 @@ const updatableBoardCount = computed(() => {
   if (store.platform?.platforms) {
     store.platform?.platforms.forEach((platform) => {
       selectedPlatform.value[platform.id] = platform.latest_version;
-      platform.name = platformName(platform.id); // Patch because name is not provided by the CLI
+      platform.name = platformName(platform.id);
     })
     count = filterPlatforms(FilterBoards.updatable).length
   };
@@ -69,7 +70,7 @@ function uninstallPlatform(platformID: string) {
 function releases(platform: Platform): string[] {
   const relEntries = Object.entries(platform.releases)
     .reverse()
-    .map(([version]) => version); // Map to only the version string
+    .map(([version]) => version);
   return relEntries;
 }
 
@@ -136,8 +137,33 @@ const platformName = (platform_id: string): string => {
   return name;
 };
 
-function deleteURL(item: any) {
-  console.log(item)
+function saveURL() {
+  if (editMode.value && editingIndex.value !== null) {
+    // store.cliConfig.config.board_manager.additional_urls[editingIndex.value] = URL.value.trim();
+  } else {
+    // store.cliConfig.config.board_manager.additional_urls.push(URL.value.trim());
+  }
+  dialogURL.value = false;
+  editMode.value = false;
+  editingIndex.value = null;
+  URL.value = '';
+}
+
+function editURL(item: any, index: number) {
+  editMode.value = true;
+  dialogURL.value = true;
+  URL.value = item.title;
+  editingIndex.value = index;
+}
+
+function deleteURL(index: number) {
+  // store.cliConfig.config.board_manager.additional_urls.splice(index, 1);
+}
+
+function openAddURLDialog() {
+  editMode.value = false;
+  URL.value = '';
+  dialogURL.value = true;
 }
 </script>
 
@@ -147,6 +173,7 @@ function deleteURL(item: any) {
       <div class="text-center">
         <h1 class="text-h4 font-weight-bold">Boards Manager</h1>
       </div>
+      <!-- Existing code for board management -->
       <v-card v-if="!store.platform?.platforms" class="mt-5">
         <v-card-item title="Loading Boards">
           <template v-slot:subtitle>
@@ -158,19 +185,17 @@ function deleteURL(item: any) {
         </v-card-text>
       </v-card>
       <div v-else-if="!store.boardUpdating">
+        <!-- Chip group for filtering boards -->
         <v-chip-group selected-class="text-primary" mandatory v-model="filterBoards">
           <v-chip filter :value="FilterBoards.installed">Installed & Up to date</v-chip>
           <v-chip :disabled="updatableBoardCount == 0" filter :value="FilterBoards.updatable">Updatable
-            <v-badge v-if="updatableBoardCount > 0" color="green" :content="updatableBoardCount" inline>
-
-            </v-badge>
+            <v-badge v-if="updatableBoardCount > 0" color="green" :content="updatableBoardCount" inline />
           </v-chip>
           <v-chip filter :value="FilterBoards.not_installed">Not Installed</v-chip>
           <v-chip filter :value="FilterBoards.deprecated">Deprecated</v-chip>
         </v-chip-group>
         <v-data-table :items="filteredPlatforms" :headers="boardHeaders" density="compact" show-expand item-value="name"
           :sort-by="[{ key: 'name', order: 'asc' }]" :search="searchBoards">
-
           <template v-slot:expanded-row="{ columns, item }">
             <tr>
               <td :colspan="columns.length" class="text-grey">
@@ -204,7 +229,7 @@ function deleteURL(item: any) {
             <v-card :title="filteredBoardsCountText" flat>
               <template v-slot:text>
                 <v-text-field v-if="filterdBoardsCount > 10" v-model="searchBoards" label="Search"
-                  prepend-inner-icon="mdi-magnify" variant="outlined" hide-details single-line clearable></v-text-field>
+                  prepend-inner-icon="mdi-magnify" variant="outlined" hide-details single-line clearable />
               </template>
             </v-card>
           </template>
@@ -240,13 +265,13 @@ function deleteURL(item: any) {
             </template>
           </v-card-item>
           <v-card-text class="py-0">
-            <v-progress-linear color="grey" indeterminate></v-progress-linear>
+            <v-progress-linear color="grey" indeterminate />
           </v-card-text>
         </v-card>
       </div>
       <v-card v-if="store.cliConfig?.config.board_manager?.additional_urls != null" class="mt-5">
         <v-card-title>
-          Addtional Boards URLs
+          Additional Boards URLs
         </v-card-title>
         <v-card-subtitle>
           Manage additional boards
@@ -255,16 +280,16 @@ function deleteURL(item: any) {
           <v-data-table :items="additionalBoardURLs" :headers="urlHeaders" density="compact" item-value="name">
             <template v-slot:top>
               <div>
-                <v-spacer></v-spacer>
+                <v-spacer />
                 <v-dialog v-model="dialogURL" max-width="500px">
                   <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props">
+                    <v-btn v-bind="props" @click="openAddURLDialog">
                       Add URL
                     </v-btn>
                   </template>
                   <v-card>
                     <v-card-title>
-                      <span class="text-h5">Add URL</span>
+                      <span class="text-h5">{{ editMode ? 'Edit URL' : 'Add URL' }}</span>
                     </v-card-title>
 
                     <v-card-text>
@@ -272,33 +297,32 @@ function deleteURL(item: any) {
                     </v-card-text>
 
                     <v-card-actions>
-                      <v-spacer></v-spacer>
-                      <v-btn color="blue-darken-1" variant="text">
+                      <v-spacer />
+                      <v-btn @click="dialogURL = false" color="blue-darken-1" variant="text">
                         Cancel
                       </v-btn>
-                      <v-btn color="blue-darken-1" variant="text">
+                      <v-btn @click="saveURL" color="blue-darken-1" variant="text">
                         Save
                       </v-btn>
                     </v-card-actions>
                   </v-card>
                 </v-dialog>
-
               </div>
             </template>
-            <template v-slot:item.actions="{ item }">
+            <template v-slot:item.actions="{ item, index }">
               <v-tooltip>
                 <template v-slot:activator="{ props }">
-                  <v-btn icon v-bind="props" variant="text">
+                  <v-btn @click="editURL(item, index)" icon v-bind="props" variant="text">
                     <v-icon>
                       mdi-pencil
                     </v-icon>
                   </v-btn>
                 </template>
-                <span> Edit</span>
+                <span>Edit</span>
               </v-tooltip>
               <v-tooltip>
                 <template v-slot:activator="{ props }">
-                  <v-btn v-bind="props" variant="text">
+                  <v-btn @click="deleteURL(index)" icon v-bind="props" variant="text">
                     <v-icon>
                       mdi-trash-can
                     </v-icon>
