@@ -116,7 +116,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         this.handleMessage(message);
                         break;
                     case ARDUINO_MESSAGES.GET_ADDITIONAL_URLS:
-                        message.payload="https://espressif.github.io/arduino-esp32/package_esp32_index.json,https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json";
+                        message.payload = "https://espressif.github.io/arduino-esp32/package_esp32_index.json,https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json";
                         this.handleMessage(message);
                         break;
                     default:
@@ -221,6 +221,10 @@ export const useVsCodeStore = defineStore('vsCode', {
                     } catch (error) {
                         console.log("Failed to parse Board Configuration information: " + error);
                     }
+                    break;
+                case ARDUINO_MESSAGES.REQUEST_BOARD_CONNECTED:
+                    this.boardConnected = null;
+                    this.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
                     break;
                 case ARDUINO_MESSAGES.CLI_BOARD_CONNECTED:
                     try {

@@ -9,7 +9,6 @@ const cp = require('child_process');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-const usb = require('usb').usb;
 
 const addtionalBoardURLSetting: string = "additionalBoardsUrl";
 
@@ -69,18 +68,8 @@ export function activate(context: ExtensionContext) {
 	getSerialMonitorApi(Version.latest, context).then((api) => {
 		serialMoniorAPI = api;
 	});
-	usb.on("attach", (device) => {
-		usbChange();
-	});
-	usb.on("detach", (device) => {
-		usbChange();
-	});
-
 }
 
-function usbChange() {
-	console.log("USB Change");
-}
 function updateStateCompileUpload() {
 	arduinoProject.readConfiguration();
 	if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS &&

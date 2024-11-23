@@ -340,5 +340,6 @@ export const ARDUINO_MESSAGES = {
   LIBRARY_UNINSTALLED: 'libraryVersionInstalled',
   SET_ADDITIONAL_URLS: 'setAdditionalURLs',
   GET_ADDITIONAL_URLS: 'getAdditionalURLs',
-  OPEN_LIBRARY:'openExample'
+  OPEN_LIBRARY:'openExample',
+  REQUEST_BOARD_CONNECTED:"requestBoardConnected"
 };

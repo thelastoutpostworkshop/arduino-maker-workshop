@@ -6,15 +6,24 @@ import { arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, create
 
 const path = require('path');
 const fs = require('fs');
+const usb = require('usb').usb;
 
 export class VueWebviewPanel {
 
     private readonly _panel: WebviewPanel;
     private _disposables: Disposable[] = [];
     public static currentPanel: VueWebviewPanel | undefined;
-
+    private usbChange() {
+        VueWebviewPanel.sendMessage({command:ARDUINO_MESSAGES.REQUEST_BOARD_CONNECTED,errorMessage:"",payload:""});
+    }
     private constructor(panel: WebviewPanel, extensionUri: Uri) {
         this._panel = panel;
+        usb.on("attach", () => {
+            this.usbChange();
+        });
+        usb.on("detach", () => {
+            this.usbChange();
+        });
         // Handle messages from the Vue web application
         this._panel.webview.onDidReceiveMessage(
             (message: WebviewToExtensionMessage) => {
