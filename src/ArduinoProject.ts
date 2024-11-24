@@ -60,13 +60,6 @@ export class ArduinoProject {
             this.projectFullPath = workspaceFolders[0].uri.fsPath;
         }
     }
-    private addAdditionalBoardURLs(commandArray: string[]): void {
-        // Only add these if additionnlBoardURLs is not empty
-        if (this.additionnlBoardURLs && this.additionnlBoardURLs.trim() !== '') {
-            commandArray.push(`${addtionalURLOption}`);
-            commandArray.push(`${this.additionnlBoardURLs}`);
-        }
-    }
     public getarduinoConfigurationPath(): string {
         return this.arduinoConfigurationPath;
     }
@@ -218,7 +211,6 @@ export class ArduinoProject {
             `${outdatedCommandArduino}`,
             `${jsonOutputArduino}`
         ];
-        this.addAdditionalBoardURLs(outdatedCommand);
         return outdatedCommand;
     }
     public getNewSketchArguments(name: string): string[] {
@@ -235,7 +227,6 @@ export class ArduinoProject {
             `${coreCommandArduino}`,
             `${updateOption}`,
         ];
-        this.addAdditionalBoardURLs(updateCoreCommand);
         return updateCoreCommand;
     }
     public getInstallCoreVersionArguments(version: string): string[] {
@@ -246,7 +237,6 @@ export class ArduinoProject {
             `--run-pre-uninstall`,
             `${version}`
         ];
-        this.addAdditionalBoardURLs(installCoreVersionCommand);
         return installCoreVersionCommand;
     }
     public getInstallLibraryVersionArguments(version: string): string[] {
@@ -273,7 +263,6 @@ export class ArduinoProject {
             `--run-pre-uninstall`,
             `${board_id}`
         ];
-        this.addAdditionalBoardURLs(installCoreVersionCommand);
         return installCoreVersionCommand;
     }
     public getPortListArguments(): string[] {
@@ -297,7 +286,6 @@ export class ArduinoProject {
             `${searchOption}`,
             `${jsonOutputArduino}`
         ];
-        this.addAdditionalBoardURLs(searchAllCommand);
         return searchAllCommand;
     }
     public getBoardConnectedArguments(): string[] {
@@ -315,7 +303,6 @@ export class ArduinoProject {
             `-a`,
             `${jsonOutputArduino}`
         ];
-        this.addAdditionalBoardURLs(searchAllCommand);
         return searchAllCommand;
     }
 
