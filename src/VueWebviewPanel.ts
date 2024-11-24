@@ -161,7 +161,7 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.CLI_CONFIG_REMOVE_URL:
+                    case ARDUINO_MESSAGES.CLI_CONFIG_REMOVE_ADDITIONAL_URL:
                         removeCLIConfigAdditionalBoardURL(message.payload).then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);

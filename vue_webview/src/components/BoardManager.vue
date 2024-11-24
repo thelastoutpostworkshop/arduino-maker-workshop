@@ -138,8 +138,10 @@ const platformName = (platform_id: string): string => {
 };
 
 function saveURL() {
-  const url = new URL(additionalURL.value);
-  console.log(url.toString());
+  if (store.cliConfig?.config?.board_manager) {
+    store.cliConfig = null;
+    store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_REMOVE_ADDITIONAL_URL, errorMessage: "", payload: additionalURL.value });
+  }
   dialogURL.value = false;
   editMode.value = false;
   additionalURL.value = '';
@@ -154,7 +156,7 @@ function editURL(item: any, index: number) {
 function deleteURL(item: any) {
   if (store.cliConfig?.config?.board_manager) {
     store.cliConfig = null;
-    store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_REMOVE_URL, errorMessage: "", payload: item.title });
+    store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_REMOVE_ADDITIONAL_URL, errorMessage: "", payload: item.title });
   }
 }
 
@@ -298,7 +300,8 @@ const isURLInvalid = computed(() => {
                     </v-card-title>
 
                     <v-card-text>
-                      <v-text-field v-model="additionalURL" label="URL" :rules="[isValidUrlRule]" clearable></v-text-field>
+                      <v-text-field v-model="additionalURL" label="URL" :rules="[isValidUrlRule]"
+                        clearable></v-text-field>
                     </v-card-text>
 
                     <v-card-actions>
