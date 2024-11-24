@@ -429,9 +429,6 @@ export class ArduinoProject {
 
     //     vscode.window.showInformationMessage('Generated c_cpp_properties.json for IntelliSense.');
     // }
-    public setAdditionalBoardURLs(urls: string) {
-        this.additionnlBoardURLs = urls;
-    }
     public setPort(port: string): void {
         this.configJson.port = port;
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
@@ -443,9 +440,6 @@ export class ArduinoProject {
 
     private writeVSCodeArduinoConfiguration() {
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
-    }
-    public getAdditionalBoardURLs(): string {
-        return this.additionnlBoardURLs;
     }
     public getProjectPath(): string {
         return this.projectFullPath;
