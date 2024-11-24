@@ -165,11 +165,13 @@ export class ArduinoProject {
         return command;
     }
     public getConfigSetAdditionalBoardURLArgs(URL: string): string[] {
+        const urls = URL.split(' ');
         const command = [
             `${configCommandArduino}`,
             `${setOption}`,
             `${configAdditionnalURLsetting}`,
-            `${URL}`,
+            `${urls[0]}`,
+            `${urls[1]}`,
         ];
         return command;
     }

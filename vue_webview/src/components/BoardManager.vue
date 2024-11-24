@@ -322,10 +322,10 @@ const isURLInvalid = computed(() => {
                 </v-dialog>
               </div>
             </template>
-            <template v-slot:item.actions="{ item, index }">
+            <template v-slot:item.actions="{ item }">
               <v-tooltip>
                 <template v-slot:activator="{ props }">
-                  <v-btn @click="editURL(item, index)" icon v-bind="props" variant="text">
+                  <v-btn @click="editURL(item)" icon v-bind="props" variant="text">
                     <v-icon>
                       mdi-pencil
                     </v-icon>
