@@ -10,8 +10,6 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
-const addtionalBoardURLSetting: string = "additionalBoardsUrl";
-
 const arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
 const compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
 export const arduinoExtensionChannel = window.createOutputChannel('Arduino Extension');
@@ -35,9 +33,6 @@ export function activate(context: ExtensionContext) {
 	}
 
 	checkArduinoConfiguration();
-	const boardsURLS = config.get<string>(addtionalBoardURLSetting, "");
-	arduinoProject.setAdditionalBoardURLs(boardsURLS);
-	arduinoExtensionChannel.appendLine(`Arduino Board URLs: ${arduinoProject.getAdditionalBoardURLs()}`);
 
 	context.subscriptions.push(
 		workspace.onDidChangeConfiguration((e) => {
@@ -46,11 +41,6 @@ export function activate(context: ExtensionContext) {
 
 	context.subscriptions.push(
 		workspace.onDidChangeConfiguration((e) => {
-			if (e.affectsConfiguration(addtionalBoardURLSetting)) {
-				const urls = workspace.getConfiguration().get<string>(addtionalBoardURLSetting, '');
-				arduinoProject.setAdditionalBoardURLs(urls);
-				arduinoExtensionChannel.appendLine(`Arduino Addtional Board URLs Changed: ${arduinoProject.getAdditionalBoardURLs()}`);
-			}
 		})
 	);
 

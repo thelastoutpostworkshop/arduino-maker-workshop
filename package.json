@@ -12,19 +12,6 @@
   ],
   "main": "./build/extension.js",
   "contributes": {
-    "configuration": {
-      "id": "arduino_settings",
-      "type": "object",
-      "title": "Arduino Settings",
-      "properties": {
-        "additionalBoardsUrl": {
-          "type": "string",
-          "default": "",
-          "description": "URLs for additional Arduino boards (separated by comma)",
-          "scope": "window"
-        }
-      }
-    },
     "viewsContainers": {
       "activitybar": [
         {
