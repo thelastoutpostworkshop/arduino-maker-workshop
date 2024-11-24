@@ -22,7 +22,7 @@ export interface Config {
 }
 
 export interface BoardManager {
-  additional_urls: any[];
+  additional_urls: string[];
 }
 
 export interface Daemon {
@@ -389,6 +389,7 @@ export const ARDUINO_MESSAGES = {
   CLI_LIBRARY_INSTALLED: 'cli_libraryInstalled',
   CLI_OUTDATED: 'cli_outdated',
   CLI_GET_CONFIG: 'cli_getConfig',
+  CLI_CONFIG_DELETE_URL:'cli_congifDeleteUrl',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
   ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
   SET_BOARD: 'setArduinoBoard',

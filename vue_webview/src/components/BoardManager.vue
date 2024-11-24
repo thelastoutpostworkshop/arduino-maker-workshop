@@ -156,8 +156,11 @@ function editURL(item: any, index: number) {
   editingIndex.value = index;
 }
 
-function deleteURL(index: number) {
-  // store.cliConfig.config.board_manager.additional_urls.splice(index, 1);
+function deleteURL(item: any) {
+  if (store.cliConfig?.config?.board_manager) {
+    store.cliConfig = null;
+    store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_DELETE_URL, errorMessage: "", payload: item.title });
+  }
 }
 
 function openAddURLDialog() {
@@ -280,7 +283,7 @@ function openAddURLDialog() {
           <v-data-table :items="additionalBoardURLs" :headers="urlHeaders" density="compact" item-value="name"
             :loading="store.cliConfig?.config.board_manager?.additional_urls == null">
             <template v-slot:loading>
-              <v-skeleton-loader></v-skeleton-loader>
+              <v-skeleton-loader>Processing changes</v-skeleton-loader>
             </template>
             <template v-slot:top>
               <div>
@@ -325,7 +328,7 @@ function openAddURLDialog() {
               </v-tooltip>
               <v-tooltip>
                 <template v-slot:activator="{ props }">
-                  <v-btn @click="deleteURL(index)" icon v-bind="props" variant="text">
+                  <v-btn @click="deleteURL(item)" icon v-bind="props" variant="text">
                     <v-icon>
                       mdi-trash-can
                     </v-icon>
