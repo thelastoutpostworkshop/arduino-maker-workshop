@@ -1,7 +1,36 @@
-import { OutputChannel, window } from "vscode";
-import { arduinoCLIChannel, cliCommandArduinoPath } from "./extension";
-const fs = require('fs');
+import { commands, OutputChannel, Uri, window,workspace } from "vscode";
+import { arduinoCLIChannel, arduinoProject, cliCommandArduinoPath } from "./extension";
 const cp = require('child_process');
+const path = require('path');
+
+export async function createNewSketch(name: string): Promise<string> {
+	try {
+		// Get the current workspace folder (assumes that there's an active workspace)
+		if (!workspace.workspaceFolders) {
+			throw new Error('No workspace folder is open. Please open a folder first.');
+		}
+
+		const currentDirectory = workspace.workspaceFolders[0].uri.fsPath;
+		const fullName = path.join(currentDirectory, name);
+
+		// Use the full name (current directory + sketch name)
+		const args = arduinoProject.getNewSketchArguments(fullName);
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, true, false);
+
+		if (!result) {
+			window.showErrorMessage(`CLI: No result from create new sketch`);
+			throw new Error("Command result empty");
+		}
+
+		// Open the new sketch folder in Visual Studio Code
+		const newProjectUri = Uri.file(fullName);
+		await commands.executeCommand('vscode.openFolder', newProjectUri, { forceNewWindow: false });
+		return result;
+	} catch (error: any) {
+		window.showErrorMessage(`CLI: Failed to create new sketch - ${error.message}`);
+		throw error;
+	}
+}
 
 export async function runArduinoCommand(
 	getArguments: () => string[],

@@ -2,7 +2,8 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
-import { addCLIConfigAdditionalBoardURL, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, createNewSketch, getBoardConfiguration, getBoardConnected, getBoardsListAll, getCLIConfig, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, openExample, removeCLIConfigAdditionalBoardURL, runInstallCoreVersion, runInstallLibraryVersion, runUninstallCoreVersion, runUninstallLibrary, searchCore, searchLibrary, searchLibraryInstalled, setCLIConfigAdditionalBoardURL } from "./extension";
+import { addCLIConfigAdditionalBoardURL, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, getBoardConfiguration, getBoardConnected, getBoardsListAll, getCLIConfig, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, openExample, removeCLIConfigAdditionalBoardURL, runInstallCoreVersion, runInstallLibraryVersion, runUninstallCoreVersion, runUninstallLibrary, searchCore, searchLibrary, searchLibraryInstalled, setCLIConfigAdditionalBoardURL } from "./extension";
+import { createNewSketch } from "./cli";
 
 const path = require('path');
 const fs = require('fs');
