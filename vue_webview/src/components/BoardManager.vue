@@ -139,7 +139,11 @@ const platformName = (platform_id: string): string => {
 
 function saveURL() {
   if (store.cliConfig?.config?.board_manager) {
-    store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_ADD_ADDITIONAL_URL, errorMessage: "", payload: additionalURL.value });
+    if(!editMode.value) {
+      store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_ADD_ADDITIONAL_URL, errorMessage: "", payload: additionalURL.value });
+    } else {
+      store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_SET_ADDITIONAL_URL, errorMessage: "", payload: additionalURL.value });
+    }
   }
   dialogURL.value = false;
   editMode.value = false;

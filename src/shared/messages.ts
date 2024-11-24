@@ -391,6 +391,7 @@ export const ARDUINO_MESSAGES = {
   CLI_GET_CONFIG: 'cli_getConfig',
   CLI_CONFIG_REMOVE_ADDITIONAL_URL: 'cli_congifRemoveAdditionnalUrl',
   CLI_CONFIG_ADD_ADDITIONAL_URL: 'cli_congifAddAdditionnalUrl',
+  CLI_CONFIG_SET_ADDITIONAL_URL: 'cli_congifSetAdditionnalUrl',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
   ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
   SET_BOARD: 'setArduinoBoard',
@@ -400,8 +401,6 @@ export const ARDUINO_MESSAGES = {
   CORE_UNINSTALLED: 'coreUninstalled',
   LIBRARY_VERSION_INSTALLED: 'libraryVersionInstalled',
   LIBRARY_UNINSTALLED: 'libraryVersionInstalled',
-  SET_ADDITIONAL_URLS: 'setAdditionalURLs',
-  GET_ADDITIONAL_URLS: 'getAdditionalURLs',
   OPEN_LIBRARY: 'openExample',
   REQUEST_BOARD_CONNECTED: "requestBoardConnected"
 };

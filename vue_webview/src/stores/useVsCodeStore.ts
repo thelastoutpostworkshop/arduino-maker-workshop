@@ -124,10 +124,6 @@ export const useVsCodeStore = defineStore('vsCode', {
                         message.command = ARDUINO_MESSAGES.LIBRARY_UNINSTALLED;
                         this.handleMessage(message);
                         break;
-                    case ARDUINO_MESSAGES.GET_ADDITIONAL_URLS:
-                        message.payload = "https://espressif.github.io/arduino-esp32/package_esp32_index.json,https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json";
-                        this.handleMessage(message);
-                        break;
                     default:
                         break;
                 }
@@ -180,11 +176,6 @@ export const useVsCodeStore = defineStore('vsCode', {
                         vscode.postMessage(message);
                     }
                     break;
-                case ARDUINO_MESSAGES.GET_ADDITIONAL_URLS:
-                    if (!this.additionalBoardURLs) {
-                        vscode.postMessage(message);
-                    }
-                    break;
                 default:
                     vscode.postMessage(message);
                     break;
@@ -197,9 +188,6 @@ export const useVsCodeStore = defineStore('vsCode', {
                     if (this.projectInfo?.board) {
                         this.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS, errorMessage: "", payload: this.projectInfo.board });
                     }
-                    break;
-                case ARDUINO_MESSAGES.GET_ADDITIONAL_URLS:
-                    this.additionalBoardURLs = message.payload;
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                     this.projectStatus = message.payload;
@@ -304,6 +292,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.CLI_CONFIG_ADD_ADDITIONAL_URL:
                 case ARDUINO_MESSAGES.CLI_CONFIG_REMOVE_ADDITIONAL_URL:
+                case ARDUINO_MESSAGES.CLI_CONFIG_SET_ADDITIONAL_URL:
                     this.cliConfig = null;
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_GET_CONFIG, errorMessage: "", payload: "" });
                     break;
