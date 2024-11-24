@@ -19,6 +19,7 @@ const filterdBoardsCount = ref(0);
 const dialogURL = ref(false);
 const additionalURL = ref('');
 const editMode = ref(false);
+const editItemOriginalURL = ref({});
 
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
@@ -142,7 +143,7 @@ function saveURL() {
     if(!editMode.value) {
       store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_ADD_ADDITIONAL_URL, errorMessage: "", payload: additionalURL.value });
     } else {
-      store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_SET_ADDITIONAL_URL, errorMessage: "", payload: additionalURL.value });
+      store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_SET_ADDITIONAL_URL, errorMessage: "", payload: `${editItemOriginalURL.value} ${additionalURL.value}` });
     }
   }
   dialogURL.value = false;
@@ -150,7 +151,8 @@ function saveURL() {
   additionalURL.value = '';
 }
 
-function editURL(item: any, index: number) {
+function editURL(item: any) {
+  editItemOriginalURL.value =item.title;
   editMode.value = true;
   dialogURL.value = true;
   additionalURL.value = item.title;
