@@ -97,14 +97,20 @@ function checkArduinoConfiguration() {
 						const downloadPath = path.join(configPath, 'staging');
 						runArduinoCommand(
 							() => arduinoProject.getConfigSetDowloadDirectory(downloadPath),
-							"CLI : Failed to set download setting",
+							"CLI : Failed to set download directory setting",
 							false, false
 						).then(() => {
 							runArduinoCommand(
 								() => arduinoProject.getConfigSetDataDirectory(configPath),
-								"CLI : Failed to set data setting",
+								"CLI : Failed to set data directory setting",
 								false, false
-							);
+							).then(()=>{
+								const arduinoDir = path.join(getDocumentsFolderPath(),'Arduino');
+								runArduinoCommand(
+									() => arduinoProject.getConfigSetUserDirectory(arduinoDir),
+									"CLI : Failed to set user directory setting",
+									false, false
+								);							});
 						});
 					} catch (error) {
 						window.showErrorMessage(`Error parsing config file ${error}`);
@@ -120,6 +126,20 @@ function checkArduinoConfiguration() {
 		window.showErrorMessage(`${error}`);
 	});
 }
+
+function getDocumentsFolderPath() {
+	const homeDir = os.homedir(); // Get the user's home directory
+  
+	switch (os.platform()) {
+	  case 'win32':
+		return path.join(homeDir, 'Documents'); // Windows path to Documents
+	  case 'linux':
+	  case 'darwin':
+		return path.join(homeDir, 'Documents'); // Linux and macOS path to Documents
+	  default:
+		throw new Error('Unsupported platform');
+	}
+  }
 
 function getAppDataPath(): string {
 	const platform = os.platform();

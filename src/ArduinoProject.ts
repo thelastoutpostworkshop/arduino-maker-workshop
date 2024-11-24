@@ -32,6 +32,7 @@ const addtionalURLOption: string = '--additional-urls';
 const configAdditionnalURLsetting: string = 'board_manager.additional_urls';
 const configDirDataSetting: string = 'directories.data';
 const configDirDownloadSetting: string = 'directories.downloads';
+const configDirUserSetting: string = 'directories.user';
 export const verboseOptionArduino: string = '-v';
 export const portOptionArduino: string = '-p';
 export const buildPathArduino: string = '--build-path';
@@ -199,6 +200,15 @@ export class ArduinoProject {
             `${configCommandArduino}`,
             `${setOption}`,
             `${configDirDataSetting}`,
+            `${dir}`,
+        ];
+        return command;
+    }
+    public getConfigSetUserDirectory(dir:string): string[] {
+        const command = [
+            `${configCommandArduino}`,
+            `${setOption}`,
+            `${configDirUserSetting}`,
             `${dir}`,
         ];
         return command;
