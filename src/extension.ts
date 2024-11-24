@@ -4,13 +4,12 @@ import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ArduinoCLIStatus, ArduinoConfig, Compile } from "./shared/messages";
 import { SerialMonitorApi, Version, getSerialMonitorApi, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
+import { executeArduinoCommand } from "./cli";
 
-const cp = require('child_process');
 const path = require('path');
 const os = require('os');
-const fs = require('fs');
 
-const arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
+export const arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
 const compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
 export const arduinoExtensionChannel = window.createOutputChannel('Arduino Extension');
 arduinoExtensionChannel.appendLine("Arduino Extension started");
@@ -619,64 +618,6 @@ async function runArduinoCommand(
 	}
 }
 
-export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = arduinoCLIChannel, successMsg: string = ""): Promise<string | void> {
-	// outputChannel.clear();
-	if (showOutput) {
-		channel.show(true);
-	}
-	arduinoCLIChannel.appendLine('');
-	arduinoCLIChannel.appendLine('Running Arduino CLI...');
-	arduinoCLIChannel.appendLine(`${command}`);
-	arduinoCLIChannel.appendLine(args.join(' '));
-
-	const child = cp.spawn(`${command}`, args);
-	let outputBuffer = '';
-
-	return new Promise((resolve, reject) => {
-		// Stream stdout to the output channel and optionally to the buffer
-		child.stdout.on('data', (data: Buffer) => {
-			const output = data.toString();
-			if (showOutput) {
-				channel.append(output);
-			}
-
-			if (returnOutput) {
-				outputBuffer += output;
-			}
-		});
-
-		// Stream stderr to the output channel and optionally to the buffer
-		child.stderr.on('data', (data: Buffer) => {
-			const error = `Error: ${data.toString()}`;
-			if (showOutput) {
-				channel.appendLine(error);
-			}
-			if (returnOutput) {
-				outputBuffer += error;
-			}
-		});
-
-		child.on('close', (code: number) => {
-			if (code === 0) {
-				if (showOutput) {
-					channel.appendLine('Command executed successfully.');
-				}
-				if (successMsg) {
-					window.showInformationMessage(successMsg);
-				}
-				resolve(returnOutput ? outputBuffer : undefined);
-			} else {
-				channel.appendLine(`Command failed with code ${code}.`);
-				reject(undefined);
-			}
-		});
-
-		child.on('error', (err: any) => {
-			channel.appendLine(`Failed to run command: ${err.message}`);
-			reject(undefined);
-		});
-	});
-}
 
 export function deactivate() { }
 
