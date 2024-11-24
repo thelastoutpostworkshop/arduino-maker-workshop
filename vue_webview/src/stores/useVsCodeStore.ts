@@ -294,7 +294,9 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.CLI_CONFIG_REMOVE_ADDITIONAL_URL:
                 case ARDUINO_MESSAGES.CLI_CONFIG_SET_ADDITIONAL_URL:
                     this.cliConfig = null;
+                    this.platform = null;
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_GET_CONFIG, errorMessage: "", payload: "" });
+                    this.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
                     break;
                 default:
                     console.warn('Unknown command received:', message.command);
