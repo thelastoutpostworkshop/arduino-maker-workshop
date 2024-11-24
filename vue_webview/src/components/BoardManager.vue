@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isValidUrl, isValidUrlRule } from '@/utilities/utils';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, Platform } from '@shared/messages';
 import { onMounted, computed, ref } from 'vue';
@@ -16,9 +17,8 @@ const selectedPlatform = ref<Record<string, string>>({});
 const searchBoards = ref('');
 const filterdBoardsCount = ref(0);
 const dialogURL = ref(false);
-const URL = ref('');
+const additionalURL = ref('');
 const editMode = ref(false);
-const editingIndex = ref<number | null>(null);
 
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
@@ -138,22 +138,17 @@ const platformName = (platform_id: string): string => {
 };
 
 function saveURL() {
-  if (editMode.value && editingIndex.value !== null) {
-    // store.cliConfig.config.board_manager.additional_urls[editingIndex.value] = URL.value.trim();
-  } else {
-    // store.cliConfig.config.board_manager.additional_urls.push(URL.value.trim());
-  }
+  const url = new URL(additionalURL.value);
+  console.log(url.toString());
   dialogURL.value = false;
   editMode.value = false;
-  editingIndex.value = null;
-  URL.value = '';
+  additionalURL.value = '';
 }
 
 function editURL(item: any, index: number) {
   editMode.value = true;
   dialogURL.value = true;
-  URL.value = item.title;
-  editingIndex.value = index;
+  additionalURL.value = item.title;
 }
 
 function deleteURL(item: any) {
@@ -165,9 +160,12 @@ function deleteURL(item: any) {
 
 function openAddURLDialog() {
   editMode.value = false;
-  URL.value = '';
+  additionalURL.value = '';
   dialogURL.value = true;
 }
+const isURLInvalid = computed(() => {
+  return !isValidUrl(additionalURL.value)
+});
 </script>
 
 <template>
@@ -289,7 +287,8 @@ function openAddURLDialog() {
               <div>
                 <v-dialog v-model="dialogURL" max-width="500px">
                   <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props" @click="openAddURLDialog" :disabled="store.cliConfig?.config.board_manager?.additional_urls == null">
+                    <v-btn v-bind="props" @click="openAddURLDialog"
+                      :disabled="store.cliConfig?.config.board_manager?.additional_urls == null">
                       Add URL
                     </v-btn>
                   </template>
@@ -299,7 +298,7 @@ function openAddURLDialog() {
                     </v-card-title>
 
                     <v-card-text>
-                      <v-text-field v-model="URL" label="URL"></v-text-field>
+                      <v-text-field v-model="additionalURL" label="URL" :rules="[isValidUrlRule]" clearable></v-text-field>
                     </v-card-text>
 
                     <v-card-actions>
@@ -307,7 +306,7 @@ function openAddURLDialog() {
                       <v-btn @click="dialogURL = false" color="blue-darken-1" variant="text">
                         Cancel
                       </v-btn>
-                      <v-btn @click="saveURL" color="blue-darken-1" variant="text">
+                      <v-btn @click="saveURL()" color="blue-darken-1" variant="text" :disabled="isURLInvalid">
                         Save
                       </v-btn>
                     </v-card-actions>
