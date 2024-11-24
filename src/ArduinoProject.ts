@@ -20,6 +20,7 @@ const dumpOption: string = 'dump';
 const removeOption: string = 'remove';
 const updateOption: string = 'update-index';
 const newOption: string = 'new';
+const setOption: string = 'set';
 const addOption: string = 'add';
 const initOption: string = 'init';
 const compileCleanOption: string = '--clean';
@@ -158,6 +159,15 @@ export class ArduinoProject {
         const command = [
             `${configCommandArduino}`,
             `${addOption}`,
+            `${configAdditionnalURLsetting}`,
+            `${URL}`,
+        ];
+        return command;
+    }
+    public getConfigSetAdditionalBoardURLArgs(URL: string): string[] {
+        const command = [
+            `${configCommandArduino}`,
+            `${setOption}`,
             `${configAdditionnalURLsetting}`,
             `${URL}`,
         ];

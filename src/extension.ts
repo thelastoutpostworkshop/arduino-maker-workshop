@@ -237,6 +237,13 @@ export async function addCLIConfigAdditionalBoardURL(URL: string): Promise<strin
 	);
 }
 
+export async function setCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
+	return runArduinoCommand(
+		() => arduinoProject.getConfigSetAdditionalBoardURLArgs(URL),
+		"CLI : Failed to set additional Board URL", false
+	);
+}
+
 export async function searchCore(): Promise<string> {
 	return runArduinoCommand(
 		() => arduinoProject.getCoreSearchArguments(),
