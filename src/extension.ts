@@ -89,15 +89,53 @@ function checkArduinoConfiguration() {
 				runArduinoCommand(
 					() => arduinoProject.getConfigInitArgs(),
 					"CLI : Failed to create arduino config file",
-					false, true
-				);
+					true, false
+				).then((result) => {
+					try {
+						const config = JSON.parse(result);
+						const configPath = path.dirname(config.config_path);
+						const downloadPath = path.join(configPath, 'staging');
+						runArduinoCommand(
+							() => arduinoProject.getConfigSetDowloadDirectory(downloadPath),
+							"CLI : Failed to set download setting",
+							false, false
+						).then(() => {
+							runArduinoCommand(
+								() => arduinoProject.getConfigSetDataDirectory(configPath),
+								"CLI : Failed to set data setting",
+								false, false
+							);
+						});
+					} catch (error) {
+						window.showErrorMessage(`Error parsing config file ${error}`);
+					}
+				}).catch((error) => {
+					window.showErrorMessage(`Error creating config file ${error}`);
+				});
 			}
 		} catch (error) {
-			window.showErrorMessage(`Someting is wrong with the CLI`);
+			window.showErrorMessage(`Someting is wrong with the CLI ${error}`);
 		}
 	}).catch((error) => {
 		window.showErrorMessage(`${error}`);
 	});
+}
+
+function getAppDataPath(): string {
+	const platform = os.platform();
+	const homeDir = os.homedir();
+
+	if (platform === 'win32') {
+		// Windows - return paths for %APPDATA% and %LOCALAPPDATA%
+		const localAppDataPath = path.join(homeDir, 'AppData', 'Local');
+		return `${localAppDataPath}`;
+	} else if (platform === 'linux' || platform === 'darwin') {
+		// macOS or Linux - return path for ~/.config
+		const configPath = path.join(homeDir, '.config');
+		return configPath;
+	} else {
+		throw new Error('Unsupported platform');
+	}
 }
 
 function updateStateCompileUpload() {

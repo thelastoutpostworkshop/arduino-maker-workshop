@@ -30,6 +30,8 @@ const searchOption: string = 'search';
 const listOption: string = 'list';
 const addtionalURLOption: string = '--additional-urls';
 const configAdditionnalURLsetting: string = 'board_manager.additional_urls';
+const configDirDataSetting: string = 'directories.data';
+const configDirDownloadSetting: string = 'directories.downloads';
 export const verboseOptionArduino: string = '-v';
 export const portOptionArduino: string = '-p';
 export const buildPathArduino: string = '--build-path';
@@ -178,7 +180,26 @@ export class ArduinoProject {
     public getConfigInitArgs(): string[] {
         const command = [
             `${configCommandArduino}`,
-            `${initOption}`
+            `${initOption}`,
+            `${jsonOutputArduino}`
+        ];
+        return command;
+    }
+    public getConfigSetDowloadDirectory(dir:string): string[] {
+        const command = [
+            `${configCommandArduino}`,
+            `${setOption}`,
+            `${configDirDownloadSetting}`,
+            `${dir}`,
+        ];
+        return command;
+    }
+    public getConfigSetDataDirectory(dir:string): string[] {
+        const command = [
+            `${configCommandArduino}`,
+            `${setOption}`,
+            `${configDirDataSetting}`,
+            `${dir}`,
         ];
         return command;
     }
