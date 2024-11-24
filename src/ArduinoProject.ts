@@ -52,7 +52,6 @@ export class ArduinoProject {
     private arduinoConfigurationPath: string = "";
     private configJson: ArduinoProjectConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "" };
     private projectFullPath: string = "";
-    private additionnlBoardURLs: string = "";
 
     constructor() {
         const workspaceFolders = vscode.workspace.workspaceFolders;
