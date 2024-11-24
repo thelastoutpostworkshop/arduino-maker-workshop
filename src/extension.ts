@@ -1,10 +1,10 @@
-import { window, ExtensionContext, commands, Disposable, workspace, Uri, OutputChannel, ProgressLocation } from "vscode";
+import { window, ExtensionContext, commands, Disposable, workspace, Uri, ProgressLocation } from "vscode";
 import { ArduinoProject, CPP_PROPERTIES, VSCODE_FOLDER } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ArduinoCLIStatus, ArduinoConfig, Compile } from "./shared/messages";
 import { SerialMonitorApi, Version, getSerialMonitorApi, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
-import { executeArduinoCommand, runArduinoCommand } from "./cli";
+import { executeArduinoCommand, getArduinoCliPath, runArduinoCommand } from "./cli";
 
 const path = require('path');
 const os = require('os');
@@ -164,28 +164,6 @@ function updateStateCompileUpload() {
 		quickAccessProvider.disableItem(intellisenseCommandName);
 	}
 }
-
-function getArduinoCliPath(context: ExtensionContext): string {
-	const platform = os.platform();
-	let arduinoCliPath = '';
-
-	switch (platform) {
-		case 'win32':
-			arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'win32', 'arduino-cli.exe');
-			break;
-		case 'darwin':
-			arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'darwin', 'arduino-cli');
-			break;
-		case 'linux':
-			arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'linux', 'arduino-cli');
-			break;
-		default:
-			throw new Error(`Unsupported platform: ${platform}`);
-	}
-
-	return arduinoCliPath;
-}
-
 
 export function checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
 	return new Promise((resolve) => {

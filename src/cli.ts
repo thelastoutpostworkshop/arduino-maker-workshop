@@ -1,7 +1,29 @@
-import { commands, OutputChannel, Uri, window,workspace } from "vscode";
+import { commands, OutputChannel, Uri, window,workspace,ExtensionContext } from "vscode";
 import { arduinoCLIChannel, arduinoProject, cliCommandArduinoPath } from "./extension";
 const cp = require('child_process');
 const path = require('path');
+const os = require('os');
+
+export function getArduinoCliPath(context: ExtensionContext): string {
+	const platform = os.platform();
+	let arduinoCliPath = '';
+
+	switch (platform) {
+		case 'win32':
+			arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'win32', 'arduino-cli.exe');
+			break;
+		case 'darwin':
+			arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'darwin', 'arduino-cli');
+			break;
+		case 'linux':
+			arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'linux', 'arduino-cli');
+			break;
+		default:
+			throw new Error(`Unsupported platform: ${platform}`);
+	}
+
+	return arduinoCliPath;
+}
 
 export async function createNewSketch(name: string): Promise<string> {
 	try {
