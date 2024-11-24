@@ -139,7 +139,6 @@ const platformName = (platform_id: string): string => {
 
 function saveURL() {
   if (store.cliConfig?.config?.board_manager) {
-    store.cliConfig = null;
     store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_ADD_ADDITIONAL_URL, errorMessage: "", payload: additionalURL.value });
   }
   dialogURL.value = false;

@@ -52,6 +52,8 @@ export const useVsCodeStore = defineStore('vsCode', {
                             this.handleMessage(message);
                         });
                         break;
+                    case ARDUINO_MESSAGES.CLI_CONFIG_ADD_ADDITIONAL_URL:
+                    case ARDUINO_MESSAGES.CLI_CONFIG_REMOVE_ADDITIONAL_URL:
                     case ARDUINO_MESSAGES.CLI_GET_CONFIG:
                         loadMockData('config.json').then((mockPayload) => {
                             message.payload = mockPayload;
@@ -299,6 +301,11 @@ export const useVsCodeStore = defineStore('vsCode', {
                     } catch (error) {
                         console.log("Failed to parse outdated response: " + error);
                     }
+                    break;
+                case ARDUINO_MESSAGES.CLI_CONFIG_ADD_ADDITIONAL_URL:
+                case ARDUINO_MESSAGES.CLI_CONFIG_REMOVE_ADDITIONAL_URL:
+                    this.cliConfig = null;
+                    this.sendMessage({ command: ARDUINO_MESSAGES.CLI_GET_CONFIG, errorMessage: "", payload: "" });
                     break;
                 default:
                     console.warn('Unknown command received:', message.command);
