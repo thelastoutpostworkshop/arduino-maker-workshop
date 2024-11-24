@@ -289,13 +289,13 @@ function openAddURLDialog() {
               <div>
                 <v-dialog v-model="dialogURL" max-width="500px">
                   <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props" @click="openAddURLDialog">
+                    <v-btn v-bind="props" @click="openAddURLDialog" :disabled="store.cliConfig?.config.board_manager?.additional_urls == null">
                       Add URL
                     </v-btn>
                   </template>
                   <v-card>
                     <v-card-title>
-                      <span class="text-h5">{{ editMode ? 'Edit URL' : 'Add URL' }}</span>
+                      {{ editMode ? 'Edit URL' : 'Add URL' }}
                     </v-card-title>
 
                     <v-card-text>
