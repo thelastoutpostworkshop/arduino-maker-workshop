@@ -4,7 +4,7 @@ import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ArduinoCLIStatus, ArduinoConfig, Compile } from "./shared/messages";
 import { SerialMonitorApi, Version, getSerialMonitorApi, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
-import { executeArduinoCommand } from "./cli";
+import { executeArduinoCommand, runArduinoCommand } from "./cli";
 
 const path = require('path');
 const os = require('os');
@@ -18,7 +18,7 @@ let serialMoniorAPI: SerialMonitorApi | undefined = undefined;
 let compileOrUploadRunning: boolean = false;
 
 export const arduinoProject: ArduinoProject = new ArduinoProject();
-let cliCommandArduinoPath: string = "";
+export let cliCommandArduinoPath: string = "";
 
 export function activate(context: ExtensionContext) {
 	const config = workspace.getConfiguration();
@@ -595,28 +595,7 @@ async function compile(clean: boolean = false) {
 	compileOrUploadRunning = false;
 }
 
-async function runArduinoCommand(
-	getArguments: () => string[],
-	errorMessagePrefix: string,
-	returnOutput: boolean = true,
-	showOutput: boolean = false,
-	channel: OutputChannel = arduinoCLIChannel,
-	successMSG: string = ""
-): Promise<string> {
-	try {
-		const args = getArguments();
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, returnOutput, showOutput, channel, successMSG);
-		if (!result && returnOutput) {
-			const errorMsg = `${errorMessagePrefix}: No result`;
-			window.showErrorMessage(errorMsg);
-			throw new Error("Command result empty");
-		}
-		return result || '';
-	} catch (error: any) {
-		window.showErrorMessage(`${errorMessagePrefix}`);
-		throw error;
-	}
-}
+
 
 
 export function deactivate() { }

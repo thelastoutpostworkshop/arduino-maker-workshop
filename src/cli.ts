@@ -1,7 +1,30 @@
 import { OutputChannel, window } from "vscode";
-import { arduinoCLIChannel } from "./extension";
+import { arduinoCLIChannel, cliCommandArduinoPath } from "./extension";
 const fs = require('fs');
 const cp = require('child_process');
+
+export async function runArduinoCommand(
+	getArguments: () => string[],
+	errorMessagePrefix: string,
+	returnOutput: boolean = true,
+	showOutput: boolean = false,
+	channel: OutputChannel = arduinoCLIChannel,
+	successMSG: string = ""
+): Promise<string> {
+	try {
+		const args = getArguments();
+		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, returnOutput, showOutput, channel, successMSG);
+		if (!result && returnOutput) {
+			const errorMsg = `${errorMessagePrefix}: No result`;
+			window.showErrorMessage(errorMsg);
+			throw new Error("Command result empty");
+		}
+		return result || '';
+	} catch (error: any) {
+		window.showErrorMessage(`${errorMessagePrefix}`);
+		throw error;
+	}
+}
 
 export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = arduinoCLIChannel, successMsg: string = ""): Promise<string | void> {
 	// outputChannel.clear();
