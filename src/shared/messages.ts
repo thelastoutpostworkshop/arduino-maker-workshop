@@ -11,14 +11,14 @@ export interface ArduinoConfig {
 
 export interface Config {
   board_manager?: BoardManager;
-  daemon?:        Daemon;
-  directories?:   Directories;
-  library?:       Library;
-  logging?:       Logging;
-  metrics?:       Metrics;
-  output?:        Output;
-  sketch?:        Sketch;
-  updater?:       Updater;
+  daemon?: Daemon;
+  directories?: Directories;
+  library?: Library;
+  logging?: Logging;
+  metrics?: Metrics;
+  output?: Output;
+  sketch?: Sketch;
+  updater?: Updater;
 }
 
 export interface BoardManager {
@@ -30,9 +30,9 @@ export interface Daemon {
 }
 
 export interface Directories {
-  data:      string;
+  data: string;
   downloads: string;
-  user:      string;
+  user: string;
 }
 
 export interface Library {
@@ -40,13 +40,13 @@ export interface Library {
 }
 
 export interface Logging {
-  file:   string;
+  file: string;
   format: string;
-  level:  string;
+  level: string;
 }
 
 export interface Metrics {
-  addr:    string;
+  addr: string;
   enabled: boolean;
 }
 
@@ -389,7 +389,7 @@ export const ARDUINO_MESSAGES = {
   CLI_LIBRARY_INSTALLED: 'cli_libraryInstalled',
   CLI_OUTDATED: 'cli_outdated',
   CLI_GET_CONFIG: 'cli_getConfig',
-  CLI_CONFIG_DELETE_URL:'cli_congifDeleteUrl',
+  CLI_CONFIG_REMOVE_URL: 'cli_congifRemoveUrl',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
   ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
   SET_BOARD: 'setArduinoBoard',

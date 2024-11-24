@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, createNewSketch, getBoardConfiguration, getBoardConnected, getBoardsListAll, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, openExample, runInstallCoreVersion, runInstallLibraryVersion, runUninstallCoreVersion, runUninstallLibrary, searchCore, searchLibrary, searchLibraryInstalled } from "./extension";
+import { arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, createNewSketch, getBoardConfiguration, getBoardConnected, getBoardsListAll, getCLIConfig, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, openExample, removeCLIConfigAdditionalBoardURL, runInstallCoreVersion, runInstallLibraryVersion, runUninstallCoreVersion, runUninstallLibrary, searchCore, searchLibrary, searchLibraryInstalled } from "./extension";
 
 const path = require('path');
 const fs = require('fs');
@@ -14,7 +14,7 @@ export class VueWebviewPanel {
     private _disposables: Disposable[] = [];
     public static currentPanel: VueWebviewPanel | undefined;
     private usbChange() {
-        VueWebviewPanel.sendMessage({command:ARDUINO_MESSAGES.REQUEST_BOARD_CONNECTED,errorMessage:"",payload:""});
+        VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.REQUEST_BOARD_CONNECTED, errorMessage: "", payload: "" });
     }
     private constructor(panel: WebviewPanel, extensionUri: Uri) {
         this._panel = panel;
@@ -56,12 +56,12 @@ export class VueWebviewPanel {
                         getBoardConfiguration().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
-                        }).catch(()=>{
+                        }).catch(() => {
                             // Board info is wrong or not installed
                             arduinoProject.setBoard("");
                             arduinoProject.setConfiguration("");
                             arduinoProject.setPort("");
-                            message.payload="";
+                            message.payload = "";
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
@@ -154,6 +154,18 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.OPEN_LIBRARY:
                         openExample(message.payload);
+                        break;
+                    case ARDUINO_MESSAGES.CLI_GET_CONFIG:
+                        getCLIConfig().then((result) => {
+                            message.payload = result;
+                            VueWebviewPanel.sendMessage(message);
+                        });
+                        break;
+                    case ARDUINO_MESSAGES.CLI_CONFIG_REMOVE_URL:
+                        removeCLIConfigAdditionalBoardURL(message.payload).then((result) => {
+                            message.payload = result;
+                            VueWebviewPanel.sendMessage(message);
+                        });
                         break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);

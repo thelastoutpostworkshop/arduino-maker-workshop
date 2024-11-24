@@ -216,6 +216,20 @@ export async function getOutdatedBoardAndLib(): Promise<string> {
 	);
 }
 
+export async function getCLIConfig(): Promise<string> {
+	return runArduinoCommand(
+		() => arduinoProject.getConfigDumpArgs(),
+		"CLI : Failed to get CLI Config information"
+	);
+}
+
+export async function removeCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
+	return runArduinoCommand(
+		() => arduinoProject.getConfigRemoveAdditionalBoardURLArgs(URL),
+		"CLI : Failed to delete addtional Board URL"
+	);
+}
+
 export async function searchCore(): Promise<string> {
 	return runArduinoCommand(
 		() => arduinoProject.getCoreSearchArguments(),

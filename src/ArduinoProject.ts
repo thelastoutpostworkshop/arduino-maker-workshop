@@ -17,6 +17,7 @@ const jsonOutputArduino: string = '--json';
 const outdatedCommandArduino: string = 'outdated';
 const coreCommandArduino: string = 'core';
 const dumpOption: string = 'dump';
+const removeOption: string = 'remove';
 const updateOption: string = 'update-index';
 const newOption: string = 'new';
 const initOption: string = 'init';
@@ -26,6 +27,7 @@ const uninstallOption: string = 'uninstall';
 const searchOption: string = 'search';
 const listOption: string = 'list';
 const addtionalURLOption: string = '--additional-urls';
+const configAdditionnalURLsetting: string = 'board_manager.additional_urls';
 export const verboseOptionArduino: string = '-v';
 export const portOptionArduino: string = '-p';
 export const buildPathArduino: string = '--build-path';
@@ -139,6 +141,15 @@ export class ArduinoProject {
             `${configCommandArduino}`,
             `${dumpOption}`,
             `${jsonOutputArduino}`
+        ];
+        return command;
+    }
+    public getConfigRemoveAdditionalBoardURLArgs(URL: string): string[] {
+        const command = [
+            `${configCommandArduino}`,
+            `${removeOption}`,
+            `${configAdditionnalURLsetting}`,
+            `${URL}`,
         ];
         return command;
     }

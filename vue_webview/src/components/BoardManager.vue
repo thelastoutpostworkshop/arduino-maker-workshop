@@ -159,7 +159,7 @@ function editURL(item: any, index: number) {
 function deleteURL(item: any) {
   if (store.cliConfig?.config?.board_manager) {
     store.cliConfig = null;
-    store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_DELETE_URL, errorMessage: "", payload: item.title });
+    store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_REMOVE_URL, errorMessage: "", payload: item.title });
   }
 }
 
