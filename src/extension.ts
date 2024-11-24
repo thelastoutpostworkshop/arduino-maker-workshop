@@ -226,7 +226,7 @@ export async function getCLIConfig(): Promise<string> {
 export async function removeCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
 	return runArduinoCommand(
 		() => arduinoProject.getConfigRemoveAdditionalBoardURLArgs(URL),
-		"CLI : Failed to delete addtional Board URL"
+		"CLI : Failed to delete addtional Board URL", false
 	);
 }
 
