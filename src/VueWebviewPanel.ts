@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, createNewSketch, getBoardConfiguration, getBoardConnected, getBoardsListAll, getCLIConfig, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, openExample, removeCLIConfigAdditionalBoardURL, runInstallCoreVersion, runInstallLibraryVersion, runUninstallCoreVersion, runUninstallLibrary, searchCore, searchLibrary, searchLibraryInstalled } from "./extension";
+import { addCLIConfigAdditionalBoardURL, arduinoExtensionChannel, arduinoProject, checkArduinoCLICommand, createNewSketch, getBoardConfiguration, getBoardConnected, getBoardsListAll, getCLIConfig, getCoreUpdate, getOutdatedBoardAndLib, loadArduinoConfiguration, openExample, removeCLIConfigAdditionalBoardURL, runInstallCoreVersion, runInstallLibraryVersion, runUninstallCoreVersion, runUninstallLibrary, searchCore, searchLibrary, searchLibraryInstalled } from "./extension";
 
 const path = require('path');
 const fs = require('fs');
@@ -163,6 +163,12 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.CLI_CONFIG_REMOVE_ADDITIONAL_URL:
                         removeCLIConfigAdditionalBoardURL(message.payload).then((result) => {
+                            message.payload = result;
+                            VueWebviewPanel.sendMessage(message);
+                        });
+                        break;
+                    case ARDUINO_MESSAGES.CLI_CONFIG_ADD_ADDITIONAL_URL:
+                        addCLIConfigAdditionalBoardURL(message.payload).then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
