@@ -148,14 +148,10 @@ function updateStateCompileUpload() {
 	}
 }
 
-
-
 export function openExample(examplePath: string) {
 	const uriPath = Uri.file(examplePath);
 	commands.executeCommand('vscode.openFolder', uriPath, { forceNewWindow: true });
 }
-
-
 
 export async function getBoardConfiguration(): Promise<string> {
 	try {
@@ -208,7 +204,6 @@ export function loadArduinoConfiguration(): boolean {
 	}
 	return true;
 }
-
 
 function vsCommandUpload(): Disposable {
 	return commands.registerCommand('quickAccessView.upload', async () => {
