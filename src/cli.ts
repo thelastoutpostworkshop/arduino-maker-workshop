@@ -92,6 +92,19 @@ export async function getCoreUpdate(): Promise<string> {
 		"CLI: Failed to get board update information"
 	);
 }
+export async function getBoardsListAll(): Promise<string> {
+	return runArduinoCommand(
+		() => arduinoProject.getBoardsListArguments(),
+		"CLI: Failed to get boards list "
+	);
+}
+
+export async function getBoardConnected(): Promise<string> {
+	return runArduinoCommand(
+		() => arduinoProject.getBoardConnectedArguments(),
+		"CLI: Failed to get Boards "
+	);
+}
 function getAppDataPath(): string {
 	const platform = os.platform();
 	const homeDir = os.homedir();

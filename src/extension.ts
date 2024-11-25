@@ -243,19 +243,7 @@ export function loadArduinoConfiguration(): boolean {
 	return true;
 }
 
-export async function getBoardsListAll(): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getBoardsListArguments(),
-		"CLI: Failed to get boards list "
-	);
-}
 
-export async function getBoardConnected(): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getBoardConnectedArguments(),
-		"CLI: Failed to get Boards "
-	);
-}
 function vsCommandUpload(): Disposable {
 	return commands.registerCommand('quickAccessView.upload', async () => {
 		if (compileOrUploadRunning) {
