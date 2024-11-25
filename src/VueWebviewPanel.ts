@@ -5,8 +5,6 @@ import { ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } fro
 import { arduinoExtensionChannel, arduinoProject, getBoardConfiguration, loadArduinoConfiguration, openExample } from "./extension";
 import { addCLIConfigAdditionalBoardURL, checkArduinoCLICommand, createNewSketch, getBoardConnected, getBoardsListAll, getCLIConfig, getCoreUpdate, getOutdatedBoardAndLib, removeCLIConfigAdditionalBoardURL, runInstallCoreVersion, runInstallLibraryVersion, runUninstallCoreVersion, runUninstallLibrary, searchCore, searchLibrary, searchLibraryInstalled, setCLIConfigAdditionalBoardURL } from "./cli";
 
-const path = require('path');
-const fs = require('fs');
 const usb = require('usb').usb;
 
 export class VueWebviewPanel {
