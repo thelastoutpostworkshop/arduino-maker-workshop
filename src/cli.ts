@@ -1,5 +1,6 @@
 import { commands, OutputChannel, Uri, window,workspace,ExtensionContext } from "vscode";
-import { arduinoCLIChannel, arduinoProject, cliCommandArduinoPath } from "./extension";
+import { arduinoCLIChannel, arduinoExtensionChannel, arduinoProject, cliCommandArduinoPath } from "./extension";
+import { ArduinoCLIStatus } from "./shared/messages";
 const cp = require('child_process');
 const path = require('path');
 const os = require('os');
@@ -104,6 +105,41 @@ export async function getBoardConnected(): Promise<string> {
 		() => arduinoProject.getBoardConnectedArguments(),
 		"CLI: Failed to get Boards "
 	);
+}
+export function checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
+	return new Promise((resolve) => {
+		const arduinoVersionArgs = arduinoProject.getVersionArguments();
+
+		executeArduinoCommand(`${cliCommandArduinoPath}`, arduinoVersionArgs, true, false)
+			.then((result) => {
+				if (result) {
+					try {
+						getCoreUpdate();
+						resolve(JSON.parse(result));
+					} catch (parseError) {
+						arduinoExtensionChannel.appendLine('Failed to get Arduino CLI version information.');
+						window.showErrorMessage(`Failed to get Arduino CLI version information.`);
+						resolve({
+							VersionString: "unknown",
+							Date: 'CLI Error'
+						});
+					}
+				} else {
+					window.showErrorMessage(`No result returned by checking the CLI version`);
+					resolve({
+						VersionString: "unknown",
+						Date: 'CLI Error'
+					});
+				}
+			})
+			.catch((error) => {
+				window.showErrorMessage(`Arduino CLI path is wrong in your settings: ${error}`);
+				resolve({
+					VersionString: "unknown",
+					Date: 'CLI Error'
+				});
+			});
+	});
 }
 function getAppDataPath(): string {
 	const platform = os.platform();
