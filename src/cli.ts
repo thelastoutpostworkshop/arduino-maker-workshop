@@ -1,110 +1,195 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext } from "vscode";
 import { arduinoCLI, arduinoCLIChannel, arduinoExtensionChannel, arduinoProject, cliCommandArduinoPath } from "./extension";
-import { ArduinoCLIStatus } from "./shared/messages";
+import { ArduinoCLIStatus, ArduinoConfig } from "./shared/messages";
 const cp = require('child_process');
 const path = require('path');
 const os = require('os');
 
 export class ArduinoCLI {
 	public async getOutdatedBoardAndLib(): Promise<string> {
-		return runArduinoCommand(
+		return this.runArduinoCommand(
 			() => arduinoProject.getOutdatedArguments(),
 			"CLI : Failed to get outdated Board and Libraries information"
 		);
 	}
 	public async searchLibraryInstalled(): Promise<string> {
-		return runArduinoCommand(
+		return this.runArduinoCommand(
 			() => arduinoProject.getLibraryInstalledArguments(),
 			"CLI: Failed to get library installed"
 		);
 	}
-	public async  getCLIConfig(): Promise<string> {
-		return runArduinoCommand(
+	public async getCLIConfig(): Promise<string> {
+		return this.runArduinoCommand(
 			() => arduinoProject.getConfigDumpArgs(),
 			"CLI : Failed to get CLI Config information"
 		);
 	}
-	
+
 	public async removeCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
-		return runArduinoCommand(
+		return this.runArduinoCommand(
 			() => arduinoProject.getConfigRemoveAdditionalBoardURLArgs(URL),
 			"CLI : Failed to delete additional Board URL", false
 		);
 	}
-	
+
 	public async addCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
-		return runArduinoCommand(
+		return this.runArduinoCommand(
 			() => arduinoProject.getConfigAddAdditionalBoardURLArgs(URL),
 			"CLI : Failed to add additional Board URL", false
 		);
 	}
-	
+
 	public async setCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
-		return runArduinoCommand(
+		return this.runArduinoCommand(
 			() => arduinoProject.getConfigSetAdditionalBoardURLArgs(URL),
 			"CLI : Failed to set additional Board URL", false
 		);
 	}
 	public async searchCore(): Promise<string> {
-		return runArduinoCommand(
+		return this.runArduinoCommand(
 			() => arduinoProject.getCoreSearchArguments(),
 			"CLI: Failed to get boards available"
 		);
 	}
-	
+
 	public async searchLibrary(): Promise<string> {
-		return runArduinoCommand(
+		return this.runArduinoCommand(
 			() => arduinoProject.getLibrarySearchArguments(),
 			"CLI: Failed to get library available"
 		);
 	}
-	
+
 	public async runInstallLibraryVersion(library: string): Promise<string> {
-		return runArduinoCommand(
+		return this.runArduinoCommand(
 			() => arduinoProject.getInstallLibraryVersionArguments(library),
 			"CLI: Failed to install library", true, true
 		);
 	}
-	
+
 	public async runInstallCoreVersion(board_id: string): Promise<string> {
-		return runArduinoCommand(
+		return this.runArduinoCommand(
 			() => arduinoProject.getInstallCoreVersionArguments(board_id),
 			"CLI: Failed to install board", true, true
 		);
 	}
-	
+
 	public async runUninstallLibrary(version: string): Promise<string> {
-		return runArduinoCommand(
+		return this.runArduinoCommand(
 			() => arduinoProject.getUninstallLibraryArguments(version),
 			"CLI: Failed to remove library", true, true
 		);
 	}
-	
+
 	public async runUninstallCoreVersion(version: string): Promise<string> {
-		return runArduinoCommand(
+		return this.runArduinoCommand(
 			() => arduinoProject.getUninstallCoreArguments(version),
 			"CLI: Failed to remove board", true, true
 		);
 	}
-	
+
 	public async getCoreUpdate(): Promise<string> {
-		return runArduinoCommand(
+		return this.runArduinoCommand(
 			() => arduinoProject.getCoreUpdateArguments(),
 			"CLI: Failed to get board update information"
 		);
 	}
 	public async getBoardsListAll(): Promise<string> {
-		return runArduinoCommand(
+		return this.runArduinoCommand(
 			() => arduinoProject.getBoardsListArguments(),
 			"CLI: Failed to get boards list "
 		);
 	}
-	
+
 	public async getBoardConnected(): Promise<string> {
-		return runArduinoCommand(
+		return this.runArduinoCommand(
 			() => arduinoProject.getBoardConnectedArguments(),
 			"CLI: Failed to get Boards "
 		);
+	}
+	public checkArduinoConfiguration() {
+		this.runArduinoCommand(
+			() => arduinoProject.getConfigDumpArgs(),
+			"CLI : Failed to get arduino configuration information"
+		).then((result) => {
+			try {
+				const config: ArduinoConfig = JSON.parse(result);
+				if (Object.keys(config.config).length === 0) {
+					// There is no arduino config file, let's create one
+					this.runArduinoCommand(
+						() => arduinoProject.getConfigInitArgs(),
+						"CLI : Failed to create arduino config file",
+						true, false
+					).then((result) => {
+						try {
+							const config = JSON.parse(result);
+							const configPath = path.dirname(config.config_path);
+							const downloadPath = path.join(configPath, 'staging');
+							this.runArduinoCommand(
+								() => arduinoProject.getConfigSetDowloadDirectory(downloadPath),
+								"CLI : Failed to set download directory setting",
+								false, false
+							).then(() => {
+								this.runArduinoCommand(
+									() => arduinoProject.getConfigSetDataDirectory(configPath),
+									"CLI : Failed to set data directory setting",
+									false, false
+								).then(() => {
+									const arduinoDir = path.join(this.getDocumentsFolderPath(), 'Arduino');
+									this.runArduinoCommand(
+										() => arduinoProject.getConfigSetUserDirectory(arduinoDir),
+										"CLI : Failed to set user directory setting",
+										false, false
+									);
+								});
+							});
+						} catch (error) {
+							window.showErrorMessage(`Error parsing config file ${error}`);
+						}
+					}).catch((error) => {
+						window.showErrorMessage(`Error creating config file ${error}`);
+					});
+				}
+			} catch (error) {
+				window.showErrorMessage(`Someting is wrong with the CLI ${error}`);
+			}
+		}).catch((error) => {
+			window.showErrorMessage(`${error}`);
+		});
+	}
+	public async runArduinoCommand(
+		getArguments: () => string[],
+		errorMessagePrefix: string,
+		returnOutput: boolean = true,
+		showOutput: boolean = false,
+		channel: OutputChannel = arduinoCLIChannel,
+		successMSG: string = ""
+	): Promise<string> {
+		try {
+			const args = getArguments();
+			const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, returnOutput, showOutput, channel, successMSG);
+			if (!result && returnOutput) {
+				const errorMsg = `${errorMessagePrefix}: No result`;
+				window.showErrorMessage(errorMsg);
+				throw new Error("Command result empty");
+			}
+			return result || '';
+		} catch (error: any) {
+			window.showErrorMessage(`${errorMessagePrefix}`);
+			throw error;
+		}
+	}
+	private getDocumentsFolderPath() {
+		const homeDir = os.homedir(); // Get the user's home directory
+
+		switch (os.platform()) {
+			case 'win32':
+				return path.join(homeDir, 'Documents'); // Windows path to Documents
+			case 'linux':
+			case 'darwin':
+				return path.join(homeDir, 'Documents'); // Linux and macOS path to Documents
+			default:
+				throw new Error('Unsupported platform');
+		}
 	}
 }
 
@@ -191,29 +276,6 @@ export async function createNewSketch(name: string): Promise<string> {
 		return result;
 	} catch (error: any) {
 		window.showErrorMessage(`CLI: Failed to create new sketch - ${error.message}`);
-		throw error;
-	}
-}
-
-export async function runArduinoCommand(
-	getArguments: () => string[],
-	errorMessagePrefix: string,
-	returnOutput: boolean = true,
-	showOutput: boolean = false,
-	channel: OutputChannel = arduinoCLIChannel,
-	successMSG: string = ""
-): Promise<string> {
-	try {
-		const args = getArguments();
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, returnOutput, showOutput, channel, successMSG);
-		if (!result && returnOutput) {
-			const errorMsg = `${errorMessagePrefix}: No result`;
-			window.showErrorMessage(errorMsg);
-			throw new Error("Command result empty");
-		}
-		return result || '';
-	} catch (error: any) {
-		window.showErrorMessage(`${errorMessagePrefix}`);
 		throw error;
 	}
 }

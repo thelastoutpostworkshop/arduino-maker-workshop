@@ -4,7 +4,7 @@ import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ArduinoConfig, Compile } from "./shared/messages";
 import { SerialMonitorApi, Version, getSerialMonitorApi, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
-import { ArduinoCLI, executeArduinoCommand, getArduinoCliPath, runArduinoCommand } from "./cli";
+import { ArduinoCLI, executeArduinoCommand, getArduinoCliPath } from "./cli";
 
 const path = require('path');
 const os = require('os');
@@ -33,7 +33,7 @@ export function activate(context: ExtensionContext) {
 		throw new Error(error);
 	}
 
-	checkArduinoConfiguration();
+	arduinoCLI.checkArduinoConfiguration();
 
 	context.subscriptions.push(
 		workspace.onDidChangeConfiguration((e) => {
@@ -67,70 +67,6 @@ export function activate(context: ExtensionContext) {
 		serialMoniorAPI = api;
 	});
 }
-
-function checkArduinoConfiguration() {
-	runArduinoCommand(
-		() => arduinoProject.getConfigDumpArgs(),
-		"CLI : Failed to get arduino configuration information"
-	).then((result) => {
-		try {
-			const config: ArduinoConfig = JSON.parse(result);
-			if (Object.keys(config.config).length === 0) {
-				// There is no arduino config file, let's create one
-				runArduinoCommand(
-					() => arduinoProject.getConfigInitArgs(),
-					"CLI : Failed to create arduino config file",
-					true, false
-				).then((result) => {
-					try {
-						const config = JSON.parse(result);
-						const configPath = path.dirname(config.config_path);
-						const downloadPath = path.join(configPath, 'staging');
-						runArduinoCommand(
-							() => arduinoProject.getConfigSetDowloadDirectory(downloadPath),
-							"CLI : Failed to set download directory setting",
-							false, false
-						).then(() => {
-							runArduinoCommand(
-								() => arduinoProject.getConfigSetDataDirectory(configPath),
-								"CLI : Failed to set data directory setting",
-								false, false
-							).then(()=>{
-								const arduinoDir = path.join(getDocumentsFolderPath(),'Arduino');
-								runArduinoCommand(
-									() => arduinoProject.getConfigSetUserDirectory(arduinoDir),
-									"CLI : Failed to set user directory setting",
-									false, false
-								);							});
-						});
-					} catch (error) {
-						window.showErrorMessage(`Error parsing config file ${error}`);
-					}
-				}).catch((error) => {
-					window.showErrorMessage(`Error creating config file ${error}`);
-				});
-			}
-		} catch (error) {
-			window.showErrorMessage(`Someting is wrong with the CLI ${error}`);
-		}
-	}).catch((error) => {
-		window.showErrorMessage(`${error}`);
-	});
-}
-
-function getDocumentsFolderPath() {
-	const homeDir = os.homedir(); // Get the user's home directory
-  
-	switch (os.platform()) {
-	  case 'win32':
-		return path.join(homeDir, 'Documents'); // Windows path to Documents
-	  case 'linux':
-	  case 'darwin':
-		return path.join(homeDir, 'Documents'); // Linux and macOS path to Documents
-	  default:
-		throw new Error('Unsupported platform');
-	}
-  }
 
 function updateStateCompileUpload() {
 	arduinoProject.readConfiguration();
@@ -231,7 +167,7 @@ function vsCommandUpload(): Disposable {
 			const port = arduinoProject.getPort();
 			serialMoniorAPI.stopMonitoringPort(port);
 		}
-		await runArduinoCommand(
+		await arduinoCLI.runArduinoCommand(
 			() => arduinoProject.getUploadArguments(),
 			"CLI: Failed to upload", false, true, compileUploadChannel
 		);
@@ -269,7 +205,7 @@ function generateIntellisense() {
 			title: "Generating IntelliSense Configuration...",
 			cancellable: false
 		}, async (progress) => {
-			const output = await runArduinoCommand(
+			const output = await arduinoCLI.runArduinoCommand(
 				() => arduinoProject.getCompileCommandArguments(true),
 				"CLI: Failed to compile for intellisense", true, false, compileUploadChannel
 			);
@@ -378,7 +314,7 @@ async function compile(clean: boolean = false) {
 	}
 
 	try {
-		await runArduinoCommand(
+		await arduinoCLI.runArduinoCommand(
 			() => arduinoProject.getCompileCommandArguments(false, clean),
 			"CLI: Failed to compile project", true, true, compileUploadChannel, "Compilation success!"
 		);
