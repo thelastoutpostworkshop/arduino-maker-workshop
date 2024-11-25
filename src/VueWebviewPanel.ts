@@ -2,8 +2,8 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoExtensionChannel, arduinoProject, getBoardConfiguration, loadArduinoConfiguration, openExample } from "./extension";
-import { addCLIConfigAdditionalBoardURL, checkArduinoCLICommand, createNewSketch, getBoardConnected, getBoardsListAll, getCLIConfig, getCoreUpdate, getOutdatedBoardAndLib, removeCLIConfigAdditionalBoardURL, runInstallCoreVersion, runInstallLibraryVersion, runUninstallCoreVersion, runUninstallLibrary, searchCore, searchLibrary, searchLibraryInstalled, setCLIConfigAdditionalBoardURL } from "./cli";
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, getBoardConfiguration, loadArduinoConfiguration, openExample } from "./extension";
+import { addCLIConfigAdditionalBoardURL, checkArduinoCLICommand, createNewSketch, getBoardConnected, getBoardsListAll, getCLIConfig, getCoreUpdate, removeCLIConfigAdditionalBoardURL, runInstallCoreVersion, runInstallLibraryVersion, runUninstallCoreVersion, runUninstallLibrary, searchCore, searchLibrary, setCLIConfigAdditionalBoardURL } from "./cli";
 
 const usb = require('usb').usb;
 
@@ -90,7 +90,7 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.CLI_UPDATE_INDEX:
                         getCoreUpdate().then(() => {
-                            getOutdatedBoardAndLib().then((result) => {
+                            arduinoCLI.getOutdatedBoardAndLib().then((result) => {
                                 message.payload = result;
                                 VueWebviewPanel.sendMessage(message);
                             });
@@ -136,13 +136,13 @@ export class VueWebviewPanel {
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED:
-                        searchLibraryInstalled().then((result) => {
+                        arduinoCLI.searchLibraryInstalled().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_OUTDATED:
-                        getOutdatedBoardAndLib().then((result) => {
+                        arduinoCLI.getOutdatedBoardAndLib().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });

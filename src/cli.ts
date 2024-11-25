@@ -1,16 +1,25 @@
-import { commands, OutputChannel, Uri, window,workspace,ExtensionContext } from "vscode";
+import { commands, OutputChannel, Uri, window, workspace, ExtensionContext } from "vscode";
 import { arduinoCLIChannel, arduinoExtensionChannel, arduinoProject, cliCommandArduinoPath } from "./extension";
 import { ArduinoCLIStatus } from "./shared/messages";
 const cp = require('child_process');
 const path = require('path');
 const os = require('os');
 
-export async function getOutdatedBoardAndLib(): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getOutdatedArguments(),
-		"CLI : Failed to get outdated Board and Libraries information"
-	);
+export class ArduinoCLI {
+	public async getOutdatedBoardAndLib(): Promise<string> {
+		return runArduinoCommand(
+			() => arduinoProject.getOutdatedArguments(),
+			"CLI : Failed to get outdated Board and Libraries information"
+		);
+	}
+	public async searchLibraryInstalled(): Promise<string> {
+		return runArduinoCommand(
+			() => arduinoProject.getLibraryInstalledArguments(),
+			"CLI: Failed to get library installed"
+		);
+	}
 }
+
 export async function getCLIConfig(): Promise<string> {
 	return runArduinoCommand(
 		() => arduinoProject.getConfigDumpArgs(),
@@ -49,13 +58,6 @@ export async function searchLibrary(): Promise<string> {
 	return runArduinoCommand(
 		() => arduinoProject.getLibrarySearchArguments(),
 		"CLI: Failed to get library available"
-	);
-}
-
-export async function searchLibraryInstalled(): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getLibraryInstalledArguments(),
-		"CLI: Failed to get library installed"
 	);
 }
 

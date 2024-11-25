@@ -4,7 +4,7 @@ import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ArduinoConfig, Compile } from "./shared/messages";
 import { SerialMonitorApi, Version, getSerialMonitorApi, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
-import { executeArduinoCommand, getArduinoCliPath, runArduinoCommand } from "./cli";
+import { ArduinoCLI, executeArduinoCommand, getArduinoCliPath, runArduinoCommand } from "./cli";
 
 const path = require('path');
 const os = require('os');
@@ -19,6 +19,7 @@ let serialMoniorAPI: SerialMonitorApi | undefined = undefined;
 let compileOrUploadRunning: boolean = false;
 
 export const arduinoProject: ArduinoProject = new ArduinoProject();
+export const arduinoCLI:ArduinoCLI = new ArduinoCLI();
 export let cliCommandArduinoPath: string = "";
 
 export function activate(context: ExtensionContext) {
