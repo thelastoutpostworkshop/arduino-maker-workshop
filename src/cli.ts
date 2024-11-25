@@ -4,6 +4,23 @@ const cp = require('child_process');
 const path = require('path');
 const os = require('os');
 
+function getAppDataPath(): string {
+	const platform = os.platform();
+	const homeDir = os.homedir();
+
+	if (platform === 'win32') {
+		// Windows - return paths for %APPDATA% and %LOCALAPPDATA%
+		const localAppDataPath = path.join(homeDir, 'AppData', 'Local');
+		return `${localAppDataPath}`;
+	} else if (platform === 'linux' || platform === 'darwin') {
+		// macOS or Linux - return path for ~/.config
+		const configPath = path.join(homeDir, '.config');
+		return configPath;
+	} else {
+		throw new Error('Unsupported platform');
+	}
+}
+
 export function getArduinoCliPath(context: ExtensionContext): string {
 	const platform = os.platform();
 	let arduinoCliPath = '';
