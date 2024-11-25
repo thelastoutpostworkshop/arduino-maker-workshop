@@ -156,6 +156,41 @@ export class ArduinoCLI {
 			window.showErrorMessage(`${error}`);
 		});
 	}
+	public checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
+		return new Promise((resolve) => {
+			const arduinoVersionArgs = arduinoProject.getVersionArguments();
+
+			executeArduinoCommand(`${cliCommandArduinoPath}`, arduinoVersionArgs, true, false)
+				.then((result) => {
+					if (result) {
+						try {
+							arduinoCLI.getCoreUpdate();
+							resolve(JSON.parse(result));
+						} catch (parseError) {
+							arduinoExtensionChannel.appendLine('Failed to get Arduino CLI version information.');
+							window.showErrorMessage(`Failed to get Arduino CLI version information.`);
+							resolve({
+								VersionString: "unknown",
+								Date: 'CLI Error'
+							});
+						}
+					} else {
+						window.showErrorMessage(`No result returned by checking the CLI version`);
+						resolve({
+							VersionString: "unknown",
+							Date: 'CLI Error'
+						});
+					}
+				})
+				.catch((error) => {
+					window.showErrorMessage(`Arduino CLI path is wrong in your settings: ${error}`);
+					resolve({
+						VersionString: "unknown",
+						Date: 'CLI Error'
+					});
+				});
+		});
+	}
 	public async runArduinoCommand(
 		getArguments: () => string[],
 		errorMessagePrefix: string,
@@ -191,43 +226,6 @@ export class ArduinoCLI {
 				throw new Error('Unsupported platform');
 		}
 	}
-}
-
-
-export function checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
-	return new Promise((resolve) => {
-		const arduinoVersionArgs = arduinoProject.getVersionArguments();
-
-		executeArduinoCommand(`${cliCommandArduinoPath}`, arduinoVersionArgs, true, false)
-			.then((result) => {
-				if (result) {
-					try {
-						arduinoCLI.getCoreUpdate();
-						resolve(JSON.parse(result));
-					} catch (parseError) {
-						arduinoExtensionChannel.appendLine('Failed to get Arduino CLI version information.');
-						window.showErrorMessage(`Failed to get Arduino CLI version information.`);
-						resolve({
-							VersionString: "unknown",
-							Date: 'CLI Error'
-						});
-					}
-				} else {
-					window.showErrorMessage(`No result returned by checking the CLI version`);
-					resolve({
-						VersionString: "unknown",
-						Date: 'CLI Error'
-					});
-				}
-			})
-			.catch((error) => {
-				window.showErrorMessage(`Arduino CLI path is wrong in your settings: ${error}`);
-				resolve({
-					VersionString: "unknown",
-					Date: 'CLI Error'
-				});
-			});
-	});
 }
 
 export function getArduinoCliPath(context: ExtensionContext): string {

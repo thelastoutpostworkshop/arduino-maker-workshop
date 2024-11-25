@@ -3,7 +3,7 @@ import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, getBoardConfiguration, loadArduinoConfiguration, openExample } from "./extension";
-import { checkArduinoCLICommand, createNewSketch } from "./cli";
+import { createNewSketch } from "./cli";
 
 const usb = require('usb').usb;
 
@@ -32,7 +32,7 @@ export class VueWebviewPanel {
                         createNewSketch(message.payload);
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
-                        checkArduinoCLICommand().then((clistatus) => {
+                        arduinoCLI.checkArduinoCLICommand().then((clistatus) => {
                             const projectStatus: ArduinoProjectStatus = { project_status: arduinoProject.isFolderArduinoProject(), cli_status: clistatus };
                             message.payload = projectStatus;
                             VueWebviewPanel.sendMessage(message);
