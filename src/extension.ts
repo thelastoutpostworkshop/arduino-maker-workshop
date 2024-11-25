@@ -4,7 +4,7 @@ import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ArduinoCLIStatus, ArduinoConfig, Compile } from "./shared/messages";
 import { SerialMonitorApi, Version, getSerialMonitorApi, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
-import { executeArduinoCommand, getArduinoCliPath, runArduinoCommand } from "./cli";
+import { executeArduinoCommand, getArduinoCliPath, getCoreUpdate, runArduinoCommand } from "./cli";
 
 const path = require('path');
 const os = require('os');
@@ -189,96 +189,7 @@ export function openExample(examplePath: string) {
 	commands.executeCommand('vscode.openFolder', uriPath, { forceNewWindow: true });
 }
 
-export async function getOutdatedBoardAndLib(): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getOutdatedArguments(),
-		"CLI : Failed to get outdated Board and Libraries information"
-	);
-}
 
-export async function getCLIConfig(): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getConfigDumpArgs(),
-		"CLI : Failed to get CLI Config information"
-	);
-}
-
-export async function removeCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getConfigRemoveAdditionalBoardURLArgs(URL),
-		"CLI : Failed to delete additional Board URL", false
-	);
-}
-
-export async function addCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getConfigAddAdditionalBoardURLArgs(URL),
-		"CLI : Failed to add additional Board URL", false
-	);
-}
-
-export async function setCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getConfigSetAdditionalBoardURLArgs(URL),
-		"CLI : Failed to set additional Board URL", false
-	);
-}
-
-export async function searchCore(): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getCoreSearchArguments(),
-		"CLI: Failed to get boards available"
-	);
-}
-
-export async function searchLibrary(): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getLibrarySearchArguments(),
-		"CLI: Failed to get library available"
-	);
-}
-
-export async function searchLibraryInstalled(): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getLibraryInstalledArguments(),
-		"CLI: Failed to get library installed"
-	);
-}
-
-export async function runInstallLibraryVersion(library: string): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getInstallLibraryVersionArguments(library),
-		"CLI: Failed to install library", true, true
-	);
-}
-
-export async function runInstallCoreVersion(board_id: string): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getInstallCoreVersionArguments(board_id),
-		"CLI: Failed to install board", true, true
-	);
-}
-
-export async function runUninstallLibrary(version: string): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getUninstallLibraryArguments(version),
-		"CLI: Failed to remove library", true, true
-	);
-}
-
-export async function runUninstallCoreVersion(version: string): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getUninstallCoreArguments(version),
-		"CLI: Failed to remove board", true, true
-	);
-}
-
-export async function getCoreUpdate(): Promise<string> {
-	return runArduinoCommand(
-		() => arduinoProject.getCoreUpdateArguments(),
-		"CLI: Failed to get board update information"
-	);
-}
 
 export async function getBoardConfiguration(): Promise<string> {
 	try {
