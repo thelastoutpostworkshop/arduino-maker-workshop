@@ -2,9 +2,9 @@ import { window, ExtensionContext, commands, Disposable, workspace, Uri, Progres
 import { ArduinoProject, CPP_PROPERTIES, VSCODE_FOLDER } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
-import { ARDUINO_ERRORS, ArduinoCLIStatus, ArduinoConfig, Compile } from "./shared/messages";
+import { ARDUINO_ERRORS, ArduinoConfig, Compile } from "./shared/messages";
 import { SerialMonitorApi, Version, getSerialMonitorApi, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
-import { executeArduinoCommand, getArduinoCliPath, getCoreUpdate, runArduinoCommand } from "./cli";
+import { executeArduinoCommand, getArduinoCliPath, runArduinoCommand } from "./cli";
 
 const path = require('path');
 const os = require('os');
