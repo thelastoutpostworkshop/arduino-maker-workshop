@@ -3,7 +3,7 @@ import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, getBoardConfiguration, loadArduinoConfiguration, openExample } from "./extension";
-import { addCLIConfigAdditionalBoardURL, checkArduinoCLICommand, createNewSketch, getBoardConnected, getBoardsListAll, getCLIConfig, getCoreUpdate, removeCLIConfigAdditionalBoardURL, runInstallCoreVersion, runInstallLibraryVersion, runUninstallCoreVersion, runUninstallLibrary, searchCore, searchLibrary, setCLIConfigAdditionalBoardURL } from "./cli";
+import { checkArduinoCLICommand, createNewSketch } from "./cli";
 
 const usb = require('usb').usb;
 
@@ -61,13 +61,13 @@ export class VueWebviewPanel {
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_BOARD_SEARCH:
-                        getBoardsListAll().then((result) => {
+                        arduinoCLI.getBoardsListAll().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_BOARD_CONNECTED:
-                        getBoardConnected().then((result) => {
+                        arduinoCLI.getBoardConnected().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
@@ -89,7 +89,7 @@ export class VueWebviewPanel {
                         this.setPort(message);
                         break;
                     case ARDUINO_MESSAGES.CLI_UPDATE_INDEX:
-                        getCoreUpdate().then(() => {
+                        arduinoCLI.getCoreUpdate().then(() => {
                             arduinoCLI.getOutdatedBoardAndLib().then((result) => {
                                 message.payload = result;
                                 VueWebviewPanel.sendMessage(message);
@@ -98,39 +98,39 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.CLI_INSTALL_CORE_VERSION:
                         const coreToUpdate = message.payload;
-                        runInstallCoreVersion(coreToUpdate).then(() => {
+                        arduinoCLI.runInstallCoreVersion(coreToUpdate).then(() => {
                             message.command = ARDUINO_MESSAGES.CORE_VERSION_INSTALLED;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_INSTALL_LIBRARY:
                         const libToInstall = message.payload;
-                        runInstallLibraryVersion(libToInstall).then(() => {
+                        arduinoCLI.runInstallLibraryVersion(libToInstall).then(() => {
                             message.command = ARDUINO_MESSAGES.LIBRARY_VERSION_INSTALLED;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_UNINSTALL_LIBRARY:
-                        runUninstallLibrary(message.payload).then(() => {
+                        arduinoCLI.runUninstallLibrary(message.payload).then(() => {
                             message.command = ARDUINO_MESSAGES.LIBRARY_UNINSTALLED;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_UNINSTALL_CORE:
                         const coreToUninstall = message.payload;
-                        runUninstallCoreVersion(coreToUninstall).then(() => {
+                        arduinoCLI.runUninstallCoreVersion(coreToUninstall).then(() => {
                             message.command = ARDUINO_MESSAGES.CORE_UNINSTALLED;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_CORE_SEARCH:
-                        searchCore().then((result) => {
+                        arduinoCLI.searchCore().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH:
-                        searchLibrary().then((result) => {
+                        arduinoCLI.searchLibrary().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
@@ -151,25 +151,25 @@ export class VueWebviewPanel {
                         openExample(message.payload);
                         break;
                     case ARDUINO_MESSAGES.CLI_GET_CONFIG:
-                        getCLIConfig().then((result) => {
+                        arduinoCLI.getCLIConfig().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_CONFIG_REMOVE_ADDITIONAL_URL:
-                        removeCLIConfigAdditionalBoardURL(message.payload).then((result) => {
+                        arduinoCLI.removeCLIConfigAdditionalBoardURL(message.payload).then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_CONFIG_ADD_ADDITIONAL_URL:
-                        addCLIConfigAdditionalBoardURL(message.payload).then((result) => {
+                        arduinoCLI.addCLIConfigAdditionalBoardURL(message.payload).then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_CONFIG_SET_ADDITIONAL_URL:
-                        setCLIConfigAdditionalBoardURL(message.payload).then((result) => {
+                        arduinoCLI.setCLIConfigAdditionalBoardURL(message.payload).then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
