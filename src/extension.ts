@@ -1,14 +1,10 @@
-import { window, ExtensionContext, commands, Disposable, workspace, Uri, ProgressLocation } from "vscode";
-import { ArduinoProject, CPP_PROPERTIES, VSCODE_FOLDER } from './ArduinoProject';
+import { window, ExtensionContext, commands, Disposable, workspace, Uri } from "vscode";
+import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, Compile } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
 
-const path = require('path');
-const fs = require('fs');
-
-export const compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
 export const arduinoExtensionChannel = window.createOutputChannel('Arduino Extension');
 arduinoExtensionChannel.appendLine("Arduino Extension started");
 const quickAccessProvider = new QuickAccessProvider();
@@ -118,105 +114,8 @@ function vsCommandUpload(): Disposable {
 
 function vsGenerateIntellisense(): Disposable {
 	return commands.registerCommand('intellisense', () => {
-		generateIntellisense();
+		arduinoCLI.generateIntellisense();
 	});
-}
-
-export function generateIntellisense() {
-	if (!loadArduinoConfiguration()) {
-		return;
-	}
-	if (!arduinoProject.getBoard()) {
-		window.showInformationMessage('Board info not found, cannot generate intellisense');
-	}
-	if (!arduinoProject.getBoardConfiguration()) {
-		window.showInformationMessage('Board configuration not found, cannot generate intellisense');
-	}
-	if (!arduinoProject.getOutput()) {
-		window.showInformationMessage('Output not found, cannot generate intellisense');
-	}
-
-	window.withProgress(
-		{
-			location: ProgressLocation.Notification,
-			title: "Generating IntelliSense Configuration...",
-			cancellable: false
-		}, async (progress) => {
-			const output = await arduinoCLI.runArduinoCommand(
-				() => arduinoProject.getCompileCommandArguments(true),
-				"CLI: Failed to compile for intellisense", true, false, compileUploadChannel
-			);
-			if (output) {
-				createIntellisenseFile(output);
-			}
-		});
-
-}
-
-function createIntellisenseFile(compileJsonOutput: string) {
-	try {
-		const compileInfo: Compile = JSON.parse(compileJsonOutput);
-
-		// Extract include paths from used libraries
-		const includePaths = new Set<string>();
-		if (compileInfo.builder_result.used_libraries) {
-			compileInfo.builder_result.used_libraries.forEach(library => {
-				includePaths.add(`${library.source_dir}/**`); // Add recursive include
-			});
-		}
-
-		// Add core paths (e.g., ESP32 core and variant paths)
-		const corePath = compileInfo.builder_result.build_platform.install_dir;
-		includePaths.add(`${corePath}/**`);
-
-		// Extract defines
-		const defines = compileInfo.builder_result.build_properties
-			.filter(prop => prop.startsWith("-D"))
-			.map(prop => prop.substring(2)); // Remove "-D" prefix
-
-		// Extract compiler path if available
-		const compilerPathProperty = compileInfo.builder_result.build_properties.find(prop =>
-			prop.startsWith("compiler.path")
-		);
-		const compilerPath = compilerPathProperty
-			? compilerPathProperty.split("=")[1].trim() // Extract the path
-			: "/path/to/compiler"; // Default placeholder if not found
-
-		// Extract compiler path if available
-		const compilerCommand = compileInfo.builder_result.build_properties.find(prop =>
-			prop.startsWith("compiler.cpp.cmd")
-		);
-		const compilerName = compilerCommand
-			? compilerCommand.split("=")[1].trim() // Extract the path
-			: "(compiler name)"; // Default placeholder if not found
-
-		// Create c_cpp_properties.json
-		const cppProperties = {
-			configurations: [
-				{
-					name: "Arduino",
-					includePath: Array.from(includePaths),
-					defines: defines,
-					compilerPath: `${compilerPath}/${compilerName}`,
-					cStandard: "c17",
-					cppStandard: "c++17",
-					intelliSenseMode: "gcc-x86"
-				}
-			],
-			version: 4
-		};
-
-		const cppPropertiesPath = path.join(
-			arduinoProject.getProjectPath(),
-			VSCODE_FOLDER,
-			CPP_PROPERTIES
-		);
-		fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
-
-		window.showInformationMessage("Generated c_cpp_properties.json for IntelliSense.");
-	} catch (error) {
-		window.showErrorMessage(`Failed to generate intellisense c_cpp_properties.json: ${error}`);
-	}
 }
 
 function vsCommandCompileClean(): Disposable {

@@ -1,16 +1,20 @@
-import { commands, OutputChannel, Uri, window, workspace, ExtensionContext } from "vscode";
-import { arduinoCLI, arduinoExtensionChannel, arduinoProject, compileUploadChannel, generateIntellisense, loadArduinoConfiguration, updateStateCompileUpload } from "./extension";
-import { ArduinoCLIStatus, ArduinoConfig } from "./shared/messages";
+import { commands, OutputChannel, Uri, window, workspace, ExtensionContext, ProgressLocation } from "vscode";
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, loadArduinoConfiguration, updateStateCompileUpload } from "./extension";
+import { ArduinoCLIStatus, ArduinoConfig, Compile } from "./shared/messages";
 import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Version } from "@microsoft/vscode-serial-monitor-api";
+import { VSCODE_FOLDER, CPP_PROPERTIES } from "./ArduinoProject";
+
 const cp = require('child_process');
 const path = require('path');
 const os = require('os');
+const fs = require('fs');
 
 export class ArduinoCLI {
 	public arduinoCLIPath: string = "";
 	public compileOrUploadRunning: boolean = false;
 	private serialMoniorAPI: SerialMonitorApi | undefined = undefined;
 	private arduinoCLIChannel: OutputChannel;
+	private compileUploadChannel:OutputChannel;
 
 	constructor(private context: ExtensionContext) {
 		this.getArduinoCliPath();
@@ -18,6 +22,7 @@ export class ArduinoCLI {
 			this.serialMoniorAPI = api;
 		});
 		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
+		this.compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
 	}
 
 	public async getOutdatedBoardAndLib(): Promise<string> {
@@ -122,11 +127,11 @@ export class ArduinoCLI {
 	}
 	public async compile(clean: boolean = false) {
 		if (this.compileOrUploadRunning) {
-			compileUploadChannel.show();
+			this.compileUploadChannel.show();
 			return;
 		}
 		this.compileOrUploadRunning = true;
-		compileUploadChannel.appendLine("Compile project starting...");
+		this.compileUploadChannel.appendLine("Compile project starting...");
 		if (!loadArduinoConfiguration()) {
 			return;
 		}
@@ -143,9 +148,9 @@ export class ArduinoCLI {
 		try {
 			await arduinoCLI.runArduinoCommand(
 				() => arduinoProject.getCompileCommandArguments(false, clean),
-				"CLI: Failed to compile project", true, true, compileUploadChannel, "Compilation success!"
+				"CLI: Failed to compile project", true, true, this.compileUploadChannel, "Compilation success!"
 			);
-			generateIntellisense();
+			this.generateIntellisense();
 		} catch (error) {
 			console.log(error);
 		}
@@ -153,10 +158,10 @@ export class ArduinoCLI {
 	}
 	public async upload() {
 		if (this.compileOrUploadRunning) {
-			compileUploadChannel.show();
+			this.compileUploadChannel.show();
 			return;
 		}
-		compileUploadChannel.appendLine("Upload starting...");
+		this.compileUploadChannel.appendLine("Upload starting...");
 		this.compileOrUploadRunning = true;
 		if (!loadArduinoConfiguration()) {
 			return;
@@ -177,13 +182,43 @@ export class ArduinoCLI {
 		}
 		await arduinoCLI.runArduinoCommand(
 			() => arduinoProject.getUploadArguments(),
-			"CLI: Failed to upload", false, true, compileUploadChannel
+			"CLI: Failed to upload", false, true, this.compileUploadChannel
 		);
 		if (this.serialMoniorAPI) {
 			this.serialMoniorAPI.startMonitoringPort({ port: arduinoProject.getPort(), baudRate: 115200, lineEnding: LineEnding.None, dataBits: 8, stopBits: StopBits.One, parity: Parity.None }).then((port) => {
 			});
 		}
 		this.compileOrUploadRunning = false;
+	}
+	public generateIntellisense() {
+		if (!loadArduinoConfiguration()) {
+			return;
+		}
+		if (!arduinoProject.getBoard()) {
+			window.showInformationMessage('Board info not found, cannot generate intellisense');
+		}
+		if (!arduinoProject.getBoardConfiguration()) {
+			window.showInformationMessage('Board configuration not found, cannot generate intellisense');
+		}
+		if (!arduinoProject.getOutput()) {
+			window.showInformationMessage('Output not found, cannot generate intellisense');
+		}
+	
+		window.withProgress(
+			{
+				location: ProgressLocation.Notification,
+				title: "Generating IntelliSense Configuration...",
+				cancellable: false
+			}, async (progress) => {
+				const output = await arduinoCLI.runArduinoCommand(
+					() => arduinoProject.getCompileCommandArguments(true),
+					"CLI: Failed to compile for intellisense", true, false, this.compileUploadChannel
+				);
+				if (output) {
+					this.createIntellisenseFile(output);
+				}
+			});
+	
 	}
 	public checkArduinoConfiguration() {
 		this.runArduinoCommand(
@@ -435,5 +470,70 @@ export class ArduinoCLI {
 				reject(undefined);
 			});
 		});
+	}
+	private createIntellisenseFile(compileJsonOutput: string) {
+		try {
+			const compileInfo: Compile = JSON.parse(compileJsonOutput);
+	
+			// Extract include paths from used libraries
+			const includePaths = new Set<string>();
+			if (compileInfo.builder_result.used_libraries) {
+				compileInfo.builder_result.used_libraries.forEach(library => {
+					includePaths.add(`${library.source_dir}/**`); // Add recursive include
+				});
+			}
+	
+			// Add core paths (e.g., ESP32 core and variant paths)
+			const corePath = compileInfo.builder_result.build_platform.install_dir;
+			includePaths.add(`${corePath}/**`);
+	
+			// Extract defines
+			const defines = compileInfo.builder_result.build_properties
+				.filter(prop => prop.startsWith("-D"))
+				.map(prop => prop.substring(2)); // Remove "-D" prefix
+	
+			// Extract compiler path if available
+			const compilerPathProperty = compileInfo.builder_result.build_properties.find(prop =>
+				prop.startsWith("compiler.path")
+			);
+			const compilerPath = compilerPathProperty
+				? compilerPathProperty.split("=")[1].trim() // Extract the path
+				: "/path/to/compiler"; // Default placeholder if not found
+	
+			// Extract compiler path if available
+			const compilerCommand = compileInfo.builder_result.build_properties.find(prop =>
+				prop.startsWith("compiler.cpp.cmd")
+			);
+			const compilerName = compilerCommand
+				? compilerCommand.split("=")[1].trim() // Extract the path
+				: "(compiler name)"; // Default placeholder if not found
+	
+			// Create c_cpp_properties.json
+			const cppProperties = {
+				configurations: [
+					{
+						name: "Arduino",
+						includePath: Array.from(includePaths),
+						defines: defines,
+						compilerPath: `${compilerPath}/${compilerName}`,
+						cStandard: "c17",
+						cppStandard: "c++17",
+						intelliSenseMode: "gcc-x86"
+					}
+				],
+				version: 4
+			};
+	
+			const cppPropertiesPath = path.join(
+				arduinoProject.getProjectPath(),
+				VSCODE_FOLDER,
+				CPP_PROPERTIES
+			);
+			fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
+	
+			window.showInformationMessage("Generated c_cpp_properties.json for IntelliSense.");
+		} catch (error) {
+			window.showErrorMessage(`Failed to generate intellisense c_cpp_properties.json: ${error}`);
+		}
 	}
 }
