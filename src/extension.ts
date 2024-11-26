@@ -67,7 +67,7 @@ export function activate(context: ExtensionContext) {
 	});
 }
 
-function updateStateCompileUpload() {
+export function updateStateCompileUpload() {
 	arduinoProject.readConfiguration();
 	if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS &&
 		arduinoProject.getArduinoConfiguration().board.trim() !== '' &&
@@ -89,31 +89,7 @@ export function openExample(examplePath: string) {
 	commands.executeCommand('vscode.openFolder', uriPath, { forceNewWindow: true });
 }
 
-export async function getBoardConfiguration(): Promise<string> {
-	try {
-		if (!loadArduinoConfiguration()) {
-			window.showErrorMessage(`Unable to load Project Configuration`);
-			throw new Error("Unable to load Project Configuration");
-		}
-		if (!arduinoProject.getBoard()) {
-			window.showErrorMessage(`Unable to get Board Configuration`);
-			throw new Error("Unable to get Board Configuration");
-		}
-		const configBoardArgs = arduinoProject.getBoardConfigurationArguments();
-		const result = await executeArduinoCommand(`${arduinoCLI.arduinoCLIPath}`, configBoardArgs, true, false);
 
-		if (!result) {
-			window.showErrorMessage(`CLI : No result from get board configuration`);
-			throw new Error("Command result empty");
-		}
-		updateStateCompileUpload();
-		return result;
-
-	} catch (error: any) {
-		window.showErrorMessage(`CLI : Error from get board configuration, you may have to installed the board using the board manager`);
-		throw error;
-	}
-}
 
 export function loadArduinoConfiguration(): boolean {
 

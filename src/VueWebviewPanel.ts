@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoCLI, arduinoExtensionChannel, arduinoProject, getBoardConfiguration, loadArduinoConfiguration, openExample } from "./extension";
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, loadArduinoConfiguration, openExample } from "./extension";
 import { createNewSketch } from "./cli";
 
 const usb = require('usb').usb;
@@ -48,7 +48,7 @@ export class VueWebviewPanel {
                         VueWebviewPanel.sendMessage(projectInfo);
                         break;
                     case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
-                        getBoardConfiguration().then((result) => {
+                        arduinoCLI.getBoardConfiguration().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         }).catch(() => {
@@ -79,7 +79,7 @@ export class VueWebviewPanel {
                         this.setBoard(message);
                         arduinoProject.resetBoardConfiguration();
                         arduinoExtensionChannel.appendLine(`Current Board Configuration: ${arduinoProject.getBoardConfiguration()}`);
-                        getBoardConfiguration().then((result) => {
+                        arduinoCLI.getBoardConfiguration().then((result) => {
                             message.command = ARDUINO_MESSAGES.CLI_BOARD_OPTIONS;
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);

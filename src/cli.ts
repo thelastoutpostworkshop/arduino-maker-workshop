@@ -1,5 +1,5 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext } from "vscode";
-import { arduinoCLI, arduinoCLIChannel, arduinoExtensionChannel, arduinoProject } from "./extension";
+import { arduinoCLI, arduinoCLIChannel, arduinoExtensionChannel, arduinoProject, loadArduinoConfiguration, updateStateCompileUpload } from "./extension";
 import { ArduinoCLIStatus, ArduinoConfig } from "./shared/messages";
 const cp = require('child_process');
 const path = require('path');
@@ -194,6 +194,31 @@ export class ArduinoCLI {
 					});
 				});
 		});
+	}
+	public async getBoardConfiguration(): Promise<string> {
+		try {
+			if (!loadArduinoConfiguration()) {
+				window.showErrorMessage(`Unable to load Project Configuration`);
+				throw new Error("Unable to load Project Configuration");
+			}
+			if (!arduinoProject.getBoard()) {
+				window.showErrorMessage(`Unable to get Board Configuration`);
+				throw new Error("Unable to get Board Configuration");
+			}
+			const configBoardArgs = arduinoProject.getBoardConfigurationArguments();
+			const result = await executeArduinoCommand(`${arduinoCLI.arduinoCLIPath}`, configBoardArgs, true, false);
+	
+			if (!result) {
+				window.showErrorMessage(`CLI : No result from get board configuration`);
+				throw new Error("Command result empty");
+			}
+			updateStateCompileUpload();
+			return result;
+	
+		} catch (error: any) {
+			window.showErrorMessage(`CLI : Error from get board configuration, you may have to installed the board using the board manager`);
+			throw error;
+		}
 	}
 	public async runArduinoCommand(
 		getArguments: () => string[],
