@@ -10,15 +10,15 @@ arduinoExtensionChannel.appendLine("Arduino Extension started");
 const quickAccessProvider = new QuickAccessProvider();
 
 export const arduinoProject: ArduinoProject = new ArduinoProject();
-export let arduinoCLI:ArduinoCLI;
+export let arduinoCLI: ArduinoCLI;
 
 export function activate(context: ExtensionContext) {
 	arduinoCLI = new ArduinoCLI(context);
-	if(arduinoCLI.isCLIReady()) {
+	if (arduinoCLI.isCLIReady()) {
 		arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${arduinoCLI.arduinoCLIPath}`);
 	} else {
 		arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
-		arduinoExtensionChannel.appendLine(`${arduinoCLI.lasCLIError()}`);
+		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 	}
 
 	arduinoCLI.checkArduinoConfiguration();

@@ -21,7 +21,7 @@ export class ArduinoCLI {
 	private cliArgs = new CLIArguments();
 	private cliReady: boolean = true;
 	private _lastCLIError: string = "";
-	private cliStatus: ArduinoCLIStatus ={VersionString:"",Date:""};
+	private cliStatus: ArduinoCLIStatus = { VersionString: "", Date: "" };
 
 	constructor(private context: ExtensionContext) {
 		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
@@ -31,6 +31,7 @@ export class ArduinoCLI {
 			this.checkArduinoCLICommand().then((result) => {
 				this.cliStatus = result;
 			}).catch(() => {
+				this._lastCLIError = "Cannot get CLI version";
 				this.cliReady = false;
 			})
 		} else {
@@ -41,7 +42,7 @@ export class ArduinoCLI {
 		});
 	}
 
-	public lasCLIError(): string {
+	public lastCLIError(): string {
 		return this._lastCLIError;
 	}
 
