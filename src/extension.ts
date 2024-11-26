@@ -78,8 +78,6 @@ export function openExample(examplePath: string) {
 	commands.executeCommand('vscode.openFolder', uriPath, { forceNewWindow: true });
 }
 
-
-
 export function loadArduinoConfiguration(): boolean {
 
 	const projectError = arduinoProject.isFolderArduinoProject();
