@@ -17,18 +17,23 @@ export class ArduinoCLI {
 	public compileOrUploadRunning: boolean = false;
 	private serialMoniorAPI: SerialMonitorApi | undefined = undefined;
 	private arduinoCLIChannel: OutputChannel;
-	private compileUploadChannel:OutputChannel;
+	private compileUploadChannel: OutputChannel;
 	private cliArgs = new CLIArguments();
-	private cliReady:boolean = true;
-	private _lastCLIError:string = "";
+	private cliReady: boolean = true;
+	private _lastCLIError: string = "";
+	private cliStatus: ArduinoCLIStatus | null = null;
 
 	constructor(private context: ExtensionContext) {
 		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
 		this.compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
 		this.getArduinoCliPath();
-		if(this.arduinoCLIPath !== '') {
+		if (this.arduinoCLIPath !== '') {
+			this.checkArduinoCLICommand().then((result) => {
+				this.cliStatus = result;
+			}).catch(() => {
+				this.cliReady = false;
+			})
 		} else {
-			
 			this.cliReady = false;
 		}
 		getSerialMonitorApi(Version.latest, context).then((api) => {
@@ -36,11 +41,14 @@ export class ArduinoCLI {
 		});
 	}
 
-	public lasCLIError():string {
+	public lasCLIError(): string {
 		return this._lastCLIError;
 	}
 
-	public isCLIReady():boolean {
+	public getCLIStatus(): ArduinoCLIStatus | null {
+		return this.cliStatus;
+	}
+	public isCLIReady(): boolean {
 		return this.cliReady;
 	}
 
@@ -226,7 +234,7 @@ export class ArduinoCLI {
 		if (!arduinoProject.getOutput()) {
 			window.showInformationMessage('Output not found, cannot generate intellisense');
 		}
-	
+
 		window.withProgress(
 			{
 				location: ProgressLocation.Window,
@@ -241,7 +249,7 @@ export class ArduinoCLI {
 					this.createIntellisenseFile(output);
 				}
 			});
-	
+
 	}
 	public checkArduinoConfiguration() {
 		this.runArduinoCommand(
@@ -293,41 +301,15 @@ export class ArduinoCLI {
 			window.showErrorMessage(`${error}`);
 		});
 	}
-	public checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
-		return new Promise((resolve) => {
-			const arduinoVersionArgs = this.cliArgs.getVersionArguments();
-
-			this.executeArduinoCommand(`${this.arduinoCLIPath}`, arduinoVersionArgs, true, false)
-				.then((result) => {
-					if (result) {
-						try {
-							arduinoCLI.getCoreUpdate();
-							resolve(JSON.parse(result));
-						} catch (parseError) {
-							arduinoExtensionChannel.appendLine('Failed to get Arduino CLI version information.');
-							window.showErrorMessage(`Failed to get Arduino CLI version information.`);
-							resolve({
-								VersionString: "unknown",
-								Date: 'CLI Error'
-							});
-						}
-					} else {
-						window.showErrorMessage(`No result returned by checking the CLI version`);
-						resolve({
-							VersionString: "unknown",
-							Date: 'CLI Error'
-						});
-					}
-				})
-				.catch((error) => {
-					window.showErrorMessage(`Arduino CLI path is wrong in your settings: ${error}`);
-					resolve({
-						VersionString: "unknown",
-						Date: 'CLI Error'
-					});
-				});
-		});
+	public async checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
+		const result = await this.runArduinoCommand(
+			() => this.cliArgs.getVersionArguments(),
+			"CLI : Failed to get Arduino CLI version information"
+		);
+		arduinoCLI.getCoreUpdate();
+		return (JSON.parse(result));
 	}
+
 	public async getBoardConfiguration(): Promise<string> {
 		try {
 			if (!loadArduinoConfiguration()) {
@@ -403,7 +385,7 @@ export class ArduinoCLI {
 				this.arduinoCLIPath = path.join(this.context.extensionPath, 'arduino_cli', 'linux', 'arduino-cli');
 				break;
 			default:
-				this._lastCLIError=`Unsupported platform: ${platform}`;
+				this._lastCLIError = `Unsupported platform: ${platform}`;
 				break;
 		}
 	}
@@ -498,7 +480,7 @@ export class ArduinoCLI {
 	private createIntellisenseFile(compileJsonOutput: string) {
 		try {
 			const compileInfo: Compile = JSON.parse(compileJsonOutput);
-	
+
 			// Extract include paths from used libraries
 			const includePaths = new Set<string>();
 			if (compileInfo.builder_result.used_libraries) {
@@ -506,16 +488,16 @@ export class ArduinoCLI {
 					includePaths.add(`${library.source_dir}/**`); // Add recursive include
 				});
 			}
-	
+
 			// Add core paths (e.g., ESP32 core and variant paths)
 			const corePath = compileInfo.builder_result.build_platform.install_dir;
 			includePaths.add(`${corePath}/**`);
-	
+
 			// Extract defines
 			const defines = compileInfo.builder_result.build_properties
 				.filter(prop => prop.startsWith("-D"))
 				.map(prop => prop.substring(2)); // Remove "-D" prefix
-	
+
 			// Extract compiler path if available
 			const compilerPathProperty = compileInfo.builder_result.build_properties.find(prop =>
 				prop.startsWith("compiler.path")
@@ -523,7 +505,7 @@ export class ArduinoCLI {
 			const compilerPath = compilerPathProperty
 				? compilerPathProperty.split("=")[1].trim() // Extract the path
 				: "/path/to/compiler"; // Default placeholder if not found
-	
+
 			// Extract compiler path if available
 			const compilerCommand = compileInfo.builder_result.build_properties.find(prop =>
 				prop.startsWith("compiler.cpp.cmd")
@@ -531,7 +513,7 @@ export class ArduinoCLI {
 			const compilerName = compilerCommand
 				? compilerCommand.split("=")[1].trim() // Extract the path
 				: "(compiler name)"; // Default placeholder if not found
-	
+
 			// Create c_cpp_properties.json
 			const cppProperties = {
 				configurations: [
@@ -547,14 +529,14 @@ export class ArduinoCLI {
 				],
 				version: 4
 			};
-	
+
 			const cppPropertiesPath = path.join(
 				arduinoProject.getProjectPath(),
 				VSCODE_FOLDER,
 				CPP_PROPERTIES
 			);
 			fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
-	
+
 			window.showInformationMessage("Generated c_cpp_properties.json for IntelliSense.");
 		} catch (error) {
 			window.showErrorMessage(`Failed to generate intellisense c_cpp_properties.json: ${error}`);
@@ -562,61 +544,61 @@ export class ArduinoCLI {
 	}
 }
 
- // public generateCppPropertiesFromCompileOutput(output: string) {
-    //     const defines: string[] = [];
+// public generateCppPropertiesFromCompileOutput(output: string) {
+//     const defines: string[] = [];
 
-    //     // Regular expressions to match include paths and defines
-    //     const defineRegex = /-D([^\s]+)/g;
-    //     const includeRegex = /"-I([^"]+)"/g;
+//     // Regular expressions to match include paths and defines
+//     const defineRegex = /-D([^\s]+)/g;
+//     const includeRegex = /"-I([^"]+)"/g;
 
-    //     const includePaths = new Set();
+//     const includePaths = new Set();
 
-    //     let match;
+//     let match;
 
-    //     while ((match = includeRegex.exec(output)) !== null) {
-    //         let path = match[1]; // Capture the path inside the quotes
+//     while ((match = includeRegex.exec(output)) !== null) {
+//         let path = match[1]; // Capture the path inside the quotes
 
-    //         // Normalize the path (handle backslashes, especially on Windows)
-    //         path = path.replace(/\\\\/g, "\\"); // Convert backslashes to forward slashes for consistency
+//         // Normalize the path (handle backslashes, especially on Windows)
+//         path = path.replace(/\\\\/g, "\\"); // Convert backslashes to forward slashes for consistency
 
-    //         includePaths.add(path + "\\**"); // Use a Set to avoid duplicates
-    //     }
+//         includePaths.add(path + "\\**"); // Use a Set to avoid duplicates
+//     }
 
-    //     while ((match = defineRegex.exec(output)) !== null) {
-    //         defines.push(match[1]);
-    //     }
+//     while ((match = defineRegex.exec(output)) !== null) {
+//         defines.push(match[1]);
+//     }
 
-    //     includePaths.add(this.getProjectPath() + "\\**");
-    //     try {
-    //         const includeDataPath = path.join(this.getProjectPath(), this.getOutput(), "includes.cache");
-    //         const includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
-    //         includeData.forEach((entry: any) => {
-    //             if (entry.Includepath) {
-    //                 includePaths.add(entry.Includepath + "\\**");
-    //             }
-    //         });
+//     includePaths.add(this.getProjectPath() + "\\**");
+//     try {
+//         const includeDataPath = path.join(this.getProjectPath(), this.getOutput(), "includes.cache");
+//         const includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
+//         includeData.forEach((entry: any) => {
+//             if (entry.Includepath) {
+//                 includePaths.add(entry.Includepath + "\\**");
+//             }
+//         });
 
-    //     } catch (error) {
-    //         vscode.window.showErrorMessage('Cannot generate IntelliSense includes.cache not found');
-    //         return;
-    //     }
+//     } catch (error) {
+//         vscode.window.showErrorMessage('Cannot generate IntelliSense includes.cache not found');
+//         return;
+//     }
 
-    //     // Create c_cpp_properties.json
-    //     const cppProperties = {
-    //         configurations: [{
-    //             name: "Arduino",
-    //             includePath: Array.from(includePaths),
-    //             defines: defines,
-    //             // compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
-    //             cStandard: "c17",
-    //             cppStandard: "c++17",
-    //             intelliSenseMode: "gcc-x86"
-    //         }],
-    //         version: 4
-    //     };
+//     // Create c_cpp_properties.json
+//     const cppProperties = {
+//         configurations: [{
+//             name: "Arduino",
+//             includePath: Array.from(includePaths),
+//             defines: defines,
+//             // compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
+//             cStandard: "c17",
+//             cppStandard: "c++17",
+//             intelliSenseMode: "gcc-x86"
+//         }],
+//         version: 4
+//     };
 
-    //     const cppPropertiesPath = path.join(this.getProjectPath(), VSCODE_FOLDER, CPP_PROPERTIES);
-    //     fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
+//     const cppPropertiesPath = path.join(this.getProjectPath(), VSCODE_FOLDER, CPP_PROPERTIES);
+//     fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
 
-    //     vscode.window.showInformationMessage('Generated c_cpp_properties.json for IntelliSense.');
-    // }
+//     vscode.window.showInformationMessage('Generated c_cpp_properties.json for IntelliSense.');
+// }
