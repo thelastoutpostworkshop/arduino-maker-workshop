@@ -21,7 +21,11 @@ export function activate(context: ExtensionContext) {
 		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 	}
 
-	arduinoCLI.checkArduinoConfiguration();
+	if(arduinoCLI.isConfigReady()) {
+		arduinoExtensionChannel.appendLine(`Arduino Config file is good`);
+	} else {
+		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
+	}
 
 	context.subscriptions.push(
 		workspace.onDidChangeConfiguration((e) => {

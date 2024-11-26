@@ -20,6 +20,7 @@ export class ArduinoCLI {
 	private compileUploadChannel: OutputChannel;
 	private cliArgs = new CLIArguments();
 	private cliReady: boolean = true;
+	private configReady: boolean = true;
 	private _lastCLIError: string = "";
 	private cliStatus: ArduinoCLIStatus = { VersionString: "", Date: "" };
 
@@ -30,6 +31,10 @@ export class ArduinoCLI {
 		if (this.arduinoCLIPath !== '') {
 			this.checkArduinoCLICommand().then((result) => {
 				this.cliStatus = result;
+				this.configReady = arduinoCLI.checkArduinoConfiguration();
+				if(!this.configReady) {
+					this._lastCLIError = "Problem with the Arduino Config file";
+				}
 			}).catch(() => {
 				this._lastCLIError = "Cannot get CLI version";
 				this.cliReady = false;
@@ -51,6 +56,9 @@ export class ArduinoCLI {
 	}
 	public isCLIReady(): boolean {
 		return this.cliReady;
+	}
+	public isConfigReady():boolean {
+		return this.configReady;
 	}
 
 	public async getOutdatedBoardAndLib(): Promise<string> {
@@ -252,7 +260,7 @@ export class ArduinoCLI {
 			});
 
 	}
-	public checkArduinoConfiguration() {
+	private checkArduinoConfiguration(): boolean {
 		this.runArduinoCommand(
 			() => this.cliArgs.getConfigDumpArgs(),
 			"CLI : Failed to get arduino configuration information"
@@ -286,6 +294,7 @@ export class ArduinoCLI {
 										"CLI : Failed to set user directory setting",
 										false, false
 									);
+									return true;
 								});
 							});
 						} catch (error) {
@@ -294,6 +303,8 @@ export class ArduinoCLI {
 					}).catch((error) => {
 						window.showErrorMessage(`Error creating config file ${error}`);
 					});
+				} else {
+					return true;
 				}
 			} catch (error) {
 				window.showErrorMessage(`Someting is wrong with the CLI ${error}`);
@@ -301,6 +312,7 @@ export class ArduinoCLI {
 		}).catch((error) => {
 			window.showErrorMessage(`${error}`);
 		});
+		return false;
 	}
 	private async checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
 		const result = await this.runArduinoCommand(
