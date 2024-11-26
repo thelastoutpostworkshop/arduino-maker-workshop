@@ -1,3 +1,6 @@
+export const ArduinoExtensionChannelName =  'Arduino Extension';
+
+// Message exchange with webciew
 export interface WebviewToExtensionMessage {
   command: string;
   errorMessage: string,

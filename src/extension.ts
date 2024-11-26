@@ -2,10 +2,10 @@ import { window, ExtensionContext, commands, Disposable, workspace, Uri } from "
 import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
-import { ARDUINO_ERRORS } from "./shared/messages";
+import { ARDUINO_ERRORS, ArduinoExtensionChannelName } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
 
-export const arduinoExtensionChannel = window.createOutputChannel('Arduino Extension');
+export const arduinoExtensionChannel = window.createOutputChannel(ArduinoExtensionChannelName);
 arduinoExtensionChannel.appendLine("Arduino Extension started");
 const quickAccessProvider = new QuickAccessProvider();
 
