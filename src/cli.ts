@@ -1,6 +1,7 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext } from "vscode";
 import { arduinoCLI, arduinoCLIChannel, arduinoExtensionChannel, arduinoProject, compileUploadChannel, generateIntellisense, loadArduinoConfiguration, updateStateCompileUpload } from "./extension";
 import { ArduinoCLIStatus, ArduinoConfig } from "./shared/messages";
+import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Version } from "@microsoft/vscode-serial-monitor-api";
 const cp = require('child_process');
 const path = require('path');
 const os = require('os');
@@ -8,8 +9,12 @@ const os = require('os');
 export class ArduinoCLI {
 	public arduinoCLIPath: string = "";
 	public compileOrUploadRunning:boolean = false;
+	private serialMoniorAPI: SerialMonitorApi | undefined = undefined;
 	constructor(private context: ExtensionContext) {
 		this.getArduinoCliPath();
+		getSerialMonitorApi(Version.latest, context).then((api) => {
+			this.serialMoniorAPI = api;
+		});
 	}
 	public async getOutdatedBoardAndLib(): Promise<string> {
 		return this.runArduinoCommand(
@@ -139,6 +144,40 @@ export class ArduinoCLI {
 			generateIntellisense();
 		} catch (error) {
 			console.log(error);
+		}
+		this.compileOrUploadRunning = false;
+	}
+	public async upload() {
+		if (this.compileOrUploadRunning) {
+			compileUploadChannel.show();
+			return;
+		}
+		compileUploadChannel.appendLine("Upload starting...");
+		this.compileOrUploadRunning = true;
+		if (!loadArduinoConfiguration()) {
+			return;
+		}
+		if (!arduinoProject.getBoard()) {
+			window.showInformationMessage('Board info not found, cannot upload');
+		}
+		if (!arduinoProject.getBoardConfiguration()) {
+			window.showInformationMessage('Board configuration not found, cannot upload');
+		}
+		if (!arduinoProject.getPort()) {
+			window.showInformationMessage('Port not found, cannot upload');
+		}
+
+		if (this.serialMoniorAPI) {
+			const port = arduinoProject.getPort();
+			this.serialMoniorAPI.stopMonitoringPort(port);
+		}
+		await arduinoCLI.runArduinoCommand(
+			() => arduinoProject.getUploadArguments(),
+			"CLI: Failed to upload", false, true, compileUploadChannel
+		);
+		if (this.serialMoniorAPI) {
+			this.serialMoniorAPI.startMonitoringPort({ port: arduinoProject.getPort(), baudRate: 115200, lineEnding: LineEnding.None, dataBits: 8, stopBits: StopBits.One, parity: Parity.None }).then((port) => {
+			});
 		}
 		this.compileOrUploadRunning = false;
 	}

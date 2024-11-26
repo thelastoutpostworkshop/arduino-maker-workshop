@@ -3,7 +3,6 @@ import { ArduinoProject, CPP_PROPERTIES, VSCODE_FOLDER } from './ArduinoProject'
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, Compile } from "./shared/messages";
-import { SerialMonitorApi, Version, getSerialMonitorApi, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
 import { ArduinoCLI } from "./cli";
 
 const path = require('path');
@@ -15,8 +14,6 @@ export const compileUploadChannel = window.createOutputChannel('Arduino Compile 
 export const arduinoExtensionChannel = window.createOutputChannel('Arduino Extension');
 arduinoExtensionChannel.appendLine("Arduino Extension started");
 const quickAccessProvider = new QuickAccessProvider();
-let serialMoniorAPI: SerialMonitorApi | undefined = undefined;
-let compileOrUploadRunning: boolean = false;
 
 export const arduinoProject: ArduinoProject = new ArduinoProject();
 export let arduinoCLI:ArduinoCLI;
@@ -62,9 +59,7 @@ export function activate(context: ExtensionContext) {
 			updateStateCompileUpload();
 		}
 	});
-	getSerialMonitorApi(Version.latest, context).then((api) => {
-		serialMoniorAPI = api;
-	});
+
 }
 
 export function updateStateCompileUpload() {
@@ -119,38 +114,7 @@ export function loadArduinoConfiguration(): boolean {
 
 function vsCommandUpload(): Disposable {
 	return commands.registerCommand('quickAccessView.upload', async () => {
-		if (compileOrUploadRunning) {
-			compileUploadChannel.show();
-			return;
-		}
-		compileUploadChannel.appendLine("Upload starting...");
-		compileOrUploadRunning = true;
-		if (!loadArduinoConfiguration()) {
-			return;
-		}
-		if (!arduinoProject.getBoard()) {
-			window.showInformationMessage('Board info not found, cannot upload');
-		}
-		if (!arduinoProject.getBoardConfiguration()) {
-			window.showInformationMessage('Board configuration not found, cannot upload');
-		}
-		if (!arduinoProject.getPort()) {
-			window.showInformationMessage('Port not found, cannot upload');
-		}
-
-		if (serialMoniorAPI) {
-			const port = arduinoProject.getPort();
-			serialMoniorAPI.stopMonitoringPort(port);
-		}
-		await arduinoCLI.runArduinoCommand(
-			() => arduinoProject.getUploadArguments(),
-			"CLI: Failed to upload", false, true, compileUploadChannel
-		);
-		if (serialMoniorAPI) {
-			serialMoniorAPI.startMonitoringPort({ port: arduinoProject.getPort(), baudRate: 115200, lineEnding: LineEnding.None, dataBits: 8, stopBits: StopBits.One, parity: Parity.None }).then((port) => {
-			});
-		}
-		compileOrUploadRunning = false;
+		arduinoCLI.upload();
 	});
 }
 
