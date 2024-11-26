@@ -25,10 +25,10 @@ export class ArduinoCLI {
 	constructor(private context: ExtensionContext) {
 		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
 		this.compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
-		try {
-			this.getArduinoCliPath();
-		} catch (error) {
-			arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
+		this.getArduinoCliPath();
+		if(this.arduinoCLIPath !== '') {
+		} else {
+			
 			this.cliReady = false;
 		}
 		getSerialMonitorApi(Version.latest, context).then((api) => {
@@ -404,6 +404,7 @@ export class ArduinoCLI {
 				break;
 			default:
 				this._lastCLIError=`Unsupported platform: ${platform}`;
+				break;
 		}
 	}
 

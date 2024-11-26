@@ -17,6 +17,7 @@ export function activate(context: ExtensionContext) {
 	if(arduinoCLI.isCLIReady()) {
 		arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${arduinoCLI.arduinoCLIPath}`);
 	} else {
+		arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
 		arduinoExtensionChannel.appendLine(`${arduinoCLI.lasCLIError()}`);
 	}
 
