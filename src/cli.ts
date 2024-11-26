@@ -1,5 +1,5 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext } from "vscode";
-import { arduinoCLI, arduinoCLIChannel, arduinoExtensionChannel, arduinoProject, compileUploadChannel, generateIntellisense, loadArduinoConfiguration, updateStateCompileUpload } from "./extension";
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, compileUploadChannel, generateIntellisense, loadArduinoConfiguration, updateStateCompileUpload } from "./extension";
 import { ArduinoCLIStatus, ArduinoConfig } from "./shared/messages";
 import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Version } from "@microsoft/vscode-serial-monitor-api";
 const cp = require('child_process');
@@ -8,14 +8,18 @@ const os = require('os');
 
 export class ArduinoCLI {
 	public arduinoCLIPath: string = "";
-	public compileOrUploadRunning:boolean = false;
+	public compileOrUploadRunning: boolean = false;
 	private serialMoniorAPI: SerialMonitorApi | undefined = undefined;
+	private arduinoCLIChannel: OutputChannel;
+
 	constructor(private context: ExtensionContext) {
 		this.getArduinoCliPath();
 		getSerialMonitorApi(Version.latest, context).then((api) => {
 			this.serialMoniorAPI = api;
 		});
+		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
 	}
+
 	public async getOutdatedBoardAndLib(): Promise<string> {
 		return this.runArduinoCommand(
 			() => arduinoProject.getOutdatedArguments(),
@@ -135,7 +139,7 @@ export class ArduinoCLI {
 		if (!arduinoProject.getOutput()) {
 			window.showErrorMessage('Output not found, cannot compile');
 		}
-	
+
 		try {
 			await arduinoCLI.runArduinoCommand(
 				() => arduinoProject.getCompileCommandArguments(false, clean),
@@ -296,7 +300,7 @@ export class ArduinoCLI {
 		errorMessagePrefix: string,
 		returnOutput: boolean = true,
 		showOutput: boolean = false,
-		channel: OutputChannel = arduinoCLIChannel,
+		channel: OutputChannel = this.arduinoCLIChannel,
 		successMSG: string = ""
 	): Promise<string> {
 		try {
@@ -374,19 +378,19 @@ export class ArduinoCLI {
 		}
 	}
 
-	private executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = arduinoCLIChannel, successMsg: string = ""): Promise<string | void> {
+	private executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = this.arduinoCLIChannel, successMsg: string = ""): Promise<string | void> {
 		// outputChannel.clear();
 		if (showOutput) {
 			channel.show(true);
 		}
-		arduinoCLIChannel.appendLine('');
-		arduinoCLIChannel.appendLine('Running Arduino CLI...');
-		arduinoCLIChannel.appendLine(`${command}`);
-		arduinoCLIChannel.appendLine(args.join(' '));
-	
+		this.arduinoCLIChannel.appendLine('');
+		this.arduinoCLIChannel.appendLine('Running Arduino CLI...');
+		this.arduinoCLIChannel.appendLine(`${command}`);
+		this.arduinoCLIChannel.appendLine(args.join(' '));
+
 		const child = cp.spawn(`${command}`, args);
 		let outputBuffer = '';
-	
+
 		return new Promise((resolve, reject) => {
 			// Stream stdout to the output channel and optionally to the buffer
 			child.stdout.on('data', (data: Buffer) => {
@@ -394,12 +398,12 @@ export class ArduinoCLI {
 				if (showOutput) {
 					channel.append(output);
 				}
-	
+
 				if (returnOutput) {
 					outputBuffer += output;
 				}
 			});
-	
+
 			// Stream stderr to the output channel and optionally to the buffer
 			child.stderr.on('data', (data: Buffer) => {
 				const error = `Error: ${data.toString()}`;
@@ -410,7 +414,7 @@ export class ArduinoCLI {
 					outputBuffer += error;
 				}
 			});
-	
+
 			child.on('close', (code: number) => {
 				if (code === 0) {
 					if (showOutput) {
@@ -425,7 +429,7 @@ export class ArduinoCLI {
 					reject(undefined);
 				}
 			});
-	
+
 			child.on('error', (err: any) => {
 				channel.appendLine(`Failed to run command: ${err.message}`);
 				reject(undefined);

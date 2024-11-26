@@ -6,10 +6,8 @@ import { ARDUINO_ERRORS, Compile } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
 
 const path = require('path');
-const os = require('os');
 const fs = require('fs');
 
-export const arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
 export const compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
 export const arduinoExtensionChannel = window.createOutputChannel('Arduino Extension');
 arduinoExtensionChannel.appendLine("Arduino Extension started");
