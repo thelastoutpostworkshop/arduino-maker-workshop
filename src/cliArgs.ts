@@ -1,3 +1,4 @@
+import { arduinoProject } from "./extension";
 
 const configCommandArduino: string = 'config';
 const dumpOption: string = 'dump';
@@ -8,8 +9,34 @@ const configAdditionnalURLsetting: string = 'board_manager.additional_urls';
 const addOption: string = 'add';
 const initOption: string = 'init';
 const setOption: string = 'set';
+const compileCommandArduino: string = 'compile';
+const compileCleanOption: string = '--clean';
+const buildPathArduino: string = '--build-path';
+const jobsOptionArduino: string = '--jobs';
+const verboseOptionArduino: string = '-v';
+const noColorOptionArduino: string = '--no-color';
+const fqbnOptionArduino: string = '--fqbn';
 
 export class CLIArguments {
+    public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false): string[] {
+        const compileCommand = [
+            `${compileCommandArduino}`,
+            `${verboseOptionArduino}`,
+            `${noColorOptionArduino}`,
+            `${fqbnOptionArduino}`,
+            `${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`,
+            `${buildPathArduino}`,
+            arduinoProject.getProjectPath() + '\\' + arduinoProject.getOutput(),
+            arduinoProject.getProjectPath()
+        ];
+        if (jsonOutput) {
+            compileCommand.push(`${jsonOutputArduino}`);
+        }
+        if (clean) {
+            compileCommand.push(`${compileCleanOption}`);
+        }
+        return compileCommand;
+    }
     public getConfigDumpArgs(): string[] {
         const command = [
             `${configCommandArduino}`,

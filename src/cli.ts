@@ -151,7 +151,7 @@ export class ArduinoCLI {
 
 		try {
 			await arduinoCLI.runArduinoCommand(
-				() => arduinoProject.getCompileCommandArguments(false, clean),
+				() => this.cliArgs.getCompileCommandArguments(false, clean),
 				"CLI: Failed to compile project", true, true, this.compileUploadChannel, "Compilation success!"
 			);
 			this.generateIntellisense();
@@ -215,7 +215,7 @@ export class ArduinoCLI {
 				cancellable: false
 			}, async (progress) => {
 				const output = await arduinoCLI.runArduinoCommand(
-					() => arduinoProject.getCompileCommandArguments(true),
+					() => this.cliArgs.getCompileCommandArguments(true),
 					"CLI: Failed to compile for intellisense", true, false, this.compileUploadChannel
 				);
 				if (output) {

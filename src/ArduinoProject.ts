@@ -4,7 +4,7 @@ import { ARDUINO_ERRORS, ArduinoProjectConfiguration } from './shared/messages';
 const path = require('path');
 const fs = require('fs');
 
-export const compileCommandArduino: string = 'compile';
+const compileCommandArduino: string = 'compile';
 const versionCommandArduino: string = 'version';
 const sketchCommandArduino: string = 'sketch';
 const uploadCommandArduino: string = 'upload';
@@ -20,7 +20,6 @@ const updateOption: string = 'update-index';
 const newOption: string = 'new';
 const setOption: string = 'set';
 
-const compileCleanOption: string = '--clean';
 const installOption: string = 'install';
 const uninstallOption: string = 'uninstall';
 const searchOption: string = 'search';
@@ -30,13 +29,12 @@ const configDirDataSetting: string = 'directories.data';
 const configDirDownloadSetting: string = 'directories.downloads';
 const configDirUserSetting: string = 'directories.user';
 const verboseOptionArduino: string = '-v';
- const portOptionArduino: string = '-p';
- const buildPathArduino: string = '--build-path';
- const jobsOptionArduino: string = '--jobs';
- const fqbnOptionArduino: string = '--fqbn';
- const inputDirOptionArduino: string = '--input-dir';
- const noColorOptionArduino: string = '--no-color';
- const preprocessCompileOptionArduino: string = '--preprocess';
+const portOptionArduino: string = '-p';
+
+const fqbnOptionArduino: string = '--fqbn';
+const inputDirOptionArduino: string = '--input-dir';
+const noColorOptionArduino: string = '--no-color';
+const preprocessCompileOptionArduino: string = '--preprocess';
 
 export const VSCODE_FOLDER: string = ".vscode";
 const ARDUINO_SETTINGS: string = "arduino.json";
@@ -81,25 +79,7 @@ export class ArduinoProject {
 
         return true;
     }
-    public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false): string[] {
-        const compileCommand = [
-            `${compileCommandArduino}`,
-            `${verboseOptionArduino}`,
-            `${noColorOptionArduino}`,
-            `${fqbnOptionArduino}`,
-            `${this.getBoard()}:${this.getBoardConfiguration()}`,
-            `${buildPathArduino}`,
-            this.getProjectPath() + '\\' + this.getOutput(),
-            this.getProjectPath()
-        ];
-        if (jsonOutput) {
-            compileCommand.push(`${jsonOutputArduino}`);
-        }
-        if (clean) {
-            compileCommand.push(`${compileCleanOption}`);
-        }
-        return compileCommand;
-    }
+
     public getPreprocessCommandArguments(): string[] {
         const compileCommand = [
             `${compileCommandArduino}`,
@@ -130,7 +110,7 @@ export class ArduinoProject {
     }
 
 
-    public getConfigSetDowloadDirectory(dir:string): string[] {
+    public getConfigSetDowloadDirectory(dir: string): string[] {
         const command = [
             `${configCommandArduino}`,
             `${setOption}`,
@@ -139,7 +119,7 @@ export class ArduinoProject {
         ];
         return command;
     }
-    public getConfigSetDataDirectory(dir:string): string[] {
+    public getConfigSetDataDirectory(dir: string): string[] {
         const command = [
             `${configCommandArduino}`,
             `${setOption}`,
@@ -148,7 +128,7 @@ export class ArduinoProject {
         ];
         return command;
     }
-    public getConfigSetUserDirectory(dir:string): string[] {
+    public getConfigSetUserDirectory(dir: string): string[] {
         const command = [
             `${configCommandArduino}`,
             `${setOption}`,
