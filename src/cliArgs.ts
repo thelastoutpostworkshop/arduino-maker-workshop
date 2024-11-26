@@ -20,8 +20,186 @@ const uploadCommandArduino: string = 'upload';
 const portOptionArduino: string = '-p';
 const inputDirOptionArduino: string = '--input-dir';
 const preprocessCompileOptionArduino: string = '--preprocess';
+const versionCommandArduino: string = 'version';
+const sketchCommandArduino: string = 'sketch';
+const boardCommandArduino: string = 'board';
+const libraryCommandArduino: string = 'lib';
+const listFunctionArduino: string = 'list';
+const detailsFunctionArduino: string = 'details';
+const outdatedCommandArduino: string = 'outdated';
+const coreCommandArduino: string = 'core';
+const updateOption: string = 'update-index';
+const newOption: string = 'new';
+const installOption: string = 'install';
+const uninstallOption: string = 'uninstall';
+const searchOption: string = 'search';
+const listOption: string = 'list';
+const configDirDataSetting: string = 'directories.data';
+const configDirDownloadSetting: string = 'directories.downloads';
+const configDirUserSetting: string = 'directories.user';
 
 export class CLIArguments {
+    public getConfigSetDowloadDirectory(dir: string): string[] {
+        const command = [
+            `${configCommandArduino}`,
+            `${setOption}`,
+            `${configDirDownloadSetting}`,
+            `${dir}`,
+        ];
+        return command;
+    }
+    public getConfigSetDataDirectory(dir: string): string[] {
+        const command = [
+            `${configCommandArduino}`,
+            `${setOption}`,
+            `${configDirDataSetting}`,
+            `${dir}`,
+        ];
+        return command;
+    }
+    public getConfigSetUserDirectory(dir: string): string[] {
+        const command = [
+            `${configCommandArduino}`,
+            `${setOption}`,
+            `${configDirUserSetting}`,
+            `${dir}`,
+        ];
+        return command;
+    }
+    public getOutdatedArguments(): string[] {
+        const outdatedCommand = [
+            `${outdatedCommandArduino}`,
+            `${jsonOutputArduino}`
+        ];
+        return outdatedCommand;
+    }
+    public getNewSketchArguments(name: string): string[] {
+        const outdatedCommand = [
+            `${sketchCommandArduino}`,
+            `${newOption}`,
+            `${name}`,
+            `${jsonOutputArduino}`
+        ];
+        return outdatedCommand;
+    }
+    public getCoreUpdateArguments(): string[] {
+        const updateCoreCommand = [
+            `${coreCommandArduino}`,
+            `${updateOption}`,
+        ];
+        return updateCoreCommand;
+    }
+    public getInstallCoreVersionArguments(version: string): string[] {
+        const installCoreVersionCommand = [
+            `${coreCommandArduino}`,
+            `${installOption}`,
+            `--run-post-install`,
+            `--run-pre-uninstall`,
+            `${version}`
+        ];
+        return installCoreVersionCommand;
+    }
+    public getInstallLibraryVersionArguments(version: string): string[] {
+        const command = [
+            `${libraryCommandArduino}`,
+            `${installOption}`,
+            `${version}`
+        ];
+        return command;
+    }
+    public getUninstallLibraryArguments(name: string): string[] {
+        const installCoreVersionCommand = [
+            `${libraryCommandArduino}`,
+            `${uninstallOption}`,
+            `${name}`
+        ];
+        return installCoreVersionCommand;
+    }
+    public getUninstallCoreArguments(board_id: string): string[] {
+        const installCoreVersionCommand = [
+            `${coreCommandArduino}`,
+            `${uninstallOption}`,
+            `--run-post-install`,
+            `--run-pre-uninstall`,
+            `${board_id}`
+        ];
+        return installCoreVersionCommand;
+    }
+    public getPortListArguments(): string[] {
+        const compileCommand = [
+            `${boardCommandArduino}`,
+            `${listFunctionArduino}`,
+            `${jsonOutputArduino}`
+        ];
+        return compileCommand;
+    }
+    public getVersionArguments(): string[] {
+        const versionCommand = [
+            `${versionCommandArduino}`,
+            `${jsonOutputArduino}`
+        ];
+        return versionCommand;
+    }
+    public getBoardsListArguments(): string[] {
+        const searchAllCommand = [
+            `${boardCommandArduino}`,
+            `${searchOption}`,
+            `${jsonOutputArduino}`
+        ];
+        return searchAllCommand;
+    }
+    public getBoardConnectedArguments(): string[] {
+        const command = [
+            `${boardCommandArduino}`,
+            `${listOption}`,
+            `${jsonOutputArduino}`
+        ];
+        return command;
+    }
+    public getCoreSearchArguments(): string[] {
+        const searchAllCommand = [
+            `${coreCommandArduino}`,
+            `${searchOption}`,
+            `-a`,
+            `${jsonOutputArduino}`
+        ];
+        return searchAllCommand;
+    }
+
+    public getLibrarySearchArguments(): string[] {
+        const libSearchCommand = [
+            `${libraryCommandArduino}`,
+            `${searchOption}`,
+            `--omit-releases-details`,
+            `${jsonOutputArduino}`
+        ];
+        return libSearchCommand;
+    }
+    public getLibraryInstalledArguments(): string[] {
+        const command = [
+            `${libraryCommandArduino}`,
+            `${listOption}`,
+            `${jsonOutputArduino}`
+        ];
+        return command;
+    }
+    public getBoardConfigurationArguments(): string[] {
+        let boardConfigArg = "";
+        if (arduinoProject.getBoardConfiguration() === "") {
+            boardConfigArg = arduinoProject.getBoard();
+        } else {
+            boardConfigArg = `${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`;
+        }
+        const compileCommand = [
+            `${boardCommandArduino}`,
+            `${detailsFunctionArduino}`,
+            `${fqbnOptionArduino}`,
+            // `${this.getBoard()}:${this.getBoardConfiguration()}`,
+            `${boardConfigArg}`,
+            `${jsonOutputArduino}`
+        ];
+        return compileCommand;
+    }
     public getPreprocessCommandArguments(): string[] {
         const compileCommand = [
             `${compileCommandArduino}`,

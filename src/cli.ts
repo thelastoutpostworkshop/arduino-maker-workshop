@@ -31,13 +31,13 @@ export class ArduinoCLI {
 
 	public async getOutdatedBoardAndLib(): Promise<string> {
 		return this.runArduinoCommand(
-			() => arduinoProject.getOutdatedArguments(),
+			() => this.cliArgs.getOutdatedArguments(),
 			"CLI : Failed to get outdated Board and Libraries information"
 		);
 	}
 	public async searchLibraryInstalled(): Promise<string> {
 		return this.runArduinoCommand(
-			() => arduinoProject.getLibraryInstalledArguments(),
+			() => this.cliArgs.getLibraryInstalledArguments(),
 			"CLI: Failed to get library installed"
 		);
 	}
@@ -70,62 +70,62 @@ export class ArduinoCLI {
 	}
 	public async searchCore(): Promise<string> {
 		return this.runArduinoCommand(
-			() => arduinoProject.getCoreSearchArguments(),
+			() => this.cliArgs.getCoreSearchArguments(),
 			"CLI: Failed to get boards available"
 		);
 	}
 
 	public async searchLibrary(): Promise<string> {
 		return this.runArduinoCommand(
-			() => arduinoProject.getLibrarySearchArguments(),
+			() => this.cliArgs.getLibrarySearchArguments(),
 			"CLI: Failed to get library available"
 		);
 	}
 
 	public async runInstallLibraryVersion(library: string): Promise<string> {
 		return this.runArduinoCommand(
-			() => arduinoProject.getInstallLibraryVersionArguments(library),
+			() => this.cliArgs.getInstallLibraryVersionArguments(library),
 			"CLI: Failed to install library", true, true
 		);
 	}
 
 	public async runInstallCoreVersion(board_id: string): Promise<string> {
 		return this.runArduinoCommand(
-			() => arduinoProject.getInstallCoreVersionArguments(board_id),
+			() => this.cliArgs.getInstallCoreVersionArguments(board_id),
 			"CLI: Failed to install board", true, true
 		);
 	}
 
 	public async runUninstallLibrary(version: string): Promise<string> {
 		return this.runArduinoCommand(
-			() => arduinoProject.getUninstallLibraryArguments(version),
+			() => this.cliArgs.getUninstallLibraryArguments(version),
 			"CLI: Failed to remove library", true, true
 		);
 	}
 
 	public async runUninstallCoreVersion(version: string): Promise<string> {
 		return this.runArduinoCommand(
-			() => arduinoProject.getUninstallCoreArguments(version),
+			() => this.cliArgs.getUninstallCoreArguments(version),
 			"CLI: Failed to remove board", true, true
 		);
 	}
 
 	public async getCoreUpdate(): Promise<string> {
 		return this.runArduinoCommand(
-			() => arduinoProject.getCoreUpdateArguments(),
+			() => this.cliArgs.getCoreUpdateArguments(),
 			"CLI: Failed to get board update information"
 		);
 	}
 	public async getBoardsListAll(): Promise<string> {
 		return this.runArduinoCommand(
-			() => arduinoProject.getBoardsListArguments(),
+			() => this.cliArgs.getBoardsListArguments(),
 			"CLI: Failed to get boards list "
 		);
 	}
 
 	public async getBoardConnected(): Promise<string> {
 		return this.runArduinoCommand(
-			() => arduinoProject.getBoardConnectedArguments(),
+			() => this.cliArgs.getBoardConnectedArguments(),
 			"CLI: Failed to get Boards "
 		);
 	}
@@ -243,18 +243,18 @@ export class ArduinoCLI {
 							const configPath = path.dirname(config.config_path);
 							const downloadPath = path.join(configPath, 'staging');
 							this.runArduinoCommand(
-								() => arduinoProject.getConfigSetDowloadDirectory(downloadPath),
+								() => this.cliArgs.getConfigSetDowloadDirectory(downloadPath),
 								"CLI : Failed to set download directory setting",
 								false, false
 							).then(() => {
 								this.runArduinoCommand(
-									() => arduinoProject.getConfigSetDataDirectory(configPath),
+									() => this.cliArgs.getConfigSetDataDirectory(configPath),
 									"CLI : Failed to set data directory setting",
 									false, false
 								).then(() => {
 									const arduinoDir = path.join(this.getDocumentsFolderPath(), 'Arduino');
 									this.runArduinoCommand(
-										() => arduinoProject.getConfigSetUserDirectory(arduinoDir),
+										() => this.cliArgs.getConfigSetUserDirectory(arduinoDir),
 										"CLI : Failed to set user directory setting",
 										false, false
 									);
@@ -276,7 +276,7 @@ export class ArduinoCLI {
 	}
 	public checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
 		return new Promise((resolve) => {
-			const arduinoVersionArgs = arduinoProject.getVersionArguments();
+			const arduinoVersionArgs = this.cliArgs.getVersionArguments();
 
 			this.executeArduinoCommand(`${this.arduinoCLIPath}`, arduinoVersionArgs, true, false)
 				.then((result) => {
@@ -319,7 +319,7 @@ export class ArduinoCLI {
 				window.showErrorMessage(`Unable to get Board Configuration`);
 				throw new Error("Unable to get Board Configuration");
 			}
-			const configBoardArgs = arduinoProject.getBoardConfigurationArguments();
+			const configBoardArgs = this.cliArgs.getBoardConfigurationArguments();
 			const result = await this.executeArduinoCommand(`${arduinoCLI.arduinoCLIPath}`, configBoardArgs, true, false);
 
 			if (!result) {
@@ -399,7 +399,7 @@ export class ArduinoCLI {
 			const fullName = path.join(currentDirectory, name);
 
 			// Use the full name (current directory + sketch name)
-			const args = arduinoProject.getNewSketchArguments(fullName);
+			const args = this.cliArgs.getNewSketchArguments(fullName);
 			const result = await this.executeArduinoCommand(`${arduinoCLI.arduinoCLIPath}`, args, true, false);
 
 			if (!result) {
