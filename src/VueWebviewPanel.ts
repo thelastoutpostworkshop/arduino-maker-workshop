@@ -31,11 +31,9 @@ export class VueWebviewPanel {
                         arduinoCLI.createNewSketch(message.payload);
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
-                        arduinoCLI.checkArduinoCLICommand().then((clistatus) => {
-                            const projectStatus: ArduinoProjectStatus = { status: arduinoProject.isFolderArduinoProject(), cli_status: clistatus };
-                            message.payload = projectStatus;
-                            VueWebviewPanel.sendMessage(message);
-                        });
+                        const projectStatus: ArduinoProjectStatus = { status: arduinoProject.isFolderArduinoProject(), cli_status: arduinoCLI.getCLIStatus() };
+                        message.payload = projectStatus;
+                        VueWebviewPanel.sendMessage(message);
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                         const projectInfo = this.createWebviewMessage(ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO);
