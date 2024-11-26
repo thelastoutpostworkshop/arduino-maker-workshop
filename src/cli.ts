@@ -330,7 +330,7 @@ export class ArduinoCLI {
 			throw error;
 		}
 	}
-	public async runArduinoCommand(
+	private async runArduinoCommand(
 		getArguments: () => string[],
 		errorMessagePrefix: string,
 		returnOutput: boolean = true,
