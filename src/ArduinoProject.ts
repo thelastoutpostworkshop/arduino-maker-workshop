@@ -16,20 +16,16 @@ const detailsFunctionArduino: string = 'details';
 const jsonOutputArduino: string = '--json';
 const outdatedCommandArduino: string = 'outdated';
 const coreCommandArduino: string = 'core';
-const dumpOption: string = 'dump';
-const removeOption: string = 'remove';
 const updateOption: string = 'update-index';
 const newOption: string = 'new';
 const setOption: string = 'set';
-const addOption: string = 'add';
-const initOption: string = 'init';
+
 const compileCleanOption: string = '--clean';
 const installOption: string = 'install';
 const uninstallOption: string = 'uninstall';
 const searchOption: string = 'search';
 const listOption: string = 'list';
-const addtionalURLOption: string = '--additional-urls';
-const configAdditionnalURLsetting: string = 'board_manager.additional_urls';
+
 const configDirDataSetting: string = 'directories.data';
 const configDirDownloadSetting: string = 'directories.downloads';
 const configDirUserSetting: string = 'directories.user';
@@ -132,51 +128,8 @@ export class ArduinoProject {
         ];
         return compileCommand;
     }
-    public getConfigDumpArgs(): string[] {
-        const command = [
-            `${configCommandArduino}`,
-            `${dumpOption}`,
-            `${jsonOutputArduino}`
-        ];
-        return command;
-    }
-    public getConfigRemoveAdditionalBoardURLArgs(URL: string): string[] {
-        const command = [
-            `${configCommandArduino}`,
-            `${removeOption}`,
-            `${configAdditionnalURLsetting}`,
-            `${URL}`,
-        ];
-        return command;
-    }
-    public getConfigAddAdditionalBoardURLArgs(URL: string): string[] {
-        const command = [
-            `${configCommandArduino}`,
-            `${addOption}`,
-            `${configAdditionnalURLsetting}`,
-            `${URL}`,
-        ];
-        return command;
-    }
-    public getConfigSetAdditionalBoardURLArgs(URL: string): string[] {
-        const urls = URL.split(' ');
-        const command = [
-            `${configCommandArduino}`,
-            `${setOption}`,
-            `${configAdditionnalURLsetting}`,
-            `${urls[0]}`,
-            `${urls[1]}`,
-        ];
-        return command;
-    }
-    public getConfigInitArgs(): string[] {
-        const command = [
-            `${configCommandArduino}`,
-            `${initOption}`,
-            `${jsonOutputArduino}`
-        ];
-        return command;
-    }
+
+
     public getConfigSetDowloadDirectory(dir:string): string[] {
         const command = [
             `${configCommandArduino}`,

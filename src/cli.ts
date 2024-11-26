@@ -3,6 +3,7 @@ import { arduinoCLI, arduinoExtensionChannel, arduinoProject, loadArduinoConfigu
 import { ArduinoCLIStatus, ArduinoConfig, Compile } from "./shared/messages";
 import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Version } from "@microsoft/vscode-serial-monitor-api";
 import { VSCODE_FOLDER } from "./ArduinoProject";
+import { CLIArguments } from "./cliArgs";
 
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
 
@@ -17,6 +18,7 @@ export class ArduinoCLI {
 	private serialMoniorAPI: SerialMonitorApi | undefined = undefined;
 	private arduinoCLIChannel: OutputChannel;
 	private compileUploadChannel:OutputChannel;
+	private cliArgs = new CLIArguments();
 
 	constructor(private context: ExtensionContext) {
 		this.getArduinoCliPath();
@@ -41,28 +43,28 @@ export class ArduinoCLI {
 	}
 	public async getCLIConfig(): Promise<string> {
 		return this.runArduinoCommand(
-			() => arduinoProject.getConfigDumpArgs(),
+			() => this.cliArgs.getConfigDumpArgs(),
 			"CLI : Failed to get CLI Config information"
 		);
 	}
 
 	public async removeCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
 		return this.runArduinoCommand(
-			() => arduinoProject.getConfigRemoveAdditionalBoardURLArgs(URL),
+			() => this.cliArgs.getConfigRemoveAdditionalBoardURLArgs(URL),
 			"CLI : Failed to delete additional Board URL", false
 		);
 	}
 
 	public async addCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
 		return this.runArduinoCommand(
-			() => arduinoProject.getConfigAddAdditionalBoardURLArgs(URL),
+			() => this.cliArgs.getConfigAddAdditionalBoardURLArgs(URL),
 			"CLI : Failed to add additional Board URL", false
 		);
 	}
 
 	public async setCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
 		return this.runArduinoCommand(
-			() => arduinoProject.getConfigSetAdditionalBoardURLArgs(URL),
+			() => this.cliArgs.getConfigSetAdditionalBoardURLArgs(URL),
 			"CLI : Failed to set additional Board URL", false
 		);
 	}
@@ -224,7 +226,7 @@ export class ArduinoCLI {
 	}
 	public checkArduinoConfiguration() {
 		this.runArduinoCommand(
-			() => arduinoProject.getConfigDumpArgs(),
+			() => this.cliArgs.getConfigDumpArgs(),
 			"CLI : Failed to get arduino configuration information"
 		).then((result) => {
 			try {
@@ -232,7 +234,7 @@ export class ArduinoCLI {
 				if (Object.keys(config.config).length === 0) {
 					// There is no arduino config file, let's create one
 					this.runArduinoCommand(
-						() => arduinoProject.getConfigInitArgs(),
+						() => this.cliArgs.getConfigInitArgs(),
 						"CLI : Failed to create arduino config file",
 						true, false
 					).then((result) => {
