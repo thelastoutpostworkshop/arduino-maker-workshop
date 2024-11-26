@@ -6,7 +6,7 @@ const path = require('path');
 const os = require('os');
 
 export class ArduinoCLI {
-	public arduinoCLIPath:string = "";
+	public arduinoCLIPath: string = "";
 	constructor(private context: ExtensionContext) {
 		this.getArduinoCliPath();
 	}
@@ -207,14 +207,14 @@ export class ArduinoCLI {
 			}
 			const configBoardArgs = arduinoProject.getBoardConfigurationArguments();
 			const result = await executeArduinoCommand(`${arduinoCLI.arduinoCLIPath}`, configBoardArgs, true, false);
-	
+
 			if (!result) {
 				window.showErrorMessage(`CLI : No result from get board configuration`);
 				throw new Error("Command result empty");
 			}
 			updateStateCompileUpload();
 			return result;
-	
+
 		} catch (error: any) {
 			window.showErrorMessage(`CLI : Error from get board configuration, you may have to installed the board using the board manager`);
 			throw error;
@@ -258,7 +258,7 @@ export class ArduinoCLI {
 	private getArduinoCliPath() {
 		const platform = os.platform();
 		this.arduinoCLIPath = '';
-	
+
 		switch (platform) {
 			case 'win32':
 				this.arduinoCLIPath = path.join(this.context.extensionPath, 'arduino_cli', 'win32', 'arduino-cli.exe');
@@ -271,40 +271,42 @@ export class ArduinoCLI {
 				break;
 			default:
 				throw new Error(`Unsupported platform: ${platform}`);
-		}	
+		}
+	}
+
+	public async createNewSketch(name: string): Promise<string> {
+		try {
+			// Get the current workspace folder (assumes that there's an active workspace)
+			if (!workspace.workspaceFolders) {
+				throw new Error('No workspace folder is open. Please open a folder first.');
+			}
+
+			const currentDirectory = workspace.workspaceFolders[0].uri.fsPath;
+			const fullName = path.join(currentDirectory, name);
+
+			// Use the full name (current directory + sketch name)
+			const args = arduinoProject.getNewSketchArguments(fullName);
+			const result = await executeArduinoCommand(`${arduinoCLI.arduinoCLIPath}`, args, true, false);
+
+			if (!result) {
+				window.showErrorMessage(`CLI: No result from create new sketch`);
+				throw new Error("Command result empty");
+			}
+
+			// Open the new sketch folder in Visual Studio Code
+			const newProjectUri = Uri.file(fullName);
+			await commands.executeCommand('vscode.openFolder', newProjectUri, { forceNewWindow: false });
+			return result;
+		} catch (error: any) {
+			window.showErrorMessage(`CLI: Failed to create new sketch - ${error.message}`);
+			throw error;
+		}
 	}
 }
 
 
 
-export async function createNewSketch(name: string): Promise<string> {
-	try {
-		// Get the current workspace folder (assumes that there's an active workspace)
-		if (!workspace.workspaceFolders) {
-			throw new Error('No workspace folder is open. Please open a folder first.');
-		}
 
-		const currentDirectory = workspace.workspaceFolders[0].uri.fsPath;
-		const fullName = path.join(currentDirectory, name);
-
-		// Use the full name (current directory + sketch name)
-		const args = arduinoProject.getNewSketchArguments(fullName);
-		const result = await executeArduinoCommand(`${arduinoCLI.arduinoCLIPath}`, args, true, false);
-
-		if (!result) {
-			window.showErrorMessage(`CLI: No result from create new sketch`);
-			throw new Error("Command result empty");
-		}
-
-		// Open the new sketch folder in Visual Studio Code
-		const newProjectUri = Uri.file(fullName);
-		await commands.executeCommand('vscode.openFolder', newProjectUri, { forceNewWindow: false });
-		return result;
-	} catch (error: any) {
-		window.showErrorMessage(`CLI: Failed to create new sketch - ${error.message}`);
-		throw error;
-	}
-}
 
 export function executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = arduinoCLIChannel, successMsg: string = ""): Promise<string | void> {
 	// outputChannel.clear();

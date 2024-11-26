@@ -3,7 +3,6 @@ import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, loadArduinoConfiguration, openExample } from "./extension";
-import { createNewSketch } from "./cli";
 
 const usb = require('usb').usb;
 
@@ -29,7 +28,7 @@ export class VueWebviewPanel {
                 arduinoExtensionChannel.appendLine(`Message from Vue App: ${message.command}`);
                 switch (message.command) {
                     case ARDUINO_MESSAGES.CLI_CREATE_NEW_SKETCH:
-                        createNewSketch(message.payload);
+                        arduinoCLI.createNewSketch(message.payload);
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                         arduinoCLI.checkArduinoCLICommand().then((clistatus) => {
