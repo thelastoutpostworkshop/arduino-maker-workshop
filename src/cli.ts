@@ -1,11 +1,15 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext } from "vscode";
-import { arduinoCLI, arduinoCLIChannel, arduinoExtensionChannel, arduinoProject, cliCommandArduinoPath } from "./extension";
+import { arduinoCLI, arduinoCLIChannel, arduinoExtensionChannel, arduinoProject } from "./extension";
 import { ArduinoCLIStatus, ArduinoConfig } from "./shared/messages";
 const cp = require('child_process');
 const path = require('path');
 const os = require('os');
 
 export class ArduinoCLI {
+	public arduinoCLIPath:string = "";
+	constructor(private context: ExtensionContext) {
+		this.getArduinoCliPath();
+	}
 	public async getOutdatedBoardAndLib(): Promise<string> {
 		return this.runArduinoCommand(
 			() => arduinoProject.getOutdatedArguments(),
@@ -160,7 +164,7 @@ export class ArduinoCLI {
 		return new Promise((resolve) => {
 			const arduinoVersionArgs = arduinoProject.getVersionArguments();
 
-			executeArduinoCommand(`${cliCommandArduinoPath}`, arduinoVersionArgs, true, false)
+			executeArduinoCommand(`${this.arduinoCLIPath}`, arduinoVersionArgs, true, false)
 				.then((result) => {
 					if (result) {
 						try {
@@ -201,7 +205,7 @@ export class ArduinoCLI {
 	): Promise<string> {
 		try {
 			const args = getArguments();
-			const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, returnOutput, showOutput, channel, successMSG);
+			const result = await executeArduinoCommand(`${this.arduinoCLIPath}`, args, returnOutput, showOutput, channel, successMSG);
 			if (!result && returnOutput) {
 				const errorMsg = `${errorMessagePrefix}: No result`;
 				window.showErrorMessage(errorMsg);
@@ -226,28 +230,27 @@ export class ArduinoCLI {
 				throw new Error('Unsupported platform');
 		}
 	}
-}
-
-export function getArduinoCliPath(context: ExtensionContext): string {
-	const platform = os.platform();
-	let arduinoCliPath = '';
-
-	switch (platform) {
-		case 'win32':
-			arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'win32', 'arduino-cli.exe');
-			break;
-		case 'darwin':
-			arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'darwin', 'arduino-cli');
-			break;
-		case 'linux':
-			arduinoCliPath = path.join(context.extensionPath, 'arduino_cli', 'linux', 'arduino-cli');
-			break;
-		default:
-			throw new Error(`Unsupported platform: ${platform}`);
+	private getArduinoCliPath() {
+		const platform = os.platform();
+		this.arduinoCLIPath = '';
+	
+		switch (platform) {
+			case 'win32':
+				this.arduinoCLIPath = path.join(this.context.extensionPath, 'arduino_cli', 'win32', 'arduino-cli.exe');
+				break;
+			case 'darwin':
+				this.arduinoCLIPath = path.join(this.context.extensionPath, 'arduino_cli', 'darwin', 'arduino-cli');
+				break;
+			case 'linux':
+				this.arduinoCLIPath = path.join(this.context.extensionPath, 'arduino_cli', 'linux', 'arduino-cli');
+				break;
+			default:
+				throw new Error(`Unsupported platform: ${platform}`);
+		}	
 	}
-
-	return arduinoCliPath;
 }
+
+
 
 export async function createNewSketch(name: string): Promise<string> {
 	try {
@@ -261,7 +264,7 @@ export async function createNewSketch(name: string): Promise<string> {
 
 		// Use the full name (current directory + sketch name)
 		const args = arduinoProject.getNewSketchArguments(fullName);
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, args, true, false);
+		const result = await executeArduinoCommand(`${arduinoCLI.arduinoCLIPath}`, args, true, false);
 
 		if (!result) {
 			window.showErrorMessage(`CLI: No result from create new sketch`);

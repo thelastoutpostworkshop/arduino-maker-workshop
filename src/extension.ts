@@ -2,9 +2,9 @@ import { window, ExtensionContext, commands, Disposable, workspace, Uri, Progres
 import { ArduinoProject, CPP_PROPERTIES, VSCODE_FOLDER } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
-import { ARDUINO_ERRORS, ArduinoConfig, Compile } from "./shared/messages";
+import { ARDUINO_ERRORS, Compile } from "./shared/messages";
 import { SerialMonitorApi, Version, getSerialMonitorApi, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
-import { ArduinoCLI, executeArduinoCommand, getArduinoCliPath } from "./cli";
+import { ArduinoCLI, executeArduinoCommand } from "./cli";
 
 const path = require('path');
 const os = require('os');
@@ -19,14 +19,13 @@ let serialMoniorAPI: SerialMonitorApi | undefined = undefined;
 let compileOrUploadRunning: boolean = false;
 
 export const arduinoProject: ArduinoProject = new ArduinoProject();
-export const arduinoCLI:ArduinoCLI = new ArduinoCLI();
-export let cliCommandArduinoPath: string = "";
+export let arduinoCLI:ArduinoCLI;
 
 export function activate(context: ExtensionContext) {
 	const config = workspace.getConfiguration();
+	arduinoCLI = new ArduinoCLI(context);
 	try {
-		cliCommandArduinoPath = getArduinoCliPath(context);
-		arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${cliCommandArduinoPath}`);
+		arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${arduinoCLI.arduinoCLIPath}`);
 	} catch (error: any) {
 		arduinoExtensionChannel.appendLine(error);
 		window.showErrorMessage(error);
@@ -101,7 +100,7 @@ export async function getBoardConfiguration(): Promise<string> {
 			throw new Error("Unable to get Board Configuration");
 		}
 		const configBoardArgs = arduinoProject.getBoardConfigurationArguments();
-		const result = await executeArduinoCommand(`${cliCommandArduinoPath}`, configBoardArgs, true, false);
+		const result = await executeArduinoCommand(`${arduinoCLI.arduinoCLIPath}`, configBoardArgs, true, false);
 
 		if (!result) {
 			window.showErrorMessage(`CLI : No result from get board configuration`);
