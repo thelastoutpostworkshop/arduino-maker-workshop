@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ARDUINO_ERRORS, ArduinoProjectConfiguration } from './shared/messages';
+import { ARDUINO_ERRORS, ArduinoProjectConfiguration, ArduinoProjectStatus } from './shared/messages';
 
 const path = require('path');
 const fs = require('fs');
@@ -13,6 +13,7 @@ export class ArduinoProject {
     private arduinoConfigurationPath: string = "";
     private configJson: ArduinoProjectConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "" };
     private projectFullPath: string = "";
+    private projectStatus:ArduinoProjectStatus = {};
 
     constructor() {
         const workspaceFolders = vscode.workspace.workspaceFolders;

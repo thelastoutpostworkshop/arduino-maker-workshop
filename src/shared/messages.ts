@@ -78,8 +78,8 @@ export enum ARDUINO_ERRORS {
 }
 
 export interface ArduinoProjectStatus {
-  cli_status: ArduinoCLIStatus;
-  project_status: ARDUINO_ERRORS;
+  cli_status?: ArduinoCLIStatus;
+  status: ARDUINO_ERRORS;
 }
 
 export interface ArduinoCLIStatus {

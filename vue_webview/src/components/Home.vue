@@ -21,7 +21,7 @@ function createNewSkecth() {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CREATE_NEW_SKETCH, errorMessage: "", payload: sketchName.value });
 }
 
-watch(() => store.projectStatus?.project_status, (newStatus) => {
+watch(() => store.projectStatus?.status, (newStatus) => {
   if (newStatus == ARDUINO_ERRORS.NO_ERRORS) {
     store.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
   }
@@ -41,7 +41,7 @@ watch(
         if (boardConnected.detected_ports.length > 0) {
           if (boardConnected.detected_ports[1].port.label) {
             portSelected.value = boardConnected.detected_ports[1].port.label;
-            store.sendMessage({ command: ARDUINO_MESSAGES.SET_PORT, errorMessage: "", payload: portSelected.value  });
+            store.sendMessage({ command: ARDUINO_MESSAGES.SET_PORT, errorMessage: "", payload: portSelected.value });
           } else
             if (boardConnected.detected_ports[0].port.label) {
               portSelected.value = boardConnected.detected_ports[0].port.label;
@@ -79,7 +79,7 @@ onMounted(() => {
       </div>
       <v-row class="mt-4">
         <v-col cols="12">
-          <v-card v-if="store.projectStatus?.project_status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board"
+          <v-card v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board"
             class="pa-4" color="blue-grey-darken-3" prepend-icon="mdi-cog" rounded="lg">
             <template #title>
               <h2 class="text-h6 font-weight-bold">Sketch Configuration</h2>
@@ -107,13 +107,13 @@ onMounted(() => {
               </template>
             </v-select>
           </v-card>
-          <v-card v-if="store.projectStatus?.project_status == ARDUINO_ERRORS.WRONG_FOLDER_NAME" class="pa-4"
+          <v-card v-if="store.projectStatus?.status == ARDUINO_ERRORS.WRONG_FOLDER_NAME" class="pa-4"
             color="blue-grey-darken-3" prepend-icon="mdi-alert-circle-outline" rounded="lg">
             <template #title>
               <h2 class="text-h6 font-weight-bold">Sketch name and folder name do not match</h2>
             </template>
           </v-card>
-          <v-card v-if="store.projectStatus?.project_status == ARDUINO_ERRORS.NO_INO_FILES" class="pa-4"
+          <v-card v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_INO_FILES" class="pa-4"
             color="blue-grey-darken-3" prepend-icon="mdi-folder-plus-outline" rounded="lg">
             <template #title>
               <h2 class="text-h6 font-weight-bold">Create a new sketch</h2>
@@ -139,7 +139,7 @@ onMounted(() => {
             </v-card>
           </div>
           <div v-else>
-            <div v-if="store.projectStatus?.project_status == ARDUINO_ERRORS.NO_ERRORS && !store.projectInfo?.board">
+            <div v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && !store.projectInfo?.board">
               <v-btn @click="router.push({ name: 'board-selection' })">Select a board first</v-btn>
             </div>
             <v-card class="pa-4 mt-4" color="blue-grey-darken-4" prepend-icon="mdi-console" rounded="lg">

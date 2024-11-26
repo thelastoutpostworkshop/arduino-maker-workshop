@@ -32,7 +32,7 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                         arduinoCLI.checkArduinoCLICommand().then((clistatus) => {
-                            const projectStatus: ArduinoProjectStatus = { project_status: arduinoProject.isFolderArduinoProject(), cli_status: clistatus };
+                            const projectStatus: ArduinoProjectStatus = { status: arduinoProject.isFolderArduinoProject(), cli_status: clistatus };
                             message.payload = projectStatus;
                             VueWebviewPanel.sendMessage(message);
                         });
