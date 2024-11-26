@@ -208,7 +208,7 @@ export class ArduinoCLI {
 	
 		window.withProgress(
 			{
-				location: ProgressLocation.Notification,
+				location: ProgressLocation.Window,
 				title: "Generating IntelliSense Configuration...",
 				cancellable: false
 			}, async (progress) => {
