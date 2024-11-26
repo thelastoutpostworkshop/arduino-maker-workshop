@@ -48,8 +48,6 @@ export class ArduinoProject {
         return true;
     }
 
-
-
     public isFolderArduinoProject(): ARDUINO_ERRORS {
         try {
             let error: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_INO_FILES;
