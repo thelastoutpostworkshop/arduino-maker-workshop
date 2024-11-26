@@ -13,7 +13,6 @@ export const arduinoProject: ArduinoProject = new ArduinoProject();
 export let arduinoCLI:ArduinoCLI;
 
 export function activate(context: ExtensionContext) {
-	const config = workspace.getConfiguration();
 	arduinoCLI = new ArduinoCLI(context);
 	try {
 		arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${arduinoCLI.arduinoCLIPath}`);
