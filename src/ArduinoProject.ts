@@ -13,13 +13,19 @@ export class ArduinoProject {
     private arduinoConfigurationPath: string = "";
     private configJson: ArduinoProjectConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "" };
     private projectFullPath: string = "";
-    private projectStatus:ArduinoProjectStatus = {};
+    private projectStatus:ArduinoProjectStatus = {status:ARDUINO_ERRORS.NO_ERRORS};
 
     constructor() {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (workspaceFolders) {
             this.projectFullPath = workspaceFolders[0].uri.fsPath;
         }
+    }
+    public getStatus():ArduinoProjectStatus {
+        return this.projectStatus;
+    }
+    public setStatus(status:ARDUINO_ERRORS) {
+        this.projectStatus.status = status;
     }
     public getarduinoConfigurationPath(): string {
         return this.arduinoConfigurationPath;

@@ -1,6 +1,6 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext, ProgressLocation } from "vscode";
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, loadArduinoConfiguration, updateStateCompileUpload } from "./extension";
-import { ArduinoCLIStatus, ArduinoConfig, Compile } from "./shared/messages";
+import { ARDUINO_ERRORS, ArduinoCLIStatus, ArduinoConfig, Compile } from "./shared/messages";
 import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Version } from "@microsoft/vscode-serial-monitor-api";
 import { VSCODE_FOLDER } from "./ArduinoProject";
 import { CLIArguments } from "./cliArgs";
@@ -19,14 +19,29 @@ export class ArduinoCLI {
 	private arduinoCLIChannel: OutputChannel;
 	private compileUploadChannel:OutputChannel;
 	private cliArgs = new CLIArguments();
+	private cliReady:boolean = true;
+	private _lastCLIError:string = "";
 
 	constructor(private context: ExtensionContext) {
-		this.getArduinoCliPath();
+		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
+		this.compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
+		try {
+			this.getArduinoCliPath();
+		} catch (error) {
+			arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
+			this.cliReady = false;
+		}
 		getSerialMonitorApi(Version.latest, context).then((api) => {
 			this.serialMoniorAPI = api;
 		});
-		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
-		this.compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
+	}
+
+	public lasCLIError():string {
+		return this._lastCLIError;
+	}
+
+	public isCLIReady():boolean {
+		return this.cliReady;
 	}
 
 	public async getOutdatedBoardAndLib(): Promise<string> {
@@ -388,7 +403,7 @@ export class ArduinoCLI {
 				this.arduinoCLIPath = path.join(this.context.extensionPath, 'arduino_cli', 'linux', 'arduino-cli');
 				break;
 			default:
-				throw new Error(`Unsupported platform: ${platform}`);
+				this._lastCLIError=`Unsupported platform: ${platform}`;
 		}
 	}
 

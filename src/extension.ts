@@ -14,12 +14,10 @@ export let arduinoCLI:ArduinoCLI;
 
 export function activate(context: ExtensionContext) {
 	arduinoCLI = new ArduinoCLI(context);
-	try {
+	if(arduinoCLI.isCLIReady()) {
 		arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${arduinoCLI.arduinoCLIPath}`);
-	} catch (error: any) {
-		arduinoExtensionChannel.appendLine(error);
-		window.showErrorMessage(error);
-		throw new Error(error);
+	} else {
+		arduinoExtensionChannel.appendLine(`${arduinoCLI.lasCLIError()}`);
 	}
 
 	arduinoCLI.checkArduinoConfiguration();
