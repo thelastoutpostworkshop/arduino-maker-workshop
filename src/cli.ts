@@ -184,13 +184,17 @@ export class ArduinoCLI {
 			const port = arduinoProject.getPort();
 			this.serialMoniorAPI.stopMonitoringPort(port);
 		}
-		await arduinoCLI.runArduinoCommand(
-			() => this.cliArgs.getUploadArguments(),
-			"CLI: Failed to upload", false, true, this.compileUploadChannel
-		);
-		if (this.serialMoniorAPI) {
-			this.serialMoniorAPI.startMonitoringPort({ port: arduinoProject.getPort(), baudRate: 115200, lineEnding: LineEnding.None, dataBits: 8, stopBits: StopBits.One, parity: Parity.None }).then((port) => {
-			});
+		try {
+			await arduinoCLI.runArduinoCommand(
+				() => this.cliArgs.getUploadArguments(),
+				"CLI: Failed to upload", false, true, this.compileUploadChannel
+			);
+			if (this.serialMoniorAPI) {
+				this.serialMoniorAPI.startMonitoringPort({ port: arduinoProject.getPort(), baudRate: 115200, lineEnding: LineEnding.None, dataBits: 8, stopBits: StopBits.One, parity: Parity.None }).then((port) => {
+				});
+			}
+		} catch (error) {
+			console.log(error);
 		}
 		this.compileOrUploadRunning = false;
 	}
