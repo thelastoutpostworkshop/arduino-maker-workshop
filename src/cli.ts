@@ -185,7 +185,7 @@ export class ArduinoCLI {
 			this.serialMoniorAPI.stopMonitoringPort(port);
 		}
 		await arduinoCLI.runArduinoCommand(
-			() => arduinoProject.getUploadArguments(),
+			() => this.cliArgs.getUploadArguments(),
 			"CLI: Failed to upload", false, true, this.compileUploadChannel
 		);
 		if (this.serialMoniorAPI) {

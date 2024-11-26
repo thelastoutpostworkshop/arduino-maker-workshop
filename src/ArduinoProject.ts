@@ -4,10 +4,8 @@ import { ARDUINO_ERRORS, ArduinoProjectConfiguration } from './shared/messages';
 const path = require('path');
 const fs = require('fs');
 
-const compileCommandArduino: string = 'compile';
 const versionCommandArduino: string = 'version';
 const sketchCommandArduino: string = 'sketch';
-const uploadCommandArduino: string = 'upload';
 const boardCommandArduino: string = 'board';
 const configCommandArduino: string = 'config';
 const libraryCommandArduino: string = 'lib';
@@ -28,13 +26,10 @@ const listOption: string = 'list';
 const configDirDataSetting: string = 'directories.data';
 const configDirDownloadSetting: string = 'directories.downloads';
 const configDirUserSetting: string = 'directories.user';
-const verboseOptionArduino: string = '-v';
-const portOptionArduino: string = '-p';
+
 
 const fqbnOptionArduino: string = '--fqbn';
-const inputDirOptionArduino: string = '--input-dir';
-const noColorOptionArduino: string = '--no-color';
-const preprocessCompileOptionArduino: string = '--preprocess';
+
 
 export const VSCODE_FOLDER: string = ".vscode";
 const ARDUINO_SETTINGS: string = "arduino.json";
@@ -79,36 +74,6 @@ export class ArduinoProject {
 
         return true;
     }
-
-    public getPreprocessCommandArguments(): string[] {
-        const compileCommand = [
-            `${compileCommandArduino}`,
-            `${verboseOptionArduino}`,
-            `${preprocessCompileOptionArduino}`,
-            `${noColorOptionArduino}`,
-            `${fqbnOptionArduino}`,
-            `${this.getBoard()}:${this.getBoardConfiguration()}`,
-            this.getProjectPath()
-        ];
-        return compileCommand;
-    }
-    public getUploadArguments(): string[] {
-        this.readConfiguration();
-        const compileCommand = [
-            `${uploadCommandArduino}`,
-            `${verboseOptionArduino}`,
-            `${noColorOptionArduino}`,
-            `${portOptionArduino}`,
-            `${this.getPort()}`,
-            `${fqbnOptionArduino}`,
-            `${this.getBoard()}:${this.getBoardConfiguration()}`,
-            `${inputDirOptionArduino}`,
-            this.getProjectPath() + '/' + this.getOutput(),
-            this.getProjectPath()
-        ];
-        return compileCommand;
-    }
-
 
     public getConfigSetDowloadDirectory(dir: string): string[] {
         const command = [

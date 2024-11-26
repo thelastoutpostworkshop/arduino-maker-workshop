@@ -16,8 +16,40 @@ const jobsOptionArduino: string = '--jobs';
 const verboseOptionArduino: string = '-v';
 const noColorOptionArduino: string = '--no-color';
 const fqbnOptionArduino: string = '--fqbn';
+const uploadCommandArduino: string = 'upload';
+const portOptionArduino: string = '-p';
+const inputDirOptionArduino: string = '--input-dir';
+const preprocessCompileOptionArduino: string = '--preprocess';
 
 export class CLIArguments {
+    public getPreprocessCommandArguments(): string[] {
+        const compileCommand = [
+            `${compileCommandArduino}`,
+            `${verboseOptionArduino}`,
+            `${preprocessCompileOptionArduino}`,
+            `${noColorOptionArduino}`,
+            `${fqbnOptionArduino}`,
+            `${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`,
+            arduinoProject.getProjectPath()
+        ];
+        return compileCommand;
+    }
+    public getUploadArguments(): string[] {
+        arduinoProject.readConfiguration();
+        const compileCommand = [
+            `${uploadCommandArduino}`,
+            `${verboseOptionArduino}`,
+            `${noColorOptionArduino}`,
+            `${portOptionArduino}`,
+            `${arduinoProject.getPort()}`,
+            `${fqbnOptionArduino}`,
+            `${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`,
+            `${inputDirOptionArduino}`,
+            arduinoProject.getProjectPath() + '/' + arduinoProject.getOutput(),
+            arduinoProject.getProjectPath()
+        ];
+        return compileCommand;
+    }
     public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false): string[] {
         const compileCommand = [
             `${compileCommandArduino}`,
