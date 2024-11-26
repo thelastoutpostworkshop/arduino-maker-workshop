@@ -11,7 +11,7 @@ const os = require('os');
 const fs = require('fs');
 
 export const arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
-const compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
+export const compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
 export const arduinoExtensionChannel = window.createOutputChannel('Arduino Extension');
 arduinoExtensionChannel.appendLine("Arduino Extension started");
 const quickAccessProvider = new QuickAccessProvider();
@@ -160,7 +160,7 @@ function vsGenerateIntellisense(): Disposable {
 	});
 }
 
-function generateIntellisense() {
+export function generateIntellisense() {
 	if (!loadArduinoConfiguration()) {
 		return;
 	}
@@ -259,49 +259,14 @@ function createIntellisenseFile(compileJsonOutput: string) {
 
 function vsCommandCompileClean(): Disposable {
 	return commands.registerCommand('compile.clean', async () => {
-		compile(true);
+		arduinoCLI.compile(true);
 	});
 }
 function vsCommandCompile(clean: boolean = false): Disposable {
 	return commands.registerCommand('quickAccessView.compile', async () => {
-		compile(false);
+		arduinoCLI.compile(false);
 	});
 }
-
-async function compile(clean: boolean = false) {
-	if (compileOrUploadRunning) {
-		compileUploadChannel.show();
-		return;
-	}
-	compileOrUploadRunning = true;
-	compileUploadChannel.appendLine("Compile project starting...");
-	if (!loadArduinoConfiguration()) {
-		return;
-	}
-	if (!arduinoProject.getBoard()) {
-		window.showErrorMessage('Board info not found, cannot compile');
-	}
-	if (!arduinoProject.getBoardConfiguration()) {
-		window.showErrorMessage('Board configuration not found, cannot compile');
-	}
-	if (!arduinoProject.getOutput()) {
-		window.showErrorMessage('Output not found, cannot compile');
-	}
-
-	try {
-		await arduinoCLI.runArduinoCommand(
-			() => arduinoProject.getCompileCommandArguments(false, clean),
-			"CLI: Failed to compile project", true, true, compileUploadChannel, "Compilation success!"
-		);
-		generateIntellisense();
-	} catch (error) {
-		console.log(error);
-	}
-	compileOrUploadRunning = false;
-}
-
-
-
 
 export function deactivate() { }
 

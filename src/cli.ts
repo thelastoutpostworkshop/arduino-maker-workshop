@@ -1,5 +1,5 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext } from "vscode";
-import { arduinoCLI, arduinoCLIChannel, arduinoExtensionChannel, arduinoProject, loadArduinoConfiguration, updateStateCompileUpload } from "./extension";
+import { arduinoCLI, arduinoCLIChannel, arduinoExtensionChannel, arduinoProject, compileUploadChannel, generateIntellisense, loadArduinoConfiguration, updateStateCompileUpload } from "./extension";
 import { ArduinoCLIStatus, ArduinoConfig } from "./shared/messages";
 const cp = require('child_process');
 const path = require('path');
@@ -7,6 +7,7 @@ const os = require('os');
 
 export class ArduinoCLI {
 	public arduinoCLIPath: string = "";
+	public compileOrUploadRunning:boolean = false;
 	constructor(private context: ExtensionContext) {
 		this.getArduinoCliPath();
 	}
@@ -109,6 +110,37 @@ export class ArduinoCLI {
 			() => arduinoProject.getBoardConnectedArguments(),
 			"CLI: Failed to get Boards "
 		);
+	}
+	public async compile(clean: boolean = false) {
+		if (this.compileOrUploadRunning) {
+			compileUploadChannel.show();
+			return;
+		}
+		this.compileOrUploadRunning = true;
+		compileUploadChannel.appendLine("Compile project starting...");
+		if (!loadArduinoConfiguration()) {
+			return;
+		}
+		if (!arduinoProject.getBoard()) {
+			window.showErrorMessage('Board info not found, cannot compile');
+		}
+		if (!arduinoProject.getBoardConfiguration()) {
+			window.showErrorMessage('Board configuration not found, cannot compile');
+		}
+		if (!arduinoProject.getOutput()) {
+			window.showErrorMessage('Output not found, cannot compile');
+		}
+	
+		try {
+			await arduinoCLI.runArduinoCommand(
+				() => arduinoProject.getCompileCommandArguments(false, clean),
+				"CLI: Failed to compile project", true, true, compileUploadChannel, "Compilation success!"
+			);
+			generateIntellisense();
+		} catch (error) {
+			console.log(error);
+		}
+		this.compileOrUploadRunning = false;
 	}
 	public checkArduinoConfiguration() {
 		this.runArduinoCommand(
