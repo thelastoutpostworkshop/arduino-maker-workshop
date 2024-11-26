@@ -20,8 +20,9 @@ export function activate(context: ExtensionContext) {
 		arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
 		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 	}
-
+	
 	if(arduinoCLI.isConfigReady()) {
+		arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
 		arduinoExtensionChannel.appendLine(`Arduino Config file is good`);
 	} else {
 		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
