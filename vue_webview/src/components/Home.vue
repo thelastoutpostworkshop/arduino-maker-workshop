@@ -83,6 +83,10 @@ onMounted(() => {
             <v-alert-title>CLI Not working</v-alert-title>
             The built-in CLI is not responding
           </v-alert>
+          <div v-if="store.projectStatus?.status != ARDUINO_ERRORS.CLI_NOT_WORKING" class="text-right">
+            Built-in CLI v{{ store.projectStatus?.cli_status?.VersionString }} ({{ store.projectStatus?.cli_status?.Date
+            }})
+          </div>
           <v-card v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board"
             class="pa-4" color="blue-grey-darken-3" prepend-icon="mdi-cog" rounded="lg">
             <template #title>
@@ -146,17 +150,6 @@ onMounted(() => {
             <div v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && !store.projectInfo?.board">
               <v-btn @click="router.push({ name: 'board-selection' })">Select a board first</v-btn>
             </div>
-            <v-card class="pa-4 mt-4" color="blue-grey-darken-4" prepend-icon="mdi-console" rounded="lg">
-              <template #title>
-                <h2 class="text-h6 font-weight-bold">Built-in CLI</h2>
-              </template>
-
-              <template #subtitle>
-                <div class="text-subtitle-1">
-                  v{{ store.projectStatus?.cli_status?.VersionString }} ({{ store.projectStatus?.cli_status?.Date }})
-                </div>
-              </template>
-            </v-card>
           </div>
         </v-col>
       </v-row>
