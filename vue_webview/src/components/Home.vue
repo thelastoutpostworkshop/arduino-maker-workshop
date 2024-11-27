@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { computed, watch, onMounted, ref } from 'vue';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES } from '@shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName } from '@shared/messages';
 import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
 
@@ -81,7 +81,7 @@ onMounted(() => {
         <v-col cols="12">
           <v-alert v-if="store.projectStatus?.status == ARDUINO_ERRORS.CLI_NOT_WORKING" type="error">
             <v-alert-title>CLI Not working</v-alert-title>
-            The built-in CLI is not responding
+            The built-in CLI is not responding, see the "{{ ArduinoExtensionChannelName }}" output window for more information
           </v-alert>
           <div v-if="store.projectStatus?.status != ARDUINO_ERRORS.CLI_NOT_WORKING" class="text-right">
             Built-in CLI v{{ store.projectStatus?.cli_status?.VersionString }} ({{ store.projectStatus?.cli_status?.Date
@@ -89,7 +89,7 @@ onMounted(() => {
           </div>
           <v-alert v-if="store.projectStatus?.status == ARDUINO_ERRORS.CONFIG_FILE_PROBLEM" type="error">
             <v-alert-title>Arduino Config File Problem</v-alert-title>
-            A problem occured initializing the Arduino config file
+            A problem occured initializing the Arduino config file, see the "{{ ArduinoExtensionChannelName }}" output window for more information
           </v-alert>
           <v-card v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board"
             class="pa-4" color="blue-grey-darken-3" prepend-icon="mdi-cog" rounded="lg">
