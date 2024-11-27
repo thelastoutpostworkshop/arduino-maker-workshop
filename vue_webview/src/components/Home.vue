@@ -79,6 +79,10 @@ onMounted(() => {
       </div>
       <v-row class="mt-4">
         <v-col cols="12">
+          <v-alert v-if="store.projectStatus?.status == ARDUINO_ERRORS.CLI_NOT_WORKING" type="error">
+            <v-alert-title>CLI Not working</v-alert-title>
+            The built-in CLI is not responding
+          </v-alert>
           <v-card v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board"
             class="pa-4" color="blue-grey-darken-3" prepend-icon="mdi-cog" rounded="lg">
             <template #title>
