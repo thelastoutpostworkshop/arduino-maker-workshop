@@ -87,6 +87,10 @@ onMounted(() => {
             Built-in CLI v{{ store.projectStatus?.cli_status?.VersionString }} ({{ store.projectStatus?.cli_status?.Date
             }})
           </div>
+          <v-alert v-if="store.projectStatus?.status == ARDUINO_ERRORS.CONFIG_FILE_PROBLEM" type="error">
+            <v-alert-title>Arduino Config File Problem</v-alert-title>
+            A problem occured initializing the Arduino config file
+          </v-alert>
           <v-card v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board"
             class="pa-4" color="blue-grey-darken-3" prepend-icon="mdi-cog" rounded="lg">
             <template #title>
