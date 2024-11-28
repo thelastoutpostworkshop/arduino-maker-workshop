@@ -1,5 +1,5 @@
-import { commands, OutputChannel, Uri, window, workspace, ExtensionContext, ProgressLocation } from "vscode";
-import { arduinoCLI, arduinoExtensionChannel, arduinoProject, loadArduinoConfiguration, updateStateCompileUpload } from "./extension";
+import { commands, OutputChannel, Uri, window, workspace, ExtensionContext } from "vscode";
+import { arduinoCLI, arduinoProject, loadArduinoConfiguration } from "./extension";
 import { ArduinoCLIStatus, ArduinoConfig, Compile } from "./shared/messages";
 import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Version } from "@microsoft/vscode-serial-monitor-api";
 import { VSCODE_FOLDER } from "./ArduinoProject";
