@@ -66,7 +66,9 @@ export function updateStateCompileUpload() {
 		arduinoProject.getArduinoConfiguration().configuration.trim() !== '') {
 		quickAccessProvider.enableItem(compileCommandName);
 		quickAccessProvider.enableItem(compileCommandCleanName);
-		quickAccessProvider.enableItem(uploadCommandName);
+		if(arduinoProject.isUploadReady()) {
+			quickAccessProvider.enableItem(uploadCommandName);
+		}
 		quickAccessProvider.enableItem(intellisenseCommandName);
 	} else {
 		quickAccessProvider.disableItem(compileCommandName);

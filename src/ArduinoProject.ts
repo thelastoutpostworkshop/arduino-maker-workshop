@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { ARDUINO_ERRORS, ArduinoProjectConfiguration, ArduinoProjectStatus } from './shared/messages';
+import { BlobOptions } from 'buffer';
 
 const path = require('path');
 const fs = require('fs');
@@ -14,12 +15,22 @@ export class ArduinoProject {
     private configJson: ArduinoProjectConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "" };
     private projectFullPath: string = "";
     private projectStatus:ArduinoProjectStatus = {status:ARDUINO_ERRORS.NO_ERRORS};
+    private uploadReady:boolean = false;
+    private sketchFileName:string = "";
 
     constructor() {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (workspaceFolders) {
             this.projectFullPath = workspaceFolders[0].uri.fsPath;
         }
+    }
+    public isUploadReady():boolean {
+        if(this.configJson.port.trim().length !== 0) {
+            const sketch = path.join(this.projectFullPath, this.configJson.output,this.sketchFileName);
+            const binFile = sketch+".bin";
+            return fs.existsSync(binFile);
+        }
+        return false;
     }
     public getStatus():ArduinoProjectStatus {
         return this.projectStatus;
@@ -66,9 +77,10 @@ export class ArduinoProject {
                 const filePath = path.join(this.getProjectPath(), file);
 
                 if (fs.statSync(filePath).isFile() && path.extname(file).toLowerCase() === ARDUINO_SKETCH_EXTENSION) {
-                    const sketchFileName = path.basename(file, ARDUINO_SKETCH_EXTENSION);
+                    const sketchBase = path.basename(file, ARDUINO_SKETCH_EXTENSION);
 
-                    if (sketchFileName === folderName) {
+                    if (sketchBase === folderName) {
+                        this.sketchFileName = sketchBase+ARDUINO_SKETCH_EXTENSION;
                         error = ARDUINO_ERRORS.NO_ERRORS;
                         break;
                     } else {
