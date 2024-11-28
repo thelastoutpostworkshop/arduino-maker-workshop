@@ -1,4 +1,4 @@
-import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment } from "vscode";
+import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, StatusBarItem } from "vscode";
 import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, quickAccessCompileCommandName, intellisenseCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
@@ -7,6 +7,9 @@ import { ArduinoCLI } from "./cli";
 
 export const compileCommandName:string = 'quickAccessView.compile';
 export const uploadCommandName:string = 'quickAccessView.upload';
+
+const compileStatusBarItem:StatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);;
+const uploadStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
 
 export const arduinoExtensionChannel = window.createOutputChannel(ArduinoExtensionChannelName);
 arduinoExtensionChannel.appendLine("Arduino Extension started");
@@ -46,14 +49,12 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(vsCommandUpload());
 	context.subscriptions.push(vsGenerateIntellisense());
 
-	const compileStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
 	compileStatusBarItem.text = "$(check) Compile";
 	compileStatusBarItem.command = compileCommandName;
 	compileStatusBarItem.tooltip = "Compile the current sketch";
 	compileStatusBarItem.show();
 	context.subscriptions.push(compileStatusBarItem);
 
-	const uploadStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
 	uploadStatusBarItem.text = "$(cloud-upload) Upload";
 	uploadStatusBarItem.command = uploadCommandName;
 	uploadStatusBarItem.tooltip = "Upload to the board";
