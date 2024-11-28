@@ -35,7 +35,6 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
       new QuickAccessItem(quickAccessCompileCommandName, compileCommandName, 'Compile the current sketch', 'check', this.disabledItemsState[quickAccessCompileCommandName]),
       new QuickAccessItem(compileCommandCleanName, 'compile.clean', 'Compile (rebuild clean) the current sketch', 'check', this.disabledItemsState[compileCommandCleanName]),
       new QuickAccessItem(quickAccessUploadCommandName, uploadCommandName, 'Upload to the board', 'cloud-upload', this.disabledItemsState[quickAccessUploadCommandName]),
-      new QuickAccessItem(intellisenseCommandName, intellisenseCommandName, 'Generate Intellisense file', 'bug', this.disabledItemsState[intellisenseCommandName]),
     ];
     return items;
   }
