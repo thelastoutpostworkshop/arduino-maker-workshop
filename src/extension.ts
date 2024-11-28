@@ -6,6 +6,7 @@ import { ARDUINO_ERRORS, ArduinoExtensionChannelName } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
 
 export const compileCommandName:string = 'quickAccessView.compile';
+export const uploadCommandName:string = 'quickAccessView.upload';
 
 export const arduinoExtensionChannel = window.createOutputChannel(ArduinoExtensionChannelName);
 arduinoExtensionChannel.appendLine("Arduino Extension started");
@@ -51,6 +52,13 @@ export function activate(context: ExtensionContext) {
 	compileStatusBarItem.tooltip = "Compile the current sketch";
 	compileStatusBarItem.show();
 	context.subscriptions.push(compileStatusBarItem);
+
+	const uploadStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
+	uploadStatusBarItem.text = "$(cloud-upload) Upload";
+	uploadStatusBarItem.command = uploadCommandName;
+	uploadStatusBarItem.tooltip = "Upload to the board";
+	uploadStatusBarItem.show();
+	context.subscriptions.push(uploadStatusBarItem);
 
 	context.subscriptions.push(
 		commands.registerCommand('extension.openVueWebview', () => {
