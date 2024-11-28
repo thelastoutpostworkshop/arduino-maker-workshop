@@ -32,7 +32,7 @@ export class ArduinoCLI {
 			this.checkArduinoCLICommand().then((result) => {
 				this.cliStatus = result;
 				this.configReady = arduinoCLI.checkArduinoConfiguration();
-				if(!this.configReady) {
+				if (!this.configReady) {
 					this._lastCLIError = "Problem with the Arduino Config file";
 				}
 			}).catch(() => {
@@ -57,7 +57,7 @@ export class ArduinoCLI {
 	public isCLIReady(): boolean {
 		return this.cliReady;
 	}
-	public isConfigReady():boolean {
+	public isConfigReady(): boolean {
 		return this.configReady;
 	}
 
@@ -243,21 +243,22 @@ export class ArduinoCLI {
 		if (!arduinoProject.getOutput()) {
 			window.showInformationMessage('Output not found, cannot generate intellisense');
 		}
+		this.createIntellisenseFile();
 
-		window.withProgress(
-			{
-				location: ProgressLocation.Window,
-				title: "Generating IntelliSense Configuration...",
-				cancellable: false
-			}, async (progress) => {
-				const output = await arduinoCLI.runArduinoCommand(
-					() => this.cliArgs.getCompileCommandArguments(true),
-					"CLI: Failed to compile for intellisense", true, false, this.compileUploadChannel
-				);
-				if (output) {
-					this.createIntellisenseFile(output);
-				}
-			});
+		// window.withProgress(
+		// 	{
+		// 		location: ProgressLocation.Window,
+		// 		title: "Generating IntelliSense Configuration...",
+		// 		cancellable: false
+		// 	}, async (progress) => {
+		// 		const output = await arduinoCLI.runArduinoCommand(
+		// 			() => this.cliArgs.getCompileCommandArguments(true),
+		// 			"CLI: Failed to compile for intellisense", true, false, this.compileUploadChannel
+		// 		);
+		// 		if (output) {
+		// 			this.createIntellisenseFile(output);
+		// 		}
+		// 	});
 
 	}
 	private checkArduinoConfiguration(): boolean {
@@ -490,7 +491,40 @@ export class ArduinoCLI {
 			});
 		});
 	}
-	private createIntellisenseFile(compileJsonOutput: string) {
+	private createIntellisenseFile() {
+
+		const includePaths = new Set();
+
+		try {
+			const includeDataPath = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "includes.cache");
+			const includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
+			includeData.forEach((entry: any) => {
+				if (entry.Includepath) {
+					includePaths.add(entry.Includepath + "\\**");
+				}
+			});
+
+		} catch (error) {
+			window.showErrorMessage('Cannot generate IntelliSense includes.cache not found');
+			return;
+		}
+
+		// Create c_cpp_properties.json
+		const cppProperties = {
+			configurations: [{
+				name: "Arduino",
+				includePath: Array.from(includePaths),
+				// compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
+				cStandard: "c17",
+				cppStandard: "c++17",
+			}],
+			version: 4
+		};
+
+		const cppPropertiesPath = path.join(arduinoProject.getProjectPath(), VSCODE_FOLDER, CPP_PROPERTIES);
+		fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
+	}
+	private createIntellisenseFile_old(compileJsonOutput: string) {
 		try {
 			const compileInfo: Compile = JSON.parse(compileJsonOutput);
 
