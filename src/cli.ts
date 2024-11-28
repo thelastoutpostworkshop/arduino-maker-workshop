@@ -340,7 +340,7 @@ export class ArduinoCLI {
 				window.showErrorMessage(`CLI : No result from get board configuration`);
 				throw new Error("Command result empty");
 			}
-			updateStateCompileUpload();
+			// updateStateCompileUpload();
 			return result;
 
 		} catch (error: any) {
