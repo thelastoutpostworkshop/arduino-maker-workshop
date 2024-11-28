@@ -14,7 +14,6 @@ export class ArduinoProject {
     private configJson: ArduinoProjectConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "" };
     private projectFullPath: string = "";
     private projectStatus:ArduinoProjectStatus = {status:ARDUINO_ERRORS.NO_ERRORS};
-    private uploadReady:boolean = false;
     private sketchFileName:string = "";
 
     constructor() {
