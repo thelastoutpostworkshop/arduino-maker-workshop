@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import { ARDUINO_ERRORS, ArduinoProjectConfiguration, ArduinoProjectStatus } from './shared/messages';
-import { BlobOptions } from 'buffer';
 
 const path = require('path');
 const fs = require('fs');
