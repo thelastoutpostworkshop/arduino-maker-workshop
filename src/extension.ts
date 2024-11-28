@@ -1,9 +1,11 @@
-import { window, ExtensionContext, commands, Disposable, workspace, Uri } from "vscode";
+import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment } from "vscode";
 import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
-import { compileCommandCleanName, compileCommandName, intellisenseCommandName, QuickAccessProvider, uploadCommandName } from './quickAccessProvider';
+import { compileCommandCleanName, quickAccessCompileCommandName, intellisenseCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ArduinoExtensionChannelName } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
+
+export const compileCommandName:string = 'quickAccessView.compile';
 
 export const arduinoExtensionChannel = window.createOutputChannel(ArduinoExtensionChannelName);
 arduinoExtensionChannel.appendLine("Arduino Extension started");
@@ -20,8 +22,8 @@ export function activate(context: ExtensionContext) {
 		arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
 		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 	}
-	
-	if(arduinoCLI.isConfigReady()) {
+
+	if (arduinoCLI.isConfigReady()) {
 		arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
 		arduinoExtensionChannel.appendLine(`Arduino Config file is good`);
 	} else {
@@ -42,6 +44,13 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(vsCommandCompileClean());
 	context.subscriptions.push(vsCommandUpload());
 	context.subscriptions.push(vsGenerateIntellisense());
+
+	const compileStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
+	compileStatusBarItem.text = "$(check) Compile";
+	compileStatusBarItem.command = compileCommandName;
+	compileStatusBarItem.tooltip = "Compile the current sketch";
+	compileStatusBarItem.show();
+	context.subscriptions.push(compileStatusBarItem);
 
 	context.subscriptions.push(
 		commands.registerCommand('extension.openVueWebview', () => {
@@ -64,16 +73,16 @@ export function updateStateCompileUpload() {
 	if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS &&
 		arduinoProject.getArduinoConfiguration().board.trim() !== '' &&
 		arduinoProject.getArduinoConfiguration().configuration.trim() !== '') {
-		quickAccessProvider.enableItem(compileCommandName);
+		quickAccessProvider.enableItem(quickAccessCompileCommandName);
 		quickAccessProvider.enableItem(compileCommandCleanName);
-		if(arduinoProject.isUploadReady()) {
-			quickAccessProvider.enableItem(uploadCommandName);
+		if (arduinoProject.isUploadReady()) {
+			quickAccessProvider.enableItem(quickAccessUploadCommandName);
 		}
 		quickAccessProvider.enableItem(intellisenseCommandName);
 	} else {
-		quickAccessProvider.disableItem(compileCommandName);
+		quickAccessProvider.disableItem(quickAccessCompileCommandName);
 		quickAccessProvider.disableItem(compileCommandCleanName);
-		quickAccessProvider.disableItem(uploadCommandName);
+		quickAccessProvider.disableItem(quickAccessUploadCommandName);
 		quickAccessProvider.disableItem(intellisenseCommandName);
 	}
 }

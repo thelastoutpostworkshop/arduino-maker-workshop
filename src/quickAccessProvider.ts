@@ -1,8 +1,9 @@
 import { TreeDataProvider, EventEmitter, Event, TreeItem, TreeItemCollapsibleState, ThemeIcon, ThemeColor } from "vscode";
+import { compileCommandName } from "./extension";
 
-export const compileCommandName = 'Compile';
+export const quickAccessCompileCommandName = 'Compile';
 export const compileCommandCleanName = 'Compile (clean)';
-export const uploadCommandName = 'Upload';
+export const quickAccessUploadCommandName = 'Upload';
 export const homeCommandName = 'Arduino Home';
 export const intellisenseCommandName = 'intellisense';
 
@@ -15,8 +16,8 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
   private disabledItemsState: { [key: string]: boolean } = {
     compileCommandName: true,
     uploadCommandName: true,
-    homeCommandName:false,
-    intellisenseCommandName:true,
+    homeCommandName: false,
+    intellisenseCommandName: true,
   };
 
   getTreeItem(element: QuickAccessItem): TreeItem {
@@ -31,9 +32,9 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
   private getQuickAccessItems(): QuickAccessItem[] {
     const items = [
       new QuickAccessItem(homeCommandName, 'extension.openVueWebview', 'Open the Arduino Home', 'home', this.disabledItemsState[homeCommandName]),
-      new QuickAccessItem(compileCommandName, 'quickAccessView.compile', 'Compile the current sketch', 'check', this.disabledItemsState[compileCommandName]),
+      new QuickAccessItem(quickAccessCompileCommandName, compileCommandName, 'Compile the current sketch', 'check', this.disabledItemsState[quickAccessCompileCommandName]),
       new QuickAccessItem(compileCommandCleanName, 'compile.clean', 'Compile (rebuild clean) the current sketch', 'check', this.disabledItemsState[compileCommandCleanName]),
-      new QuickAccessItem(uploadCommandName, 'quickAccessView.upload', 'Upload to the board', 'cloud-upload', this.disabledItemsState[uploadCommandName]),
+      new QuickAccessItem(quickAccessUploadCommandName, 'quickAccessView.upload', 'Upload to the board', 'cloud-upload', this.disabledItemsState[quickAccessUploadCommandName]),
       new QuickAccessItem(intellisenseCommandName, intellisenseCommandName, 'Generate Intellisense file', 'bug', this.disabledItemsState[intellisenseCommandName]),
     ];
     return items;
