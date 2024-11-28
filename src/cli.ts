@@ -494,6 +494,7 @@ export class ArduinoCLI {
 	private createIntellisenseFile() {
 
 		const includePaths = new Set();
+		let compilerPath = '';
 
 		try {
 			const includeDataPath = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "includes.cache");
@@ -509,12 +510,26 @@ export class ArduinoCLI {
 			return;
 		}
 
+		try {
+			const compileCommandJson = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "compile_commands.json");
+			const compileInfo = JSON.parse(fs.readFileSync(compileCommandJson, 'utf8'));
+			for (const entry of compileInfo) {
+				if (entry.arguments && Array.isArray(entry.arguments) && entry.arguments.length > 0) {
+					compilerPath = entry.arguments[0]; // Take the first argument
+					break; // Stop after finding the first valid entry
+				}
+			}
+		} catch (error) {
+			window.showErrorMessage('Cannot generate IntelliSense compile_commands.json not found');
+			return;
+		}
+
 		// Create c_cpp_properties.json
 		const cppProperties = {
 			configurations: [{
 				name: "Arduino",
 				includePath: Array.from(includePaths),
-				// compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
+				compilerPath: compilerPath,  // You can retrieve this from output if needed
 				cStandard: "c17",
 				cppStandard: "c++17",
 			}],
