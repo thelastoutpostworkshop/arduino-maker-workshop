@@ -5,10 +5,10 @@ import { compileCommandCleanName, quickAccessCompileCommandName, intellisenseCom
 import { ARDUINO_ERRORS, ArduinoExtensionChannelName } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
 
-export const compileCommandName:string = 'quickAccessView.compile';
-export const uploadCommandName:string = 'quickAccessView.upload';
+export const compileCommandName: string = 'quickAccessView.compile';
+export const uploadCommandName: string = 'quickAccessView.upload';
 
-const compileStatusBarItem:StatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);;
+const compileStatusBarItem: StatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);;
 const uploadStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
 
 export const arduinoExtensionChannel = window.createOutputChannel(ArduinoExtensionChannelName);
@@ -52,13 +52,11 @@ export function activate(context: ExtensionContext) {
 	compileStatusBarItem.text = "$(check) Compile";
 	compileStatusBarItem.command = compileCommandName;
 	compileStatusBarItem.tooltip = "Compile the current sketch";
-	compileStatusBarItem.show();
 	context.subscriptions.push(compileStatusBarItem);
 
 	uploadStatusBarItem.text = "$(cloud-upload) Upload";
 	uploadStatusBarItem.command = uploadCommandName;
 	uploadStatusBarItem.tooltip = "Upload to the board";
-	uploadStatusBarItem.show();
 	context.subscriptions.push(uploadStatusBarItem);
 
 	context.subscriptions.push(
@@ -84,11 +82,17 @@ export function updateStateCompileUpload() {
 		arduinoProject.getArduinoConfiguration().configuration.trim() !== '') {
 		quickAccessProvider.enableItem(quickAccessCompileCommandName);
 		quickAccessProvider.enableItem(compileCommandCleanName);
+		compileStatusBarItem.show();
 		if (arduinoProject.isUploadReady()) {
 			quickAccessProvider.enableItem(quickAccessUploadCommandName);
+			uploadStatusBarItem.show();
+		} else {
+			quickAccessProvider.disableItem(quickAccessUploadCommandName);
+			uploadStatusBarItem.hide();
 		}
 		quickAccessProvider.enableItem(intellisenseCommandName);
 	} else {
+		compileStatusBarItem.hide();
 		quickAccessProvider.disableItem(quickAccessCompileCommandName);
 		quickAccessProvider.disableItem(compileCommandCleanName);
 		quickAccessProvider.disableItem(quickAccessUploadCommandName);
