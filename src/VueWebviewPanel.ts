@@ -179,7 +179,6 @@ export class VueWebviewPanel {
             this._disposables
         );
 
-        // Dispose of resources when the panel is closed
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
         this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
         arduinoExtensionChannel.appendLine("Arduino Web view ready");
@@ -222,14 +221,12 @@ export class VueWebviewPanel {
 
     public static render(extensionUri: Uri) {
 
-        // If we already have a panel, show it.
         if (VueWebviewPanel.currentPanel) {
             VueWebviewPanel.currentPanel._panel.reveal(ViewColumn.One);
         } else {
-            // Otherwise, create a new panel.
             const panel = window.createWebviewPanel(
-                'vueWebview', // Identifies the type of the webview. Used internally
-                'Arduino Home', // Title of the panel displayed to the user
+                'vueWebview', 
+                'Arduino Home', 
                 ViewColumn.One,
                 {
                     enableScripts: true,
