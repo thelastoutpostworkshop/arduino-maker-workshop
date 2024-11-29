@@ -75,7 +75,7 @@ onMounted(() => {
 <template>
   <v-container>
     <v-responsive>
-      <v-row align="center" class="mt-5 ml-5">
+      <v-row align="center" class="mt-1 ml-5">
         <img :src="arduinoImage" height="75" alt="Arduino Home" />
         <span class="text-h4 font-weight-bold ml-5">Arduino Home</span>
       </v-row>
