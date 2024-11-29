@@ -14,6 +14,7 @@ const filterLibraries = ref(FilterLibraries.installed);
 const selectedLibrary = ref<Record<string, string>>({});
 const searchLibrary = ref('');
 const filterdLibrariesCount = ref(0);
+const fileInput = ref<HTMLInputElement | null>(null);
 
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
@@ -128,6 +129,26 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
   return filtered || [];
 }
 
+function installFromZip(event:Event) {
+  const target = event.target as HTMLInputElement;
+
+  const file = target.files?.[0];
+
+  if (!file) {
+    console.error('No file selected.');
+    return;
+  }
+
+  if (file.type !== 'application/x-zip-compressed') {
+    console.error('Selected file is not a .zip file.');
+    return;
+  }
+  console.log('file is good to go');
+}
+
+function triggerFileSelection() {
+  fileInput.value?.click();
+}
 </script>
 
 <template>
@@ -148,6 +169,8 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
         </v-card-text>
       </v-card>
       <div v-else-if="!store.libraryUpdating">
+        <v-btn @click="triggerFileSelection">Install from zip file</v-btn>
+        <input type="file" ref="fileInput" accept=".zip" style="display: none" @change="installFromZip" />
         <v-chip-group selected-class="text-primary" mandatory v-model="filterLibraries">
           <v-chip filter :value="FilterLibraries.installed">Installed & Up to date</v-chip>
           <v-chip :disabled="updatableLibraryCount == 0" filter :value="FilterLibraries.updatable">Updatable
