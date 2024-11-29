@@ -3,7 +3,6 @@ import { isValidUrl, isValidUrlRule } from '@/utilities/utils';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, Platform } from '@shared/messages';
 import { onMounted, computed, ref } from 'vue';
-import image from '@/assets/board_manager.png';
 
 enum FilterBoards {
   installed,
@@ -180,7 +179,7 @@ const isURLInvalid = computed(() => {
   <v-container>
     <v-responsive>
       <v-row align="center" class="mt-1 ml-5 mb-5">
-        <img :src="image" height="65" alt="Arduino Home" />
+        <v-icon>mdi-developer-board</v-icon>
         <span class="text-h4 font-weight-bold ml-5">Boards Manager</span>
       </v-row>
       <v-card v-if="!store.platform?.platforms" class="mt-5">

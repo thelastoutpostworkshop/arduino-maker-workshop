@@ -64,9 +64,10 @@ onMounted(() => {
 <template>
     <v-container>
         <v-responsive>
-            <div class="text-center">
-                <h1 class="text-h4 font-weight-bold">Board Configuration</h1>
-            </div>
+            <v-row align="center" class="mt-1 ml-5 mb-5">
+                <v-icon>mdi-cog</v-icon>
+                <span class="text-h4 font-weight-bold ml-5">Board Configuration</span>
+            </v-row>
             <div v-if="store.projectInfo?.board">
                 <v-text-field label="Current Board:" :model-value="store.boardOptions?.name" readonly>
                     <template v-slot:loader>

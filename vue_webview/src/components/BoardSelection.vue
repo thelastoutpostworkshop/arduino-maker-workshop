@@ -2,7 +2,6 @@
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, BoardConfiguration, Metadata } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
-import image from '@/assets/board_selection.png';
 
 const store = useVsCodeStore();
 const boardSelect = ref<(BoardConfiguration | null)[]>([]); // Updated to track selected boards for each platform
@@ -80,7 +79,7 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boar
   <v-container>
     <v-responsive>
       <v-row align="center" class="mt-1 ml-5 mb-5">
-        <img :src="image" height="75" alt="Arduino Home" />
+         <v-icon>mdi-format-list-checks</v-icon>
         <span class="text-h4 font-weight-bold ml-5">Board Selection</span>
       </v-row>
       <v-text-field  label="Current Board:" :model-value="store.boardOptions?.name"

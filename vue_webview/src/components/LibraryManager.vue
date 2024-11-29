@@ -133,9 +133,10 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
 <template>
   <v-container>
     <v-responsive>
-      <div class="text-center">
-        <h1 class="text-h4 font-weight-bold">Library Manager</h1>
-      </div>
+      <v-row align="center" class="mt-1 ml-5 mb-5">
+        <v-icon>mdi-library</v-icon>
+        <span class="text-h4 font-weight-bold ml-5">Library Manager</span>
+      </v-row>
       <v-card v-if="!store.libraries?.libraries" class="mt-5">
         <v-card-item title="Loading Libraries">
           <template v-slot:subtitle>

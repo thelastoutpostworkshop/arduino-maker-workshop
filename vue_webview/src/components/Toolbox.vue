@@ -26,7 +26,7 @@ const boardToUpdate = computed(() => {
         <v-list-item :prepend-avatar="arduinoIcon"></v-list-item>
         <v-divider></v-divider>
         <v-list-item prepend-icon="mdi-home" v-tooltip @click="router.push({ name: 'home' })">Project Home</v-list-item>
-        <v-list-item prepend-icon="mdi-bulletin-board" v-tooltip @click="router.push({ name: 'board-selection' })">Board
+        <v-list-item prepend-icon="mdi-format-list-checks" v-tooltip @click="router.push({ name: 'board-selection' })">Board
             Selection</v-list-item>
         <v-list-item prepend-icon="mdi-cog" v-tooltip @click="router.push({ name: 'board-configuration' })">Board
             Configuration</v-list-item>

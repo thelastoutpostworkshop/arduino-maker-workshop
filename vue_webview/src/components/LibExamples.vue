@@ -70,9 +70,10 @@ onMounted(() => {
 <template>
   <v-container>
     <v-responsive>
-      <div class="text-center">
-        <h1 class="text-h4 font-weight-bold mb-4">Library Examples</h1>
-      </div>
+      <v-row align="center" class="mt-1 ml-5 mb-5">
+        <v-icon>mdi-test-tube</v-icon>
+        <span class="text-h4 font-weight-bold ml-5">Library Examples</span>
+      </v-row>
       <div>
         <v-card v-if="!store.librariesInstalled?.installed_libraries" class="mt-5">
           <v-card-item title="Loading Libraries examples">
