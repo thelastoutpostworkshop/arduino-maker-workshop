@@ -2,7 +2,7 @@
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, BoardConfiguration, Metadata } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
-import arduinoImage from '@/assets/arduino_icon.webp';
+import arduinoImage from '@/assets/board_selection.png';
 
 const store = useVsCodeStore();
 const boardSelect = ref<(BoardConfiguration | null)[]>([]); // Updated to track selected boards for each platform
