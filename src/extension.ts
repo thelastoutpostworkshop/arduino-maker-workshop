@@ -8,8 +8,12 @@ import { ArduinoCLI } from "./cli";
 export const compileCommandName: string = 'quickAccessView.compile';
 export const uploadCommandName: string = 'quickAccessView.upload';
 
-const compileStatusBarItem: StatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);;
-const uploadStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
+export const compileStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
+export const compileStatusBarNotExecuting:string = "$(check) Compile";
+export const compileStatusBarExecuting:string = "$(sync~spin) Compiling";
+export const uploadStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
+export const uploadStatusBarNotExecuting:string = "$(cloud-upload) Upload";
+export const uploadStatusBarExecuting:string = "$(sync~spin) Uploading";
 
 export const arduinoExtensionChannel = window.createOutputChannel(ArduinoExtensionChannelName);
 arduinoExtensionChannel.appendLine("Arduino Extension started");
@@ -49,12 +53,12 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(vsCommandUpload());
 	context.subscriptions.push(vsGenerateIntellisense());
 
-	compileStatusBarItem.text = "$(check) Compile";
+	compileStatusBarItem.text = compileStatusBarNotExecuting;
 	compileStatusBarItem.command = compileCommandName;
 	compileStatusBarItem.tooltip = "Compile the current sketch";
 	context.subscriptions.push(compileStatusBarItem);
 
-	uploadStatusBarItem.text = "$(cloud-upload) Upload";
+	uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 	uploadStatusBarItem.command = uploadCommandName;
 	uploadStatusBarItem.tooltip = "Upload to the board";
 	context.subscriptions.push(uploadStatusBarItem);

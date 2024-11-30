@@ -1,5 +1,5 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext } from "vscode";
-import { arduinoCLI, arduinoProject, loadArduinoConfiguration, updateStateCompileUpload } from "./extension";
+import { arduinoCLI, arduinoProject, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
 import { ArduinoCLIStatus, ArduinoConfig, Compile } from "./shared/messages";
 import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Version } from "@microsoft/vscode-serial-monitor-api";
 import { VSCODE_FOLDER } from "./ArduinoProject";
@@ -182,13 +182,16 @@ export class ArduinoCLI {
 		}
 
 		try {
+			compileStatusBarItem.text = compileStatusBarExecuting;
 			await arduinoCLI.runArduinoCommand(
 				() => this.cliArgs.getCompileCommandArguments(false, clean),
 				"CLI: Failed to compile project", true, true, this.compileUploadChannel, "Compilation success!"
 			);
+			compileStatusBarItem.text = compileStatusBarNotExecuting;
 			this.generateIntellisense();
 			updateStateCompileUpload();
 		} catch (error) {
+			compileStatusBarItem.text = compileStatusBarNotExecuting;
 			console.log(error);
 		}
 		this.compileOrUploadRunning = false;
@@ -218,15 +221,18 @@ export class ArduinoCLI {
 			this.serialMoniorAPI.stopMonitoringPort(port);
 		}
 		try {
+			uploadStatusBarItem.text = uploadStatusBarExecuting;
 			await arduinoCLI.runArduinoCommand(
 				() => this.cliArgs.getUploadArguments(),
 				"CLI: Failed to upload", false, true, this.compileUploadChannel
 			);
+			uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 			if (this.serialMoniorAPI) {
 				this.serialMoniorAPI.startMonitoringPort({ port: arduinoProject.getPort(), baudRate: 115200, lineEnding: LineEnding.None, dataBits: 8, stopBits: StopBits.One, parity: Parity.None }).then((port) => {
 				});
 			}
 		} catch (error) {
+			uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 			console.log(error);
 		}
 		this.compileOrUploadRunning = false;
