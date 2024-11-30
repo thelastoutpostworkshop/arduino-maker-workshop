@@ -171,6 +171,9 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
+                    case ARDUINO_MESSAGES.INSTALL_ZIP_LIBRARY:
+                        arduinoCLI.downloadZipLibrary(message.payload);
+                        break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);
                 }

@@ -268,6 +268,17 @@ export class ArduinoCLI {
 		// 	});
 
 	}
+	public downloadZipLibrary(buffer: ArrayBuffer) {
+		try {
+			const tempDir = os.tmpdir();
+			const tempFileName = `library_${Date.now()}.zip`;
+			const destinationPath = path.join(tempDir, tempFileName);
+
+			fs.writeFileSync(destinationPath, Buffer.from(buffer));
+		} catch (error) {
+			window.showErrorMessage(`Copy zip library failed: ${error}`);
+		}
+	}
 	private checkArduinoConfiguration(): boolean {
 		this.runArduinoCommand(
 			() => this.cliArgs.getConfigDumpArgs(),

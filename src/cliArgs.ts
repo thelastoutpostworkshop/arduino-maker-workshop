@@ -106,6 +106,15 @@ export class CLIArguments {
         ];
         return command;
     }
+    public getInstallZipLibrary(zipPath: string): string[] {
+        const command = [
+            `${libraryCommandArduino}`,
+            `${installOption}`,
+            `${zipOption}`,
+            `${zipPath}`
+        ];
+        return command;
+    }
     public getUninstallLibraryArguments(name: string): string[] {
         const installCoreVersionCommand = [
             `${libraryCommandArduino}`,
