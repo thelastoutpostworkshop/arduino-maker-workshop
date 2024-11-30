@@ -91,7 +91,14 @@
     "typescript": "^5.4.5",
     "vite": "^5.4.3"
   },
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
   "dependencies": {
-    "@microsoft/vscode-serial-monitor-api": "^0.1.7"
+    "@microsoft/vscode-serial-monitor-api": "^0.1.7",
+    "usb": "^2.14.0"
   }
 }

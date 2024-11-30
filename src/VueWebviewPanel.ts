@@ -4,7 +4,7 @@ import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, loadArduinoConfiguration, openExample } from "./extension";
 
-// const usb = require('usb').usb;
+const usb = require('usb').usb;
 
 export class VueWebviewPanel {
 
@@ -16,12 +16,12 @@ export class VueWebviewPanel {
     }
     private constructor(panel: WebviewPanel, extensionUri: Uri) {
         this._panel = panel;
-        // usb.on("attach", () => {
-        //     this.usbChange();
-        // });
-        // usb.on("detach", () => {
-        //     this.usbChange();
-        // });
+        usb.on("attach", () => {
+            this.usbChange();
+        });
+        usb.on("detach", () => {
+            this.usbChange();
+        });
         // Handle messages from the Vue web application
         this._panel.webview.onDidReceiveMessage(
             (message: WebviewToExtensionMessage) => {
