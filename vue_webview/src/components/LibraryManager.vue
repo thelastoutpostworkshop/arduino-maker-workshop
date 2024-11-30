@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, InstalledLibrary, LibraryAvailable } from '@shared/messages';
-import { onMounted, computed, ref } from 'vue';
+import { onMounted, computed, ref, watch } from 'vue';
 
 enum FilterLibraries {
   installed,
@@ -14,7 +14,7 @@ const filterLibraries = ref(FilterLibraries.installed);
 const selectedLibrary = ref<Record<string, string>>({});
 const searchLibrary = ref('');
 const filterdLibrariesCount = ref(0);
-const fileInput = ref<HTMLInputElement | null>(null);
+const zipFile = ref<File[]>([]);
 
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
@@ -129,26 +129,31 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
   return filtered || [];
 }
 
-function installFromZip(event:Event) {
-  const target = event.target as HTMLInputElement;
 
-  const file = target.files?.[0];
-
-  if (!file) {
-    console.error('No file selected.');
+watch(zipFile, () => {
+  if (!zipFile.value || !(zipFile.value instanceof Blob)) {
+    console.error("Selected file is not valid.");
     return;
   }
+  const reader = new FileReader();
+  reader.onload = function () {
+    const arrayBuffer = reader.result;
+    store.sendMessage({
+      command: 'installFromZip',
+      payload: arrayBuffer,
+      errorMessage: ""
+    });
+  };
+  reader.onerror = function () {
+    console.error('Error reading the file.');
+  };
 
-  if (file.type !== 'application/x-zip-compressed') {
-    console.error('Selected file is not a .zip file.');
-    return;
-  }
-  console.log('file is good to go');
-}
+  // Read the file as an ArrayBuffer
+  reader.readAsArrayBuffer(zipFile.value);
+}, { deep: true }
+);
 
-function triggerFileSelection() {
-  fileInput.value?.click();
-}
+
 </script>
 
 <template>
@@ -169,8 +174,10 @@ function triggerFileSelection() {
         </v-card-text>
       </v-card>
       <div v-else-if="!store.libraryUpdating">
-        <v-btn @click="triggerFileSelection">Install from zip file</v-btn>
-        <input type="file" ref="fileInput" accept=".zip" style="display: none" @change="installFromZip" />
+        <v-file-input v-model="zipFile" label="Install library from zip file" accept="application/x-zip-compressed">
+
+        </v-file-input>
+        <!-- <input type="file" ref="fileInput" accept=".zip" style="display: none" @change="installFromZip" /> -->
         <v-chip-group selected-class="text-primary" mandatory v-model="filterLibraries">
           <v-chip filter :value="FilterLibraries.installed">Installed & Up to date</v-chip>
           <v-chip :disabled="updatableLibraryCount == 0" filter :value="FilterLibraries.updatable">Updatable
