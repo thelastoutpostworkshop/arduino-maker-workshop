@@ -407,5 +407,6 @@ export const ARDUINO_MESSAGES = {
   LIBRARY_VERSION_INSTALLED: 'libraryVersionInstalled',
   LIBRARY_UNINSTALLED: 'libraryVersionInstalled',
   OPEN_LIBRARY: 'openExample',
-  REQUEST_BOARD_CONNECTED: "requestBoardConnected"
+  REQUEST_BOARD_CONNECTED: "requestBoardConnected",
+  INSTALL_ZIP_LIBRARY:"installZipLibrary"
 };
