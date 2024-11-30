@@ -32,6 +32,7 @@ const installOption: string = 'install';
 const uninstallOption: string = 'uninstall';
 const searchOption: string = 'search';
 const listOption: string = 'list';
+const zipOption: string = '--zip-path';
 const configDirDataSetting: string = 'directories.data';
 const configDirDownloadSetting: string = 'directories.downloads';
 const configDirUserSetting: string = 'directories.user';
