@@ -268,13 +268,21 @@ export class ArduinoCLI {
 		// 	});
 
 	}
-	public downloadZipLibrary(buffer: ArrayBuffer) {
+	public installZipLibrary(buffer: ArrayBuffer) {
 		try {
 			const tempDir = os.tmpdir();
 			const tempFileName = `library_${Date.now()}.zip`;
 			const destinationPath = path.join(tempDir, tempFileName);
 
 			fs.writeFileSync(destinationPath, Buffer.from(buffer));
+			this.runArduinoCommand(
+				() => this.cliArgs.getInstallZipLibrary(destinationPath),
+				"CLI : Failed to get arduino configuration information"
+			).then(() => {
+			}
+			).catch((error) => {
+				window.showErrorMessage(`Failed to install zip library ${error}`);
+			});
 		} catch (error) {
 			window.showErrorMessage(`Copy zip library failed: ${error}`);
 		}

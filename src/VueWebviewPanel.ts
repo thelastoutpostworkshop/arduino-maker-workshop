@@ -172,7 +172,7 @@ export class VueWebviewPanel {
                         });
                         break;
                     case ARDUINO_MESSAGES.INSTALL_ZIP_LIBRARY:
-                        arduinoCLI.downloadZipLibrary(message.payload);
+                        arduinoCLI.installZipLibrary(message.payload);
                         break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);
@@ -228,8 +228,8 @@ export class VueWebviewPanel {
             VueWebviewPanel.currentPanel._panel.reveal(ViewColumn.One);
         } else {
             const panel = window.createWebviewPanel(
-                'vueWebview', 
-                'Arduino Home', 
+                'vueWebview',
+                'Arduino Home',
                 ViewColumn.One,
                 {
                     enableScripts: true,
