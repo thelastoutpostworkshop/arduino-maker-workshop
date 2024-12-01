@@ -29,7 +29,7 @@ export class ArduinoConfiguration {
 
             return true; 
         } catch (error) {
-            arduinoExtensionChannel.appendLine("Error parsing Arduino Configuration or file not found");
+            arduinoExtensionChannel.appendLine("Bad Arduino Configuration file");
             return false; 
         }
     }
