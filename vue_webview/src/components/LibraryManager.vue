@@ -138,7 +138,7 @@ watch(zipFile, () => {
   const reader = new FileReader();
   reader.onload = function () {
     const arrayBuffer = reader.result;
-    store.sendMessage({command: ARDUINO_MESSAGES.INSTALL_ZIP_LIBRARY,payload: arrayBuffer,errorMessage: ""});
+    store.sendMessage({ command: ARDUINO_MESSAGES.INSTALL_ZIP_LIBRARY, payload: arrayBuffer, errorMessage: "" });
   };
   reader.onerror = function () {
     console.error('Error reading the file.');

@@ -314,7 +314,6 @@ export interface Libsearch {
 
 export interface LibraryAvailable {
   name: string;
-  releases: Releases;
   latest: LatestLibrary;
   installedVersion?: string;
   available_versions: string[];
@@ -347,9 +346,6 @@ export interface LibraryResources {
   checksum: string;
   size: number;
   cache_path: string;
-}
-
-export interface Releases {
 }
 
 // Board connected interfaces
