@@ -20,7 +20,6 @@ export class ArduinoCLI {
 	private arduinoCLIChannel: OutputChannel;
 	private compileUploadChannel: OutputChannel;
 	private cliArgs = new CLIArguments();
-	private configReady: boolean = true;
 	private _lastCLIError: string = "";
 	private cliStatus: ArduinoCLIStatus = { VersionString: "", Date: "" };
 	private arduinoConfig = new ArduinoConfiguration();
@@ -58,9 +57,9 @@ export class ArduinoCLI {
 	public isConfigReady(): boolean {
 		if(!this.arduinoConfig.verify()) {
 			this._lastCLIError = "Problem with the Arduino Config file";
-			this.configReady = false;
+			return false;
 		}
-		return this.configReady;
+		return true;
 	}
 
 	public async getOutdatedBoardAndLib(): Promise<string> {
