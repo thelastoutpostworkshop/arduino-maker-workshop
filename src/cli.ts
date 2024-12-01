@@ -33,7 +33,7 @@ export class ArduinoCLI {
 		if (this.arduinoCLIPath !== '') {
 			this.checkArduinoCLICommand().then((result) => {
 				this.cliStatus = result;
-				if(!this.arduinoConfig.isPresent()) {
+				if(!this.arduinoConfig.verify()) {
 					this._lastCLIError = "Problem with the Arduino Config file";
 					this.configReady = false;
 				}
