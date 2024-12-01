@@ -33,9 +33,9 @@ export function activate(context: ExtensionContext) {
 	}
 
 	if (arduinoCLI.isConfigReady()) {
-		arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
 		arduinoExtensionChannel.appendLine(`Arduino Config file is good`);
 	} else {
+		arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
 		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 	}
 
