@@ -1,7 +1,9 @@
 import { arduinoCLI } from "./extension";
+import { ArduinoConfig } from "./shared/messages";
 
 
 export class ArduinoConfiguration {
+    private config: ArduinoConfig;
     constructor() {
 
     }
@@ -13,7 +15,12 @@ export class ArduinoConfiguration {
     }
     private isPresent(): boolean {
         let res: boolean = false;
-        arduinoCLI.getArduinoConfig().then(() => {
+        arduinoCLI.getArduinoConfig().then((json) => {
+            try {
+                this.config = JSON.parse(json);
+            } catch (error) {
+                res = false;
+            }
             res = true;
         }).catch(() => {
             res = false;
