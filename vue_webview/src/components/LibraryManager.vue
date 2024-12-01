@@ -59,6 +59,9 @@ function isLibraryInstalled(library: LibraryAvailable): boolean {
 }
 
 function isLibraryUpdatable(library: LibraryAvailable): boolean {
+  if (library.zip_installation) {
+    return false;
+  }
   const installedLibrary = findLibrary(library.name);
   return installedLibrary?.library.version !== library.latest.version
 }
@@ -112,6 +115,22 @@ function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
   switch (filter) {
     case FilterLibraries.installed:
       filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library));
+      // For libraries installed through zip
+      store.librariesInstalled?.installed_libraries.forEach((library) => {
+        const inArduinoLibrary = store.libraries?.libraries.find(
+          (filteredLibrary) => filteredLibrary.name === library.library.name
+        );
+
+        if (!inArduinoLibrary) {
+          console.log(library.library.name);
+          filtered.push({
+            name: library.library.name,
+            latest: library.release,
+            available_versions: [],
+            zip_installation: true
+          });
+        }
+      });
       break;
     case FilterLibraries.updatable:
       filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryUpdatable(library) && isLibraryInstalled(library));
