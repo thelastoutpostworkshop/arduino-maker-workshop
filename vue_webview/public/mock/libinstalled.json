@@ -2,83 +2,61 @@
   "installed_libraries": [
     {
       "library": {
-        "name": "JPEGDEC",
-        "author": "Larry Bank",
-        "maintainer": "Larry Bank",
-        "sentence": "Optimized JPEG decoder for MCUs with 32K+ RAM.",
-        "paragraph": "A fast JPEG library with a unique set of functions to make viewing image on microcontrollers easy. Includes fast downscaling options and the ability to view Exif embedded thumbnails. Supports baseline grayscale and color images with Huffman encoding.",
-        "website": "https://github.com/bitbank2/JPEGDEC",
+        "name": "Adafruit NeoPixel",
+        "author": "Adafruit",
+        "maintainer": "Adafruit \u003cinfo@adafruit.com\u003e",
+        "sentence": "Arduino library for controlling single-wire-based LED pixels and strip.",
+        "paragraph": "Arduino library for controlling single-wire-based LED pixels and strip.",
+        "website": "https://github.com/adafruit/Adafruit_NeoPixel",
         "category": "Display",
         "architectures": ["*"],
-        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC",
-        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\src",
-        "version": "1.6.1",
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel",
+        "version": "1.12.3",
         "license": "Unspecified",
         "properties": {},
         "location": "user",
-        "layout": "recursive",
+        "layout": "flat",
         "examples": [
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\ILI9431_t3_slideshow",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\M5Stack\\M5Core2",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\M5Stack\\M5Fire",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\M5Stack\\M5Stack",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\M5Stack\\M5StickC",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\M5Stack\\M5StickCPlus",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\adafruit_gfx_demo",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\epd_demo",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\esp32_jpeg",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\jpeg_perf_test"
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\RGBWstrandtest",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\StrandtestArduinoBLE",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\StrandtestArduinoBLECallback",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\StrandtestBLE",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\StrandtestBLE_nodelay",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\buttoncycler",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\simple",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\simple_new_operator",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\strandtest",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\strandtest_nodelay",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\strandtest_wheel"
         ],
-        "provides_includes": ["JPEGDEC.h"],
+        "provides_includes": ["Adafruit_NeoPixel.h"],
         "compatible_with": {}
       }
     },
     {
       "library": {
-        "name": "ESP Async WebServer",
-        "author": "Me-No-Dev",
-        "maintainer": "Mathieu Carbou \u003cmathieu.carbou@gmail.com\u003e",
-        "sentence": "Asynchronous HTTP and WebSocket Server Library for ESP32, ESP8266 and RP2040",
-        "paragraph": "Supports: WebSocket, SSE, Authentication, Arduino Json 7, File Upload, Static File serving, URL Rewrite, URL Redirect, etc",
-        "website": "https://github.com/mathieucarbou/ESPAsyncWebServer",
-        "category": "Other",
+        "name": "Adafruit GFX Library",
+        "author": "Adafruit",
+        "maintainer": "Adafruit \u003cinfo@adafruit.com\u003e",
+        "sentence": "Adafruit GFX graphics core library, this is the 'core' class that all our other graphics libraries derive from.",
+        "paragraph": "Install this library in addition to the display library for your hardware.",
+        "website": "https://github.com/adafruit/Adafruit-GFX-Library",
+        "category": "Display",
         "architectures": ["*"],
-        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer",
-        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\src",
-        "version": "3.0.6",
-        "license": "LGPL-3.0",
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_GFX_Library",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_GFX_Library",
+        "version": "1.11.11",
+        "license": "Unspecified",
         "properties": {},
         "location": "user",
-        "layout": "recursive",
+        "layout": "flat",
         "examples": [
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\CaptivePortal",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\Draft",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\Filters",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\SimpleServer",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\StreamFiles"
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_GFX_Library\\examples\\GFXcanvas",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_GFX_Library\\examples\\mock_ili9341"
         ],
-        "provides_includes": [
-          "AsyncEventSource.h",
-          "AsyncJson.h",
-          "AsyncWebSocket.h",
-          "ESPAsyncWebServer.h",
-          "ESP_Async_WebServer.h",
-          "WebAuthentication.h",
-          "WebHandlerImpl.h",
-          "WebResponseImpl.h"
-        ],
+        "provides_includes": ["Adafruit_GFX.h", "Adafruit_GrayOLED.h", "Adafruit_SPITFT.h", "Adafruit_SPITFT_Macros.h", "gfxfont.h"],
         "compatible_with": {}
-      },
-      "release": {
-        "author": "Me-No-Dev",
-        "version": "3.3.21",
-        "maintainer": "Mathieu Carbou \u003cmathieu.carbou@gmail.com\u003e",
-        "sentence": "Asynchronous HTTP and WebSocket Server Library for ESP32, ESP8266 and RP2040",
-        "paragraph": "Supports: WebSocket, SSE, Authentication, Arduino Json 7, File Upload, Static File serving, URL Rewrite, URL Redirect, etc",
-        "website": "https://github.com/mathieucarbou/ESPAsyncWebServer",
-        "category": "Other",
-        "architectures": ["*"],
-        "types": ["Contributed"]
       }
     },
     {
@@ -256,6 +234,71 @@
     },
     {
       "library": {
+        "name": "JPEGDecoder",
+        "author": "Bodmer \u003cbodmer@anola.net\u003e, Makoto Kurauchi, Rich Geldreich",
+        "maintainer": "Bodmer",
+        "sentence": "Jpeg decoder tested with Arduino Mega, Arduino Due and ESP8266 based NodeMCU 1.0",
+        "paragraph": "Decodes jpeg images stored in arrays, SD card files and SPIFFS files",
+        "website": "https://github.com/Bodmer/JPEGDecoder",
+        "category": "Display",
+        "architectures": ["*"],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDecoder",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDecoder\\src",
+        "version": "2.0.0",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDecoder\\examples\\Adafruit_GFX\\Huzzah_Jpeg",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDecoder\\examples\\Adafruit_GFX\\NodeMCU_Jpeg",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDecoder\\examples\\Arduino TFT\\TFT_Jpeg",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDecoder\\examples\\ILI9341_due\\Due_SD_Jpeg",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDecoder\\examples\\MCUFRIEND_kbv\\jpeg_kbv",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDecoder\\examples\\Other libraries\\Mega and Due\\TFT_SDcard_jpg",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDecoder\\examples\\Other libraries\\Mega and Due\\TFT_flash_jpg",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDecoder\\examples\\Other libraries\\NodeMCU_Jpeg_ESP",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDecoder\\examples\\Other libraries\\SPIFFS_Jpeg",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDecoder\\examples\\UTFT\\UTFT_Flash_Jpeg",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDecoder\\examples\\UTFT\\UTFT_SD_Jpeg"
+        ],
+        "provides_includes": ["JPEGDecoder.h"],
+        "compatible_with": {}
+      }
+    },
+    {
+      "library": {
+        "name": "Adafruit BusIO",
+        "author": "Adafruit",
+        "maintainer": "Adafruit \u003cinfo@adafruit.com\u003e",
+        "sentence": "This is a library for abstracting away I2C and SPI interfacing",
+        "paragraph": "This is a library for abstracting away I2C and SPI interfacing",
+        "website": "https://github.com/adafruit/Adafruit_BusIO",
+        "category": "Signal Input/Output",
+        "architectures": ["*"],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO",
+        "version": "1.16.2",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "flat",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\i2c_address_detect",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\i2c_readwrite",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\i2c_registers",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\i2corspi_register",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\spi_modetest",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\spi_readwrite",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\spi_register_bits",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\spi_registers"
+        ],
+        "provides_includes": ["Adafruit_BusIO_Register.h", "Adafruit_I2CDevice.h", "Adafruit_I2CRegister.h", "Adafruit_SPIDevice.h"],
+        "compatible_with": {}
+      }
+    },
+    {
+      "library": {
         "name": "DFRobotDFPlayerMini",
         "author": "DFRobot",
         "maintainer": "Angelo \u003cangelo.qiao@dfrobot.com\u003e",
@@ -292,6 +335,131 @@
         "category": "Device Control",
         "architectures": ["*"],
         "types": ["Contributed"]
+      }
+    },
+    {
+      "library": {
+        "name": "SimpleRotary",
+        "author": "MPrograms",
+        "maintainer": "MPrograms",
+        "sentence": "Library for using rotary encorders.",
+        "paragraph": "Library for using rotary encoders. Supports direction, debouncing, button press, button long press, error correction, high and low triggering, button press time.",
+        "website": "https://github.com/mprograms/SimpleRotary",
+        "category": "Sensors",
+        "architectures": ["*"],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\src",
+        "version": "1.1.3",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\options",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\push",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\pushLong",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\pushReset",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\pushTime",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\pushType",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\rotate"
+        ],
+        "provides_includes": ["SimpleRotary.h"],
+        "compatible_with": {}
+      }
+    },
+    {
+      "library": {
+        "name": "JPEGDEC",
+        "author": "Larry Bank",
+        "maintainer": "Larry Bank",
+        "sentence": "Optimized JPEG decoder for MCUs with 32K+ RAM.",
+        "paragraph": "A fast JPEG library with a unique set of functions to make viewing image on microcontrollers easy. Includes fast downscaling options and the ability to view Exif embedded thumbnails. Supports baseline grayscale and color images with Huffman encoding.",
+        "website": "https://github.com/bitbank2/JPEGDEC",
+        "category": "Display",
+        "architectures": ["*"],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\src",
+        "version": "1.6.2",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\ILI9431_t3_slideshow",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\M5Stack\\M5Core2",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\M5Stack\\M5Fire",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\M5Stack\\M5Stack",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\M5Stack\\M5StickC",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\M5Stack\\M5StickCPlus",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\adafruit_gfx_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\epd_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\esp32_jpeg",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\JPEGDEC\\examples\\jpeg_perf_test"
+        ],
+        "provides_includes": ["JPEGDEC.h"],
+        "compatible_with": {}
+      }
+    },
+    {
+      "library": {
+        "name": "bb_spi_lcd",
+        "author": "Larry Bank",
+        "maintainer": "Larry Bank",
+        "sentence": "Color SPI LCD+OLED library with many unique features.",
+        "paragraph": "Supports most popular LCD and OLED color display controllers. Includes DMA support, display Windows BMP (and RLE), bitmap rotation, transparent text, translucent 1-bpp masks and optimized primitives. Optional back buffer for fast memory operations.",
+        "website": "https://github.com/bitbank2/bb_spi_lcd",
+        "category": "Display",
+        "architectures": ["*"],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\src",
+        "version": "2.7.1",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\UNO_shield_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\atoms3_gif",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\callback_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\cyd_gif_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\cyd_touch_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\parallel_shield_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\spi_lcd_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\spi_touch_test",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\spilcd_prop_font",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\wio_dma_gif_demo"
+        ],
+        "provides_includes": ["bb_spi_lcd.h"],
+        "compatible_with": {}
+      }
+    },
+    {
+      "library": {
+        "name": "ESP Async WebServer",
+        "author": "Me-No-Dev",
+        "maintainer": "Mathieu Carbou \u003cmathieu.carbou@gmail.com\u003e",
+        "sentence": "Asynchronous HTTP and WebSocket Server Library for ESP32, ESP8266 and RP2040",
+        "paragraph": "Supports: WebSocket, SSE, Authentication, Arduino Json 7, File Upload, Static File serving, URL Rewrite, URL Redirect, etc",
+        "website": "https://github.com/mathieucarbou/ESPAsyncWebServer",
+        "category": "Other",
+        "architectures": ["*"],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\src",
+        "version": "3.3.23",
+        "license": "LGPL-3.0",
+        "properties": {},
+        "location": "user",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\CaptivePortal",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\Filters",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\Issue162",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\Issue85",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\SimpleServer",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\StreamFiles"
+        ],
+        "provides_includes": ["ESPAsyncWebServer.h"],
+        "compatible_with": {}
       }
     },
     {
@@ -339,118 +507,35 @@
     },
     {
       "library": {
-        "name": "SimpleRotary",
-        "author": "MPrograms",
-        "maintainer": "MPrograms",
-        "sentence": "Library for using rotary encorders.",
-        "paragraph": "Library for using rotary encoders. Supports direction, debouncing, button press, button long press, error correction, high and low triggering, button press time.",
-        "website": "https://github.com/mprograms/SimpleRotary",
-        "category": "Sensors",
-        "architectures": ["*"],
-        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary",
-        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\src",
-        "version": "1.1.3",
+        "name": "ESP32-audioI2S-master",
+        "author": "schreibfaul1",
+        "maintainer": "schreibfaul1",
+        "sentence": "With this library You can easily build a WebRadio with a ESP32 board and a I2S-module.",
+        "paragraph": "Plays webradio, playlists can be m3u, pls or asx. Data format can be only mp3, aac, flac or m4a. It can also play files from a SD Card.",
+        "website": "https://github.com/schreibfaul1/ESP32-audioI2S",
+        "category": "Device Control",
+        "architectures": ["esp32"],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP32-audioI2S-master",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP32-audioI2S-master\\src",
+        "version": "2.0.0",
         "license": "Unspecified",
         "properties": {},
         "location": "user",
         "layout": "recursive",
         "examples": [
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\options",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\push",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\pushLong",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\pushReset",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\pushTime",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\pushType",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\rotate"
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP32-audioI2S-master\\examples\\ESP32_A1S",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP32-audioI2S-master\\examples\\ESP32_ES8388",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP32-audioI2S-master\\examples\\ESP32_TTGO-TAudio",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP32-audioI2S-master\\examples\\I2Saudio",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP32-audioI2S-master\\examples\\M5Core2",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP32-audioI2S-master\\examples\\M5StackNode",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP32-audioI2S-master\\examples\\M5StickCPlus",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP32-audioI2S-master\\examples\\Simple_WiFi_Radio",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP32-audioI2S-master\\examples\\TalkingClock",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP32-audioI2S-master\\examples\\separate_audiotask"
         ],
-        "provides_includes": ["SimpleRotary.h"],
+        "provides_includes": ["Audio.h"],
         "compatible_with": {}
-      }
-    },
-    {
-      "library": {
-        "name": "bb_spi_lcd",
-        "author": "Larry Bank",
-        "maintainer": "Larry Bank",
-        "sentence": "Color SPI LCD+OLED library with many unique features.",
-        "paragraph": "Supports most popular LCD and OLED color display controllers. Includes DMA support, display Windows BMP (and RLE), bitmap rotation, transparent text, translucent 1-bpp masks and optimized primitives. Optional back buffer for fast memory operations.",
-        "website": "https://github.com/bitbank2/bb_spi_lcd",
-        "category": "Display",
-        "architectures": ["*"],
-        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd",
-        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\src",
-        "version": "2.6.0",
-        "license": "Unspecified",
-        "properties": {},
-        "location": "user",
-        "layout": "recursive",
-        "examples": [
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\UNO_shield_demo",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\atoms3_gif",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\callback_demo",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\cyd_gif_demo",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\cyd_touch_demo",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\parallel_shield_demo",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\spi_lcd_demo",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\spi_touch_test",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\spilcd_prop_font",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\wio_dma_gif_demo"
-        ],
-        "provides_includes": ["bb_spi_lcd.h"],
-        "compatible_with": {}
-      },
-      "release": {
-        "author": "Larry Bank",
-        "version": "2.7.1",
-        "maintainer": "Larry Bank",
-        "sentence": "Color SPI LCD+OLED library with many unique features.",
-        "paragraph": "Supports most popular LCD and OLED color display controllers. Includes DMA support, display Windows BMP (and RLE), bitmap rotation, transparent text, translucent 1-bpp masks and optimized primitives. Optional back buffer for fast memory operations.",
-        "website": "https://github.com/bitbank2/bb_spi_lcd",
-        "category": "Display",
-        "architectures": ["*"],
-        "types": ["Contributed"]
-      }
-    },
-    {
-      "library": {
-        "name": "Adafruit BusIO",
-        "author": "Adafruit",
-        "maintainer": "Adafruit \u003cinfo@adafruit.com\u003e",
-        "sentence": "This is a library for abstracting away I2C and SPI interfacing",
-        "paragraph": "This is a library for abstracting away I2C and SPI interfacing",
-        "website": "https://github.com/adafruit/Adafruit_BusIO",
-        "category": "Signal Input/Output",
-        "architectures": ["*"],
-        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO",
-        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO",
-        "version": "1.16.1",
-        "license": "Unspecified",
-        "properties": {},
-        "location": "user",
-        "layout": "flat",
-        "examples": [
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\i2c_address_detect",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\i2c_readwrite",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\i2c_registers",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\i2corspi_register",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\spi_modetest",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\spi_readwrite",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\spi_register_bits",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\spi_registers"
-        ],
-        "provides_includes": ["Adafruit_BusIO_Register.h", "Adafruit_I2CDevice.h", "Adafruit_I2CRegister.h", "Adafruit_SPIDevice.h"],
-        "compatible_with": {}
-      },
-      "release": {
-        "author": "Adafruit",
-        "version": "1.16.2",
-        "maintainer": "Adafruit \u003cinfo@adafruit.com\u003e",
-        "sentence": "This is a library for abstracting away I2C and SPI interfacing",
-        "paragraph": "This is a library for abstracting away I2C and SPI interfacing",
-        "website": "https://github.com/adafruit/Adafruit_BusIO",
-        "category": "Signal Input/Output",
-        "architectures": ["*"],
-        "types": ["Contributed"]
       }
     },
     {
@@ -491,76 +576,6 @@
         ],
         "provides_includes": ["AnimatedGIF.h"],
         "compatible_with": {}
-      }
-    },
-    {
-      "library": {
-        "name": "Adafruit NeoPixel",
-        "author": "Adafruit",
-        "maintainer": "Adafruit \u003cinfo@adafruit.com\u003e",
-        "sentence": "Arduino library for controlling single-wire-based LED pixels and strip.",
-        "paragraph": "Arduino library for controlling single-wire-based LED pixels and strip.",
-        "website": "https://github.com/adafruit/Adafruit_NeoPixel",
-        "category": "Display",
-        "architectures": ["*"],
-        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel",
-        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel",
-        "version": "1.12.3",
-        "license": "Unspecified",
-        "properties": {},
-        "location": "user",
-        "layout": "flat",
-        "examples": [
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\RGBWstrandtest",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\StrandtestArduinoBLE",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\StrandtestArduinoBLECallback",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\StrandtestBLE",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\StrandtestBLE_nodelay",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\buttoncycler",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\simple",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\simple_new_operator",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\strandtest",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\strandtest_nodelay",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\strandtest_wheel"
-        ],
-        "provides_includes": ["Adafruit_NeoPixel.h"],
-        "compatible_with": {}
-      }
-    },
-    {
-      "library": {
-        "name": "Adafruit GFX Library",
-        "author": "Adafruit",
-        "maintainer": "Adafruit \u003cinfo@adafruit.com\u003e",
-        "sentence": "Adafruit GFX graphics core library, this is the 'core' class that all our other graphics libraries derive from.",
-        "paragraph": "Install this library in addition to the display library for your hardware.",
-        "website": "https://github.com/adafruit/Adafruit-GFX-Library",
-        "category": "Display",
-        "architectures": ["*"],
-        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_GFX_Library",
-        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_GFX_Library",
-        "version": "1.11.10",
-        "license": "Unspecified",
-        "properties": {},
-        "location": "user",
-        "layout": "flat",
-        "examples": [
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_GFX_Library\\examples\\GFXcanvas",
-          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_GFX_Library\\examples\\mock_ili9341"
-        ],
-        "provides_includes": ["Adafruit_GFX.h", "Adafruit_GrayOLED.h", "Adafruit_SPITFT.h", "Adafruit_SPITFT_Macros.h", "gfxfont.h"],
-        "compatible_with": {}
-      },
-      "release": {
-        "author": "Adafruit",
-        "version": "1.11.11",
-        "maintainer": "Adafruit \u003cinfo@adafruit.com\u003e",
-        "sentence": "Adafruit GFX graphics core library, this is the 'core' class that all our other graphics libraries derive from.",
-        "paragraph": "Install this library in addition to the display library for your hardware.",
-        "website": "https://github.com/adafruit/Adafruit-GFX-Library",
-        "category": "Display",
-        "architectures": ["*"],
-        "types": ["Contributed"]
       }
     }
   ]
