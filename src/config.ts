@@ -1,10 +1,8 @@
 import { arduinoCLI, arduinoExtensionChannel } from "./extension";
-import { ArduinoConfig } from "./shared/messages";
 const path = require('path');
 
 
 export class ArduinoConfiguration {
-    private config: ArduinoConfig;
     constructor() {
 
     }
@@ -14,12 +12,12 @@ export class ArduinoConfiguration {
     private async isPresent(): Promise<boolean> {
         try {
             const json = await arduinoCLI.getArduinoConfig();
-            this.config = JSON.parse(json);
+            const config = JSON.parse(json);
 
-            if (Object.keys(this.config.config).length === 0) {
+            if (Object.keys(config.config).length === 0) {
                 try {
                     arduinoExtensionChannel.appendLine("Creating new Arduino Configuration file");
-                    this.createNew();
+                    await this.createNew();
 
                     return true;
                 } catch (error) {
@@ -39,5 +37,7 @@ export class ArduinoConfiguration {
         const config = JSON.parse(initJson);
         const configPath = path.dirname(config.config_path);
         const downloadPath = path.join(configPath, 'staging');
+        await arduinoCLI.setConfigDownloadDirectory(downloadPath);
+        await arduinoCLI.setConfigDataDirectory(configPath);
     }
 }

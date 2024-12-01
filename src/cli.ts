@@ -176,6 +176,20 @@ export class ArduinoCLI {
 			true, false
 		);
 	}
+	public async setConfigDownloadDirectory(downloadPath:string): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getConfigSetDowloadDirectory(downloadPath),
+			"CLI : Failed to set download directory setting",
+			false, false
+		);
+	}
+	public async setConfigDataDirectory(configPath:string): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getConfigSetDataDirectory(configPath),
+			"CLI : Failed to set data directory setting",
+			false, false
+		);
+	}
 	public async compile(clean: boolean = false) {
 		if (this.compileOrUploadRunning) {
 			this.compileUploadChannel.show();
