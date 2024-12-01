@@ -19,18 +19,18 @@ export class ArduinoConfiguration {
             if (Object.keys(this.config.config).length === 0) {
                 try {
                     arduinoExtensionChannel.appendLine("Creating new Arduino Configuration file");
-                    this.createNew(); // Uncomment if needed
-                    return true; // File created successfully
+                    this.createNew(); 
+                    return true; 
                 } catch (error) {
                     arduinoExtensionChannel.appendLine("Failed to create a new Arduino Configuration file");
-                    return false; // Failed to create file
+                    return false; 
                 }
             }
 
-            return true; // Configuration exists and is valid
+            return true; 
         } catch (error) {
             arduinoExtensionChannel.appendLine("Error parsing Arduino Configuration or file not found");
-            return false; // Configuration not present or invalid
+            return false; 
         }
     }
     private async createNew() {
