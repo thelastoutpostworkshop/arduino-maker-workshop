@@ -1,11 +1,10 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext } from "vscode";
 import { arduinoCLI, arduinoProject, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
-import { ArduinoCLIStatus, ArduinoConfig, Compile } from "./shared/messages";
+import { ArduinoCLIStatus, Compile } from "./shared/messages";
 import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Version } from "@microsoft/vscode-serial-monitor-api";
 import { VSCODE_FOLDER } from "./ArduinoProject";
 import { CLIArguments } from "./cliArgs";
 import { ArduinoConfiguration } from "./config";
-import { resolve } from "path";
 
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
 
@@ -190,6 +189,13 @@ export class ArduinoCLI {
 			false, false
 		);
 	}
+	public async setConfigUserDirectory(arduinoDir:string): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getConfigSetUserDirectory(arduinoDir),
+			"CLI : Failed to set user directory setting",
+			false, false
+		);
+	}
 	public async compile(clean: boolean = false) {
 		if (this.compileOrUploadRunning) {
 			this.compileUploadChannel.show();
@@ -316,60 +322,7 @@ export class ArduinoCLI {
 			window.showErrorMessage(`Copy zip library failed: ${error}`);
 		}
 	}
-	private checkArduinoConfiguration(): boolean {
-		this.runArduinoCommand(
-			() => this.cliArgs.getConfigDumpArgs(),
-			"CLI : Failed to get arduino configuration information"
-		).then((result) => {
-			try {
-				const config: ArduinoConfig = JSON.parse(result);
-				if (Object.keys(config.config).length === 0) {
-					// There is no arduino config file, let's create one
-					this.runArduinoCommand(
-						() => this.cliArgs.getConfigInitArgs(),
-						"CLI : Failed to create arduino config file",
-						true, false
-					).then((result) => {
-						try {
-							const config = JSON.parse(result);
-							const configPath = path.dirname(config.config_path);
-							const downloadPath = path.join(configPath, 'staging');
-							this.runArduinoCommand(
-								() => this.cliArgs.getConfigSetDowloadDirectory(downloadPath),
-								"CLI : Failed to set download directory setting",
-								false, false
-							).then(() => {
-								this.runArduinoCommand(
-									() => this.cliArgs.getConfigSetDataDirectory(configPath),
-									"CLI : Failed to set data directory setting",
-									false, false
-								).then(() => {
-									const arduinoDir = path.join(this.getDocumentsFolderPath(), 'Arduino');
-									this.runArduinoCommand(
-										() => this.cliArgs.getConfigSetUserDirectory(arduinoDir),
-										"CLI : Failed to set user directory setting",
-										false, false
-									);
-									return true;
-								});
-							});
-						} catch (error) {
-							window.showErrorMessage(`Error parsing config file ${error}`);
-						}
-					}).catch((error) => {
-						window.showErrorMessage(`Error creating config file ${error}`);
-					});
-				} else {
-					return true;
-				}
-			} catch (error) {
-				window.showErrorMessage(`Someting is wrong with the CLI ${error}`);
-			}
-		}).catch((error) => {
-			window.showErrorMessage(`${error}`);
-		});
-		return false;
-	}
+
 	private async checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
 		const result = await this.runArduinoCommand(
 			() => this.cliArgs.getVersionArguments(),
@@ -426,19 +379,7 @@ export class ArduinoCLI {
 			throw error;
 		}
 	}
-	private getDocumentsFolderPath() {
-		const homeDir = os.homedir(); // Get the user's home directory
 
-		switch (os.platform()) {
-			case 'win32':
-				return path.join(homeDir, 'Documents'); // Windows path to Documents
-			case 'linux':
-			case 'darwin':
-				return path.join(homeDir, 'Documents'); // Linux and macOS path to Documents
-			default:
-				throw new Error('Unsupported platform');
-		}
-	}
 	private getArduinoCliPath() {
 		const platform = os.platform();
 		this.arduinoCLIPath = '';

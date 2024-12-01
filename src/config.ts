@@ -1,6 +1,6 @@
 import { arduinoCLI, arduinoExtensionChannel } from "./extension";
 const path = require('path');
-
+const os = require('os');
 
 export class ArduinoConfiguration {
     constructor() {
@@ -37,7 +37,22 @@ export class ArduinoConfiguration {
         const config = JSON.parse(initJson);
         const configPath = path.dirname(config.config_path);
         const downloadPath = path.join(configPath, 'staging');
+        const arduinoDir = path.join(this.getDocumentsFolderPath(), 'Arduino');
         await arduinoCLI.setConfigDownloadDirectory(downloadPath);
         await arduinoCLI.setConfigDataDirectory(configPath);
+        await arduinoCLI.setConfigUserDirectory(arduinoDir);
     }
+    private getDocumentsFolderPath() {
+		const homeDir = os.homedir(); // Get the user's home directory
+
+		switch (os.platform()) {
+			case 'win32':
+				return path.join(homeDir, 'Documents'); // Windows path to Documents
+			case 'linux':
+			case 'darwin':
+				return path.join(homeDir, 'Documents'); // Linux and macOS path to Documents
+			default:
+				throw new Error('Unsupported platform');
+		}
+	}
 }
