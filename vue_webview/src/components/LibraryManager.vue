@@ -1,7 +1,22 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, InstalledLibrary, LibraryAvailable } from '@shared/messages';
+import { ARDUINO_MESSAGES, LibraryDependency } from '@shared/messages';
 import { onMounted, computed, ref, watch } from 'vue';
+
+interface LibraryInformation {
+  name: string;
+  latestVersion: string;
+  installedVersion: string;
+  author: string;
+  paragraph: string;
+  sentence: string;
+  website: string;
+  dependencies: LibraryDependency[];
+  available_versions?: string[];
+  zipLibrary: boolean;
+  installed: boolean;
+}
+
 
 enum FilterLibraries {
   installed,
@@ -16,6 +31,55 @@ const searchLibrary = ref('');
 const filterdLibrariesCount = ref(0);
 const zipFile = ref<File[]>([]);
 
+let libraries: LibraryInformation[] = [];
+
+const areLibrariesAvailable = computed(() => {
+  return store.libraries !== null && store.librariesInstalled !== null;
+});
+
+watch(areLibrariesAvailable, () => {
+  if (store.libraries?.libraries) {
+    libraries = store.libraries?.libraries.map((library) => {
+      return {
+        name: library.name,
+        latestVersion: library.latest.version,
+        installedVersion: library.installedVersion,
+        author: library.latest.author,
+        paragraph: library.latest.paragraph,
+        website: library.latest.website,
+        sentence: library.latest.sentence,
+        dependencies: library.latest.dependencies,
+        zipLibrary: false,
+        installed: false,
+        available_versions: library.available_versions
+      } as LibraryInformation
+    })
+    if (store.librariesInstalled?.installed_libraries) {
+      store.librariesInstalled.installed_libraries.forEach((library) => {
+        const isLibraryOfficial = libraries.find((lib) => lib.name === library.library.name);
+        if (!isLibraryOfficial) {
+          // It's a manually installed library
+          libraries.push({
+            name: library.library.name,
+            latestVersion: library.library.version,
+            installedVersion: library.library.version,
+            author: library.library.author,
+            paragraph: library.library.paragraph,
+            website: library.library.website,
+            sentence: library.library.sentence,
+            dependencies: [],
+            available_versions: [],
+            zipLibrary: true,
+            installed: true
+          })
+        } else {
+          isLibraryOfficial.installed = true;
+        }
+      })
+    }
+  }
+});
+
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: "", payload: "" });
@@ -29,15 +93,15 @@ const headers = [
   { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '10%' },
 ];
 
+
+
 const updatableLibraryCount = computed(() => {
   let count = 0;
-  if (store.libraries?.libraries) {
-    store.libraries.libraries.forEach((library) => {
-      if (isLibraryUpdatable(library) && isLibraryInstalled(library)) {
-        count++;
-      }
-    });
-  }
+  libraries.forEach((library) => {
+    if (isLibraryUpdatable(library) && isLibraryInstalled(library)) {
+      count++;
+    }
+  });
   return count;
 });
 
@@ -53,37 +117,32 @@ function uninstallLibrary(name: string) {
   store.libraryUpdating = `Removing library ${toUnInstall}`;
 }
 
-function isLibraryInstalled(library: LibraryAvailable): boolean {
-  const installedLibrary = findLibrary(library.name);
-  return installedLibrary !== undefined;
+function isLibraryInstalled(library: LibraryInformation): boolean {
+  return library.installed;
 }
 
-function isLibraryUpdatable(library: LibraryAvailable): boolean {
-  const installedLibrary = findLibrary(library.name);
-  return installedLibrary?.library.version !== library.latest.version
+function isLibraryUpdatable(library: LibraryInformation): boolean {
+  if (library.zipLibrary) {
+    return false;
+  }
+  return library.installedVersion !== library.latestVersion;
 }
 
-function isLibraryDeprecated(library: LibraryAvailable): boolean {
-  const sentence = library.latest.sentence?.toLowerCase() ?? "";
-  const paragraph = library.latest.paragraph?.toLowerCase() ?? "";
-  return sentence.includes("deprecated") || paragraph.includes("deprecated");
-}
+// function isLibraryDeprecated(library: LibraryInformation): boolean {
+//   const sentence = library.latest.sentence?.toLowerCase() ?? "";
+//   const paragraph = library.latest.paragraph?.toLowerCase() ?? "";
+//   return sentence.includes("deprecated") || paragraph.includes("deprecated");
+// }
 
-function findLibrary(name: string): InstalledLibrary | undefined {
-  const foundLibrary = store.librariesInstalled?.installed_libraries.find(
-    (installedLibrary) => installedLibrary.library.name === name
+function findLibrary(name: string): LibraryInformation | undefined {
+  const foundLibrary = libraries.find(
+    (installedLibrary) => installedLibrary.name === name
   );
   return foundLibrary;
 }
 
 const filteredLibraries = computed(() => {
   const filtered = filterLibs(filterLibraries.value);
-  filtered.forEach((library) => {
-    const lib = findLibrary(library.name);
-    if (lib) {
-      library.installedVersion = lib.library.version;
-    }
-  })
   filterdLibrariesCount.value = filtered.length;
   return filtered
 })
@@ -96,50 +155,38 @@ const filteredLibrariesCountText = computed(() => {
   }
 })
 
-function getVersions(library: LibraryAvailable): string[] {
-  const result = [...library.available_versions].reverse();
-  const libInstalled = findLibrary(library.name);
-  if (libInstalled) {
-    selectedLibrary.value[libInstalled.library.name] = libInstalled.library.version;
-  } else {
-    selectedLibrary.value[library.name] = result[0];
+function getVersions(library: LibraryInformation): string[] {
+  if (library.available_versions) {
+    const result = library.available_versions.reverse();
+    const libInstalled = findLibrary(library.name);
+    if (libInstalled) {
+      selectedLibrary.value[libInstalled.name] = libInstalled.installedVersion;
+    } else {
+      selectedLibrary.value[library.name] = result[0];
+    }
   }
-  return result;
+  return [];
 }
 
-function filterLibs(filter: FilterLibraries): LibraryAvailable[] {
-  let filtered: LibraryAvailable[] = [];
+function filterLibs(filter: FilterLibraries): LibraryInformation[] {
+  let filtered: LibraryInformation[] = [];
   switch (filter) {
     case FilterLibraries.installed:
-      filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library));
-      // For libraries installed through zip
-      // store.librariesInstalled?.installed_libraries.forEach((library) => {
-      //   const inArduinoLibrary = store.libraries?.libraries.find(
-      //     (filteredLibrary) => filteredLibrary.name === library.library.name
-      //   );
+      // original code
+      // filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library));
 
-      //   if (!inArduinoLibrary) {
-      //     console.log(library.library.name);
-      //     store.libraries?.libraries.push({
-      //       name: library.library.name,
-      //       latest: library.release,
-      //       available_versions: [],
-      //       zip_installation: true
-      //     });
-      //   }
-      // });
       break;
     case FilterLibraries.updatable:
-      filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryUpdatable(library) && isLibraryInstalled(library));
+      // filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryUpdatable(library) && isLibraryInstalled(library));
       break;
     case FilterLibraries.deprecated:
-      filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryDeprecated(library));
+      // filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryDeprecated(library));
       break;
     case FilterLibraries.not_installed:
-      filtered = (store.libraries?.libraries ?? []).filter((library) => !isLibraryInstalled(library) && !isLibraryDeprecated(library));
+      // filtered = (store.libraries?.libraries ?? []).filter((library) => !isLibraryInstalled(library) && !isLibraryDeprecated(library));
       break;
     default:
-      filtered = store.libraries?.libraries ?? [];
+      // filtered = store.libraries?.libraries ?? [];
       break;
   }
   return filtered || [];
@@ -164,7 +211,6 @@ watch(zipFile, () => {
   reader.readAsArrayBuffer(zipFile.value);
 }, { deep: true }
 );
-
 
 </script>
 
@@ -205,14 +251,14 @@ watch(zipFile, () => {
           <template v-slot:expanded-row="{ columns, item }">
             <tr>
               <td :colspan="columns.length" class="text-grey">
-                {{ "By " + item.latest.author }}
+                {{ "By " + item.author }}
                 <div>
-                  {{ item.latest.paragraph }}
-                  <span class="text-subtitle-2"> <a :href="item.latest.website" target="_blank">More Info</a></span>
+                  {{ item.paragraph }}
+                  <span class="text-subtitle-2"> <a :href="item.website" target="_blank">More Info</a></span>
                 </div>
-                <div v-if="item.latest.dependencies">
+                <div v-if="item.dependencies">
                   Dependencies:
-                  <span v-for="(dependancy) in item.latest.dependencies">
+                  <span v-for="(dependancy) in item.dependencies">
                     {{ dependancy.name }},
                   </span>
                 </div>
@@ -220,8 +266,8 @@ watch(zipFile, () => {
                 <div class="pt-2">
                   <v-row>
                     <v-col cols="3">
-                      <v-select v-if="item.available_versions" v-model="selectedLibrary[item.name]"
-                        :items="getVersions(item)" return-object density="compact" label="Versions available">
+                      <v-select v-model="selectedLibrary[item.name]" :items="getVersions(item)" return-object
+                        density="compact" label="Versions available">
                       </v-select>
                     </v-col>
                     <v-col>
@@ -246,7 +292,7 @@ watch(zipFile, () => {
             <v-tooltip>
               <template v-slot:activator="{ props }">
                 <v-btn v-if="!isLibraryInstalled(item) || isLibraryUpdatable(item)" icon
-                  @click="installLibrary(item.name, item.latest.version)" v-bind="props" variant="text">
+                  @click="installLibrary(item.name, item.latestVersion)" v-bind="props" variant="text">
                   <v-icon>
                     mdi-tray-arrow-down
                   </v-icon>

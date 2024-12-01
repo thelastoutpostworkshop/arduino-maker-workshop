@@ -267,7 +267,6 @@ export interface Liblist {
 
 export interface InstalledLibrary {
   library: Library;
-  release: Release;
 }
 
 export interface Libsearch {
@@ -280,7 +279,6 @@ export interface LibraryAvailable {
   latest: Release;
   installedVersion?: string;
   available_versions: string[];
-  zip_installation?:boolean;
 }
 
 export interface Library {
