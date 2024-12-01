@@ -196,6 +196,13 @@ export class ArduinoCLI {
 			false, false
 		);
 	}
+	public async setConfigLibrary(enable: boolean): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getConfigSetLibrarySetting(enable),
+			"CLI : Failed to set library setting",
+			false, false
+		);
+	}
 	public async compile(clean: boolean = false) {
 		if (this.compileOrUploadRunning) {
 			this.compileUploadChannel.show();
