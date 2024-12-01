@@ -20,7 +20,6 @@ export class ArduinoCLI {
 	private arduinoCLIChannel: OutputChannel;
 	private compileUploadChannel: OutputChannel;
 	private cliArgs = new CLIArguments();
-	private cliReady: boolean = true;
 	private configReady: boolean = true;
 	private _lastCLIError: string = "";
 	private cliStatus: ArduinoCLIStatus = { VersionString: "", Date: "" };
@@ -30,21 +29,7 @@ export class ArduinoCLI {
 		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
 		this.compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
 		this.getArduinoCliPath();
-		if (this.arduinoCLIPath !== '') {
-			this.checkArduinoCLICommand().then((result) => {
-				this.cliStatus = result;
-				if(!this.arduinoConfig.verify()) {
-					this._lastCLIError = "Problem with the Arduino Config file";
-					this.configReady = false;
-				}
-		
-			}).catch(() => {
-				this._lastCLIError = "Cannot get CLI version";
-				this.cliReady = false;
-			})
-		} else {
-			this.cliReady = false;
-		}
+
 		getSerialMonitorApi(Version.latest, context).then((api) => {
 			this.serialMoniorAPI = api;
 		});
@@ -58,9 +43,23 @@ export class ArduinoCLI {
 		return this.cliStatus;
 	}
 	public isCLIReady(): boolean {
-		return this.cliReady;
+		if (this.arduinoCLIPath !== '') {
+			this.checkArduinoCLICommand().then((result) => {
+				this.cliStatus = result;
+			}).catch(() => {
+				this._lastCLIError = "Cannot get CLI version";
+				return false;
+			})
+		} else {
+			return false;
+		}
+		return true;
 	}
 	public isConfigReady(): boolean {
+		if(!this.arduinoConfig.verify()) {
+			this._lastCLIError = "Problem with the Arduino Config file";
+			this.configReady = false;
+		}
 		return this.configReady;
 	}
 
