@@ -169,7 +169,7 @@ export class ArduinoCLI {
 			"CLI : Failed to get arduino configuration information"
 		);
 	}
-	public async getConfigInitArgs(): Promise<string> {
+	public async initArduinoConfiguration(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigInitArgs(),
 			"CLI : Failed to create arduino config file",

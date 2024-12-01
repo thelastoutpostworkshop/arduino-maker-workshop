@@ -19,22 +19,23 @@ export class ArduinoConfiguration {
             if (Object.keys(this.config.config).length === 0) {
                 try {
                     arduinoExtensionChannel.appendLine("Creating new Arduino Configuration file");
-                    this.createNew(); 
-                    return true; 
+                    this.createNew();
+
+                    return true;
                 } catch (error) {
                     arduinoExtensionChannel.appendLine("Failed to create a new Arduino Configuration file");
-                    return false; 
+                    return false;
                 }
             }
 
-            return true; 
+            return true;
         } catch (error) {
             arduinoExtensionChannel.appendLine("Bad Arduino Configuration file");
-            return false; 
+            return false;
         }
     }
     private async createNew() {
-        const initJson = await arduinoCLI.getConfigInitArgs();
+        const initJson = await arduinoCLI.initArduinoConfiguration();
         const config = JSON.parse(initJson);
         const configPath = path.dirname(config.config_path);
         const downloadPath = path.join(configPath, 'staging');
