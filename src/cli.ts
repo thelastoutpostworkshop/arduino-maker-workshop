@@ -175,21 +175,21 @@ export class ArduinoCLI {
 			true, false
 		);
 	}
-	public async setConfigDownloadDirectory(downloadPath:string): Promise<string> {
+	public async setConfigDownloadDirectory(downloadPath: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetDowloadDirectory(downloadPath),
 			"CLI : Failed to set download directory setting",
 			false, false
 		);
 	}
-	public async setConfigDataDirectory(configPath:string): Promise<string> {
+	public async setConfigDataDirectory(configPath: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetDataDirectory(configPath),
 			"CLI : Failed to set data directory setting",
 			false, false
 		);
 	}
-	public async setConfigUserDirectory(arduinoDir:string): Promise<string> {
+	public async setConfigUserDirectory(arduinoDir: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetUserDirectory(arduinoDir),
 			"CLI : Failed to set user directory setting",
@@ -313,13 +313,9 @@ export class ArduinoCLI {
 			this.runArduinoCommand(
 				() => this.cliArgs.getInstallZipLibrary(destinationPath),
 				"CLI : Failed to get arduino configuration information"
-			).then(() => {
-			}
-			).catch((error) => {
-				window.showErrorMessage(`Failed to install zip library ${error}`);
-			});
+			);
 		} catch (error) {
-			window.showErrorMessage(`Copy zip library failed: ${error}`);
+			window.showErrorMessage(`Failed to install zip library: ${error}`);
 		}
 	}
 
