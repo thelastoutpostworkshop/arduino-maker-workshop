@@ -7,33 +7,30 @@ export class ArduinoConfiguration {
     constructor() {
 
     }
-    public verify(): boolean {
-        if (!this.isPresent()) {
- 
-            return false;
-        }
-        return true;
-    }
-    private isPresent(): boolean {
-        arduinoCLI.getArduinoConfig().then((json) => {
-            try {
-                this.config = JSON.parse(json);
-                if (Object.keys(this.config.config).length === 0) {
-                    try {
-                        arduinoExtensionChannel.appendLine("Creating new Arduino Configuration file");
-                        // this.createNew();
-                    } catch (error) {
-                        arduinoExtensionChannel.appendLine("Failed to create a new Arduino Configuration file");
-                        return false;
-                    }
+    public async verify(): Promise<boolean> {
+        return this.isPresent();
+    }    
+    private async isPresent(): Promise<boolean> {
+        try {
+            const json = await arduinoCLI.getArduinoConfig();
+            this.config = JSON.parse(json);
+    
+            if (Object.keys(this.config.config).length === 0) {
+                try {
+                    arduinoExtensionChannel.appendLine("Creating new Arduino Configuration file");
+                    // this.createNew(); // Uncomment if needed
+                    return true; // File created successfully
+                } catch (error) {
+                    arduinoExtensionChannel.appendLine("Failed to create a new Arduino Configuration file");
+                    return false; // Failed to create file
                 }
-            } catch (error) {
-                return false;
             }
-        }).catch(() => {
-            return false;
-        });
-        return true;
+    
+            return true; // Configuration exists and is valid
+        } catch (error) {
+            arduinoExtensionChannel.appendLine("Error parsing Arduino Configuration or file not found");
+            return false; // Configuration not present or invalid
+        }
     }
     private createNew() {
 

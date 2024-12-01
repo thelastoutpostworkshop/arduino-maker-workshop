@@ -1,4 +1,4 @@
-import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment} from "vscode";
+import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment } from "vscode";
 import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, quickAccessCompileCommandName, intellisenseCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
@@ -10,11 +10,11 @@ export const compileCommandName: string = 'quickAccessView.compile';
 export const uploadCommandName: string = 'quickAccessView.upload';
 
 export const compileStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
-export const compileStatusBarNotExecuting:string = "$(check) Compile";
-export const compileStatusBarExecuting:string = "$(sync~spin) Compiling";
+export const compileStatusBarNotExecuting: string = "$(check) Compile";
+export const compileStatusBarExecuting: string = "$(sync~spin) Compiling";
 export const uploadStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
-export const uploadStatusBarNotExecuting:string = "$(cloud-upload) Upload";
-export const uploadStatusBarExecuting:string = "$(sync~spin) Uploading";
+export const uploadStatusBarNotExecuting: string = "$(cloud-upload) Upload";
+export const uploadStatusBarExecuting: string = "$(sync~spin) Uploading";
 
 export const arduinoExtensionChannel = window.createOutputChannel(ArduinoExtensionChannelName);
 arduinoExtensionChannel.appendLine("Arduino Extension started");
@@ -23,16 +23,16 @@ const quickAccessProvider = new QuickAccessProvider();
 export const arduinoProject: ArduinoProject = new ArduinoProject();
 export let arduinoCLI: ArduinoCLI;
 
-export function activate(context: ExtensionContext) {
+export async function activate(context: ExtensionContext) {
 	arduinoCLI = new ArduinoCLI(context);
-	if (arduinoCLI.isCLIReady()) {
+	if (await arduinoCLI.isCLIReady()) {
 		arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${arduinoCLI.arduinoCLIPath}`);
 	} else {
 		arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
 		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 	}
 
-	if (arduinoCLI.isConfigReady()) {
+	if (await arduinoCLI.isConfigReady()) {
 		arduinoExtensionChannel.appendLine(`Arduino Config file is good`);
 	} else {
 		arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);

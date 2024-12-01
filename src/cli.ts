@@ -5,6 +5,7 @@ import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Ve
 import { VSCODE_FOLDER } from "./ArduinoProject";
 import { CLIArguments } from "./cliArgs";
 import { ArduinoConfiguration } from "./config";
+import { resolve } from "path";
 
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
 
@@ -41,21 +42,21 @@ export class ArduinoCLI {
 	public getCLIStatus(): ArduinoCLIStatus {
 		return this.cliStatus;
 	}
-	public isCLIReady(): boolean {
-		if (this.arduinoCLIPath !== '') {
-			this.checkArduinoCLICommand().then((result) => {
-				this.cliStatus = result;
-			}).catch(() => {
-				this._lastCLIError = "Cannot get CLI version";
-				return false;
-			})
-		} else {
+	public async isCLIReady(): Promise<boolean> {
+		if (this.arduinoCLIPath === '') {
 			return false;
 		}
-		return true;
+		try {
+			this.cliStatus = await this.checkArduinoCLICommand();
+			return true;
+		} catch (error) {
+			this._lastCLIError = "Cannot get CLI version";
+			return false;
+		}
 	}
-	public isConfigReady(): boolean {
-		if(!this.arduinoConfig.verify()) {
+	public async isConfigReady(): Promise<boolean> {
+		const isVerified = await this.arduinoConfig.verify();
+		if (!isVerified) {
 			this._lastCLIError = "Problem with the Arduino Config file";
 			return false;
 		}
