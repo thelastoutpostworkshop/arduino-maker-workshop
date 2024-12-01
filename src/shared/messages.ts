@@ -270,6 +270,18 @@ export interface InstalledLibrary {
   release?: Release;
 }
 
+export interface Libsearch {
+  libraries: LibraryAvailable[];
+  status: string;
+}
+
+export interface LibraryAvailable {
+  name: string;
+  latest: Release;
+  installedVersion?: string;
+  available_versions: string[];
+}
+
 export interface Library {
   name: string;
   author: string;
@@ -306,18 +318,6 @@ export interface Release {
   architectures: string[];
   types: string[];
   dependencies?: LibraryDependency[];
-}
-
-export interface Libsearch {
-  libraries: LibraryAvailable[];
-  status: string;
-}
-
-export interface LibraryAvailable {
-  name: string;
-  latest: Release;
-  installedVersion?: string;
-  available_versions: string[];
 }
 
 export interface LibraryDependency {
