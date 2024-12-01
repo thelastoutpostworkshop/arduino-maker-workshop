@@ -305,6 +305,7 @@ export interface Release {
   category: string;
   architectures: string[];
   types: string[];
+  dependencies?: LibraryDependency[];
 }
 
 export interface Libsearch {
@@ -314,25 +315,9 @@ export interface Libsearch {
 
 export interface LibraryAvailable {
   name: string;
-  latest: LatestLibrary;
+  latest: Release;
   installedVersion?: string;
   available_versions: string[];
-}
-
-export interface LatestLibrary {
-  author: string;
-  version: string;
-  maintainer: string;
-  sentence: string;
-  website: string;
-  category: string;
-  architectures?: string[];
-  types: string[];
-  resources: LibraryResources;
-  provides_includes?: string[];
-  dependencies?: LibraryDependency[];
-  paragraph?: string;
-  license?: string;
 }
 
 export interface LibraryDependency {
