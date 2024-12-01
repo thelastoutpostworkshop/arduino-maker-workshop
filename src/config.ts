@@ -2,6 +2,9 @@ import { arduinoCLI, arduinoExtensionChannel } from "./extension";
 const path = require('path');
 const os = require('os');
 
+const staging = 'staging';
+const arduino = 'Arduino';
+
 export class ArduinoConfiguration {
     constructor() {
 
@@ -36,8 +39,8 @@ export class ArduinoConfiguration {
         const initJson = await arduinoCLI.initArduinoConfiguration();
         const config = JSON.parse(initJson);
         const configPath = path.dirname(config.config_path);
-        const downloadPath = path.join(configPath, 'staging');
-        const arduinoDir = path.join(this.getDocumentsFolderPath(), 'Arduino');
+        const downloadPath = path.join(configPath, staging);
+        const arduinoDir = path.join(this.getDocumentsFolderPath(), arduino);
         await arduinoCLI.setConfigDownloadDirectory(downloadPath);
         await arduinoCLI.setConfigDataDirectory(configPath);
         await arduinoCLI.setConfigUserDirectory(arduinoDir);
