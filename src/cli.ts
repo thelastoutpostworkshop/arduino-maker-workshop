@@ -310,13 +310,14 @@ export class ArduinoCLI {
 		// 	});
 
 	}
-	public installZipLibrary(buffer: ArrayBuffer) {
+	public async installZipLibrary(buffer: ArrayBuffer) {
 		try {
 			const tempDir = os.tmpdir();
 			const tempFileName = `library_${Date.now()}.zip`;
 			const destinationPath = path.join(tempDir, tempFileName);
 
 			fs.writeFileSync(destinationPath, Buffer.from(buffer));
+			await arduinoCLI.setConfigLibrary(true);
 			this.runArduinoCommand(
 				() => this.cliArgs.getInstallZipLibrary(destinationPath),
 				"CLI : Failed to get arduino configuration information"
