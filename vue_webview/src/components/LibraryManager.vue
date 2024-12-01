@@ -17,7 +17,6 @@ interface LibraryInformation {
   installed: boolean;
 }
 
-
 enum FilterLibraries {
   installed,
   updatable,
@@ -31,7 +30,7 @@ const searchLibrary = ref('');
 const filterdLibrariesCount = ref(0);
 const zipFile = ref<File[]>([]);
 
-let libraries: LibraryInformation[] = [];
+const libraries = ref<LibraryInformation[]>([]);
 
 const areLibrariesAvailable = computed(() => {
   return store.libraries !== null && store.librariesInstalled !== null;
@@ -39,7 +38,7 @@ const areLibrariesAvailable = computed(() => {
 
 watch(areLibrariesAvailable, () => {
   if (store.libraries?.libraries) {
-    libraries = store.libraries?.libraries.map((library) => {
+    libraries.value = store.libraries?.libraries.map((library) => {
       return {
         name: library.name,
         latestVersion: library.latest.version,
@@ -56,10 +55,10 @@ watch(areLibrariesAvailable, () => {
     })
     if (store.librariesInstalled?.installed_libraries) {
       store.librariesInstalled.installed_libraries.forEach((library) => {
-        const isLibraryOfficial = libraries.find((lib) => lib.name === library.library.name);
+        const isLibraryOfficial = libraries.value.find((lib) => lib.name === library.library.name);
         if (!isLibraryOfficial) {
           // It's a manually installed library
-          libraries.push({
+          libraries.value.push({
             name: library.library.name,
             latestVersion: library.library.version,
             installedVersion: library.library.version,
@@ -97,7 +96,7 @@ const headers = [
 
 const updatableLibraryCount = computed(() => {
   let count = 0;
-  libraries.forEach((library) => {
+  libraries.value.forEach((library) => {
     if (isLibraryUpdatable(library) && isLibraryInstalled(library)) {
       count++;
     }
@@ -128,14 +127,14 @@ function isLibraryUpdatable(library: LibraryInformation): boolean {
   return library.installedVersion !== library.latestVersion;
 }
 
-// function isLibraryDeprecated(library: LibraryInformation): boolean {
-//   const sentence = library.latest.sentence?.toLowerCase() ?? "";
-//   const paragraph = library.latest.paragraph?.toLowerCase() ?? "";
-//   return sentence.includes("deprecated") || paragraph.includes("deprecated");
-// }
+function isLibraryDeprecated(library: LibraryInformation): boolean {
+  const sentence = library.sentence?.toLowerCase() ?? "";
+  const paragraph = library.paragraph?.toLowerCase() ?? "";
+  return sentence.includes("deprecated") || paragraph.includes("deprecated");
+}
 
 function findLibrary(name: string): LibraryInformation | undefined {
-  const foundLibrary = libraries.find(
+  const foundLibrary = libraries.value.find(
     (installedLibrary) => installedLibrary.name === name
   );
   return foundLibrary;
@@ -172,24 +171,23 @@ function filterLibs(filter: FilterLibraries): LibraryInformation[] {
   let filtered: LibraryInformation[] = [];
   switch (filter) {
     case FilterLibraries.installed:
-      // original code
-      // filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library));
+      filtered = libraries.value.filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library));
 
       break;
     case FilterLibraries.updatable:
-      // filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryUpdatable(library) && isLibraryInstalled(library));
+      filtered = libraries.value.filter((library) => isLibraryUpdatable(library) && isLibraryInstalled(library));
       break;
     case FilterLibraries.deprecated:
-      // filtered = (store.libraries?.libraries ?? []).filter((library) => isLibraryDeprecated(library));
+      filtered = libraries.value.filter((library) => isLibraryDeprecated(library));
       break;
     case FilterLibraries.not_installed:
-      // filtered = (store.libraries?.libraries ?? []).filter((library) => !isLibraryInstalled(library) && !isLibraryDeprecated(library));
+      filtered =  libraries.value.filter((library) => !isLibraryInstalled(library) && !isLibraryDeprecated(library));
       break;
     default:
-      // filtered = store.libraries?.libraries ?? [];
+      filtered = libraries.value;
       break;
   }
-  return filtered || [];
+  return filtered;
 }
 
 
@@ -221,7 +219,7 @@ watch(zipFile, () => {
         <v-icon>mdi-library</v-icon>
         <span class="text-h4 font-weight-bold ml-5">Library Manager</span>
       </v-row>
-      <v-card v-if="!store.libraries?.libraries" class="mt-5">
+      <v-card v-if="libraries.length == 0" class="mt-5">
         <v-card-item title="Loading Libraries">
           <template v-slot:subtitle>
             Please wait
