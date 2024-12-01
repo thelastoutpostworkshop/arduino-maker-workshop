@@ -4,7 +4,6 @@ const configCommandArduino: string = 'config';
 const dumpOption: string = 'dump';
 const jsonOutputArduino: string = '--json';
 const removeOption: string = 'remove';
-const configAdditionnalURLsetting: string = 'board_manager.additional_urls';
 const addOption: string = 'add';
 const initOption: string = 'init';
 const setOption: string = 'set';
@@ -33,11 +32,24 @@ const uninstallOption: string = 'uninstall';
 const searchOption: string = 'search';
 const listOption: string = 'list';
 const zipOption: string = '--zip-path';
+
+// Config settings
+const configAdditionnalURLsetting: string = 'board_manager.additional_urls';
 const configDirDataSetting: string = 'directories.data';
 const configDirDownloadSetting: string = 'directories.downloads';
 const configDirUserSetting: string = 'directories.user';
+const configLibrarySetting: string = 'library.enable_unsafe_install';
 
 export class CLIArguments {
+    public getConfigSetLibrarySetting(enable: boolean): string[] {
+        const command = [
+            `${configCommandArduino}`,
+            `${setOption}`,
+            `${configLibrarySetting}`,
+            `${enable}`,
+        ];
+        return command;
+    }
     public getConfigSetDowloadDirectory(dir: string): string[] {
         const command = [
             `${configCommandArduino}`,
