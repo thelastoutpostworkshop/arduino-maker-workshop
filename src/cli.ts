@@ -4,6 +4,7 @@ import { ArduinoCLIStatus, ArduinoConfig, Compile } from "./shared/messages";
 import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Version } from "@microsoft/vscode-serial-monitor-api";
 import { VSCODE_FOLDER } from "./ArduinoProject";
 import { CLIArguments } from "./cliArgs";
+import { ArduinoConfiguration } from "./config";
 
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
 
@@ -23,6 +24,7 @@ export class ArduinoCLI {
 	private configReady: boolean = true;
 	private _lastCLIError: string = "";
 	private cliStatus: ArduinoCLIStatus = { VersionString: "", Date: "" };
+	private arduinoConfig = new ArduinoConfiguration();
 
 	constructor(private context: ExtensionContext) {
 		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
@@ -31,10 +33,11 @@ export class ArduinoCLI {
 		if (this.arduinoCLIPath !== '') {
 			this.checkArduinoCLICommand().then((result) => {
 				this.cliStatus = result;
-				this.configReady = arduinoCLI.checkArduinoConfiguration();
-				if (!this.configReady) {
+				if(!this.arduinoConfig.isPresent()) {
 					this._lastCLIError = "Problem with the Arduino Config file";
+					this.configReady = false;
 				}
+		
 			}).catch(() => {
 				this._lastCLIError = "Cannot get CLI version";
 				this.cliReady = false;
@@ -159,6 +162,12 @@ export class ArduinoCLI {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getBoardConnectedArguments(),
 			"CLI: Failed to get Boards "
+		);
+	}
+	public async getArduinoConfig(): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getConfigDumpArgs(),
+			"CLI : Failed to get arduino configuration information"
 		);
 	}
 	public async compile(clean: boolean = false) {
