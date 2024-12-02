@@ -11,7 +11,7 @@ interface LibraryInformation {
   paragraph: string;
   sentence: string;
   website: string;
-  dependencies: LibraryDependency[];
+  dependencies: LibraryDependency[] | undefined;
   available_versions?: string[];
   zipLibrary: boolean;
   installed: boolean;
@@ -74,7 +74,7 @@ watch(areLibrariesAvailable, () => {
             paragraph: library.library.paragraph,
             website: library.library.website,
             sentence: library.library.sentence,
-            dependencies: [],
+            dependencies: undefined,
             available_versions: [],
             zipLibrary: true,
             installed: true
