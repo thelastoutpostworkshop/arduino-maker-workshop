@@ -277,7 +277,6 @@ export interface Libsearch {
 export interface LibraryAvailable {
   name: string;
   latest: Release;
-  installedVersion?: string;
   available_versions: string[];
 }
 

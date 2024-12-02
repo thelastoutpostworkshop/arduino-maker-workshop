@@ -32,6 +32,14 @@ const zipFile = ref<File[]>([]);
 
 const libraries = ref<LibraryInformation[]>([]);
 
+const headers = [
+  { title: 'Name', value: 'name', key: 'name', sortable: true },
+  { title: 'Installed', value: 'installedVersion', key: 'installedVersion', align: 'center' as const, sortable: false, width: '15%' },
+  { title: 'Latest', value: 'latestVersion', key: 'latestVersion', align: 'center' as const, sortable: false, width: '15%' },
+  { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '10%' },
+];
+
+
 const areLibrariesAvailable = computed(() => {
   return store.libraries !== null && store.librariesInstalled !== null;
 });
@@ -42,7 +50,7 @@ watch(areLibrariesAvailable, () => {
       return {
         name: library.name,
         latestVersion: library.latest.version,
-        installedVersion: library.installedVersion,
+        installedVersion: '',
         author: library.latest.author,
         paragraph: library.latest.paragraph,
         website: library.latest.website,
@@ -73,6 +81,7 @@ watch(areLibrariesAvailable, () => {
           })
         } else {
           isLibraryOfficial.installed = true;
+          isLibraryOfficial.installedVersion = library.library.version
         }
       })
     }
@@ -83,16 +92,6 @@ onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: "", payload: "" });
 });
-
-
-const headers = [
-  { title: 'Name', value: 'name', key: 'name', sortable: true },
-  { title: 'Installed', value: 'installedVersion', key: 'installedVersion', align: 'center' as const, sortable: false, width: '15%' },
-  { title: 'Latest', value: 'latest.version', key: 'latest.version', align: 'center' as const, sortable: false, width: '15%' },
-  { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '10%' },
-];
-
-
 
 const updatableLibraryCount = computed(() => {
   let count = 0;
