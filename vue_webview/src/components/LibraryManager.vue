@@ -155,13 +155,14 @@ const filteredLibrariesCountText = computed(() => {
 
 function getVersions(library: LibraryInformation): string[] {
   if (library.available_versions) {
-    const result = library.available_versions.reverse();
+    const result = [...library.available_versions].reverse();
     const libInstalled = findLibrary(library.name);
     if (libInstalled) {
       selectedLibrary.value[libInstalled.name] = libInstalled.installedVersion;
     } else {
       selectedLibrary.value[library.name] = result[0];
     }
+    return result;
   }
   return [];
 }
