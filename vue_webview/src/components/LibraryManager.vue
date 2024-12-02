@@ -261,7 +261,7 @@ watch(zipFile, () => {
                   </span>
                 </div>
                 <div v-else>This library has no dependencies</div>
-                <div class="pt-2">
+                <div class="pt-2" v-if="!item.zipLibrary">
                   <v-row>
                     <v-col cols="3">
                       <v-select v-model="selectedLibrary[item.name]" :items="getVersions(item)" return-object
