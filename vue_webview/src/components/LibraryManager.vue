@@ -20,6 +20,7 @@ interface LibraryInformation {
 enum FilterLibraries {
   installed,
   updatable,
+  zip,
   deprecated,
   not_installed
 }
@@ -171,8 +172,7 @@ function filterLibs(filter: FilterLibraries): LibraryInformation[] {
   let filtered: LibraryInformation[] = [];
   switch (filter) {
     case FilterLibraries.installed:
-      filtered = libraries.value.filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library));
-
+      filtered = libraries.value.filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library) && !library.zipLibrary);
       break;
     case FilterLibraries.updatable:
       filtered = libraries.value.filter((library) => isLibraryUpdatable(library) && isLibraryInstalled(library));
@@ -181,7 +181,10 @@ function filterLibs(filter: FilterLibraries): LibraryInformation[] {
       filtered = libraries.value.filter((library) => isLibraryDeprecated(library));
       break;
     case FilterLibraries.not_installed:
-      filtered =  libraries.value.filter((library) => !isLibraryInstalled(library) && !isLibraryDeprecated(library));
+      filtered = libraries.value.filter((library) => !isLibraryInstalled(library) && !isLibraryDeprecated(library));
+      break;
+    case FilterLibraries.zip:
+      filtered = libraries.value.filter((library) => library.zipLibrary);
       break;
     default:
       filtered = libraries.value;
@@ -241,6 +244,7 @@ watch(zipFile, () => {
 
             </v-badge>
           </v-chip>
+          <v-chip filter :value="FilterLibraries.zip">Zip Installed</v-chip>
           <v-chip filter :value="FilterLibraries.not_installed">Not Installed</v-chip>
           <v-chip filter :value="FilterLibraries.deprecated">Deprecated</v-chip>
         </v-chip-group>
