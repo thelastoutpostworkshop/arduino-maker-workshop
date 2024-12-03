@@ -1,21 +1,7 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, LibraryDependency } from '@shared/messages';
+import { ARDUINO_MESSAGES, LibraryInformation } from '@shared/messages';
 import { onMounted, computed, ref, watch } from 'vue';
-
-interface LibraryInformation {
-  name: string;
-  latestVersion: string;
-  installedVersion: string;
-  author: string;
-  paragraph: string;
-  sentence: string;
-  website: string;
-  dependencies: LibraryDependency[] | undefined;
-  available_versions?: string[];
-  zipLibrary: boolean;
-  installed: boolean;
-}
 
 enum FilterLibraries {
   installed,
@@ -31,8 +17,6 @@ const searchLibrary = ref('');
 const filterdLibrariesCount = ref(0);
 const zipFile = ref<File[]>([]);
 
-const libraries = ref<LibraryInformation[]>([]);
-
 const headers = [
   { title: 'Name', value: 'name', key: 'name', sortable: true },
   { title: 'Installed', value: 'installedVersion', key: 'installedVersion', align: 'center' as const, sortable: false, width: '15%' },
@@ -47,7 +31,7 @@ const areLibrariesAvailable = computed(() => {
 
 watch(areLibrariesAvailable, () => {
   if (store.libraries?.libraries) {
-    libraries.value = store.libraries?.libraries.map((library) => {
+    store.libariesInformation = store.libraries?.libraries.map((library) => {
       return {
         name: library.name,
         latestVersion: library.latest.version,
@@ -64,10 +48,10 @@ watch(areLibrariesAvailable, () => {
     })
     if (store.librariesInstalled?.installed_libraries) {
       store.librariesInstalled.installed_libraries.forEach((library) => {
-        const isLibraryOfficial = libraries.value.find((lib) => lib.name === library.library.name);
+        const isLibraryOfficial = store.libariesInformation?.find((lib) => lib.name === library.library.name);
         if (!isLibraryOfficial) {
           // It's a manually installed library
-          libraries.value.push({
+          store.libariesInformation?.push({
             name: library.library.name,
             latestVersion: library.library.version,
             installedVersion: library.library.version,
@@ -96,7 +80,7 @@ onMounted(() => {
 
 const updatableLibraryCount = computed(() => {
   let count = 0;
-  libraries.value.forEach((library) => {
+  store.libariesInformation?.forEach((library) => {
     if (isLibraryUpdatable(library) && isLibraryInstalled(library)) {
       count++;
     }
@@ -134,7 +118,7 @@ function isLibraryDeprecated(library: LibraryInformation): boolean {
 }
 
 function findLibrary(name: string): LibraryInformation | undefined {
-  const foundLibrary = libraries.value.find(
+  const foundLibrary = store.libariesInformation?.find(
     (installedLibrary) => installedLibrary.name === name
   );
   return foundLibrary;
@@ -169,26 +153,28 @@ function getVersions(library: LibraryInformation): string[] {
 }
 
 function filterLibs(filter: FilterLibraries): LibraryInformation[] {
-  let filtered: LibraryInformation[] = [];
-  switch (filter) {
-    case FilterLibraries.installed:
-      filtered = libraries.value.filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library) && !library.zipLibrary);
-      break;
-    case FilterLibraries.updatable:
-      filtered = libraries.value.filter((library) => isLibraryUpdatable(library) && isLibraryInstalled(library));
-      break;
-    case FilterLibraries.deprecated:
-      filtered = libraries.value.filter((library) => isLibraryDeprecated(library));
-      break;
-    case FilterLibraries.not_installed:
-      filtered = libraries.value.filter((library) => !isLibraryInstalled(library) && !isLibraryDeprecated(library));
-      break;
-    case FilterLibraries.zip:
-      filtered = libraries.value.filter((library) => library.zipLibrary);
-      break;
-    default:
-      filtered = libraries.value;
-      break;
+  let filtered: LibraryInformation[] =[];
+  if(store.libariesInformation) {
+    switch (filter) {
+      case FilterLibraries.installed:
+        filtered = store.libariesInformation.filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library) && !library.zipLibrary);
+        break;
+      case FilterLibraries.updatable:
+        filtered = store.libariesInformation.filter((library) => isLibraryUpdatable(library) && isLibraryInstalled(library));
+        break;
+      case FilterLibraries.deprecated:
+        filtered = store.libariesInformation.filter((library) => isLibraryDeprecated(library));
+        break;
+      case FilterLibraries.not_installed:
+        filtered = store.libariesInformation.filter((library) => !isLibraryInstalled(library) && !isLibraryDeprecated(library));
+        break;
+      case FilterLibraries.zip:
+        filtered = store.libariesInformation.filter((library) => library.zipLibrary);
+        break;
+      default:
+        filtered = store.libariesInformation;
+        break;
+    }
   }
   return filtered;
 }
@@ -222,7 +208,7 @@ watch(zipFile, () => {
         <v-icon>mdi-library</v-icon>
         <span class="text-h4 font-weight-bold ml-5">Library Manager</span>
       </v-row>
-      <v-card v-if="libraries.length == 0" class="mt-5">
+      <v-card v-if="!store.libariesInformation" class="mt-5">
         <v-card-item title="Loading Libraries">
           <template v-slot:subtitle>
             Please wait

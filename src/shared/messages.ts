@@ -261,6 +261,20 @@ export interface ReleaseData {
 
 // Library interfaces
 //
+export interface LibraryInformation {
+  name: string;
+  latestVersion: string;
+  installedVersion: string;
+  author: string;
+  paragraph: string;
+  sentence: string;
+  website: string;
+  dependencies: LibraryDependency[] | undefined;
+  available_versions?: string[];
+  zipLibrary: boolean;
+  installed: boolean;
+}
+
 export interface Liblist {
   installed_libraries: InstalledLibrary[];
 }
