@@ -14,7 +14,7 @@ const sketchName = ref("");
 const portsAvailable = computed(() => {
   const filtered = store.boardConnected?.detected_ports.map((detectedPort) => {
     return detectedPort.port.label ?? 'Unknown'; // Provide a default if label is undefined
-  }) ?? []; // Ensure it returns an empty array if detected_ports is undefined
+  }) ?? []; 
   return filtered;
 });
 
@@ -51,7 +51,7 @@ watch(
       }
     }
   },
-  { immediate: true } // This ensures the watcher runs immediately on setup
+  { immediate: true } 
 );
 
 
