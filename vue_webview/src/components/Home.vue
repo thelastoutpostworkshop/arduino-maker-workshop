@@ -11,11 +11,12 @@ const store = useVsCodeStore();
 const portSelected = ref('');
 const sketchName = ref("");
 const useProgrammer = ref(false);
+const programmer = ref("");
 
 const portsAvailable = computed(() => {
   const filtered = store.boardConnected?.detected_ports.map((detectedPort) => {
     return detectedPort.port.label ?? 'Unknown'; // Provide a default if label is undefined
-  }) ?? []; 
+  }) ?? [];
   return filtered;
 });
 
@@ -52,7 +53,7 @@ watch(
       }
     }
   },
-  { immediate: true } 
+  { immediate: true }
 );
 
 
@@ -123,9 +124,22 @@ onMounted(() => {
                   indeterminate></v-progress-linear>
               </template>
             </v-select>
-            <v-checkbox v-model="useProgrammer" label="Use programmer">
+            <div v-if="store.boardOptions?.programmers">
+              <v-row>
+                <v-col cols="3">
+                  <v-checkbox v-model="useProgrammer" label="Use programmer">
 
-            </v-checkbox>
+                  </v-checkbox>
+
+                </v-col>
+                <v-col cols="4">
+                  <v-select v-model="programmer" :disabled="!useProgrammer" :items="store.boardOptions.programmers"
+                    item-title="name" item-value="name">
+
+                  </v-select>
+                </v-col>
+              </v-row>
+            </div>
           </v-card>
           <v-card v-if="store.projectStatus?.status == ARDUINO_ERRORS.WRONG_FOLDER_NAME" class="pa-4"
             color="blue-grey-darken-3" prepend-icon="mdi-alert-circle-outline" rounded="lg">
