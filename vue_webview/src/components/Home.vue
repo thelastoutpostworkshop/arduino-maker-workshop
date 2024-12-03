@@ -125,19 +125,19 @@ onMounted(() => {
               </template>
             </v-select>
             <div v-if="store.boardOptions?.programmers">
-              <v-row>
-                <v-col cols="3">
+              <v-row align="center" class="pt-3 ml-2">
+                <span>
                   <v-checkbox v-model="useProgrammer" label="Use programmer">
 
                   </v-checkbox>
 
-                </v-col>
-                <v-col cols="4">
-                  <v-select v-model="programmer" :disabled="!useProgrammer" :items="store.boardOptions.programmers"
-                    item-title="name" item-value="name">
+                </span>
+                <span class="pl-5">
+                  <v-select width="250" v-model="programmer" :disabled="!useProgrammer"
+                    :items="store.boardOptions.programmers" item-title="name" item-value="name">
 
                   </v-select>
-                </v-col>
+                </span>
               </v-row>
             </div>
           </v-card>
