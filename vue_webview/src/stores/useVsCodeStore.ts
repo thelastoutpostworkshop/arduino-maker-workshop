@@ -117,6 +117,10 @@ export const useVsCodeStore = defineStore('vsCode', {
                         message.command = ARDUINO_MESSAGES.CORE_VERSION_INSTALLED;
                         this.handleMessage(message);
                         break;
+                    case ARDUINO_MESSAGES.INSTALL_ZIP_LIBRARY:
+                        message.command = ARDUINO_MESSAGES.LIBRARY_VERSION_INSTALLED;
+                        this.handleMessage(message);                    
+                        break;
                     case ARDUINO_MESSAGES.CLI_INSTALL_LIBRARY:
                         message.command = ARDUINO_MESSAGES.LIBRARY_VERSION_INSTALLED;
                         this.handleMessage(message);
