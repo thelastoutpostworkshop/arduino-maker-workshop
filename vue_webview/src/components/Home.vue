@@ -10,6 +10,7 @@ const router = useRouter()
 const store = useVsCodeStore();
 const portSelected = ref('');
 const sketchName = ref("");
+const useProgrammer = ref(false);
 
 const portsAvailable = computed(() => {
   const filtered = store.boardConnected?.detected_ports.map((detectedPort) => {
@@ -122,6 +123,9 @@ onMounted(() => {
                   indeterminate></v-progress-linear>
               </template>
             </v-select>
+            <v-checkbox v-model="useProgrammer" label="Use programmer">
+
+            </v-checkbox>
           </v-card>
           <v-card v-if="store.projectStatus?.status == ARDUINO_ERRORS.WRONG_FOLDER_NAME" class="pa-4"
             color="blue-grey-darken-3" prepend-icon="mdi-alert-circle-outline" rounded="lg">
