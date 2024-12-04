@@ -275,6 +275,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.libraryUpdating = "";
                     this.librariesInstalled = null;
                     this.libraries = null;
+                    this.libariesInformation = null;
                     this.outdated = null;
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: "", payload: "" });
