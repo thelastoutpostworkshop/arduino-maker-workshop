@@ -15,7 +15,7 @@ const filterLibraries = ref(FilterLibraries.installed);
 const selectedLibrary = ref<Record<string, string>>({});
 const searchLibrary = ref('');
 const filterdLibrariesCount = ref(0);
-const zipFile = ref<File[]>([]);
+const zipFile = ref<File | undefined>(undefined);
 
 const headers = [
   { title: 'Name', value: 'name', key: 'name', sortable: true },
@@ -188,7 +188,7 @@ watch(zipFile, () => {
   const reader = new FileReader();
   reader.onload = function () {
     const arrayBuffer = reader.result;
-    store.libraryUpdating = `Installing Zip library ${zipFile.value}`;
+    store.libraryUpdating = `Installing Zip library ${zipFile.value?.name}`;
     store.sendMessage({ command: ARDUINO_MESSAGES.INSTALL_ZIP_LIBRARY, payload: arrayBuffer, errorMessage: "" });
   };
   reader.onerror = function () {
