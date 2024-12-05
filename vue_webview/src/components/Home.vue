@@ -90,7 +90,7 @@ watch([() => store.cliStatus, () => store.projectStatus], () => { }, { immediate
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
-  store.sendMessage({ command: ARDUINO_MESSAGES.CHANGE_THEME_COLOR, errorMessage: "", payload: THEME_COLOR.light });
+  store.sendMessage({ command: ARDUINO_MESSAGES.CHANGE_THEME_COLOR, errorMessage: "", payload: THEME_COLOR.dark });
 });
 
 </script>
@@ -120,7 +120,7 @@ onMounted(() => {
             window for more information
           </v-alert>
           <v-card v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board"
-            class="pa-4" color="blue-grey-darken-3" prepend-icon="mdi-cog" rounded="lg">
+            class="pa-4" color="primary" prepend-icon="mdi-cog" rounded="lg">
             <template #title>
               <h2 class="text-h6 font-weight-bold">Sketch Configuration</h2>
             </template>
