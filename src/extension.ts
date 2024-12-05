@@ -2,7 +2,7 @@ import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusB
 import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, quickAccessCompileCommandName, intellisenseCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
-import { ARDUINO_ERRORS, ArduinoExtensionChannelName } from "./shared/messages";
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
 
 export const compileCommandName: string = 'quickAccessView.compile';
@@ -90,7 +90,7 @@ function handleThemeChange(themeKind: ColorThemeKind) {
 	if(VueWebviewPanel.currentPanel) {
 		switch (themeKind) {
 		  case ColorThemeKind.Dark:
-			console.log('User switched to a dark theme');
+			VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.CHANGE_THEME_COLOR, errorMessage: "", payload: "" });
 			// Your logic for dark theme
 			break;
 		  case ColorThemeKind.Light:

@@ -374,6 +374,14 @@ export interface Properties {
   vid?: string;
 }
 
+// Theme Color
+//
+export enum THEME_COLOR {
+  dark,
+  light,
+  highContrast
+}
+
 export const ARDUINO_MESSAGES = {
   CLI_BOARD_OPTIONS: 'cli_getArduinoBoardOptions',
   CLI_BOARD_SEARCH: 'cli_getArduinoBoardSearch',
