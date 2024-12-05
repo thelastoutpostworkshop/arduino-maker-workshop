@@ -243,12 +243,12 @@ export class CLIArguments {
             `${arduinoProject.getPort()}`,
             `${fqbnOptionArduino}`,
             `${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`,
-            `${inputDirOptionArduino}`
         ];
         if (arduinoProject.useProgrammer()) {
             command.push(programmerOption);
             command.push(arduinoProject.getProgrammer());
         }
+        command.push(`${inputDirOptionArduino}`);
         command.push(arduinoProject.getProjectPath() + '/' + arduinoProject.getOutput());
         command.push(arduinoProject.getProjectPath());
         return command;

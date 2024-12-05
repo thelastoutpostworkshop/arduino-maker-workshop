@@ -88,6 +88,9 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.SET_PROGRAMMER:
                         arduinoProject.setProgrammer(message.payload);
                         break;
+                    case ARDUINO_MESSAGES.SET_USE_PROGRAMMER:
+                        arduinoProject.setUseProgrammer(message.payload);
+                        break;
                     case ARDUINO_MESSAGES.CLI_UPDATE_INDEX:
                         arduinoCLI.getCoreUpdate().then(() => {
                             arduinoCLI.getOutdatedBoardAndLib().then((result) => {

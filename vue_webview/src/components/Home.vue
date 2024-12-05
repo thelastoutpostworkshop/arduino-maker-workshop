@@ -41,6 +41,11 @@ watch(programmer, (newStatus) => {
     store.sendMessage({ command: ARDUINO_MESSAGES.SET_PROGRAMMER, errorMessage: "", payload: newStatus });
   }
 });
+watch(useProgrammer, (newStatus) => {
+  if (newStatus) {
+    store.sendMessage({ command: ARDUINO_MESSAGES.SET_USE_PROGRAMMER, errorMessage: "", payload: newStatus });
+  }
+});
 
 watch(
   [() => store.boardConnected, () => store.projectInfo],
