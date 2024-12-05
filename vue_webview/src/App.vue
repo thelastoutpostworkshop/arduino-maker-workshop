@@ -2,6 +2,7 @@
 import Toolbox from './components/Toolbox.vue';
 import { onMounted, onUnmounted } from 'vue';
 import { useVsCodeStore } from './stores/useVsCodeStore';
+import Theme from './components/Theme.vue';
 
 const vsCodeStore = useVsCodeStore();
 
@@ -27,6 +28,7 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <Theme></Theme>
   <v-app>
     <Toolbox></Toolbox>
     <v-main>
