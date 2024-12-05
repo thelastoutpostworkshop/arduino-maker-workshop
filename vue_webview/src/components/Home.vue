@@ -151,7 +151,7 @@ onMounted(() => {
                 </span>
                 <span class="pl-5">
                   <v-select width="250" v-model="programmer" :disabled="!useProgrammer"
-                    :items="store.boardOptions.programmers" item-title="name" item-value="name">
+                    :items="store.boardOptions.programmers" item-title="name" item-value="id">
 
                   </v-select>
                 </span>
