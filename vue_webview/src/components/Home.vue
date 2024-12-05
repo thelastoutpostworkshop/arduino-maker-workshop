@@ -69,6 +69,10 @@ watch(
         }
       }
     }
+    if(projectInfo) {
+      useProgrammer.value = projectInfo.useProgrammer;
+      programmer.value = projectInfo.programmer;
+    }
   },
   { immediate: true }
 );
