@@ -11,7 +11,7 @@ const ARDUINO_DEFAULT_OUTPUT: string = "build";
 
 export class ArduinoProject {
     private arduinoConfigurationPath: string = "";
-    private configJson: ArduinoProjectConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "" };
+    private configJson: ArduinoProjectConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "",programmer:"",useProgrammer:false };
     private projectFullPath: string = "";
     private projectStatus:ArduinoProjectStatus = {status:ARDUINO_ERRORS.NO_ERRORS};
     private sketchFileName:string = "";
@@ -136,7 +136,13 @@ export class ArduinoProject {
     public getBoard(): string {
         return this.configJson.board || '';
     }
-
+    public getProgrammer(): string {
+        return this.configJson.programmer || '';
+    }
+    public setProgrammer(programmer: string): void {
+        this.configJson.programmer = programmer;
+        fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
+    }
     private setOutput(output: string) {
         this.configJson.output = output;
         this.writeVSCodeArduinoConfiguration();

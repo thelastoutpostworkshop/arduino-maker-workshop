@@ -71,6 +71,8 @@ export interface ArduinoProjectConfiguration {
   configuration: string;
   output: string;
   board: string;
+  programmer:string;
+  useProgrammer:boolean
 };
 
 export enum ARDUINO_ERRORS {
