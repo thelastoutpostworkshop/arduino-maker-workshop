@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated, ArduinoConfig, LibraryInformation } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated, ArduinoConfig, LibraryInformation, THEME_COLOR } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
+import { useTheme } from 'vuetify';
 
 async function loadMockData(mockFile: string, jsonToString: boolean = true): Promise<string> {
     try {
@@ -315,6 +316,20 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.platform = null;
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_GET_CONFIG, errorMessage: "", payload: "" });
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
+                    break;
+                case ARDUINO_MESSAGES.CHANGE_THEME_COLOR:
+                    const theme = useTheme();
+                    switch (message.payload as THEME_COLOR) {
+                        case THEME_COLOR.dark:
+                            theme.global.name.value = 'dark';
+                            break;
+                            case THEME_COLOR.light:
+                            theme.global.name.value = 'light';
+                            break;
+                        case THEME_COLOR.highContrast:
+                            
+                            break;
+                    }
                     break;
                 default:
                     console.warn('Unknown command received:', message.command);
