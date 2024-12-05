@@ -1,4 +1,4 @@
-import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment } from "vscode";
+import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind } from "vscode";
 import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, quickAccessCompileCommandName, intellisenseCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
@@ -77,8 +77,33 @@ export async function activate(context: ExtensionContext) {
 		}
 	});
 
+	const currentThemeKind = window.activeColorTheme.kind;
+	handleThemeChange(currentThemeKind);
+  
+	// Listening to theme change events
+	window.onDidChangeActiveColorTheme((colorTheme) => {
+	  handleThemeChange(colorTheme.kind);
+	});
 }
 
+function handleThemeChange(themeKind: ColorThemeKind) {
+	if(VueWebviewPanel.currentPanel) {
+		switch (themeKind) {
+		  case ColorThemeKind.Dark:
+			console.log('User switched to a dark theme');
+			// Your logic for dark theme
+			break;
+		  case ColorThemeKind.Light:
+			console.log('User switched to a light theme');
+			// Your logic for light theme
+			break;
+		  case ColorThemeKind.HighContrast:
+			console.log('User switched to a high contrast theme');
+			// Your logic for high contrast theme
+			break;
+		}
+	}
+  }
 export function updateStateCompileUpload() {
 	arduinoProject.readConfiguration();
 	if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS &&
