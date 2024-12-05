@@ -119,7 +119,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         break;
                     case ARDUINO_MESSAGES.INSTALL_ZIP_LIBRARY:
                         message.command = ARDUINO_MESSAGES.LIBRARY_VERSION_INSTALLED;
-                        this.handleMessage(message);                    
+                        this.handleMessage(message);
                         break;
                     case ARDUINO_MESSAGES.CLI_INSTALL_LIBRARY:
                         message.command = ARDUINO_MESSAGES.LIBRARY_VERSION_INSTALLED;
@@ -178,6 +178,18 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.CLI_UPDATE_INDEX:
                     if (!this.outdated) {
+                        vscode.postMessage(message);
+                    }
+                    break;
+                case ARDUINO_MESSAGES.SET_PROGRAMMER:
+                    if (this.projectInfo) {
+                        this.projectInfo.programmer = message.payload;
+                        vscode.postMessage(message);
+                    }
+                    break;
+                case ARDUINO_MESSAGES.SET_USE_PROGRAMMER:
+                    if (this.projectInfo) {
+                        this.projectInfo.useProgrammer = message.payload;
                         vscode.postMessage(message);
                     }
                     break;
