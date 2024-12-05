@@ -20,8 +20,5 @@ export default createVuetify({
   theme: {
     cspNonce: nonce,
     defaultTheme: 'dark',
-  },
-  components: {
-    VTreeview,
-  },
+  }
 });
