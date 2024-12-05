@@ -395,6 +395,8 @@ export const ARDUINO_MESSAGES = {
   SET_BOARD: 'setArduinoBoard',
   SET_BOARD_OPTIONS: 'setArduinoBoardOptions',
   SET_PORT: 'setArduinoPort',
+  SET_PROGRAMMER: 'setArduinoProgrammer',
+  SET_USE_PROGRAMMER: 'setArduinoUseProgrammer',
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
   CORE_UNINSTALLED: 'coreUninstalled',
   LIBRARY_VERSION_INSTALLED: 'libraryVersionInstalled',
