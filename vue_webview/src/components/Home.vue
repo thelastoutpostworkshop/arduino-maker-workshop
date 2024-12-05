@@ -36,11 +36,11 @@ watch(() => store.boardOptions?.programmers, (newStatus) => {
   }
 }, { deep: true });
 
-watch(() => programmer, (newStatus) => {
+watch(programmer, (newStatus) => {
   if (newStatus) {
     console.log(newStatus)
   }
-},);
+});
 
 watch(
   [() => store.boardConnected, () => store.projectInfo],
