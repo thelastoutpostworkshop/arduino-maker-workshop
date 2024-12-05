@@ -11,10 +11,10 @@ const ARDUINO_DEFAULT_OUTPUT: string = "build";
 
 export class ArduinoProject {
     private arduinoConfigurationPath: string = "";
-    private configJson: ArduinoProjectConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "",programmer:"",useProgrammer:false };
+    private configJson: ArduinoProjectConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "", programmer: "", useProgrammer: false };
     private projectFullPath: string = "";
-    private projectStatus:ArduinoProjectStatus = {status:ARDUINO_ERRORS.NO_ERRORS};
-    private sketchFileName:string = "";
+    private projectStatus: ArduinoProjectStatus = { status: ARDUINO_ERRORS.NO_ERRORS };
+    private sketchFileName: string = "";
 
     constructor() {
         const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -22,18 +22,18 @@ export class ArduinoProject {
             this.projectFullPath = workspaceFolders[0].uri.fsPath;
         }
     }
-    public isUploadReady():boolean {
-        if(this.configJson.port.trim().length !== 0) {
-            const sketch = path.join(this.projectFullPath, this.configJson.output,this.sketchFileName);
-            const binFile = sketch+".bin";
+    public isUploadReady(): boolean {
+        if (this.configJson.port.trim().length !== 0) {
+            const sketch = path.join(this.projectFullPath, this.configJson.output, this.sketchFileName);
+            const binFile = sketch + ".bin";
             return fs.existsSync(binFile);
         }
         return false;
     }
-    public getStatus():ArduinoProjectStatus {
+    public getStatus(): ArduinoProjectStatus {
         return this.projectStatus;
     }
-    public setStatus(status:ARDUINO_ERRORS) {
+    public setStatus(status: ARDUINO_ERRORS) {
         this.projectStatus.status = status;
     }
     public getarduinoConfigurationPath(): string {
@@ -78,7 +78,7 @@ export class ArduinoProject {
                     const sketchBase = path.basename(file, ARDUINO_SKETCH_EXTENSION);
 
                     if (sketchBase === folderName) {
-                        this.sketchFileName = sketchBase+ARDUINO_SKETCH_EXTENSION;
+                        this.sketchFileName = sketchBase + ARDUINO_SKETCH_EXTENSION;
                         error = ARDUINO_ERRORS.NO_ERRORS;
                         break;
                     } else {
@@ -143,7 +143,7 @@ export class ArduinoProject {
         this.configJson.programmer = programmer;
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
-    public getUseProgrammer(): boolean {
+    public useProgrammer(): boolean {
         return this.configJson.useProgrammer || false;
     }
     public setUseProgrammer(use: boolean): void {

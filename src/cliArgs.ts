@@ -32,6 +32,7 @@ const uninstallOption: string = 'uninstall';
 const searchOption: string = 'search';
 const listOption: string = 'list';
 const zipOption: string = '--zip-path';
+const programmerOption: string = '-P';
 
 // Config settings
 const configAdditionnalURLsetting: string = 'board_manager.additional_urls';
@@ -234,7 +235,7 @@ export class CLIArguments {
     }
     public getUploadArguments(): string[] {
         arduinoProject.readConfiguration();
-        const compileCommand = [
+        const command = [
             `${uploadCommandArduino}`,
             `${verboseOptionArduino}`,
             `${noColorOptionArduino}`,
@@ -242,11 +243,15 @@ export class CLIArguments {
             `${arduinoProject.getPort()}`,
             `${fqbnOptionArduino}`,
             `${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`,
-            `${inputDirOptionArduino}`,
-            arduinoProject.getProjectPath() + '/' + arduinoProject.getOutput(),
-            arduinoProject.getProjectPath()
+            `${inputDirOptionArduino}`
         ];
-        return compileCommand;
+        if (arduinoProject.useProgrammer()) {
+            command.push(programmerOption);
+            command.push(arduinoProject.getProgrammer());
+        }
+        command.push(arduinoProject.getProjectPath() + '/' + arduinoProject.getOutput());
+        command.push(arduinoProject.getProjectPath());
+        return command;
     }
     public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false): string[] {
         const compileCommand = [
