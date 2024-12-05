@@ -42,7 +42,7 @@ watch(programmer, (newStatus) => {
   }
 });
 watch(useProgrammer, (newStatus) => {
-  if (newStatus) {
+  if (newStatus != undefined) {
     store.sendMessage({ command: ARDUINO_MESSAGES.SET_USE_PROGRAMMER, errorMessage: "", payload: newStatus });
   }
 });
