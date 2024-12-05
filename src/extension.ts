@@ -1,8 +1,8 @@
-import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind } from "vscode";
+import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind, ThemeColor } from "vscode";
 import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, quickAccessCompileCommandName, intellisenseCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName } from "./shared/messages";
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, THEME_COLOR } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
 
 export const compileCommandName: string = 'quickAccessView.compile';
@@ -79,31 +79,28 @@ export async function activate(context: ExtensionContext) {
 
 	const currentThemeKind = window.activeColorTheme.kind;
 	handleThemeChange(currentThemeKind);
-  
+
 	// Listening to theme change events
 	window.onDidChangeActiveColorTheme((colorTheme) => {
-	  handleThemeChange(colorTheme.kind);
+		handleThemeChange(colorTheme.kind);
 	});
 }
 
 function handleThemeChange(themeKind: ColorThemeKind) {
-	if(VueWebviewPanel.currentPanel) {
+	if (VueWebviewPanel.currentPanel) {
 		switch (themeKind) {
-		  case ColorThemeKind.Dark:
-			VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.CHANGE_THEME_COLOR, errorMessage: "", payload: "" });
-			// Your logic for dark theme
-			break;
-		  case ColorThemeKind.Light:
-			console.log('User switched to a light theme');
-			// Your logic for light theme
-			break;
-		  case ColorThemeKind.HighContrast:
-			console.log('User switched to a high contrast theme');
-			// Your logic for high contrast theme
-			break;
+			case ColorThemeKind.Dark:
+				VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.CHANGE_THEME_COLOR, errorMessage: "", payload: THEME_COLOR.dark });
+				break;
+			case ColorThemeKind.Light:
+				VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.CHANGE_THEME_COLOR, errorMessage: "", payload: THEME_COLOR.light });
+				break;
+			case ColorThemeKind.HighContrast:
+				VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.CHANGE_THEME_COLOR, errorMessage: "", payload: THEME_COLOR.highContrast });
+				break;
 		}
 	}
-  }
+}
 export function updateStateCompileUpload() {
 	arduinoProject.readConfiguration();
 	if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS &&
