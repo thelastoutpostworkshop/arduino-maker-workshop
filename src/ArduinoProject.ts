@@ -143,6 +143,13 @@ export class ArduinoProject {
         this.configJson.programmer = programmer;
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
+    public getUseProgrammer(): boolean {
+        return this.configJson.useProgrammer || false;
+    }
+    public setUseProgrammer(use: boolean): void {
+        this.configJson.useProgrammer = use;
+        fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
+    }
     private setOutput(output: string) {
         this.configJson.output = output;
         this.writeVSCodeArduinoConfiguration();
