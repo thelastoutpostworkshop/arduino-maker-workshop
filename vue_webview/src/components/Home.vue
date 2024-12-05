@@ -31,11 +31,16 @@ watch(() => store.projectStatus?.status, (newStatus) => {
 }, { deep: true });
 
 watch(() => store.boardOptions?.programmers, (newStatus) => {
-  console.log("test");
   if (newStatus && newStatus?.length > 0) {
     programmer.value = newStatus[0].name
   }
 }, { deep: true });
+
+watch(() => programmer, (newStatus) => {
+  if (newStatus) {
+    console.log(newStatus)
+  }
+},);
 
 watch(
   [() => store.boardConnected, () => store.projectInfo],

@@ -1148,6 +1148,11 @@
       "platform": "esp32",
       "id": "esptool",
       "name": "Esptool"
+    },
+    {
+      "platform": "esp32",
+      "id": "test",
+      "name": "test"
     }
   ],
   "build_properties": [
