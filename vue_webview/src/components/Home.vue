@@ -38,7 +38,7 @@ watch(() => store.boardOptions?.programmers, (newStatus) => {
 
 watch(programmer, (newStatus) => {
   if (newStatus) {
-    console.log(newStatus)
+    store.sendMessage({ command: ARDUINO_MESSAGES.SET_PROGRAMMER, errorMessage: "", payload: newStatus });
   }
 });
 
