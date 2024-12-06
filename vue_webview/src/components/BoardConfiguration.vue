@@ -75,7 +75,7 @@ onMounted(() => {
                             indeterminate></v-progress-linear>
                     </template>
                 </v-text-field>
-                <v-card class="pa-4" color="blue-grey-darken-4" rounded="lg">
+                <v-card class="pa-4" color="primary" rounded="lg">
                     <template v-slot:loader>
                         <v-progress-linear :active="!store.boardOptions" height="2" indeterminate></v-progress-linear>
                     </template>
