@@ -39,4 +39,5 @@ onUnmounted(() => {
       <router-view></router-view>
     </v-main>
   </v-app>
+  <v-progress-linear v-else color="grey" indeterminate></v-progress-linear>
 </template>
