@@ -35,7 +35,13 @@ export default createVuetify({
       vs_highContrast: {
         dark: true,
         colors: {
-
+          primary: '#FFFFFF',
+          secondary: '#000000',
+          accent: '#FFFF00',
+          error: '#FF0000',
+          info: '#00FF00',
+          success: '#0000FF',
+          warning: '#FFA500',
         }
       }
     }
