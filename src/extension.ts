@@ -77,16 +77,13 @@ export async function activate(context: ExtensionContext) {
 		}
 	});
 
-	const currentThemeKind = window.activeColorTheme.kind;
-	handleThemeChange(currentThemeKind);
-
 	// Listening to theme change events
 	window.onDidChangeActiveColorTheme((colorTheme) => {
-		handleThemeChange(colorTheme.kind);
+		changeTheme(colorTheme.kind);
 	});
 }
 
-function handleThemeChange(themeKind: ColorThemeKind) {
+export function changeTheme(themeKind: ColorThemeKind) {
 	if (VueWebviewPanel.currentPanel) {
 		switch (themeKind) {
 			case ColorThemeKind.Dark:

@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoCLI, arduinoExtensionChannel, arduinoProject, loadArduinoConfiguration, openExample } from "./extension";
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, changeTheme, loadArduinoConfiguration, openExample } from "./extension";
 
 const usb = require('usb').usb;
 
@@ -251,6 +251,7 @@ export class VueWebviewPanel {
             );
 
             VueWebviewPanel.currentPanel = new VueWebviewPanel(panel, extensionUri);
+            changeTheme(window.activeColorTheme.kind);
         }
     }
 
