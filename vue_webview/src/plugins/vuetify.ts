@@ -22,7 +22,7 @@ export default createVuetify({
       vs_light: {
         dark: false,
         colors: {
-          primary: '#1976D2',
+          primary: '#F5F5F5',
         }
       },
       vs_dark: {
