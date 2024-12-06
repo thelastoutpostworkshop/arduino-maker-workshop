@@ -18,6 +18,26 @@ console.log('Nonce from window.cspNonce:', nonce); // Add this line
 export default createVuetify({
   theme: {
     cspNonce: nonce,
-    defaultTheme: 'dark',
+    themes: {
+      vs_light: {
+        dark: false,
+        colors: {
+          primary: '#1976D2',
+        }
+      },
+      vs_dark: {
+        dark: true,
+        colors: {
+          primary: '#37474F',
+
+        }
+      },
+      vs_highContrast: {
+        dark: true,
+        colors: {
+
+        }
+      }
+    }
   }
 });

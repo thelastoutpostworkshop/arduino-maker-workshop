@@ -47,13 +47,13 @@ export const useVsCodeStore = defineStore('vsCode', {
         changeTheme(theme: THEME_COLOR) {
             switch (theme as THEME_COLOR) {
                 case THEME_COLOR.dark:
-                    this.currentTheme = 'dark';
+                    this.currentTheme = 'vs_dark';
                     break;
                     case THEME_COLOR.light:
-                    this.currentTheme = 'light';
+                    this.currentTheme = 'vs_light';
                     break;
-                case THEME_COLOR.highContrast:
-                    
+                    case THEME_COLOR.highContrast:
+                    this.currentTheme = 'vs_highContrast';
                     break;
             }
         },
