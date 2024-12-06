@@ -41,7 +41,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         cliConfig: null as ArduinoConfig | null,
         boardUpdating: "",
         libraryUpdating: "",
-        currentTheme: 'dark', // Default theme
+        currentTheme: null as string | null, 
     }),
     actions: {
         changeTheme(theme: THEME_COLOR) {

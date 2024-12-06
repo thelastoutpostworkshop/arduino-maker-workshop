@@ -9,7 +9,9 @@ const theme = useTheme();
 watch(
     () => store.currentTheme,
     (newTheme) => {
-        theme.global.name.value = newTheme;
+        if(newTheme) {
+            theme.global.name.value = newTheme;
+        }
     }
 );
 </script>
