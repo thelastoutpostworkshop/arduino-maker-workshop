@@ -1,10 +1,11 @@
-import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vscode";
+import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionContext } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, changeTheme, loadArduinoConfiguration, openExample } from "./extension";
 
 const usb = require('usb').usb;
+const path = require('path');
 
 export class VueWebviewPanel {
 
@@ -231,7 +232,7 @@ export class VueWebviewPanel {
         }
     }
 
-    public static render(extensionUri: Uri) {
+    public static render(context: ExtensionContext) {
 
         if (VueWebviewPanel.currentPanel) {
             VueWebviewPanel.currentPanel._panel.reveal(ViewColumn.One);
@@ -244,13 +245,17 @@ export class VueWebviewPanel {
                     enableScripts: true,
                     retainContextWhenHidden: true,
                     localResourceRoots: [
-                        Uri.joinPath(extensionUri, "build"),
-                        Uri.joinPath(extensionUri, "vue_webview/dist")
+                        Uri.joinPath(context.extensionUri, "build"),
+                        Uri.joinPath(context.extensionUri, "vue_webview/dist")
                     ],
                 }
             );
 
-            VueWebviewPanel.currentPanel = new VueWebviewPanel(panel, extensionUri);
+            panel.iconPath = Uri.file(
+                path.join(context.extensionPath, 'resources', 'arduino.svg')
+            );
+
+            VueWebviewPanel.currentPanel = new VueWebviewPanel(panel, context.extensionUri);
             changeTheme(window.activeColorTheme.kind);
         }
     }

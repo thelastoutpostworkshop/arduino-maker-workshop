@@ -65,7 +65,7 @@ export async function activate(context: ExtensionContext) {
 
 	context.subscriptions.push(
 		commands.registerCommand('extension.openVueWebview', () => {
-			VueWebviewPanel.render(context.extensionUri);
+			VueWebviewPanel.render(context);
 		})
 	);
 
