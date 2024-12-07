@@ -1,6 +1,6 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext } from "vscode";
 import { arduinoCLI, arduinoProject, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
-import { ArduinoCLIStatus, BuildOptions, Compile } from "./shared/messages";
+import { ArduinoCLIStatus, BuildOptions, Compile, CompileResult } from "./shared/messages";
 import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Version } from "@microsoft/vscode-serial-monitor-api";
 import { VSCODE_FOLDER } from "./ArduinoProject";
 import { CLIArguments } from "./cliArgs";
@@ -233,8 +233,10 @@ export class ArduinoCLI {
 			);
 			compileStatusBarItem.text = compileStatusBarNotExecuting;
 			this.generateIntellisense();
+			this.createCompileResult(true);
 			updateStateCompileUpload();
 		} catch (error) {
+			this.createCompileResult(false);
 			compileStatusBarItem.text = compileStatusBarNotExecuting;
 			console.log(error);
 		}
@@ -464,6 +466,12 @@ export class ArduinoCLI {
 				reject(undefined);
 			});
 		});
+	}
+
+	private createCompileResult(result:boolean) {
+		const compileResult:CompileResult = {result:result};
+		const resultFile = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "compile_result.json");
+		fs.writeFileSync(resultFile, JSON.stringify(compileResult, null, 2), 'utf-8');
 	}
 
 	private createIntellisenseFile() {
