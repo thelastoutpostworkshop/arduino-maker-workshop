@@ -223,8 +223,7 @@ watch(zipFile, () => {
         <v-file-input v-model="zipFile" label="Install library from zip file" accept="application/x-zip-compressed">
 
         </v-file-input>
-        <!-- <input type="file" ref="fileInput" accept=".zip" style="display: none" @change="installFromZip" /> -->
-        <v-chip-group selected-class="text-primary" mandatory v-model="filterLibraries">
+        <v-chip-group mandatory v-model="filterLibraries">
           <v-chip filter :value="FilterLibraries.installed">Installed & Up to date</v-chip>
           <v-chip :disabled="updatableLibraryCount == 0" filter :value="FilterLibraries.updatable">Updatable
             <v-badge v-if="updatableLibraryCount > 0" color="green" :content="updatableLibraryCount" inline>

@@ -193,8 +193,7 @@ const isURLInvalid = computed(() => {
         </v-card-text>
       </v-card>
       <div v-else-if="!store.boardUpdating">
-        <!-- Chip group for filtering boards -->
-        <v-chip-group selected-class="text-primary" mandatory v-model="filterBoards">
+        <v-chip-group mandatory v-model="filterBoards">
           <v-chip filter :value="FilterBoards.installed">Installed & Up to date</v-chip>
           <v-chip :disabled="updatableBoardCount == 0" filter :value="FilterBoards.updatable">Updatable
             <v-badge v-if="updatableBoardCount > 0" color="green" :content="updatableBoardCount" inline />
