@@ -1,4 +1,4 @@
-export const ArduinoExtensionChannelName =  'Arduino Extension';
+export const ArduinoExtensionChannelName = 'Arduino Extension';
 
 // Message exchange with webciew
 export interface WebviewToExtensionMessage {
@@ -7,15 +7,20 @@ export interface WebviewToExtensionMessage {
   payload: any | ArduinoProjectStatus;
 }
 
+// Compile Result
+export interface CompileResult {
+  result: boolean
+}
+
 // Build Options
 export interface BuildOptions {
-  additionalFiles:               string;
+  additionalFiles: string;
   "compiler.optimization_flags": string;
-  customBuildProperties:         string;
-  fqbn:                          string;
-  hardwareFolders:               string;
-  otherLibrariesFolders:         string;
-  sketchLocation:                string;
+  customBuildProperties: string;
+  fqbn: string;
+  hardwareFolders: string;
+  otherLibrariesFolders: string;
+  sketchLocation: string;
 }
 
 // Arduino Config file interface
@@ -80,11 +85,11 @@ export interface Updater {
 export interface ArduinoProjectConfiguration {
   port: string;
   configuration: string;
-  configurationRequired:boolean;
+  configurationRequired: boolean;
   output: string;
   board: string;
-  programmer:string;
-  useProgrammer:boolean
+  programmer: string;
+  useProgrammer: boolean
 };
 
 export enum ARDUINO_ERRORS {
@@ -425,7 +430,7 @@ export const ARDUINO_MESSAGES = {
   LIBRARY_UNINSTALLED: 'libraryVersionInstalled',
   OPEN_LIBRARY: 'openExample',
   REQUEST_BOARD_CONNECTED: "requestBoardConnected",
-  INSTALL_ZIP_LIBRARY:"installZipLibrary",
-  CHANGE_THEME_COLOR:"changeThemeColor",
-  SET_CONFIGURATION_REQUIRED:"SetConfigurationRequired"
+  INSTALL_ZIP_LIBRARY: "installZipLibrary",
+  CHANGE_THEME_COLOR: "changeThemeColor",
+  SET_CONFIGURATION_REQUIRED: "SetConfigurationRequired"
 };
