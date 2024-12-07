@@ -80,6 +80,7 @@ export interface Updater {
 export interface ArduinoProjectConfiguration {
   port: string;
   configuration: string;
+  configurationRequired:boolean;
   output: string;
   board: string;
   programmer:string;
