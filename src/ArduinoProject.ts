@@ -56,6 +56,10 @@ export class ArduinoProject {
             try {
                 const configContent = fs.readFileSync(this.arduinoConfigurationPath, 'utf-8');
                 this.configJson = JSON.parse(configContent);
+                if(!this.configJson.configuration) {
+                    this.configJson.configuration = "";
+                    this.writeVSCodeArduinoConfiguration();
+                }
             } catch (error) {
                 this.writeVSCodeArduinoConfiguration();
             }
