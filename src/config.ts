@@ -15,6 +15,9 @@ export class ArduinoConfiguration {
     public async verify(): Promise<boolean> {
         return this.isPresent();
     }
+    public userDirectory():string | undefined {
+        return this._config?.config.directories?.user;
+    }
     private async readConfig() {
         const json = await arduinoCLI.getArduinoConfig();
         this._config = JSON.parse(json);
