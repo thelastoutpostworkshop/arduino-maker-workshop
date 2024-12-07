@@ -100,12 +100,16 @@ export function changeTheme(themeKind: ColorThemeKind) {
 }
 export function updateStateCompileUpload() {
 	arduinoProject.readConfiguration();
-	if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS &&
-		arduinoProject.getArduinoConfiguration().board.trim() !== '' &&
-		arduinoProject.getArduinoConfiguration().configuration.trim() !== '') {
-		quickAccessProvider.enableItem(quickAccessCompileCommandName);
-		quickAccessProvider.enableItem(compileCommandCleanName);
-		compileStatusBarItem.show();
+	if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS) {
+		if (arduinoProject.isCompileReady()) {
+			quickAccessProvider.enableItem(quickAccessCompileCommandName);
+			quickAccessProvider.enableItem(compileCommandCleanName);
+			compileStatusBarItem.show();
+		} else {
+			quickAccessProvider.disableItem(quickAccessCompileCommandName);
+			quickAccessProvider.disableItem(compileCommandCleanName);
+			compileStatusBarItem.hide();
+		}
 		if (arduinoProject.isUploadReady()) {
 			quickAccessProvider.enableItem(quickAccessUploadCommandName);
 			uploadStatusBarItem.show();

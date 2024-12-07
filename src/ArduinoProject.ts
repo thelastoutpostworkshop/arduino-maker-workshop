@@ -30,6 +30,12 @@ export class ArduinoProject {
         }
         return false;
     }
+    public isCompileReady(): boolean {
+        if (this.configJson.configurationRequired) {
+            return this.configJson.configuration.trim().length > 0;
+        }
+        return true;
+    }
     public getStatus(): ArduinoProjectStatus {
         return this.projectStatus;
     }
