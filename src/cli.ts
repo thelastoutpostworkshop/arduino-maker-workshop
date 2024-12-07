@@ -255,8 +255,10 @@ export class ArduinoCLI {
 		if (!arduinoProject.getBoard()) {
 			window.showInformationMessage('Board info not found, cannot upload');
 		}
-		if (!arduinoProject.getBoardConfiguration()) {
-			window.showInformationMessage('Board configuration not found, cannot upload');
+		if(arduinoProject.isConfigurationRequired()) {
+			if (!arduinoProject.getBoardConfiguration()) {
+				window.showInformationMessage('Board configuration not found, cannot upload');
+			}
 		}
 		if (!arduinoProject.getPort()) {
 			window.showInformationMessage('Port not found, cannot upload');
