@@ -88,7 +88,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
-                        loadMockData('board_options.json').then((mockPayload) => {
+                        loadMockData('board_options_avr.json').then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
