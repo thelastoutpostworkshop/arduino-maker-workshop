@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 
 export const VSCODE_FOLDER: string = ".vscode";
+export const COMPILE_RESULT_FILE:string = "compile_result.json";
 const ARDUINO_SETTINGS: string = "arduino.json";
 const ARDUINO_SKETCH_EXTENSION: string = ".ino";
 const ARDUINO_DEFAULT_OUTPUT: string = "build";

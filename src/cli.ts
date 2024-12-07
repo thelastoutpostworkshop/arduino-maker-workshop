@@ -2,7 +2,7 @@ import { commands, OutputChannel, Uri, window, workspace, ExtensionContext } fro
 import { arduinoCLI, arduinoProject, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
 import { ArduinoCLIStatus, BuildOptions, Compile, CompileResult } from "./shared/messages";
 import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Version } from "@microsoft/vscode-serial-monitor-api";
-import { VSCODE_FOLDER } from "./ArduinoProject";
+import { COMPILE_RESULT_FILE, VSCODE_FOLDER } from "./ArduinoProject";
 import { CLIArguments } from "./cliArgs";
 import { ArduinoConfiguration } from "./config";
 
@@ -470,7 +470,7 @@ export class ArduinoCLI {
 
 	private createCompileResult(result:boolean) {
 		const compileResult:CompileResult = {result:result};
-		const resultFile = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "compile_result.json");
+		const resultFile = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), COMPILE_RESULT_FILE);
 		fs.writeFileSync(resultFile, JSON.stringify(compileResult, null, 2), 'utf-8');
 	}
 
