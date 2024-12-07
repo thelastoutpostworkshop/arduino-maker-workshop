@@ -41,7 +41,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         cliConfig: null as ArduinoConfig | null,
         boardUpdating: "",
         libraryUpdating: "",
-        currentTheme: null as string | null, 
+        currentTheme: null as string | null,
     }),
     actions: {
         changeTheme(theme: THEME_COLOR) {
@@ -49,10 +49,10 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case THEME_COLOR.dark:
                     this.currentTheme = 'vs_dark';
                     break;
-                    case THEME_COLOR.light:
+                case THEME_COLOR.light:
                     this.currentTheme = 'vs_light';
                     break;
-                    case THEME_COLOR.highContrast:
+                case THEME_COLOR.highContrast:
                     this.currentTheme = 'vs_highContrast';
                     break;
             }
@@ -229,7 +229,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                     try {
                         this.boardOptions = JSON.parse(message.payload);
-                        if(this.boardOptions?.config_options) {
+                        if (this.boardOptions?.config_options) {
                             this.boardOptions?.config_options.forEach((configOption) => {
                                 configOption.values.forEach((value) => {
                                     if (value.selected === undefined) {
@@ -247,7 +247,9 @@ export const useVsCodeStore = defineStore('vsCode', {
                                 })
                                 .filter((optionString) => optionString !== null) // Remove any null values from the array
                                 .join(",");
-                                this.sendMessage({ command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS, errorMessage: "", payload: configuration });
+                            this.sendMessage({ command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS, errorMessage: "", payload: configuration });
+                        } else {
+                            this.sendMessage({ command: ARDUINO_MESSAGES.SET_CONFIGURATION_REQUIRED, errorMessage: "", payload: false });
                         }
                     } catch (error) {
                         this.boardOptions = null;
