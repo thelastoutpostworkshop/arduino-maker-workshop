@@ -282,35 +282,7 @@ export class ArduinoCLI {
 		this.compileOrUploadRunning = false;
 	}
 	public generateIntellisense() {
-		if (!loadArduinoConfiguration()) {
-			return;
-		}
-		if (!arduinoProject.getBoard()) {
-			window.showInformationMessage('Board info not found, cannot generate intellisense');
-		}
-		if (!arduinoProject.getBoardConfiguration()) {
-			window.showInformationMessage('Board configuration not found, cannot generate intellisense');
-		}
-		if (!arduinoProject.getOutput()) {
-			window.showInformationMessage('Output not found, cannot generate intellisense');
-		}
 		this.createIntellisenseFile();
-
-		// window.withProgress(
-		// 	{
-		// 		location: ProgressLocation.Window,
-		// 		title: "Generating IntelliSense Configuration...",
-		// 		cancellable: false
-		// 	}, async (progress) => {
-		// 		const output = await arduinoCLI.runArduinoCommand(
-		// 			() => this.cliArgs.getCompileCommandArguments(true),
-		// 			"CLI: Failed to compile for intellisense", true, false, this.compileUploadChannel
-		// 		);
-		// 		if (output) {
-		// 			this.createIntellisenseFile(output);
-		// 		}
-		// 	});
-
 	}
 	public async installZipLibrary(buffer: ArrayBuffer) {
 		try {
