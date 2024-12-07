@@ -241,9 +241,13 @@ export class CLIArguments {
             `${noColorOptionArduino}`,
             `${portOptionArduino}`,
             `${arduinoProject.getPort()}`,
-            `${fqbnOptionArduino}`,
-            `${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`,
+            `${fqbnOptionArduino}`
         ];
+        if (arduinoProject.isConfigurationRequired()) {
+            command.push(`${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`);
+        } else {
+            command.push(`${arduinoProject.getBoard()}`);
+        }
         if (arduinoProject.useProgrammer()) {
             command.push(programmerOption);
             command.push(arduinoProject.getProgrammer());
