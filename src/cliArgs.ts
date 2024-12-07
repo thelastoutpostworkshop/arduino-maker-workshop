@@ -253,17 +253,21 @@ export class CLIArguments {
         command.push(arduinoProject.getProjectPath());
         return command;
     }
-    public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false): string[] {
+    public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false, configurationRequired: boolean): string[] {
         const compileCommand = [
             `${compileCommandArduino}`,
             `${verboseOptionArduino}`,
             `${noColorOptionArduino}`,
-            `${fqbnOptionArduino}`,
-            `${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`,
-            `${buildPathArduino}`,
-            arduinoProject.getProjectPath() + '\\' + arduinoProject.getOutput(),
-            arduinoProject.getProjectPath()
+            `${fqbnOptionArduino}`
         ];
+        if (configurationRequired) {
+            compileCommand.push(`${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`);
+        } else {
+            compileCommand.push(`${arduinoProject.getBoard()}`);
+        }
+        compileCommand.push(`${buildPathArduino}`);
+        compileCommand.push(arduinoProject.getProjectPath() + '\\' + arduinoProject.getOutput());
+        compileCommand.push(arduinoProject.getProjectPath());
         if (jsonOutput) {
             compileCommand.push(`${jsonOutputArduino}`);
         }

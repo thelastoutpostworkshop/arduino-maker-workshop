@@ -216,8 +216,10 @@ export class ArduinoCLI {
 		if (!arduinoProject.getBoard()) {
 			window.showErrorMessage('Board info not found, cannot compile');
 		}
-		if (!arduinoProject.getBoardConfiguration()) {
-			window.showErrorMessage('Board configuration not found, cannot compile');
+		if(arduinoProject.isConfigurationRequired()) {
+			if (!arduinoProject.getBoardConfiguration()) {
+				window.showErrorMessage('Board configuration not found, cannot compile');
+			}
 		}
 		if (!arduinoProject.getOutput()) {
 			window.showErrorMessage('Output not found, cannot compile');
@@ -226,7 +228,7 @@ export class ArduinoCLI {
 		try {
 			compileStatusBarItem.text = compileStatusBarExecuting;
 			await arduinoCLI.runArduinoCommand(
-				() => this.cliArgs.getCompileCommandArguments(false, clean),
+				() => this.cliArgs.getCompileCommandArguments(false, clean,arduinoProject.isConfigurationRequired()),
 				"CLI: Failed to compile project", true, true, this.compileUploadChannel, "Compilation success!"
 			);
 			compileStatusBarItem.text = compileStatusBarNotExecuting;
