@@ -1,4 +1,5 @@
 import { arduinoCLI, arduinoExtensionChannel } from "./extension";
+import { ArduinoConfig } from "./shared/messages";
 const path = require('path');
 const os = require('os');
 
@@ -6,6 +7,7 @@ const staging = 'staging';
 const arduino = 'Arduino';
 
 export class ArduinoConfiguration {
+    private _config:ArduinoConfig | null = null;
     constructor() {
 
     }
@@ -15,26 +17,29 @@ export class ArduinoConfiguration {
     private async isPresent(): Promise<boolean> {
         try {
             const json = await arduinoCLI.getArduinoConfig();
-            const config = JSON.parse(json);
-
-            if (Object.keys(config.config).length === 0) {
-                try {
-                    arduinoExtensionChannel.appendLine("Creating new Arduino Configuration file");
-                    await this.createNew();
-
-                    return true;
-                } catch (error) {
-                    arduinoExtensionChannel.appendLine("Failed to create a new Arduino Configuration file");
-                    return false;
-                }
+            const parsedConfig: ArduinoConfig = JSON.parse(json);
+    
+            // Ensure parsedConfig is valid before assigning
+            if (parsedConfig && Object.keys(parsedConfig.config).length > 0) {
+                this._config = parsedConfig;
+                return true;
             }
-
-            return true;
+    
+            // Handle case where config is empty
+            arduinoExtensionChannel.appendLine("Creating new Arduino Configuration file");
+            try {
+                await this.createNew();
+                return true;
+            } catch (error) {
+                arduinoExtensionChannel.appendLine("Failed to create a new Arduino Configuration file");
+                return false;
+            }
         } catch (error) {
             arduinoExtensionChannel.appendLine("Bad Arduino Configuration file");
             return false;
         }
     }
+    
     private async createNew() {
         const initJson = await arduinoCLI.initArduinoConfiguration();
         const config = JSON.parse(initJson);
