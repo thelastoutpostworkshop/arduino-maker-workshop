@@ -1,6 +1,6 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext } from "vscode";
 import { arduinoCLI, arduinoProject, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
-import { ArduinoCLIStatus, Compile } from "./shared/messages";
+import { ArduinoCLIStatus, BuildOptions, Compile } from "./shared/messages";
 import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Version } from "@microsoft/vscode-serial-monitor-api";
 import { VSCODE_FOLDER } from "./ArduinoProject";
 import { CLIArguments } from "./cliArgs";
@@ -492,11 +492,63 @@ export class ArduinoCLI {
 		});
 	}
 
-
 	private createIntellisenseFile() {
 		const includePaths = new Set<string>();
 		let compilerPath = '';
-	
+
+		try {
+			// Read build.options.json file and dynamically add paths
+			const includeDataPath = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "build.options.json");
+			const includeData: BuildOptions = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
+			if (includeData.hardwareFolders) {
+				includePaths.add(`${includeData.hardwareFolders}/**`);
+			}
+			if (includeData.otherLibrariesFolders) {
+				includePaths.add(`${includeData.otherLibrariesFolders}/**`);
+			}
+			if (includeData.sketchLocation) {
+				includePaths.add(`${includeData.sketchLocation}/**`);
+			}
+		} catch (error) {
+			window.showErrorMessage('Cannot generate IntelliSense: build.options.json not found');
+			return;
+		}
+
+		try {
+			// Read compile_commands.json file to extract the compilerPath
+			const compileCommandJson = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "compile_commands.json");
+			const compileInfo = JSON.parse(fs.readFileSync(compileCommandJson, 'utf8'));
+			for (const entry of compileInfo) {
+				if (entry.arguments && Array.isArray(entry.arguments) && entry.arguments.length > 0) {
+					compilerPath = entry.arguments[0]; // Take the first argument
+					break; // Stop after finding the first valid entry
+				}
+			}
+		} catch (error) {
+			window.showErrorMessage('Cannot generate IntelliSense: compile_commands.json not found');
+			return;
+		}
+
+		// Create c_cpp_properties.json 
+		const cppProperties = {
+			configurations: [{
+				name: "Arduino",
+				includePath: Array.from(includePaths), 
+				compilerPath: compilerPath,
+				cStandard: "c17",
+				cppStandard: "c++17",
+			}],
+			version: 4
+		};
+		// Write to c_cpp_properties.json
+		const cppPropertiesPath = path.join(arduinoProject.getProjectPath(), VSCODE_FOLDER, CPP_PROPERTIES);
+		fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
+	}
+
+	private createIntellisenseFile_2() {
+		const includePaths = new Set<string>();
+		let compilerPath = '';
+
 		try {
 			// Read includes.cache file and dynamically add paths
 			const includeDataPath = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "includes.cache");
@@ -512,7 +564,7 @@ export class ArduinoCLI {
 			window.showErrorMessage('Cannot generate IntelliSense: includes.cache not found');
 			return;
 		}
-	
+
 		try {
 			// Read compile_commands.json file to extract the compilerPath
 			const compileCommandJson = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "compile_commands.json");
@@ -527,7 +579,7 @@ export class ArduinoCLI {
 			window.showErrorMessage('Cannot generate IntelliSense: compile_commands.json not found');
 			return;
 		}
-	
+
 		// Create c_cpp_properties.json with the simplified paths
 		const cppProperties = {
 			configurations: [{
@@ -539,33 +591,33 @@ export class ArduinoCLI {
 			}],
 			version: 4
 		};
-	
+
 		// Write to c_cpp_properties.json
 		const cppPropertiesPath = path.join(arduinoProject.getProjectPath(), VSCODE_FOLDER, CPP_PROPERTIES);
 		fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
 	}
-	
+
 	/**
 	 * Dynamically calculate the most common denominator of a given path.
 	 */
 	private getCommonDenominator(pathString: string): string {
 		const parts = pathString.split(path.sep);
 		let commonPath = parts[0];
-	
+
 		// Dynamically build the common path by iterating through the segments
 		for (let i = 1; i < parts.length - 1; i++) {
 			commonPath = path.join(commonPath, parts[i]);
-	
+
 			// If this directory is likely a project root, stop further processing
 			// (Can customize this condition based on specific needs)
 			if (this.isLikelyRoot(parts[i])) {
 				break;
 			}
 		}
-	
+
 		return commonPath;
 	}
-	
+
 	/**
 	 * Check if the current directory segment is likely a root for includes.
 	 */
@@ -573,8 +625,8 @@ export class ArduinoCLI {
 		// Customize conditions for identifying a root (e.g., "libraries" or specific keywords).
 		return directorySegment.toLowerCase().includes("packages") || directorySegment.toLowerCase().includes("arduino");
 	}
-	
-	
+
+
 	private createIntellisenseFile_old(compileJsonOutput: string) {
 		try {
 			const compileInfo: Compile = JSON.parse(compileJsonOutput);

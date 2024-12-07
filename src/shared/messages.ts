@@ -7,6 +7,17 @@ export interface WebviewToExtensionMessage {
   payload: any | ArduinoProjectStatus;
 }
 
+// Build Options
+export interface BuildOptions {
+  additionalFiles:               string;
+  "compiler.optimization_flags": string;
+  customBuildProperties:         string;
+  fqbn:                          string;
+  hardwareFolders:               string;
+  otherLibrariesFolders:         string;
+  sketchLocation:                string;
+}
+
 // Arduino Config file interface
 export interface ArduinoConfig {
   config: Config;
