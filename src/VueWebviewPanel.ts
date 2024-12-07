@@ -252,7 +252,7 @@ export class VueWebviewPanel {
             );
 
             panel.iconPath = Uri.file(
-                path.join(context.extensionPath, 'resources', 'arduino.svg')
+                path.join(context.extensionPath, 'resources', 'arduino_color.svg')
             );
 
             VueWebviewPanel.currentPanel = new VueWebviewPanel(panel, context.extensionUri);
