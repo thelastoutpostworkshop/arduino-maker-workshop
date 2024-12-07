@@ -11,7 +11,7 @@ const ARDUINO_DEFAULT_OUTPUT: string = "build";
 
 export class ArduinoProject {
     private arduinoConfigurationPath: string = "";
-    private configJson: ArduinoProjectConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "", programmer: "", useProgrammer: false,configurationRequired:false };
+    private configJson: ArduinoProjectConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "", programmer: "", useProgrammer: false, configurationRequired: false };
     private projectFullPath: string = "";
     private projectStatus: ArduinoProjectStatus = { status: ARDUINO_ERRORS.NO_ERRORS };
     private sketchFileName: string = "";
@@ -56,7 +56,7 @@ export class ArduinoProject {
             try {
                 const configContent = fs.readFileSync(this.arduinoConfigurationPath, 'utf-8');
                 this.configJson = JSON.parse(configContent);
-                if(!this.configJson.configuration) {
+                if (!this.configJson.configuration) {
                     this.configJson.configuration = "";
                     this.writeVSCodeArduinoConfiguration();
                 }
@@ -154,7 +154,7 @@ export class ArduinoProject {
         this.configJson.useProgrammer = use;
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }
-    public setRequiredConfiguration(required: boolean): void {
+    public setConfigurationRequired(required: boolean): void {
         this.configJson.configurationRequired = required;
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
     }

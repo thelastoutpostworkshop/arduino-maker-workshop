@@ -184,6 +184,9 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
+                    case ARDUINO_MESSAGES.SET_CONFIGURATION_REQUIRED:
+                        arduinoProject.setConfigurationRequired(message.payload);
+                        break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);
                 }
