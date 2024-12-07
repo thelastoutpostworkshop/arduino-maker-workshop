@@ -496,14 +496,14 @@ export class ArduinoCLI {
 		const includePaths = new Set();
 		let compilerPath = '';
 
-		const libraryPath = this.arduinoConfig.userDirectory();
-		includePaths.add(`${libraryPath}\\libraries\\**`);
+		const libraryPath = this.arduinoConfig.userDirectory()+"\\libraries";
+		includePaths.add(`${libraryPath}\\**`);
 
 		try {
 			const includeDataPath = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "includes.cache");
 			const includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
 			includeData.forEach((entry: any) => {
-				if (entry.Includepath) {
+				if (entry.Includepath && !entry.Includepath.includes(libraryPath)) {
 					includePaths.add(entry.Includepath + "\\**");
 				}
 			});
