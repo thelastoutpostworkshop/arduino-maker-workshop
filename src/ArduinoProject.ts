@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ARDUINO_ERRORS, ArduinoProjectConfiguration, ArduinoProjectStatus } from './shared/messages';
+import { ARDUINO_ERRORS, ArduinoProjectConfiguration, ArduinoProjectStatus, CompileResult } from './shared/messages';
 
 const path = require('path');
 const fs = require('fs');
@@ -25,9 +25,14 @@ export class ArduinoProject {
     }
     public isUploadReady(): boolean {
         if (this.configJson.port.trim().length !== 0) {
-            const sketch = path.join(this.projectFullPath, this.configJson.output, this.sketchFileName);
-            const binFile = sketch + ".bin";
-            return fs.existsSync(binFile);
+            const resultFile = path.join(this.getProjectPath(), this.getOutput(), COMPILE_RESULT_FILE);
+            try {
+                const content = fs.readFileSync(resultFile, 'utf-8');
+                const result:CompileResult = JSON.parse(content);
+                return result.result;
+            } catch (error) {
+                return false;
+            }
         }
         return false;
     }
