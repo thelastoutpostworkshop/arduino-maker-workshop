@@ -426,5 +426,6 @@ export const ARDUINO_MESSAGES = {
   OPEN_LIBRARY: 'openExample',
   REQUEST_BOARD_CONNECTED: "requestBoardConnected",
   INSTALL_ZIP_LIBRARY:"installZipLibrary",
-  CHANGE_THEME_COLOR:"changeThemeColor"
+  CHANGE_THEME_COLOR:"changeThemeColor",
+  SET_CONFIGURATION_REQUIRED:"SetConfigurationRequired"
 };
