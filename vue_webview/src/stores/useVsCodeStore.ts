@@ -229,24 +229,26 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                     try {
                         this.boardOptions = JSON.parse(message.payload);
-                        this.boardOptions?.config_options.forEach((configOption) => {
-                            configOption.values.forEach((value) => {
-                                if (value.selected === undefined) {
-                                    value.selected = false;
-                                }
+                        if(this.boardOptions?.config_options) {
+                            this.boardOptions?.config_options.forEach((configOption) => {
+                                configOption.values.forEach((value) => {
+                                    if (value.selected === undefined) {
+                                        value.selected = false;
+                                    }
+                                });
                             });
-                        });
-                        let configuration = this.boardOptions?.config_options
-                            .map((configOption) => {
-                                const selectedValue = configOption.values.find(value => value.selected);
-                                if (selectedValue) {
-                                    return `${configOption.option}=${selectedValue.value}`;
-                                }
-                                return null;
-                            })
-                            .filter((optionString) => optionString !== null) // Remove any null values from the array
-                            .join(",");
-                        this.sendMessage({ command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS, errorMessage: "", payload: configuration });
+                            let configuration = this.boardOptions?.config_options
+                                .map((configOption) => {
+                                    const selectedValue = configOption.values.find(value => value.selected);
+                                    if (selectedValue) {
+                                        return `${configOption.option}=${selectedValue.value}`;
+                                    }
+                                    return null;
+                                })
+                                .filter((optionString) => optionString !== null) // Remove any null values from the array
+                                .join(",");
+                                this.sendMessage({ command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS, errorMessage: "", payload: configuration });
+                        }
                     } catch (error) {
                         this.boardOptions = null;
                         this.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
