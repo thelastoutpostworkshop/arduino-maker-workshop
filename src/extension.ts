@@ -28,6 +28,49 @@ export async function activate(context: ExtensionContext) {
 		arduinoExtensionChannel.appendLine(`Arduino CLI is ready, path: ${arduinoCLI.arduinoCLIPath}`);
 		if (await arduinoCLI.isConfigReady()) {
 			arduinoExtensionChannel.appendLine(`Arduino Config file is good`);
+			context.subscriptions.push(
+				workspace.onDidChangeConfiguration((e) => {
+				})
+			);
+			context.subscriptions.push(
+				workspace.onDidChangeConfiguration((e) => {
+				})
+			);
+
+			context.subscriptions.push(vsCommandCompile());
+			context.subscriptions.push(vsCommandCompileClean());
+			context.subscriptions.push(vsCommandUpload());
+			context.subscriptions.push(vsGenerateIntellisense());
+
+			compileStatusBarItem.text = compileStatusBarNotExecuting;
+			compileStatusBarItem.command = compileCommandName;
+			compileStatusBarItem.tooltip = "Compile the current sketch";
+			context.subscriptions.push(compileStatusBarItem);
+
+			uploadStatusBarItem.text = uploadStatusBarNotExecuting;
+			uploadStatusBarItem.command = uploadCommandName;
+			uploadStatusBarItem.tooltip = "Upload to the board";
+			context.subscriptions.push(uploadStatusBarItem);
+
+			context.subscriptions.push(
+				commands.registerCommand('extension.openVueWebview', () => {
+					VueWebviewPanel.render(context);
+				})
+			);
+
+			window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
+			updateStateCompileUpload();
+			workspace.onDidChangeTextDocument((document) => {
+				if (document.document.fileName === arduinoProject.getarduinoConfigurationPath()) {
+					updateStateCompileUpload();
+				}
+			});
+
+			// Listening to theme change events
+			window.onDidChangeActiveColorTheme((colorTheme) => {
+				changeTheme(colorTheme.kind);
+			});
+
 		} else {
 			arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
 			arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
@@ -37,50 +80,6 @@ export async function activate(context: ExtensionContext) {
 		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 	}
 
-
-	context.subscriptions.push(
-		workspace.onDidChangeConfiguration((e) => {
-		})
-	);
-
-	context.subscriptions.push(
-		workspace.onDidChangeConfiguration((e) => {
-		})
-	);
-
-	context.subscriptions.push(vsCommandCompile());
-	context.subscriptions.push(vsCommandCompileClean());
-	context.subscriptions.push(vsCommandUpload());
-	context.subscriptions.push(vsGenerateIntellisense());
-
-	compileStatusBarItem.text = compileStatusBarNotExecuting;
-	compileStatusBarItem.command = compileCommandName;
-	compileStatusBarItem.tooltip = "Compile the current sketch";
-	context.subscriptions.push(compileStatusBarItem);
-
-	uploadStatusBarItem.text = uploadStatusBarNotExecuting;
-	uploadStatusBarItem.command = uploadCommandName;
-	uploadStatusBarItem.tooltip = "Upload to the board";
-	context.subscriptions.push(uploadStatusBarItem);
-
-	context.subscriptions.push(
-		commands.registerCommand('extension.openVueWebview', () => {
-			VueWebviewPanel.render(context);
-		})
-	);
-
-	window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
-	updateStateCompileUpload();
-	workspace.onDidChangeTextDocument((document) => {
-		if (document.document.fileName === arduinoProject.getarduinoConfigurationPath()) {
-			updateStateCompileUpload();
-		}
-	});
-
-	// Listening to theme change events
-	window.onDidChangeActiveColorTheme((colorTheme) => {
-		changeTheme(colorTheme.kind);
-	});
 }
 
 export function changeTheme(themeKind: ColorThemeKind) {
