@@ -240,7 +240,6 @@ export class ArduinoCLI {
 
 					// Compilation success
 					this.compileUploadChannel.appendLine("Compilation completed successfully.");
-					compileStatusBarItem.text = compileStatusBarNotExecuting;
 					this.generateIntellisense();
 					this.createCompileResult(true);
 				}
@@ -248,8 +247,8 @@ export class ArduinoCLI {
 		} catch (error) {
 			this.compileUploadChannel.appendLine(`Compilation failed`);
 			this.createCompileResult(false);
-			compileStatusBarItem.text = compileStatusBarNotExecuting;
 		} finally {
+			compileStatusBarItem.text = compileStatusBarNotExecuting;
 			this.compileOrUploadRunning = false;
 			updateStateCompileUpload();
 		}
