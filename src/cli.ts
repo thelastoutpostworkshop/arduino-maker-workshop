@@ -439,9 +439,9 @@ export class ArduinoCLI {
 
 			// Stream stderr to the output channel and optionally to the buffer
 			child.stderr.on('data', (data: Buffer) => {
-				const error = `Error: ${data.toString()}`;
+				const error = data.toString();
 				if (showOutput) {
-					channel.appendLine(error);
+					channel.append(error);
 				}
 				if (returnOutput) {
 					outputBuffer += error;
