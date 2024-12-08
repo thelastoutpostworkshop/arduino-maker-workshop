@@ -233,14 +233,13 @@ export class ArduinoCLI {
 						throw new Error("Compilation cancelled by user."); // Stop further execution
 					});
 
-					await arduinoCLI.runArduinoCommand(
+					const output = await arduinoCLI.runArduinoCommand(
 						() => this.cliArgs.getCompileCommandArguments(false, clean, arduinoProject.isConfigurationRequired()),
 						"CLI: Failed to compile project", true, true, this.compileUploadChannel, "Compilation success!"
 					);
-
 					// Compilation success
 					this.compileUploadChannel.appendLine("Compilation completed successfully.");
-					this.generateIntellisense();
+					this.createIntellisenseFile(output);
 					this.createCompileResult(true);
 				}
 			);
@@ -296,9 +295,6 @@ export class ArduinoCLI {
 			console.log(error);
 		}
 		this.compileOrUploadRunning = false;
-	}
-	public generateIntellisense() {
-		this.createIntellisenseFile();
 	}
 	public async installZipLibrary(buffer: ArrayBuffer) {
 		try {
@@ -501,7 +497,7 @@ export class ArduinoCLI {
 		fs.writeFileSync(resultFile, JSON.stringify(compileResult, null, 2), 'utf-8');
 	}
 
-	private createIntellisenseFile() {
+	private createIntellisenseFile(output:string) {
 		const includePaths = new Set<string>();
 		let compilerPath = '';
 

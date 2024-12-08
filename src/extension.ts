@@ -1,4 +1,4 @@
-import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind, ThemeColor } from "vscode";
+import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind } from "vscode";
 import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, quickAccessCompileCommandName, intellisenseCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
@@ -41,7 +41,6 @@ export async function activate(context: ExtensionContext) {
 			context.subscriptions.push(vsCommandCompile());
 			context.subscriptions.push(vsCommandCompileClean());
 			context.subscriptions.push(vsCommandUpload());
-			context.subscriptions.push(vsGenerateIntellisense());
 
 			compileStatusBarItem.text = compileStatusBarNotExecuting;
 			compileStatusBarItem.command = compileCommandName;
@@ -162,12 +161,6 @@ export function loadArduinoConfiguration(): boolean {
 function vsCommandUpload(): Disposable {
 	return commands.registerCommand('quickAccessView.upload', async () => {
 		arduinoCLI.upload();
-	});
-}
-
-function vsGenerateIntellisense(): Disposable {
-	return commands.registerCommand('intellisense', () => {
-		arduinoCLI.generateIntellisense();
 	});
 }
 
