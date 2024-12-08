@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 
 export const VSCODE_FOLDER: string = ".vscode";
-export const COMPILE_RESULT_FILE:string = "compile_result.json";
+export const COMPILE_RESULT_FILE: string = "compile_result.json";
 const ARDUINO_SETTINGS: string = "arduino.json";
 const ARDUINO_SKETCH_EXTENSION: string = ".ino";
 const ARDUINO_DEFAULT_OUTPUT: string = "build";
@@ -28,7 +28,7 @@ export class ArduinoProject {
             const resultFile = path.join(this.getProjectPath(), this.getOutput(), COMPILE_RESULT_FILE);
             try {
                 const content = fs.readFileSync(resultFile, 'utf-8');
-                const result:CompileResult = JSON.parse(content);
+                const result: CompileResult = JSON.parse(content);
                 return result.result;
             } catch (error) {
                 return false;
@@ -37,10 +37,13 @@ export class ArduinoProject {
         return false;
     }
     public isCompileReady(): boolean {
-        if (this.configJson.configurationRequired) {
-            return this.configJson.configuration.trim().length > 0;
+        if (this.configJson.board.trim().length > 0) {
+            if (this.configJson.configurationRequired) {
+                return this.configJson.configuration.trim().length > 0;
+            }
+            return true;
         }
-        return true;
+        return false;
     }
     public getStatus(): ArduinoProjectStatus {
         return this.projectStatus;
