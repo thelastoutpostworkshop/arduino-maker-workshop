@@ -25,7 +25,7 @@ export let arduinoCLI: ArduinoCLI;
 export async function activate(context: ExtensionContext) {
 	arduinoCLI = new ArduinoCLI(context);
 	if (await arduinoCLI.isCLIReady()) {
-		arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${arduinoCLI.arduinoCLIPath}`);
+		arduinoExtensionChannel.appendLine(`Arduino CLI is ready, path: ${arduinoCLI.arduinoCLIPath}`);
 		if (await arduinoCLI.isConfigReady()) {
 			arduinoExtensionChannel.appendLine(`Arduino Config file is good`);
 		} else {
