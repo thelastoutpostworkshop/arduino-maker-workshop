@@ -497,7 +497,7 @@ export class ArduinoCLI {
 		fs.writeFileSync(resultFile, JSON.stringify(compileResult, null, 2), 'utf-8');
 	}
 
-	private createIntellisenseFile(output:string) {
+	private createIntellisenseFile(output: string) {
 		const includePaths = new Set<string>();
 		let compilerPath = '';
 
@@ -534,12 +534,21 @@ export class ArduinoCLI {
 			return;
 		}
 
+		const defines: string[] = [];
+		let match;
+		const defineRegex = /-D([^\s]+)/g;
+		while ((match = defineRegex.exec(output)) !== null) {
+			defines.push(match[1]);
+		}
+		defines.push("USBCON");
+
 		// Create c_cpp_properties.json 
 		const cppProperties = {
 			configurations: [{
 				name: "Arduino",
 				includePath: Array.from(includePaths),
 				compilerPath: compilerPath,
+				defines: defines,
 				cStandard: "c17",
 				cppStandard: "c++17",
 			}],
