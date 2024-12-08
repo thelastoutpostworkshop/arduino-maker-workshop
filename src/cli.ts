@@ -1,4 +1,4 @@
-import { commands, OutputChannel, Uri, window, workspace, ExtensionContext } from "vscode";
+import { commands, OutputChannel, Uri, window, workspace, ExtensionContext, ProgressLocation } from "vscode";
 import { arduinoCLI, arduinoProject, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
 import { ArduinoCLIStatus, BuildOptions, Compile, CompileResult } from "./shared/messages";
 import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Version } from "@microsoft/vscode-serial-monitor-api";
@@ -23,6 +23,7 @@ export class ArduinoCLI {
 	private _lastCLIError: string = "";
 	private cliStatus: ArduinoCLIStatus = { VersionString: "", Date: "" };
 	private arduinoConfig = new ArduinoConfiguration();
+	private activeProcess: any | null = null;
 
 	constructor(private context: ExtensionContext) {
 		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
@@ -203,6 +204,7 @@ export class ArduinoCLI {
 			false, false
 		);
 	}
+
 	public async compile(clean: boolean = false) {
 		if (this.compileOrUploadRunning) {
 			this.compileUploadChannel.show();
@@ -211,37 +213,68 @@ export class ArduinoCLI {
 		this.compileOrUploadRunning = true;
 		this.compileUploadChannel.appendLine("Compile project starting...");
 		if (!loadArduinoConfiguration()) {
+			this.compileOrUploadRunning = false;
 			return;
 		}
 		if (!arduinoProject.getBoard()) {
 			window.showErrorMessage('Board info not found, cannot compile');
+			this.compileOrUploadRunning = false;
+			return;
 		}
-		if(arduinoProject.isConfigurationRequired()) {
-			if (!arduinoProject.getBoardConfiguration()) {
-				window.showErrorMessage('Board configuration not found, cannot compile');
-			}
+		if (arduinoProject.isConfigurationRequired() && !arduinoProject.getBoardConfiguration()) {
+			window.showErrorMessage('Board configuration not found, cannot compile');
+			this.compileOrUploadRunning = false;
+			return;
 		}
 		if (!arduinoProject.getOutput()) {
 			window.showErrorMessage('Output not found, cannot compile');
+			this.compileOrUploadRunning = false;
+			return;
 		}
 
 		try {
-			compileStatusBarItem.text = compileStatusBarExecuting;
-			await arduinoCLI.runArduinoCommand(
-				() => this.cliArgs.getCompileCommandArguments(false, clean,arduinoProject.isConfigurationRequired()),
-				"CLI: Failed to compile project", true, true, this.compileUploadChannel, "Compilation success!"
+			await window.withProgress(
+				{
+					location: ProgressLocation.Notification,
+					title: "Compiling project...",
+					cancellable: true,
+				},
+				async (progress, token) => {
+					// Update the status bar
+					compileStatusBarItem.text = compileStatusBarExecuting;
+
+					// If the token signals cancellation
+					token.onCancellationRequested(() => {
+						this.cancelExecution(); // Ensure the compilation process stops
+						this.compileUploadChannel.appendLine("Compilation cancelled by user.");
+						compileStatusBarItem.text = compileStatusBarNotExecuting;
+						this.createCompileResult(false);
+						throw new Error("Compilation cancelled by user."); // Stop further execution
+					});
+
+					await arduinoCLI.runArduinoCommand(
+						() => this.cliArgs.getCompileCommandArguments(false, clean, arduinoProject.isConfigurationRequired()),
+						"CLI: Failed to compile project", true, true, this.compileUploadChannel, "Compilation success!"
+					);
+
+					// Compilation success
+					this.compileUploadChannel.appendLine("Compilation completed successfully.");
+					compileStatusBarItem.text = compileStatusBarNotExecuting;
+					this.generateIntellisense();
+					this.createCompileResult(true);
+				}
 			);
-			compileStatusBarItem.text = compileStatusBarNotExecuting;
-			this.generateIntellisense();
-			this.createCompileResult(true);
-			updateStateCompileUpload();
 		} catch (error) {
+			this.compileUploadChannel.appendLine(`Compilation failed: ${error.message}`);
 			this.createCompileResult(false);
 			compileStatusBarItem.text = compileStatusBarNotExecuting;
-			console.log(error);
+			console.error(error);
+		} finally {
+			this.compileOrUploadRunning = false;
+			updateStateCompileUpload();
 		}
-		this.compileOrUploadRunning = false;
 	}
+
 	public async upload() {
 		if (this.compileOrUploadRunning) {
 			this.compileUploadChannel.show();
@@ -255,7 +288,7 @@ export class ArduinoCLI {
 		if (!arduinoProject.getBoard()) {
 			window.showInformationMessage('Board info not found, cannot upload');
 		}
-		if(arduinoProject.isConfigurationRequired()) {
+		if (arduinoProject.isConfigurationRequired()) {
 			if (!arduinoProject.getBoardConfiguration()) {
 				window.showInformationMessage('Board configuration not found, cannot upload');
 			}
@@ -422,6 +455,7 @@ export class ArduinoCLI {
 		this.arduinoCLIChannel.appendLine(args.join(' '));
 
 		const child = cp.spawn(`${command}`, args);
+		this.activeProcess = child;
 		let outputBuffer = '';
 
 		return new Promise((resolve, reject) => {
@@ -449,6 +483,7 @@ export class ArduinoCLI {
 			});
 
 			child.on('close', (code: number) => {
+				this.activeProcess = null;
 				if (code === 0) {
 					if (showOutput) {
 						channel.appendLine('Command executed successfully.');
@@ -464,14 +499,25 @@ export class ArduinoCLI {
 			});
 
 			child.on('error', (err: any) => {
+				this.activeProcess = null;
 				channel.appendLine(`Failed to run command: ${err.message}`);
 				reject(undefined);
 			});
 		});
 	}
 
-	private createCompileResult(result:boolean) {
-		const compileResult:CompileResult = {result:result};
+	private cancelExecution() {
+		if (this.activeProcess) {
+			this.activeProcess.kill();
+			this.activeProcess = null;
+			this.arduinoCLIChannel.appendLine('Command execution was canceled.');
+		} else {
+			window.showWarningMessage('No active command to cancel.');
+		}
+	}
+
+	private createCompileResult(result: boolean) {
+		const compileResult: CompileResult = { result: result };
 		const resultFile = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), COMPILE_RESULT_FILE);
 		fs.writeFileSync(resultFile, JSON.stringify(compileResult, null, 2), 'utf-8');
 	}
@@ -517,7 +563,7 @@ export class ArduinoCLI {
 		const cppProperties = {
 			configurations: [{
 				name: "Arduino",
-				includePath: Array.from(includePaths), 
+				includePath: Array.from(includePaths),
 				compilerPath: compilerPath,
 				cStandard: "c17",
 				cppStandard: "c++17",
