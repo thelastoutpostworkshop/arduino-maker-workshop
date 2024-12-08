@@ -26,17 +26,17 @@ export async function activate(context: ExtensionContext) {
 	arduinoCLI = new ArduinoCLI(context);
 	if (await arduinoCLI.isCLIReady()) {
 		arduinoExtensionChannel.appendLine(`Arduino CLI Path: ${arduinoCLI.arduinoCLIPath}`);
+		if (await arduinoCLI.isConfigReady()) {
+			arduinoExtensionChannel.appendLine(`Arduino Config file is good`);
+		} else {
+			arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
+			arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
+		}
 	} else {
 		arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
 		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 	}
 
-	if (await arduinoCLI.isConfigReady()) {
-		arduinoExtensionChannel.appendLine(`Arduino Config file is good`);
-	} else {
-		arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
-		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
-	}
 
 	context.subscriptions.push(
 		workspace.onDidChangeConfiguration((e) => {
