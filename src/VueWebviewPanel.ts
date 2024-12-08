@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionCo
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoCLI, arduinoExtensionChannel, arduinoProject, changeTheme, loadArduinoConfiguration, openExample } from "./extension";
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, changeTheme, loadArduinoConfiguration, openExample, updateStateCompileUpload } from "./extension";
 
 const usb = require('usb').usb;
 const path = require('path');
@@ -72,11 +72,13 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.SET_BOARD_OPTIONS:
                         this.setConfiguration(message);
+                        updateStateCompileUpload();
                         break;
                     case ARDUINO_MESSAGES.SET_BOARD:
                         this.setBoard(message);
                         arduinoProject.resetBoardConfiguration();
                         arduinoExtensionChannel.appendLine(`Current Board Configuration: ${arduinoProject.getBoardConfiguration()}`);
+                        updateStateCompileUpload();
                         arduinoCLI.getBoardConfiguration().then((result) => {
                             message.command = ARDUINO_MESSAGES.CLI_BOARD_OPTIONS;
                             message.payload = result;
