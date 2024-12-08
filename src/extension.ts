@@ -71,6 +71,7 @@ export async function activate(context: ExtensionContext) {
 			window.onDidChangeActiveColorTheme((colorTheme) => {
 				changeTheme(colorTheme.kind);
 			});
+			await commands.executeCommand('extension.openVueWebview');
 
 		} else {
 			arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
