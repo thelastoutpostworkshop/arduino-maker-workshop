@@ -212,25 +212,6 @@ export class ArduinoCLI {
 		}
 		this.compileOrUploadRunning = true;
 		this.compileUploadChannel.appendLine("Compile project starting...");
-		// if (!loadArduinoConfiguration()) {
-		// 	this.compileOrUploadRunning = false;
-		// 	return;
-		// }
-		// if (!arduinoProject.getBoard()) {
-		// 	window.showErrorMessage('Board info not found, cannot compile');
-		// 	this.compileOrUploadRunning = false;
-		// 	return;
-		// }
-		// if (arduinoProject.isConfigurationRequired() && !arduinoProject.getBoardConfiguration()) {
-		// 	window.showErrorMessage('Board configuration not found, cannot compile');
-		// 	this.compileOrUploadRunning = false;
-		// 	return;
-		// }
-		// if (!arduinoProject.getOutput()) {
-		// 	window.showErrorMessage('Output not found, cannot compile');
-		// 	this.compileOrUploadRunning = false;
-		// 	return;
-		// }
 
 		try {
 			await window.withProgress(
