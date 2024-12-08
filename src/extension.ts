@@ -28,6 +28,7 @@ export async function activate(context: ExtensionContext) {
 		arduinoExtensionChannel.appendLine(`Arduino CLI is ready, path: ${arduinoCLI.arduinoCLIPath}`);
 		if (await arduinoCLI.isConfigReady()) {
 			arduinoExtensionChannel.appendLine(`Arduino Config file is good`);
+
 			context.subscriptions.push(
 				workspace.onDidChangeConfiguration((e) => {
 				})
