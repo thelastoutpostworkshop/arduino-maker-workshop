@@ -265,10 +265,9 @@ export class ArduinoCLI {
 				}
 			);
 		} catch (error) {
-			this.compileUploadChannel.appendLine(`Compilation failed: ${error.message}`);
+			this.compileUploadChannel.appendLine(`Compilation failed`);
 			this.createCompileResult(false);
 			compileStatusBarItem.text = compileStatusBarNotExecuting;
-			console.error(error);
 		} finally {
 			this.compileOrUploadRunning = false;
 			updateStateCompileUpload();
