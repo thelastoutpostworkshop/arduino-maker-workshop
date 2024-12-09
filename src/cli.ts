@@ -1,5 +1,5 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext, ProgressLocation } from "vscode";
-import { arduinoCLI, arduinoProject, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
 import { ArduinoCLIStatus, BuildOptions, Compile, CompileResult } from "./shared/messages";
 import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Version } from "@microsoft/vscode-serial-monitor-api";
 import { COMPILE_RESULT_FILE, VSCODE_FOLDER } from "./ArduinoProject";
@@ -515,8 +515,7 @@ export class ArduinoCLI {
 				includePaths.add(`${includeData.sketchLocation}/**`);
 			}
 		} catch (error) {
-			window.showErrorMessage('Cannot generate IntelliSense: build.options.json not found');
-			return;
+			arduinoExtensionChannel.appendLine('IntelliSense: build.options.json not found');
 		}
 
 		try {
@@ -530,8 +529,7 @@ export class ArduinoCLI {
 				}
 			}
 		} catch (error) {
-			window.showErrorMessage('Cannot generate IntelliSense: compile_commands.json not found');
-			return;
+			arduinoExtensionChannel.appendLine('IntelliSense: compile_commands.json not found');
 		}
 
 		const defines: string[] = [];
