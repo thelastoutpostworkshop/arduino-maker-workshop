@@ -3,10 +3,11 @@
   "displayName": "Arduino Maker Workshop",
   "publisher": "TheLastOutpostWorkshop",
   "description": "The ultimate tool for makers to bring Arduino projects to life!",
-  "version": "0.1.8",
+  "version": "0.2.0",
   "engines": {
     "vscode": "^1.93.0"
   },
+  "icon": "resources/extension_icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/thelastoutpostworkshop/vscode-arduino"
