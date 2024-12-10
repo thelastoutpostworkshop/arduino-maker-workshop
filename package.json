@@ -2,7 +2,7 @@
   "name": "vscode-arduino",
   "displayName": "Arduino Maker Workshop",
   "publisher": "TheLastOutpostWorkshop",
-  "description": "",
+  "description": "The ultimate tool for makers to bring Arduino projects to life!",
   "version": "0.1.8",
   "engines": {
     "vscode": "^1.93.0"
