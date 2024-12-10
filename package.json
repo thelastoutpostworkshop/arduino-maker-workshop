@@ -15,6 +15,16 @@
   "categories": [
     "Programming Languages"
   ],
+  "keywords": [
+    "arduino",
+    "iot",
+    "esp32",
+    "microcontroller",
+    "embedded",
+    "sketch",
+    "C",
+    "C++"
+  ],
   "main": "./build/extension.js",
   "contributes": {
     "viewsContainers": {
