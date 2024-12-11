@@ -70,6 +70,15 @@ watch(areLibrariesAvailable, () => {
         }
       })
     }
+    store.libariesInformation.forEach((lib)=> {
+      if(lib.available_versions) {
+        if(lib.installed) {
+          selectedLibrary.value[lib.name] = lib.installedVersion;
+        } else {
+          selectedLibrary.value[lib.name] = lib.latestVersion;
+        }
+      }
+    })
   }
 });
 
@@ -117,13 +126,6 @@ function isLibraryDeprecated(library: LibraryInformation): boolean {
   return sentence.includes("deprecated") || paragraph.includes("deprecated");
 }
 
-function findLibrary(name: string): LibraryInformation | undefined {
-  const foundLibrary = store.libariesInformation?.find(
-    (installedLibrary) => installedLibrary.name === name
-  );
-  return foundLibrary;
-}
-
 const filteredLibraries = computed(() => {
   const filtered = filterLibs(filterLibraries.value);
   filterdLibrariesCount.value = filtered.length;
@@ -141,12 +143,6 @@ const filteredLibrariesCountText = computed(() => {
 function getVersions(library: LibraryInformation): string[] {
   if (library.available_versions) {
     const result = [...library.available_versions].reverse();
-    const libInstalled = findLibrary(library.name);
-    if (libInstalled) {
-      selectedLibrary.value[libInstalled.name] = libInstalled.installedVersion;
-    } else {
-      selectedLibrary.value[library.name] = result[0];
-    }
     return result;
   }
   return [];
