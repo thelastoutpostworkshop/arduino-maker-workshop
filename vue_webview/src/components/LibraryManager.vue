@@ -30,6 +30,10 @@ const areLibrariesAvailable = computed(() => {
 });
 
 watch(areLibrariesAvailable, () => {
+  updateLibariesInformation();
+});
+
+function updateLibariesInformation() {
   if (store.libraries?.libraries) {
     store.libariesInformation = store.libraries?.libraries.map((library) => {
       return {
@@ -70,9 +74,9 @@ watch(areLibrariesAvailable, () => {
         }
       })
     }
-    store.libariesInformation.forEach((lib)=> {
-      if(lib.available_versions) {
-        if(lib.installed) {
+    store.libariesInformation.forEach((lib) => {
+      if (lib.available_versions) {
+        if (lib.installed) {
           selectedLibrary.value[lib.name] = lib.installedVersion;
         } else {
           selectedLibrary.value[lib.name] = lib.latestVersion;
@@ -80,11 +84,15 @@ watch(areLibrariesAvailable, () => {
       }
     })
   }
-});
+}
 
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: "", payload: "" });
+  // Force recompute when component mounts
+  if (areLibrariesAvailable.value) {
+    updateLibariesInformation();
+  }
 });
 
 const updatableLibraryCount = computed(() => {
@@ -149,8 +157,8 @@ function getVersions(library: LibraryInformation): string[] {
 }
 
 function filterLibs(filter: FilterLibraries): LibraryInformation[] {
-  let filtered: LibraryInformation[] =[];
-  if(store.libariesInformation) {
+  let filtered: LibraryInformation[] = [];
+  if (store.libariesInformation) {
     switch (filter) {
       case FilterLibraries.installed:
         filtered = store.libariesInformation.filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library) && !library.zipLibrary);
