@@ -1,4 +1,4 @@
 node_modules
 .vscode
 build
-.vsix
+*.vsix
