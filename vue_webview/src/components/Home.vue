@@ -4,7 +4,7 @@ import { computed, watch, onMounted, ref } from 'vue';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName } from '@shared/messages';
 import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
-import arduinoImage from '@/assets/arduino_icon.webp';
+import arduinoImage from '@/assets/extension_icon.png';
 
 const router = useRouter()
 const store = useVsCodeStore();
@@ -100,7 +100,7 @@ onMounted(() => {
     <v-responsive>
       <v-row align="center" class="mt-1 ml-5">
         <img :src="arduinoImage" height="75" alt="Arduino Home" />
-        <span class="text-h4 font-weight-bold ml-5">Arduino Home</span>
+        <span class="text-h4 font-weight-bold ml-5">Arduino Maker Worshop</span>
       </v-row>
       <v-row class="mt-4">
         <v-col cols="12">
