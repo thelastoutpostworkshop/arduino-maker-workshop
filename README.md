@@ -6,5 +6,5 @@ The ultimate tool for makers to bring Arduino projects to life in Visual Studio 
 All the platforms supported by the [Arduino CLI](https://arduino.github.io/arduino-cli) (included in this extension).
 
 ## New Sketch
-<p align="center"><img src="https://github.com/thelastoutpostworkshop/vscode-arduino/blob/main/doc/new_sketch.gif" width="300"/></p>
+![new sketch](./doc/new_sketch.gif)
 
