@@ -180,6 +180,7 @@ function filterLibs(filter: FilterLibraries): LibraryInformation[] {
         break;
     }
   }
+  searchLibrary.value="";
   return filtered;
 }
 
