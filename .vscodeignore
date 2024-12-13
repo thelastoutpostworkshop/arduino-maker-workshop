@@ -12,5 +12,3 @@ vsc-extension-quickstart.md
 **/.vscode-test.*
 vue_webview/**
 !vue_webview/dist/**
-node_modules/**
-!node_modules/usb/**
