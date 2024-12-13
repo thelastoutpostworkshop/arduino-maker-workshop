@@ -245,7 +245,7 @@ export class VueWebviewPanel {
         } else {
             const panel = window.createWebviewPanel(
                 'vueWebview',
-                'Arduino Home',
+                'Arduino Maker Workshop',
                 ViewColumn.One,
                 {
                     enableScripts: true,
