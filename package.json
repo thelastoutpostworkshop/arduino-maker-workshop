@@ -32,7 +32,7 @@
       "activitybar": [
         {
           "id": "arduino",
-          "title": "Arduino",
+          "title": "Arduino Maker Workshop",
           "icon": "resources/arduino.svg"
         }
       ]
