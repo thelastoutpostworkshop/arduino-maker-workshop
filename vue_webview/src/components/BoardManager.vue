@@ -124,6 +124,7 @@ function filterPlatforms(filter: FilterBoards): Platform[] {
       filtered = store.platform?.platforms ?? [];
       break;
   }
+  searchBoards.value="";
   return filtered || [];
 }
 
