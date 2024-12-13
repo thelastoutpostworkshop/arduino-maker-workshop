@@ -398,7 +398,8 @@ export class ArduinoCLI {
 			}
 
 			const currentDirectory = workspace.workspaceFolders[0].uri.fsPath;
-			const fullName = path.join(currentDirectory, name);
+			const sanitizedName = name.replace(/\s+/g, "_"); // Replace spaces with underscores
+			const fullName = path.join(currentDirectory, sanitizedName);
 
 			// Use the full name (current directory + sketch name)
 			const args = this.cliArgs.getNewSketchArguments(fullName);
