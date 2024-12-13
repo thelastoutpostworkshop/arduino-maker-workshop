@@ -4,7 +4,7 @@ import { compileCommandName, uploadCommandName } from "./extension";
 export const quickAccessCompileCommandName = 'Compile';
 export const compileCommandCleanName = 'Compile (clean)';
 export const quickAccessUploadCommandName = 'Upload';
-export const homeCommandName = 'Arduino Home';
+export const homeCommandName = 'Maker Workshop Home';
 export const intellisenseCommandName = 'intellisense';
 
 export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
@@ -31,7 +31,7 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
   // Modify the getQuickAccessItems to use the disabledItemsState object
   private getQuickAccessItems(): QuickAccessItem[] {
     const items = [
-      new QuickAccessItem(homeCommandName, 'extension.openVueWebview', 'Open the Arduino Home', 'home', this.disabledItemsState[homeCommandName]),
+      new QuickAccessItem(homeCommandName, 'extension.openVueWebview', 'Open Arduino Maker Workshop', 'home', this.disabledItemsState[homeCommandName]),
       new QuickAccessItem(quickAccessCompileCommandName, compileCommandName, 'Compile the current sketch', 'check', this.disabledItemsState[quickAccessCompileCommandName]),
       new QuickAccessItem(compileCommandCleanName, 'compile.clean', 'Compile (rebuild clean) the current sketch', 'check', this.disabledItemsState[compileCommandCleanName]),
       new QuickAccessItem(quickAccessUploadCommandName, uploadCommandName, 'Upload to the board', 'cloud-upload', this.disabledItemsState[quickAccessUploadCommandName]),
