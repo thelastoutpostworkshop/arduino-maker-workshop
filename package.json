@@ -3,9 +3,12 @@
   "displayName": "Arduino Maker Workshop",
   "publisher": "TheLastOutpostWorkshop",
   "description": "The ultimate tool for makers to bring Arduino projects to life!",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "engines": {
     "vscode": "^1.93.0"
+  },
+  "sponsor": {
+    "url": "https://buymeacoffee.com/thelastoutpostworkshop"
   },
   "icon": "resources/extension_icon.png",
   "repository": {
