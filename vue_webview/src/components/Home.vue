@@ -24,6 +24,11 @@ function createNewSkecth() {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CREATE_NEW_SKETCH, errorMessage: "", payload: sketchName.value });
 }
 
+function refreshPorts() {
+  store.boardConnected = null;
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
+}
+
 watch(() => store.projectStatus?.status, (newStatus) => {
   if (newStatus == ARDUINO_ERRORS.NO_ERRORS) {
     store.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
@@ -143,6 +148,10 @@ onMounted(() => {
               <template v-slot:loader>
                 <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
                   indeterminate></v-progress-linear>
+              </template>
+              <template v-if="store.boardConnected?.detected_ports" v-slot:append>
+                <v-btn @click="refreshPorts" icon="mdi-refresh"
+                  variant="text"></v-btn>
               </template>
             </v-select>
             <div v-if="store.boardOptions?.programmers">
