@@ -14,6 +14,9 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 ## Board Configuration
 ![new sketch](.readme/board_configuration.gif)
 
+## Board Manager
+![new sketch](.readme/board_manager.gif)
+
 ## Contributors
 Contributors are welcomed! Take a look at [the project](https://github.com/users/thelastoutpostworkshop/projects/3) to see features to be implemented or bugs to be fixed
 
