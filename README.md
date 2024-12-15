@@ -20,6 +20,9 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 ## Library Manager
 ![new sketch](.readme/library_manager.gif)
 
+## Library Example
+![new sketch](.readme/library_example.gif)
+
 ## Contributors
 Contributors are welcomed! Take a look at [the project](https://github.com/users/thelastoutpostworkshop/projects/3) to see features to be implemented or bugs to be fixed
 
