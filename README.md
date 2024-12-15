@@ -8,6 +8,9 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 ## New Sketch
 ![new sketch](.readme/new_sketch.gif)
 
+## Board Selection
+![new sketch](.readme/board_selection.gif)
+
 ## Contributors
 Contributors are welcomed! Take a look at [the project](https://github.com/users/thelastoutpostworkshop/projects/3) to see features to be implemented or bugs to be fixed
 
