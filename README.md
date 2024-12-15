@@ -14,7 +14,7 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 ## Board Configuration
 ![new sketch](.readme/board_configuration.gif)
 
-## Board Manager
+## Boards Manager
 ![new sketch](.readme/board_manager.gif)
 
 ## Contributors
