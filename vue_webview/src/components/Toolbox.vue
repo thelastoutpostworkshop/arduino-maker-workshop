@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import arduinoIcon from '@/assets/arduino_icon.webp';
+import arduinoIcon from '@/assets/extension_icon.png';
 import { useRouter } from 'vue-router'
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { onMounted, computed } from 'vue';
