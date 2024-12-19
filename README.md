@@ -24,7 +24,8 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 ![new sketch](.readme/library_example.gif)
 
 ## Contributors
-Contributors are welcomed! Take a look at [the project](https://github.com/users/thelastoutpostworkshop/projects/3) to see features to be implemented or bugs to be fixed
+Contributors are welcomed! 
+Take a look at [the project](https://github.com/users/thelastoutpostworkshop/projects/3) to see features to be implemented or bugs to be fixed
 
 If you want to submit pull requests, [here is how you can do it](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project).
 
