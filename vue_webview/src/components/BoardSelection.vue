@@ -2,7 +2,9 @@
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, BoardConfiguration, Metadata } from '@shared/messages';
 import { onMounted, watch, computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
+const router = useRouter()
 const store = useVsCodeStore();
 const boardSelect = ref<(BoardConfiguration | null)[]>([]); // Updated to track selected boards for each platform
 const boardSelectBefore = ref<(BoardConfiguration | null)[]>([]);
@@ -79,16 +81,16 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boar
   <v-container>
     <v-responsive>
       <v-row align="center" class="mt-1 ml-5 mb-5">
-         <v-icon>mdi-format-list-checks</v-icon>
+        <v-icon>mdi-format-list-checks</v-icon>
         <span class="text-h4 font-weight-bold ml-5">Board Selection</span>
       </v-row>
-      <v-text-field  label="Current Board:" :model-value="store.boardOptions?.name"
-        readonly>
+      <v-text-field label="Current Board:" :model-value="store.boardOptions?.name" readonly>
         <template v-slot:loader>
           <v-progress-linear :active="!store.boardOptions?.name" height="2" indeterminate></v-progress-linear>
         </template>
       </v-text-field>
-      <v-card v-if="Object.keys(boardStructure).length === 0" class="mt-5">
+      <!-- <v-card v-if="Object.keys(boardStructure).length === 0" class="mt-5"> -->
+      <v-card v-if="!store.boards" class="mt-5">
         <v-card-item title="Loading boards">
           <template v-slot:subtitle>
             Please wait
@@ -98,7 +100,7 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boar
           <v-progress-linear color="grey" indeterminate></v-progress-linear>
         </v-card-text>
       </v-card>
-      <div v-else>
+      <div v-else-if="Object.keys(boardStructure).length > 0">
         <div class="font-weight-bold pl-3 pb-3 text-blue-grey-lighten-3">
           Choose a board from the platforms installed:
         </div>
@@ -114,6 +116,9 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boar
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
+      </div>
+      <div v-else>
+        <v-btn @click="router.push({ name: 'board-manager' })">Install a board first</v-btn>
       </div>
     </v-responsive>
   </v-container>
