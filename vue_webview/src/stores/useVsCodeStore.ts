@@ -319,6 +319,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.boardUpdating = "";
                     this.platform = null;
                     this.outdated = null;
+                    this.boards = null;
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_UPDATE_INDEX, errorMessage: "", payload: "" });
                     break;
