@@ -4,7 +4,7 @@ The ultimate tool for makers to bring Arduino projects to life in Visual Studio 
 ## Platforms
 All the platforms supported by the [Arduino CLI](https://arduino.github.io/arduino-cli) (the CLI is included in this extension).
 
-## Tutorial : ![Get Started](https://youtu.be/rduTUUVkzqM)
+## Tutorial : [Get Started](https://youtu.be/rduTUUVkzqM)
 
 ## New Sketch
 ![new sketch](.readme/new_sketch.gif)
