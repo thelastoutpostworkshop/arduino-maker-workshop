@@ -1,9 +1,11 @@
 # Change Log
 
-All notable changes to the "vscode-arduino" extension will be documented in this file.
+All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+Version 0.4.5
+- Repackaged as Win32-x64 since Linux and MacOS support are not avalaible yet. 
 
 ## [Unreleased]
 
-- Initial release
+- Linux Version
+- MacOS Version
