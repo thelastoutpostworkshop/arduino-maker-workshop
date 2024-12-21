@@ -105,7 +105,7 @@ onMounted(() => {
     <v-responsive>
       <v-row align="center" class="mt-1 ml-5">
         <img :src="arduinoImage" height="75" alt="Arduino Home" />
-        <span class="text-h4 font-weight-bold ml-5">Arduino Maker Worshop</span>
+        <span class="text-h4 font-weight-bold ml-5">Arduino Maker Workshop</span>
       </v-row>
       <v-row class="mt-4">
         <v-col cols="12">
