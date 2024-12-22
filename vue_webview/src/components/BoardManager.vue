@@ -45,6 +45,20 @@ const additionalBoardURLs = computed(() => {
     : [];
 });
 
+function NoDataToShow(): string {
+  let message: string = '';
+  switch (filterBoards.value) {
+    case FilterBoards.installed:
+      message = "No Boards are installed!";
+      break;
+
+    default:
+      message = "No Boards available";
+      break;
+  }
+  return message;
+}
+
 const updatableBoardCount = computed(() => {
   let count = 0;
   if (store.platform?.platforms) {
@@ -124,7 +138,7 @@ function filterPlatforms(filter: FilterBoards): Platform[] {
       filtered = store.platform?.platforms ?? [];
       break;
   }
-  searchBoards.value="";
+  searchBoards.value = "";
   return filtered || [];
 }
 
@@ -141,7 +155,7 @@ const platformName = (platform_id: string): string => {
 
 function saveURL() {
   if (store.cliConfig?.config?.board_manager) {
-    if(!editMode.value) {
+    if (!editMode.value) {
       store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_ADD_ADDITIONAL_URL, errorMessage: "", payload: additionalURL.value });
     } else {
       store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_SET_ADDITIONAL_URL, errorMessage: "", payload: `${editItemOriginalURL.value} ${additionalURL.value}` });
@@ -153,7 +167,7 @@ function saveURL() {
 }
 
 function editURL(item: any) {
-  editItemOriginalURL.value =item.title;
+  editItemOriginalURL.value = item.title;
   editMode.value = true;
   dialogURL.value = true;
   additionalURL.value = item.title;
@@ -203,7 +217,7 @@ const isURLInvalid = computed(() => {
           <v-chip filter :value="FilterBoards.deprecated">Deprecated</v-chip>
         </v-chip-group>
         <v-data-table :items="filteredPlatforms" :headers="boardHeaders" density="compact" show-expand item-value="name"
-          :sort-by="[{ key: 'name', order: 'asc' }]" :search="searchBoards">
+          :sort-by="[{ key: 'name', order: 'asc' }]" :search="searchBoards" :no-data-text="NoDataToShow()">
           <template v-slot:expanded-row="{ columns, item }">
             <tr>
               <td :colspan="columns.length" class="text-grey">
