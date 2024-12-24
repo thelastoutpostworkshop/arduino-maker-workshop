@@ -7,9 +7,9 @@ assignees: ''
 
 ---
 
-** Note that the extension is only compatible on Windows 64bits**
+--> Note that the extension is only compatible on Windows 64bits
 
-** Extension version**
+**Extension version**
 Version number of the Arduino Maker Workshop extension
 
 **Describe the bug**
