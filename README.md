@@ -1,7 +1,7 @@
 # Arduino Maker Workshop
 The ultimate tool for makers to bring Arduino projects to life in Visual Studio Code on Windows.
 
-**Currently only supported on Windows x64**, help needed for [Linux and Mac OS](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/discussions/2)
+> **Currently only supported on Windows x64**, help needed for [Linux and Mac OS](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/discussions/2)
 ## Microcontrollers Platforms
 All the platforms supported by the [Arduino CLI](https://arduino.github.io/arduino-cli) (the CLI is included in this extension).
 
