@@ -296,7 +296,7 @@ const isURLInvalid = computed(() => {
           Additional Boards URLs
         </v-card-title>
         <v-card-subtitle>
-          Manage additional boards
+          Once a board URL is added, go to the "Not Installed" tab to search for the board to install it
         </v-card-subtitle>
         <v-card-text>
           <v-data-table :items="additionalBoardURLs" :headers="urlHeaders" density="compact" item-value="name"
