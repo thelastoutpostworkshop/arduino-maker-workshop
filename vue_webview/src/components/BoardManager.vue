@@ -20,6 +20,7 @@ const dialogURL = ref(false);
 const additionalURL = ref('');
 const editMode = ref(false);
 const editItemOriginalURL = ref({});
+const postSaveDialog = ref(false); // New dialog for the user message
 
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
@@ -164,6 +165,12 @@ function saveURL() {
   dialogURL.value = false;
   editMode.value = false;
   additionalURL.value = '';
+  postSaveDialog.value = true; 
+}
+
+function goToNotInstalledTab() {
+  filterBoards.value = FilterBoards.not_installed; 
+  postSaveDialog.value = false; 
 }
 
 function editURL(item: any) {
@@ -361,6 +368,19 @@ const isURLInvalid = computed(() => {
           </v-data-table>
         </v-card-text>
       </v-card>
+      <v-dialog v-model="postSaveDialog" max-width="500px">
+        <v-card>
+          <v-card-title>Board Installation</v-card-title>
+          <v-card-text>
+            Install the board by searching for it in the "Not Installed" tab.
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn color="blue-darken-1" text @click="postSaveDialog = false">Close</v-btn>
+            <v-btn color="blue-darken-1" text @click="goToNotInstalledTab">Go to Not Installed Tab</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-responsive>
   </v-container>
 </template>
