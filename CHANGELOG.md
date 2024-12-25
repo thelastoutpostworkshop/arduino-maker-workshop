@@ -7,6 +7,9 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 - Linux Version
 - MacOS Version
 
+**Version 0.4.7**
+- New help dialog when addind and additionnal board URL
+
 **Version 0.4.6**
 - Corrected typo in Webview 
 
