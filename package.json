@@ -102,9 +102,11 @@
     "vite": "^6.0.3"
   },
   "os": [
+    "darwin",
     "win32"
   ],
   "cpu": [
+    "arm64",
     "x64"
   ],
   "dependencies": {
