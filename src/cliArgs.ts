@@ -1,5 +1,7 @@
 import { arduinoProject } from "./extension";
 
+const path = require('path');
+
 const configCommandArduino: string = 'config';
 const dumpOption: string = 'dump';
 const jsonOutputArduino: string = '--json';
@@ -253,7 +255,7 @@ export class CLIArguments {
             command.push(arduinoProject.getProgrammer());
         }
         command.push(`${inputDirOptionArduino}`);
-        command.push(arduinoProject.getProjectPath() + '/' + arduinoProject.getOutput());
+        command.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput()));
         command.push(arduinoProject.getProjectPath());
         return command;
     }
@@ -270,7 +272,7 @@ export class CLIArguments {
             compileCommand.push(`${arduinoProject.getBoard()}`);
         }
         compileCommand.push(`${buildPathArduino}`);
-        compileCommand.push(arduinoProject.getProjectPath() + '\\' + arduinoProject.getOutput());
+        compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput()));
         compileCommand.push(arduinoProject.getProjectPath());
         if (jsonOutput) {
             compileCommand.push(`${jsonOutputArduino}`);
