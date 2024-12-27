@@ -72,7 +72,22 @@
         "title": "Upload",
         "category": "Arduino"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Arduino Maker Workshop",
+      "properties": {
+        "arduinoMakerWorkshop.arduinoCLI.executable": {
+          "type": "string",
+          "default": "arduino-cli",
+          "description": "Executable filename for the arduino-cli."
+        },
+        "arduinoMakerWorkshop.arduinoCLI.installPath": {
+          "type": "string",
+          "default": "",
+          "description": "File system path to where the arduino-cli is located."
+        }
+      }
+    }
   },
   "extensionDependencies": [
     "ms-vscode.vscode-serial-monitor",
