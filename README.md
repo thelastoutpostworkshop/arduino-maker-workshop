@@ -36,7 +36,8 @@ Install the dependancies:
 - run `npm install` in the main folder of the extension
 - run `npm install` in the webview folder
 
-Use `npm run watch` in the main folder to debug the extension in Visual Studio Code
-If you modify the webview, you must build it before testing the extension with the command `npm run build`
-You can test the webview in standalone mode using the command `npm run dev`, (in the webview folder). In development the webview uses mock files to simulate call to the Arduino CLI.
+**Testing**
+- Use `npm run watch` in the main folder to debug the extension in Visual Studio Code
+- If you modify the webview, you must build it before testing the extension with the command `npm run build`
+- You can test the webview in standalone mode using the command `npm run dev`, (in the webview folder). In development the webview uses mock files to simulate call to the Arduino CLI.
 
