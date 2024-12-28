@@ -4,7 +4,6 @@ import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, changeTheme, loadArduinoConfiguration, openExample, updateStateCompileUpload } from "./extension";
 
-const usb = require('usb').usb;
 const path = require('path');
 const os = require('os');
 
@@ -19,6 +18,7 @@ export class VueWebviewPanel {
     private constructor(panel: WebviewPanel, extensionUri: Uri) {
         this._panel = panel;
         if (os.platform() === 'win32') {
+            const usb = require('usb').usb;
             usb.on("attach", () => {
                 this.usbChange();
             });
