@@ -62,9 +62,13 @@ export class ArduinoProject {
             return false;
         }
 
-        const vsCodeFolder = path.join(this.projectFullPath, VSCODE_FOLDER);
-        if (!fs.existsSync(vsCodeFolder)) {
-            fs.mkdirSync(vsCodeFolder);
+        try {
+            const vsCodeFolder = path.join(this.projectFullPath, VSCODE_FOLDER);
+            if (!fs.existsSync(vsCodeFolder)) {
+                fs.mkdirSync(vsCodeFolder);
+            }
+        } catch (error) {
+            arduinoExtensionChannel.appendLine(`Error: Cannot create folder ${VSCODE_FOLDER}`);
         }
 
         this.arduinoConfigurationPath = path.join(this.projectFullPath, VSCODE_FOLDER, ARDUINO_SETTINGS);
@@ -79,6 +83,7 @@ export class ArduinoProject {
                     this.writeVSCodeArduinoConfiguration();
                 }
             } catch (error) {
+                arduinoExtensionChannel.appendLine(`New ${ARDUINO_SETTINGS} file created`);
                 this.writeVSCodeArduinoConfiguration();
             }
         }
