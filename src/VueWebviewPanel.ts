@@ -18,7 +18,7 @@ export class VueWebviewPanel {
     }
     private constructor(panel: WebviewPanel, extensionUri: Uri) {
         this._panel = panel;
-        if (os.platform() !== 'darwin') {
+        if (os.platform() === 'win32') {
             usb.on("attach", () => {
                 this.usbChange();
             });
