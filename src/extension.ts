@@ -5,6 +5,8 @@ import { compileCommandCleanName, quickAccessCompileCommandName, intellisenseCom
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, THEME_COLOR } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
 
+const os = require('os');
+
 const watchedExtensions = ['.cpp', '.h', '.ino']; // List of extensions to watch for invalidating the build
 export const compileCommandName: string = 'quickAccessView.compile';
 export const uploadCommandName: string = 'quickAccessView.upload';
@@ -17,7 +19,7 @@ export const uploadStatusBarNotExecuting: string = "$(cloud-upload) Upload";
 export const uploadStatusBarExecuting: string = "$(sync~spin) Uploading";
 
 export const arduinoExtensionChannel = window.createOutputChannel(ArduinoExtensionChannelName);
-arduinoExtensionChannel.appendLine("Arduino Extension started");
+arduinoExtensionChannel.appendLine(`Arduino Extension started on ${os.platform}`);
 const quickAccessProvider = new QuickAccessProvider();
 
 export const arduinoProject: ArduinoProject = new ArduinoProject();
