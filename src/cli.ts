@@ -229,7 +229,7 @@ export class ArduinoCLI {
 						this.cancelExecution(); // Ensure the compilation process stops
 						this.compileUploadChannel.appendLine("Compilation cancelled by user.");
 						compileStatusBarItem.text = compileStatusBarNotExecuting;
-						this.createCompileResult(false);
+						this.setCompileResult(false);
 						throw new Error("Compilation cancelled by user."); // Stop further execution
 					});
 
@@ -240,12 +240,12 @@ export class ArduinoCLI {
 					// Compilation success
 					this.compileUploadChannel.appendLine("Compilation completed successfully.");
 					this.createIntellisenseFile(output);
-					this.createCompileResult(true);
+					this.setCompileResult(true);
 				}
 			);
 		} catch (error) {
 			this.compileUploadChannel.appendLine(`Compilation failed`);
-			this.createCompileResult(false);
+			this.setCompileResult(false);
 		} finally {
 			compileStatusBarItem.text = compileStatusBarNotExecuting;
 			this.compileOrUploadRunning = false;
@@ -492,7 +492,7 @@ export class ArduinoCLI {
 		}
 	}
 
-	private createCompileResult(result: boolean) {
+	private setCompileResult(result: boolean) {
 		const compileResult: CompileResult = { result: result };
 		const resultFile = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), COMPILE_RESULT_FILE);
 		fs.writeFileSync(resultFile, JSON.stringify(compileResult, null, 2), 'utf-8');

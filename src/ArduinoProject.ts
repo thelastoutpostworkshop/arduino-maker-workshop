@@ -96,7 +96,7 @@ export class ArduinoProject {
                     const sketchBase = path.basename(file, ARDUINO_SKETCH_EXTENSION);
 
                     if (sketchBase === folderName) {
-                        this.sketchFileName = sketchBase + ARDUINO_SKETCH_EXTENSION;
+                        // this.sketchFileName = sketchBase + ARDUINO_SKETCH_EXTENSION;
                         error = ARDUINO_ERRORS.NO_ERRORS;
                         break;
                     } else {
