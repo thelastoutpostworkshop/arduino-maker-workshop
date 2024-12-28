@@ -61,6 +61,8 @@ export async function activate(context: ExtensionContext) {
 
 			window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
 			updateStateCompileUpload();
+
+			// Listen to file modifications
 			workspace.onDidChangeTextDocument((event) => {
 				if (event.document.fileName === arduinoProject.getarduinoConfigurationPath()) {
 					// Arduino configuration file has changed, recompile is necessary
@@ -74,6 +76,19 @@ export async function activate(context: ExtensionContext) {
 
 				}
 			});
+
+			// Listen for new files being created
+			context.subscriptions.push(
+				workspace.onDidCreateFiles((event) => {
+					event.files.forEach((file) => {
+						if (isWatchedExtension(file.fsPath)) {
+							// A new file has been created, recompile is necessary
+							arduinoCLI.setBuildResult(false);
+							updateStateCompileUpload();
+						}
+					});
+				})
+			);
 
 			// Listening to theme change events
 			window.onDidChangeActiveColorTheme((colorTheme) => {
