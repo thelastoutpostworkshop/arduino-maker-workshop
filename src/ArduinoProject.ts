@@ -15,7 +15,6 @@ export class ArduinoProject {
     private configJson: ArduinoProjectConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "", programmer: "", useProgrammer: false, configurationRequired: false };
     private projectFullPath: string = "";
     private projectStatus: ArduinoProjectStatus = { status: ARDUINO_ERRORS.NO_ERRORS };
-    private sketchFileName: string = "";
 
     constructor() {
         const workspaceFolders = vscode.workspace.workspaceFolders;
