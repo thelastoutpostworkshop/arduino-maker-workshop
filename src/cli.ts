@@ -494,8 +494,11 @@ export class ArduinoCLI {
 
 	public setBuildResult(result: boolean) {
 		const compileResult: CompileResult = { result: result };
-		const resultFile = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), COMPILE_RESULT_FILE);
-		fs.writeFileSync(resultFile, JSON.stringify(compileResult, null, 2), 'utf-8');
+		const buildPath = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput());
+		if(fs.existsSync(buildPath)) {
+			const resultFile = path.join(buildPath, COMPILE_RESULT_FILE);
+			fs.writeFileSync(resultFile, JSON.stringify(compileResult, null, 2), 'utf-8');
+		}
 	}
 
 	private createIntellisenseFile(output: string) {
