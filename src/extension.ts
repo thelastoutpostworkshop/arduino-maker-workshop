@@ -5,6 +5,7 @@ import { compileCommandCleanName, quickAccessCompileCommandName, intellisenseCom
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, THEME_COLOR } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
 
+const watchedExtensions = ['.cpp', '.h', '.ino']; // List of extensions to watch for invalidating the build
 export const compileCommandName: string = 'quickAccessView.compile';
 export const uploadCommandName: string = 'quickAccessView.upload';
 
@@ -60,11 +61,17 @@ export async function activate(context: ExtensionContext) {
 
 			window.registerTreeDataProvider('quickAccessView', quickAccessProvider);
 			updateStateCompileUpload();
-			workspace.onDidChangeTextDocument((document) => {
-				if (document.document.fileName === arduinoProject.getarduinoConfigurationPath()) {
+			workspace.onDidChangeTextDocument((event) => {
+				if (event.document.fileName === arduinoProject.getarduinoConfigurationPath()) {
 					// Arduino configuration file has changed, recompile is necessary
 					arduinoCLI.setBuildResult(false);
 					updateStateCompileUpload();
+				}
+				if (isWatchedExtension(event.document.uri.fsPath)) {
+					// A source file has changed, recompile is necessary
+					arduinoCLI.setBuildResult(false);
+					updateStateCompileUpload();
+
 				}
 			});
 
@@ -83,6 +90,10 @@ export async function activate(context: ExtensionContext) {
 		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 	}
 
+}
+
+function isWatchedExtension(filePath: string): boolean {
+	return watchedExtensions.some((ext) => filePath.endsWith(ext));
 }
 
 export function changeTheme(themeKind: ColorThemeKind) {
