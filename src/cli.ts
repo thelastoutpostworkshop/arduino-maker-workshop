@@ -12,7 +12,6 @@ const cp = require('child_process');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-// const which = require('which');
 
 export class ArduinoCLI {
 	public arduinoCLIPath: string = "";
@@ -403,6 +402,7 @@ export class ArduinoCLI {
 				return arduinoCLIPath;
 			} catch {
 				try {
+					const which = require('which');
 					let detectedArduinoCLI = await which(arduinoCLIExecutable);
 					this.arduinoCLIChannel.appendLine(`Found system installed arduino CLI in ${detectedArduinoCLI}`);
 					return detectedArduinoCLI;
