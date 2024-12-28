@@ -66,11 +66,6 @@ export async function activate(context: ExtensionContext) {
 
 			// Listen to file modifications
 			workspace.onDidChangeTextDocument((event) => {
-				if (event.document.fileName === arduinoProject.getarduinoConfigurationPath()) {
-					// Arduino configuration file has changed, recompile is necessary
-					arduinoCLI.setBuildResult(false);
-					updateStateCompileUpload();
-				}
 				if (isWatchedExtension(event.document.uri.fsPath)) {
 					// A source file has changed, recompile is necessary
 					arduinoCLI.setBuildResult(false);
@@ -117,21 +112,21 @@ export async function activate(context: ExtensionContext) {
 					});
 				})
 			);
-		
-		// Listening to theme change events
-		window.onDidChangeActiveColorTheme((colorTheme) => {
-			changeTheme(colorTheme.kind);
-		});
-		// await commands.executeCommand('extension.openVueWebview');
 
+			// Listening to theme change events
+			window.onDidChangeActiveColorTheme((colorTheme) => {
+				changeTheme(colorTheme.kind);
+			});
+			// await commands.executeCommand('extension.openVueWebview');
+
+		} else {
+			arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
+			arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
+		}
 	} else {
-		arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
+		arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
 		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 	}
-} else {
-	arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
-	arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
-}
 
 }
 

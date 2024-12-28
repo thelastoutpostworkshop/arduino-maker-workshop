@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ARDUINO_ERRORS, ArduinoProjectConfiguration, ArduinoProjectStatus, CompileResult } from './shared/messages';
-import { arduinoExtensionChannel } from './extension';
+import { arduinoCLI, arduinoExtensionChannel } from './extension';
 
 const path = require('path');
 const fs = require('fs');
@@ -141,6 +141,10 @@ export class ArduinoProject {
         this.writeVSCodeArduinoConfiguration();
     }
     public setConfiguration(configuration: string) {
+        if (configuration !== this.configJson.configuration) {
+            // A recompile is necessary if the board configuration is changed
+            arduinoCLI.setBuildResult(false);
+        }
         this.configJson.configuration = configuration;
         this.writeVSCodeArduinoConfiguration();
     }
