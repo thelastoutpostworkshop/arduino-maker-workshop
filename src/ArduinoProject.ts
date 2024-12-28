@@ -68,7 +68,7 @@ export class ArduinoProject {
                 fs.mkdirSync(vsCodeFolder);
             }
         } catch (error) {
-            arduinoExtensionChannel.appendLine(`Error: Cannot create folder ${VSCODE_FOLDER}`);
+            arduinoExtensionChannel.appendLine(`Error: Cannot create folder ${VSCODE_FOLDER} in ${this.projectFullPath}`);
         }
 
         this.arduinoConfigurationPath = path.join(this.projectFullPath, VSCODE_FOLDER, ARDUINO_SETTINGS);
