@@ -12,6 +12,7 @@ const cp = require('child_process');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
+const which = require('which');
 
 export class ArduinoCLI {
 	public arduinoCLIPath: string = "";
@@ -28,7 +29,6 @@ export class ArduinoCLI {
 	constructor(private context: ExtensionContext) {
 		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
 		this.compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
-		this.getArduinoCliPath();
 
 		getSerialMonitorApi(Version.latest, context).then((api) => {
 			this.serialMoniorAPI = api;
@@ -42,7 +42,10 @@ export class ArduinoCLI {
 	public getCLIStatus(): ArduinoCLIStatus {
 		return this.cliStatus;
 	}
+
 	public async isCLIReady(): Promise<boolean> {
+		await this.getArduinoCliPath();
+
 		if (this.arduinoCLIPath === '') {
 			return false;
 		}
@@ -54,6 +57,7 @@ export class ArduinoCLI {
 			return false;
 		}
 	}
+
 	public async isConfigReady(): Promise<boolean> {
 		const isVerified = await this.arduinoConfig.verify();
 		if (!isVerified) {
@@ -370,24 +374,58 @@ export class ArduinoCLI {
 		}
 	}
 
-	private getArduinoCliPath() {
+	private async getArduinoCliPath() {
+		this.arduinoCLIPath = await this.getSystemArduinoCliPath();
+		if (!this.arduinoCLIPath) {
+			this.arduinoCLIPath = await this.getBundledArduinoCliPath();
+		}
+	}
+
+	private async getSystemArduinoCliPath() {
 		const platform = os.platform();
-		this.arduinoCLIPath = '';
+		const extConfig = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
+		const arduinoCLIInstallPath = extConfig.get('installPath');
+		let arduinoCLIExecutable = extConfig.get('executable');
+
+		if (!arduinoCLIExecutable) {
+			if (platform === 'win32') {
+				arduinoCLIExecutable = 'arduino-cli.exe';
+			} else {
+				arduinoCLIExecutable = 'arduino-cli';
+			}
+		}
+
+		try {
+			let arduinoCLIPath = path.join(arduinoCLIInstallPath, arduinoCLIExecutable);
+			await workspace.fs.stat(arduinoCLIPath);
+			this.arduinoCLIChannel.appendLine(`Using arduino CLI in ${arduinoCLIPath}`);
+			return arduinoCLIPath;
+		} catch {
+			try {
+				let detectedArduinoCLI = await which(arduinoCLIExecutable);
+				this.arduinoCLIChannel.appendLine(`Found system installed arduino CLI in ${detectedArduinoCLI}`);
+				return detectedArduinoCLI;
+			} catch { }
+			return '';
+		}
+	}
+
+	private async getBundledArduinoCliPath() {
+		const platform = os.platform();
+		const arch = os.arch();
 
 		switch (platform) {
 			case 'win32':
-				this.arduinoCLIPath = path.join(this.context.extensionPath, 'arduino_cli', 'win32', 'arduino-cli.exe');
-				break;
+				return path.join(this.context.extensionPath, 'arduino_cli', 'win32', 'arduino-cli.exe');
 			case 'darwin':
-				this.arduinoCLIPath = path.join(this.context.extensionPath, 'arduino_cli', 'darwin', 'arduino-cli');
-				break;
+				return path.join(this.context.extensionPath, 'arduino_cli', 'darwin', arch, 'arduino-cli');
 			case 'linux':
-				this.arduinoCLIPath = path.join(this.context.extensionPath, 'arduino_cli', 'linux', 'arduino-cli');
-				break;
+				return path.join(this.context.extensionPath, 'arduino_cli', 'linux', 'arduino-cli');
 			default:
 				this._lastCLIError = `Unsupported platform: ${platform}`;
 				break;
 		}
+		return '';
 	}
 
 	public async createNewSketch(name: string): Promise<string> {

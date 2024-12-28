@@ -6,6 +6,7 @@ import { arduinoCLI, arduinoExtensionChannel, arduinoProject, changeTheme, loadA
 
 const usb = require('usb').usb;
 const path = require('path');
+const os = require('os');
 
 export class VueWebviewPanel {
 
@@ -17,12 +18,14 @@ export class VueWebviewPanel {
     }
     private constructor(panel: WebviewPanel, extensionUri: Uri) {
         this._panel = panel;
-        usb.on("attach", () => {
-            this.usbChange();
-        });
-        usb.on("detach", () => {
-            this.usbChange();
-        });
+        if (os.platform() !== 'darwin') {
+            usb.on("attach", () => {
+                this.usbChange();
+            });
+            usb.on("detach", () => {
+                this.usbChange();
+            });
+        }
         // Handle messages from the Vue web application
         this._panel.webview.onDidReceiveMessage(
             (message: WebviewToExtensionMessage) => {
