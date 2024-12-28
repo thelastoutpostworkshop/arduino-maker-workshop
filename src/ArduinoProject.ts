@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { ARDUINO_ERRORS, ArduinoProjectConfiguration, ArduinoProjectStatus, CompileResult } from './shared/messages';
+import { arduinoExtensionChannel } from './extension';
 
 const path = require('path');
 const fs = require('fs');
@@ -20,6 +21,9 @@ export class ArduinoProject {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (workspaceFolders) {
             this.projectFullPath = workspaceFolders[0].uri.fsPath;
+            arduinoExtensionChannel.appendLine(`projectFullPath is ${this.projectFullPath}`)
+        } else {
+            arduinoExtensionChannel.appendLine(`Problem : cannot get projectFullPath`)
         }
     }
     public isUploadReady(): boolean {
