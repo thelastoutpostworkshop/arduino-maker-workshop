@@ -90,20 +90,46 @@ export async function activate(context: ExtensionContext) {
 				})
 			);
 
-			// Listening to theme change events
-			window.onDidChangeActiveColorTheme((colorTheme) => {
-				changeTheme(colorTheme.kind);
-			});
-			// await commands.executeCommand('extension.openVueWebview');
+			// Listen for files being deleted
+			context.subscriptions.push(
+				workspace.onDidDeleteFiles((event) => {
+					event.files.forEach((file) => {
+						if (isWatchedExtension(file.fsPath)) {
+							// A file has been deleted, recompile is necessary
+							arduinoCLI.setBuildResult(false);
+							updateStateCompileUpload();
+						}
+					});
+				})
+			);
 
-		} else {
-			arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
-			arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
-		}
+			// Listen for files being renamed
+			context.subscriptions.push(
+				workspace.onDidRenameFiles((event) => {
+					event.files.forEach(({ oldUri, newUri }) => {
+						if (isWatchedExtension(oldUri.fsPath) || isWatchedExtension(newUri.fsPath)) {
+							// A file has been renamed, recompile is necessary
+							arduinoCLI.setBuildResult(false);
+							updateStateCompileUpload();
+						}
+					});
+				})
+			);
+		
+		// Listening to theme change events
+		window.onDidChangeActiveColorTheme((colorTheme) => {
+			changeTheme(colorTheme.kind);
+		});
+		// await commands.executeCommand('extension.openVueWebview');
+
 	} else {
-		arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
+		arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
 		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 	}
+} else {
+	arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
+	arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
+}
 
 }
 
