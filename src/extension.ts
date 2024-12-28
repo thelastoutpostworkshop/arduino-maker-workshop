@@ -63,6 +63,7 @@ export async function activate(context: ExtensionContext) {
 			workspace.onDidChangeTextDocument((document) => {
 				if (document.document.fileName === arduinoProject.getarduinoConfigurationPath()) {
 					// Arduino configuration file has changed, recompile is necessary
+					arduinoCLI.setCompileResult(false);
 					updateStateCompileUpload();
 				}
 			});
