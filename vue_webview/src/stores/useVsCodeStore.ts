@@ -174,9 +174,9 @@ export const useVsCodeStore = defineStore('vsCode', {
                     }
                     break;
                 case ARDUINO_MESSAGES.CLI_BOARD_SEARCH:
-                    if (!this.boards) {
+                    if (this.boards === null) {
                         vscode.postMessage(message);
-                    }
+                    } 
                     break;
                 case ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH:
                     if (!this.libraries) {
