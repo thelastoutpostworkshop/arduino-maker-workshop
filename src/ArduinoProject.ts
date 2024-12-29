@@ -21,7 +21,7 @@ export class ArduinoProject {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (workspaceFolders) {
             this.projectFullPath = workspaceFolders[0].uri.fsPath;
-            arduinoExtensionChannel.appendLine(`projectFullPath is ${this.projectFullPath}`)
+            arduinoExtensionChannel.appendLine(`Workspace is ${this.projectFullPath}`)
         } else {
             arduinoExtensionChannel.appendLine(`No workspace available, open a workspace by using the File > Open Folder... menu, and then selecting a folder`);
             vscode.window.showErrorMessage('No workspace available, open a workspace by using the File > Open Folder... menu, and then selecting a folder');
