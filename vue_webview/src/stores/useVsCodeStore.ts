@@ -261,7 +261,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     try {
                         this.boards = JSON.parse(message.payload);
                     } catch (error) {
-                        console.log("Failed to parse Board Configuration information: " + error);
+                        console.log("Failed to parse Board search information: " + error);
                     }
                     break;
                 case ARDUINO_MESSAGES.CLI_GET_CONFIG:
