@@ -62,7 +62,9 @@ export class VueWebviewPanel {
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_BOARD_SEARCH:
+                        arduinoExtensionChannel.appendLine("Sending Board search...");
                         arduinoCLI.getBoardsListAll().then((result) => {
+                            arduinoExtensionChannel.appendLine("Board search sent");
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
