@@ -408,7 +408,7 @@ export class ArduinoCLI {
 			case 'darwin':
 				return path.join(this.context.extensionPath, 'arduino_cli', 'darwin', arch, 'arduino-cli');
 			case 'linux':
-				return path.join(this.context.extensionPath, 'arduino_cli', 'linux', 'arduino-cli');
+				return path.join(this.context.extensionPath, 'arduino_cli', 'linux',arch, 'arduino-cli');
 			default:
 				this._lastCLIError = `Unsupported platform: ${platform}`;
 				break;
