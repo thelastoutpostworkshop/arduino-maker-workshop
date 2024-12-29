@@ -23,7 +23,8 @@ export class ArduinoProject {
             this.projectFullPath = workspaceFolders[0].uri.fsPath;
             arduinoExtensionChannel.appendLine(`projectFullPath is ${this.projectFullPath}`)
         } else {
-            arduinoExtensionChannel.appendLine(`Problem : cannot get projectFullPath`)
+            arduinoExtensionChannel.appendLine(`Problem : cannot get projectFullPath`);
+            vscode.window.showErrorMessage('No workspace available, open a workspace by using the File > Open Folder... menu, and then selecting a folder');
         }
     }
     public isUploadReady(): boolean {
