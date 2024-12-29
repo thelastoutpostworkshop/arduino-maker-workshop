@@ -263,21 +263,7 @@ export class ArduinoCLI {
 		}
 		this.compileUploadChannel.appendLine("Upload starting...");
 		this.compileOrUploadRunning = true;
-		// if (!loadArduinoConfiguration()) {
-		// 	return;
-		// }
-		// if (!arduinoProject.getBoard()) {
-		// 	window.showInformationMessage('Board info not found, cannot upload');
-		// }
-		// if (arduinoProject.isConfigurationRequired()) {
-		// 	if (!arduinoProject.getBoardConfiguration()) {
-		// 		window.showInformationMessage('Board configuration not found, cannot upload');
-		// 	}
-		// }
-		// if (!arduinoProject.getPort()) {
-		// 	window.showInformationMessage('Port not found, cannot upload');
-		// }
-
+		
 		if (this.serialMoniorAPI) {
 			const port = arduinoProject.getPort();
 			this.serialMoniorAPI.stopMonitoringPort(port);
