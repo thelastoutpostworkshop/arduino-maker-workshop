@@ -56,7 +56,11 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boar
 
     // Loop through each board under this platform
     board.platform.release.boards.forEach((boardInfo: any) => {
-      const { name, fqbn } = boardInfo;
+      let { name, fqbn } = boardInfo;
+
+      if (!name) {
+        name = `${fqbn}`; // Some boards have no name in the object
+      }
 
       // Only add if the fqbn is not a duplicate
       if (!uniqueFqbnSet.has(fqbn)) {
@@ -84,7 +88,8 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boar
         <v-icon>mdi-format-list-checks</v-icon>
         <span class="text-h4 font-weight-bold ml-5">Board Selection</span>
       </v-row>
-      <v-text-field :label="!store.boardOptions?.name?'Select a board below':'Current Board:'" :model-value="store.boardOptions?.name" readonly>
+      <v-text-field :label="!store.boardOptions?.name ? 'Select a board below' : 'Current Board:'"
+        :model-value="store.boardOptions?.name" readonly>
         <template v-slot:loader>
           <v-progress-linear :active="!store.boardOptions?.name" height="2" indeterminate></v-progress-linear>
         </template>
