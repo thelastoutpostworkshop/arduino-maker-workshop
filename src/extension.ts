@@ -128,11 +128,9 @@ export async function activate(context: ExtensionContext) {
 
 				 debounceTimeout = setTimeout(async () => {
 					if (event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.executable')) {
-						const newExecutable = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI').get<string>('executable');
-						if (newExecutable && newExecutable?.trim().length > 0) {
-							window.showInformationMessage(`Arduino CLI executable changed to: ${newExecutable}`);
-						} else {
-							window.showErrorMessage(`Arduino CLI executable cannot be empty`);
+						if(await arduinoCLI.isCLIReady()) {
+							arduinoExtensionChannel.appendLine(`Arduino CLI is ready, path: ${arduinoCLI.arduinoCLIPath}`);
+							window.showInformationMessage(`Arduino CLI executable changed to: ${arduinoCLI.arduinoCLIPath}`);
 						}
 					}
 
