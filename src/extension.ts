@@ -118,6 +118,28 @@ export async function activate(context: ExtensionContext) {
 				changeTheme(colorTheme.kind);
 			});
 
+			workspace.onDidChangeConfiguration((event) => {
+				// Check if the `arduinoMakerWorkshop.arduinoCLI.executable` setting has changed
+				if (event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.executable')) {
+					const newExecutable = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI').get<string>('executable');
+					if(newExecutable && newExecutable?.trim().length > 0) {
+						window.showInformationMessage(`Arduino CLI executable changed to: ${newExecutable}`);
+					} else {
+						window.showErrorMessage(`Arduino CLI executable cannot be empty`);
+					}
+				}
+
+				// Check if the `arduinoMakerWorkshop.arduinoCLI.installPath` setting has changed
+				if (event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.installPath')) {
+					const newPath = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI').get<string>('installPath');
+					if(newPath && newPath?.trim().length > 0) {
+						window.showInformationMessage(`Arduino CLI executable changed to: ${newPath}`);
+					} else {
+						window.showInformationMessage(`Bundled Arduino CLI will be used`);
+					}
+				}
+			});
+
 		} else {
 			arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
 			arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
