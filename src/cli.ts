@@ -69,7 +69,7 @@ export class ArduinoCLI {
 	public async getOutdatedBoardAndLib(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getOutdatedArguments(),
-			"CLI : Failed to get outdated Board and Libraries information"
+			"CLI: Failed to get outdated Board and Libraries information"
 		);
 	}
 	public async searchLibraryInstalled(): Promise<string> {
@@ -81,28 +81,28 @@ export class ArduinoCLI {
 	public async getCLIConfig(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigDumpArgs(),
-			"CLI : Failed to get CLI Config information"
+			"CLI: Failed to get CLI Config information"
 		);
 	}
 
 	public async removeCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigRemoveAdditionalBoardURLArgs(URL),
-			"CLI : Failed to delete additional Board URL", false
+			"CLI: Failed to delete additional Board URL", false
 		);
 	}
 
 	public async addCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigAddAdditionalBoardURLArgs(URL),
-			"CLI : Failed to add additional Board URL", false
+			"CLI: Failed to add additional Board URL", false
 		);
 	}
 
 	public async setCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetAdditionalBoardURLArgs(URL),
-			"CLI : Failed to set additional Board URL", false
+			"CLI: Failed to set additional Board URL", false
 		);
 	}
 	public async searchCore(): Promise<string> {
@@ -169,41 +169,41 @@ export class ArduinoCLI {
 	public async getArduinoConfig(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigDumpArgs(),
-			"CLI : Failed to get arduino configuration information"
+			"CLI: Failed to get arduino configuration information"
 		);
 	}
 	public async initArduinoConfiguration(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigInitArgs(),
-			"CLI : Failed to create arduino config file",
+			"CLI: Failed to create arduino config file",
 			true, false
 		);
 	}
 	public async setConfigDownloadDirectory(downloadPath: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetDowloadDirectory(downloadPath),
-			"CLI : Failed to set download directory setting",
+			"CLI: Failed to set download directory setting",
 			false, false
 		);
 	}
 	public async setConfigDataDirectory(configPath: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetDataDirectory(configPath),
-			"CLI : Failed to set data directory setting",
+			"CLI: Failed to set data directory setting",
 			false, false
 		);
 	}
 	public async setConfigUserDirectory(arduinoDir: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetUserDirectory(arduinoDir),
-			"CLI : Failed to set user directory setting",
+			"CLI: Failed to set user directory setting",
 			false, false
 		);
 	}
 	public async setConfigLibrary(enable: boolean): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetLibrarySetting(enable),
-			"CLI : Failed to set library setting",
+			"CLI: Failed to set library setting",
 			false, false
 		);
 	}
@@ -215,6 +215,8 @@ export class ArduinoCLI {
 		}
 		this.compileOrUploadRunning = true;
 		this.compileUploadChannel.appendLine("Compile project starting...");
+
+		await workspace.saveAll();
 
 		try {
 			await window.withProgress(
@@ -269,16 +271,34 @@ export class ArduinoCLI {
 			this.serialMoniorAPI.stopMonitoringPort(port);
 		}
 		try {
-			uploadStatusBarItem.text = uploadStatusBarExecuting;
-			await arduinoCLI.runArduinoCommand(
-				() => this.cliArgs.getUploadArguments(),
-				"CLI: Failed to upload", false, true, this.compileUploadChannel
+			await window.withProgress(
+				{
+					location: ProgressLocation.Notification,
+					title: `Uploading to ${arduinoProject.getBoard()} on ${arduinoProject.getPort()}`,
+					cancellable: true,
+				},
+				async (progress, token) => {
+					uploadStatusBarItem.text = uploadStatusBarExecuting;
+					// If the token signals cancellation
+					token.onCancellationRequested(() => {
+						this.cancelExecution(); // Ensure the compilation process stops
+						this.compileUploadChannel.appendLine("Upload cancelled by user.");
+						uploadStatusBarItem.text = uploadStatusBarNotExecuting;
+						this.setBuildResult(false);
+						throw new Error("Upload cancelled by user."); // Stop further execution
+					});
+
+					await arduinoCLI.runArduinoCommand(
+						() => this.cliArgs.getUploadArguments(),
+						"CLI: Failed to upload", false, true, this.compileUploadChannel
+					);
+					uploadStatusBarItem.text = uploadStatusBarNotExecuting;
+					if (this.serialMoniorAPI) {
+						this.serialMoniorAPI.startMonitoringPort({ port: arduinoProject.getPort(), baudRate: 115200, lineEnding: LineEnding.None, dataBits: 8, stopBits: StopBits.One, parity: Parity.None }).then((port) => {
+						});
+					}
+				}
 			);
-			uploadStatusBarItem.text = uploadStatusBarNotExecuting;
-			if (this.serialMoniorAPI) {
-				this.serialMoniorAPI.startMonitoringPort({ port: arduinoProject.getPort(), baudRate: 115200, lineEnding: LineEnding.None, dataBits: 8, stopBits: StopBits.One, parity: Parity.None }).then((port) => {
-				});
-			}
 		} catch (error) {
 			uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 			console.log(error);
@@ -295,7 +315,7 @@ export class ArduinoCLI {
 			await arduinoCLI.setConfigLibrary(true);
 			this.runArduinoCommand(
 				() => this.cliArgs.getInstallZipLibrary(destinationPath),
-				"CLI : Failed to get arduino configuration information"
+				"CLI: Failed to get arduino configuration information"
 			);
 		} catch (error) {
 			window.showErrorMessage(`Failed to install zip library: ${error}`);
@@ -305,7 +325,7 @@ export class ArduinoCLI {
 	private async checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
 		const result = await this.runArduinoCommand(
 			() => this.cliArgs.getVersionArguments(),
-			"CLI : Failed to get Arduino CLI version information"
+			"CLI: Failed to get Arduino CLI version information"
 		);
 		arduinoCLI.getCoreUpdate();
 		return (JSON.parse(result));
@@ -325,14 +345,14 @@ export class ArduinoCLI {
 			const result = await this.executeArduinoCommand(`${arduinoCLI.arduinoCLIPath}`, configBoardArgs, true, false);
 
 			if (!result) {
-				window.showErrorMessage(`CLI : No result from get board configuration`);
+				window.showErrorMessage(`CLI: No result from get board configuration`);
 				throw new Error("Command result empty");
 			}
 			// updateStateCompileUpload();
 			return result;
 
 		} catch (error: any) {
-			window.showErrorMessage(`CLI : Error from get board configuration, you may have to installed the board using the board manager`);
+			window.showErrorMessage(`CLI: Error from get board configuration, you may have to installed the board using the board manager`);
 			throw error;
 		}
 	}
