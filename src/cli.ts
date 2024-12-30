@@ -568,6 +568,7 @@ export class ArduinoCLI {
 	private createIntellisenseFile(output: string) {
 		const includePaths = new Set<string>();
 		let compilerPath = '';
+		let compileCommandJson: string = "";
 
 		try {
 			// Read includes.cache file and dynamically add paths
@@ -610,7 +611,7 @@ export class ArduinoCLI {
 
 		try {
 			// Read compile_commands.json file to extract the compilerPath
-			const compileCommandJson = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "compile_commands.json");
+			compileCommandJson = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "compile_commands.json");
 			const compileInfo = JSON.parse(fs.readFileSync(compileCommandJson, 'utf8'));
 			for (const entry of compileInfo) {
 				if (entry.arguments && Array.isArray(entry.arguments) && entry.arguments.length > 0) {
@@ -622,6 +623,7 @@ export class ArduinoCLI {
 			arduinoExtensionChannel.appendLine('IntelliSense: compile_commands.json not found');
 		}
 
+		// Search for defines in the compiled output
 		const defines = new Set<string>(); // Use a Set to ensure uniqueness
 		let match;
 		const defineRegex = /-D([^\s]+)/g;
@@ -639,6 +641,7 @@ export class ArduinoCLI {
 				defines: Array.from(defines),
 				cStandard: "c17",
 				cppStandard: "c++17",
+				compileCommands: compileCommandJson
 			}],
 			version: 4
 		};
