@@ -269,16 +269,34 @@ export class ArduinoCLI {
 			this.serialMoniorAPI.stopMonitoringPort(port);
 		}
 		try {
-			uploadStatusBarItem.text = uploadStatusBarExecuting;
-			await arduinoCLI.runArduinoCommand(
-				() => this.cliArgs.getUploadArguments(),
-				"CLI: Failed to upload", false, true, this.compileUploadChannel
+			await window.withProgress(
+				{
+					location: ProgressLocation.Notification,
+					title: `Uploading to ${arduinoProject.getBoard()} on ${arduinoProject.getPort()}`,
+					cancellable: true,
+				},
+				async (progress, token) => {
+					uploadStatusBarItem.text = uploadStatusBarExecuting;
+					// If the token signals cancellation
+					token.onCancellationRequested(() => {
+						this.cancelExecution(); // Ensure the compilation process stops
+						this.compileUploadChannel.appendLine("Upload cancelled by user.");
+						uploadStatusBarItem.text = uploadStatusBarNotExecuting;
+						this.setBuildResult(false);
+						throw new Error("Upload cancelled by user."); // Stop further execution
+					});
+
+					await arduinoCLI.runArduinoCommand(
+						() => this.cliArgs.getUploadArguments(),
+						"CLI: Failed to upload", false, true, this.compileUploadChannel
+					);
+					uploadStatusBarItem.text = uploadStatusBarNotExecuting;
+					if (this.serialMoniorAPI) {
+						this.serialMoniorAPI.startMonitoringPort({ port: arduinoProject.getPort(), baudRate: 115200, lineEnding: LineEnding.None, dataBits: 8, stopBits: StopBits.One, parity: Parity.None }).then((port) => {
+						});
+					}
+				}
 			);
-			uploadStatusBarItem.text = uploadStatusBarNotExecuting;
-			if (this.serialMoniorAPI) {
-				this.serialMoniorAPI.startMonitoringPort({ port: arduinoProject.getPort(), baudRate: 115200, lineEnding: LineEnding.None, dataBits: 8, stopBits: StopBits.One, parity: Parity.None }).then((port) => {
-				});
-			}
 		} catch (error) {
 			uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 			console.log(error);
