@@ -6,8 +6,8 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 - Linux x64 now supported
 - Bugs corrected
 
-- Resolved and restored conflict with `which` import for MacOS
 **Version 0.4.92**
+- Resolved and restored conflict with `which` import for MacOS
 - Resolved and restored conflict with `which` import for MacOS
 
 **Version 0.4.8**
