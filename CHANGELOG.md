@@ -2,7 +2,7 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
-**Version 0.5.2**
+**Version 0.5.3**
 - Code Snippets added
 - IntelliSense improvements
 
