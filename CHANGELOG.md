@@ -2,10 +2,11 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
-**Unreleased**
+**Version 0.5.0**
+- Linux x64 now supported
+- Bugs corrected
 
-- Linux Version
-
+- Resolved and restored conflict with `which` import for MacOS
 **Version 0.4.92**
 - Resolved and restored conflict with `which` import for MacOS
 
