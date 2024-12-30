@@ -419,7 +419,8 @@ export class ArduinoCLI {
 		if (platform === 'win32') {
 			try {
 				let arduinoCLIPath = path.join(arduinoCLIInstallPath, arduinoCLIExecutable);
-				await workspace.fs.stat(arduinoCLIPath);
+				const arduinoCLIUri = Uri.file(arduinoCLIPath);
+				await workspace.fs.stat(arduinoCLIUri);
 				this.arduinoCLIChannel.appendLine(`Using arduino CLI in ${arduinoCLIPath}`);
 				return arduinoCLIPath;
 			} catch {
