@@ -6,6 +6,7 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 - Implement notification and cancel for upload by [rudeb0t](https://github.com/rudeb0t)
 - Fixed bundled CLI permission on macOS Silicon  [rudeb0t](https://github.com/rudeb0t)
 - Fixed Arduino CLI path in settings on Windows
+- Changes to Arduino CLI settings are applied to the current workspace
 
 **Version 0.5.0**
 - Linux x64 now supported
