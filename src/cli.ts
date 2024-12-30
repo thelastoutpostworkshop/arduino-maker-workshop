@@ -578,27 +578,33 @@ export class ArduinoCLI {
 					if (entry.Includepath) {
 						includePaths.add(`${entry.Includepath}/**`);
 					}
+				} else {
+					if (entry.Include) {
+						if (entry.Includepath) {
+							includePaths.add(`${entry.Includepath}/**`);
+						}
+					}
 				}
 			});
 		} catch (error) {
-			arduinoExtensionChannel.appendLine('IntelliSense: includes.cache not found, fallback to build.options.json');
-			try {
-				// Read build.options.json file and dynamically add paths
-				const includeDataPath = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "build.options.json");
-				const includeData: BuildOptions = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
-				if (includeData.hardwareFolders) {
-					includePaths.add(`${includeData.hardwareFolders}/**`);
-				}
-				if (includeData.otherLibrariesFolders) {
-					includePaths.add(`${includeData.otherLibrariesFolders}/**`);
-				}
-				if (includeData.sketchLocation) {
-					includePaths.add(`${includeData.sketchLocation}/**`);
-				}
-			} catch (error) {
-				arduinoExtensionChannel.appendLine('Cannot generate IntelliSense: build.options.json not found');
+			arduinoExtensionChannel.appendLine('IntelliSense: includes.cache not found');
+		}
+
+		try {
+			// Read build.options.json file and dynamically add paths
+			const includeDataPath = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "build.options.json");
+			const includeData: BuildOptions = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
+			// if (includeData.hardwareFolders) {
+			// 	includePaths.add(`${includeData.hardwareFolders}/**`);
+			// }
+			if (includeData.otherLibrariesFolders) {
+				includePaths.add(`${includeData.otherLibrariesFolders}/**`);
 			}
-			return;
+			if (includeData.sketchLocation) {
+				includePaths.add(`${includeData.sketchLocation}/**`);
+			}
+		} catch (error) {
+			arduinoExtensionChannel.appendLine('IntelliSense: build.options.json not found');
 		}
 
 
