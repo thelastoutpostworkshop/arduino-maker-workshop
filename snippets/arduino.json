@@ -80,5 +80,42 @@
       "// ${1} will hold a random value between ${2} (inclusive) and ${3} (exclusive)"
     ],
     "description": "Generate a random number within a specified range"
+  },
+  "xTaskCreatePinnedToCore": {
+    "prefix": "taskCreatePinnedToCore",
+    "body": [
+      "xTaskCreatePinnedToCore(",
+      "    ${1:taskFunction},     // Task function",
+      "    \"${2:taskName}\",      // Task name",
+      "    8192,                  // Stack size",
+      "    NULL,                  // Task input parameters",
+      "    1,                     // Task priority, be carefull when changing this",
+      "    NULL,                  // Task handle, add one if you want control over the task (resume or suspend the task) ",
+      "    1                      // Core to run the task on",
+      ");"
+    ],
+    "description": "Create a FreeRTOS task pinned to Core 1 with default settings"
+  },
+  "TaskHandle_t Variable": {
+    "prefix": "TaskHandle_t",
+    "body": ["TaskHandle_t ${1:taskHandle}; // Handle for managing the task"],
+    "description": "Create a TaskHandle_t variable for FreeRTOS task management"
+  },
+  "Task Function": {
+    "prefix": "taskFunction",
+    "body": [
+      "void ${1:taskFunctionName}(void *parameter) {",
+      "    // Setup start here",
+      "    ",
+      "    ",
+      "    // End of your setup",
+      "    ",
+      "    // Loop function, run repeatedly",
+      "    for (;;) {",
+      "        delay(10); // Allow other tasks to run, adjust as needed",
+      "    }",
+      "}"
+    ],
+    "description": "Create a FreeRTOS task function with setup and loop sections"
   }
 }
