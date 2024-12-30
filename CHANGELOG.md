@@ -8,7 +8,6 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 
 **Version 0.4.92**
 - Resolved and restored conflict with `which` import for MacOS
-- Resolved and restored conflict with `which` import for MacOS
 
 **Version 0.4.8**
 - MacOS ARM64 version, thanks to [rudeb0t](https://github.com/rudeb0t)
