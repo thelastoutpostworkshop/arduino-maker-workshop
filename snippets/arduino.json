@@ -81,7 +81,7 @@
     ],
     "description": "Generate a random number within a specified range"
   },
-  "xTaskCreatePinnedToCore": {
+  "ESP32-xTaskCreatePinnedToCore": {
     "prefix": "taskCreatePinnedToCore",
     "body": [
       "xTaskCreatePinnedToCore(",
@@ -96,12 +96,12 @@
     ],
     "description": "Create a FreeRTOS task pinned to Core 1 with default settings"
   },
-  "TaskHandle_t Variable": {
+  "ESP32-TaskHandle_t Variable": {
     "prefix": "TaskHandle_t",
     "body": ["TaskHandle_t ${1:taskHandle}; // Handle for managing the task"],
     "description": "Create a TaskHandle_t variable for FreeRTOS task management"
   },
-  "Task Function": {
+  "ESP32-Task Function": {
     "prefix": "taskFunction",
     "body": [
       "void ${1:taskFunctionName}(void *parameter) {",
@@ -117,5 +117,67 @@
       "}"
     ],
     "description": "Create a FreeRTOS task function with setup and loop sections"
+  },
+  "ESP32-LEDC Attach": {
+    "prefix": "ledcAttach",
+    "body": ["bool success = ledcAttach(${1:pin}, ${2:freq}, ${3:resolution});"],
+    "description": "Use ledcAttach to attach a pin to a PWM signal with specified frequency and resolution"
+  },
+  "ESP32-LEDC Write": {
+    "prefix": "ledcWrite",
+    "body": ["bool success = ledcWrite(${1:pin}, ${2:duty});"],
+    "description": "Use ledcWrite to set the duty cycle on a pin with specified PWM duty"
+  },
+  "ESP32-LEDC Attach Channel": {
+    "prefix": "ledcAttachChannel",
+    "body": ["bool success = ledcAttachChannel(${1:pin}, ${2:freq}, ${3:resolution}, ${4:channel});"],
+    "description": "Use ledcAttachChannel to attach a pin to a PWM channel with specified frequency and resolution"
+  },
+  "ESP32-LEDC Write Channel": {
+    "prefix": "ledcWriteChannel",
+    "body": ["bool success = ledcWriteChannel(${1:channel}, ${2:duty});"],
+    "description": "Use ledcWriteChannel to set the duty cycle on a specific PWM channel"
+  },
+  "ESP32-LEDC Read": {
+    "prefix": "ledcRead",
+    "body": ["uint32_t duty = ledcRead(${1:pin});"],
+    "description": "Use ledcRead to retrieve the current duty cycle of a specified pin"
+  },
+  "ESP32-LEDC Read Frequency": {
+    "prefix": "ledcReadFreq",
+    "body": ["uint32_t freq = ledcReadFreq(${1:pin});"],
+    "description": "Use ledcReadFreq to get the current frequency of a specified pin"
+  },
+  "ESP32-LEDC Write Tone": {
+    "prefix": "ledcWriteTone",
+    "body": ["uint32_t freq = ledcWriteTone(${1:pin}, ${2:freq}); // Write a tone with ${2} Hz frequency"],
+    "description": "Use ledcWriteTone to generate a tone on a specified pin at a given frequency"
+  },
+  "ESP32-LEDC Write Note": {
+    "prefix": "ledcWriteNote",
+    "body": [
+      "uint32_t freq = ledcWriteNote(${1:pin}, ${2|NOTE_C,NOTE_Cs,NOTE_D,NOTE_Eb,NOTE_E,NOTE_F,NOTE_Fs,NOTE_G,NOTE_Gs,NOTE_A,NOTE_Bb,NOTE_B,NOTE_MAX|}, ${3:4});"
+    ],
+    "description": "Use ledcWriteNote to generate a musical note on a specified pin"
+  },
+  "ESP32-LEDC Detach": {
+    "prefix": "ledcDetach",
+    "body": ["bool success = ledcDetach(${1:pin});"],
+    "description": "Use ledcDetach to detach a PWM signal from a specified pin"
+  },
+  "ESP32-LEDC Fade": {
+    "prefix": "ledcFade",
+    "body": ["bool success = ledcFade(${1:pin}, ${2:start_duty}, ${3:target_duty}, ${4:max_fade_time_ms});"],
+    "description": "Use ledcFade to gradually adjust the duty cycle on a pin"
+  },
+  "ESP32-Analog Write Frequency": {
+    "prefix": "analogWriteFrequency",
+    "body": ["analogWriteFrequency(${1:pin}, ${2:freq});"],
+    "description": "Use analogWriteFrequency to set the PWM frequency for a pin"
+  },
+  "ESP32-Analog Write Resolution": {
+    "prefix": "analogWriteResolution",
+    "body": ["analogWriteResolution(${1:pin}, ${2:resolution});"],
+    "description": "Use analogWriteResolution to set the PWM resolution for a pin"
   }
 }
