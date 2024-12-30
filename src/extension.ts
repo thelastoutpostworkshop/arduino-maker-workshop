@@ -126,23 +126,26 @@ export async function activate(context: ExtensionContext) {
 					clearTimeout(debounceTimeout);
 				}
 
-				 debounceTimeout = setTimeout(async () => {
+				debounceTimeout = setTimeout(async () => {
 					if (event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.executable')) {
-						if(await arduinoCLI.isCLIReady()) {
+						if (await arduinoCLI.isCLIReady()) {
 							arduinoExtensionChannel.appendLine(`Arduino CLI is ready, path: ${arduinoCLI.arduinoCLIPath}`);
 							window.showInformationMessage(`Arduino CLI executable changed to: ${arduinoCLI.arduinoCLIPath}`);
 						}
+					} else {
+						arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 					}
 
-					// Check if the `arduinoMakerWorkshop.arduinoCLI.installPath` setting has changed
 					if (event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.installPath')) {
-						if(await arduinoCLI.isCLIReady()) {
+						if (await arduinoCLI.isCLIReady()) {
 							arduinoExtensionChannel.appendLine(`Arduino CLI is ready, path: ${arduinoCLI.arduinoCLIPath}`);
 							window.showInformationMessage(`Arduino CLI executable changed to: ${arduinoCLI.arduinoCLIPath}`);
+						} else {
+							arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 						}
-						
+
 					}
-				}, 500); // Adjust the debounce delay as needed (500ms here)
+				}, 500); // Debounce delay (500ms here)
 			});
 
 		} else {
