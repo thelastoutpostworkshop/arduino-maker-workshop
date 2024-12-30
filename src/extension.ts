@@ -126,7 +126,7 @@ export async function activate(context: ExtensionContext) {
 					clearTimeout(debounceTimeout);
 				}
 
-				debounceTimeout = setTimeout(() => {
+				 debounceTimeout = setTimeout(async () => {
 					if (event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.executable')) {
 						const newExecutable = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI').get<string>('executable');
 						if (newExecutable && newExecutable?.trim().length > 0) {
@@ -138,12 +138,11 @@ export async function activate(context: ExtensionContext) {
 
 					// Check if the `arduinoMakerWorkshop.arduinoCLI.installPath` setting has changed
 					if (event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.installPath')) {
-						const newPath = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI').get<string>('installPath');
-						if (newPath && newPath?.trim().length > 0) {
-							window.showInformationMessage(`Arduino CLI executable changed to: ${newPath}`);
-						} else {
-							window.showInformationMessage(`Bundled Arduino CLI will be used`);
+						if(await arduinoCLI.isCLIReady()) {
+							arduinoExtensionChannel.appendLine(`Arduino CLI is ready, path: ${arduinoCLI.arduinoCLIPath}`);
+							window.showInformationMessage(`Arduino CLI executable changed to: ${arduinoCLI.arduinoCLIPath}`);
 						}
+						
 					}
 				}, 500); // Adjust the debounce delay as needed (500ms here)
 			});
