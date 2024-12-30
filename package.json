@@ -84,7 +84,7 @@
         "arduinoMakerWorkshop.arduinoCLI.installPath": {
           "type": "string",
           "default": "",
-          "description": "File system path to where the arduino-cli is located."
+          "description": "File system path to where the arduino-cli is located (leave blank to use the bundled CLI)."
         }
       }
     }
