@@ -416,6 +416,16 @@ export class ArduinoCLI {
 				return '';
 			}
 		}
+		if (platform === 'win32') {
+			try {
+				let arduinoCLIPath = path.join(arduinoCLIInstallPath, arduinoCLIExecutable);
+				await workspace.fs.stat(arduinoCLIPath);
+				this.arduinoCLIChannel.appendLine(`Using arduino CLI in ${arduinoCLIPath}`);
+				return arduinoCLIPath;
+			} catch {
+				return '';
+			}
+		}
 	}
 
 	private async getBundledArduinoCliPath() {
