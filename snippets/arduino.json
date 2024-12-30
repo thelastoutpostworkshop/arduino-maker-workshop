@@ -1,0 +1,84 @@
+{
+  "include": {
+    "body": "#include \"$0.h\"",
+    "description": "Generic Include header file",
+    "prefix": "include"
+  },
+  "includeArduino": {
+    "body": "#include <Arduino.h>",
+    "description": "Include Arduino header file",
+    "prefix": "includeArduinoHeader"
+  },
+  "setup": {
+    "prefix": "setup",
+    "body": [
+      "void setup() {",
+      "    // Initialize your setup code here",
+      "    Serial.begin(${1|115200,9600|});",
+      "}",
+      "",
+      "void loop() {",
+      "    // Add your main code here, to run repeatedly",
+      "}"
+    ],
+    "description": "Empty setup and loop functions with Serial initialization"
+  },
+  "analogRead": {
+    "body": ["int ${1:sensorValue} = analogRead(${2:pinNumber});"],
+    "description": "Reads analog data from a pin",
+    "prefix": "analogRead"
+  },
+  "analogWrite": {
+    "body": "analogWrite(${1:pinNumber}, ${2:value});$0",
+    "description": "Write analog value to a pin",
+    "prefix": "analogWrite"
+  },
+  "define": {
+    "body": "#define ${1:MYIDENTIFIER} ${2:value}$0",
+    "description": "define directive",
+    "prefix": "define"
+  },
+  "pinMode": {
+    "prefix": "pinMode",
+    "body": "pinMode(${1:pinNumber}, ${2|INPUT,OUTPUT,INPUT_PULLUP|});$0",
+    "description": "Set up a digital pin to behave either as an input or an output."
+  },
+  "Serial Begin": {
+    "prefix": "serialBegin",
+    "body": ["Serial.begin(${1|115200,9600|});"],
+    "description": "Starts Serial communication"
+  },
+  "Delay Function": {
+    "prefix": "delay",
+    "body": ["delay(${1:1000}); // Delay for ${1} milliseconds"],
+    "description": "Insert a delay function with customizable time in milliseconds"
+  },
+  "Delay Microseconds": {
+    "prefix": "delayMicroseconds",
+    "body": ["delayMicroseconds(${1:100}); // Delay for ${1} microseconds"],
+    "description": "Insert a delayMicroseconds function with customizable time in microseconds"
+  },
+  "Digital Read": {
+    "prefix": "digitalRead",
+    "body": ["int ${1:pinValue} = digitalRead(${2:pinNumber});"],
+    "description": "Read the value from a digital pin and store it in a variable"
+  },
+  "Digital Write": {
+    "prefix": "digitalWrite",
+    "body": ["digitalWrite(${1:pinNumber}, ${2|HIGH,LOW|});"],
+    "description": "Set the state of a digital pin to HIGH or LOW"
+  },
+  "Ifdef Block": {
+    "prefix": "ifdef",
+    "body": ["#ifdef ${1:CONDITION}", "    ${2:// Code to include if CONDITION is defined}", "#endif"],
+    "description": "Insert an #ifdef block to conditionally include code"
+  },
+  "Random Number": {
+    "prefix": "random",
+    "body": [
+      "int ${1:randomNumber} = random(${2:minValue}, ${3:maxValue});",
+      "// ${1} will hold a random value between ${2} (inclusive) and ${3} (exclusive)"
+    ],
+    "description": "Generate a random number within a specified range"
+  }
+}

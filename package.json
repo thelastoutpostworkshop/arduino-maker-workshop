@@ -17,7 +17,8 @@
   },
   "author": "TheLastOutpostWorkshop",
   "categories": [
-    "Programming Languages"
+    "Programming Languages",
+    "Snippets"
   ],
   "keywords": [
     "arduino",
@@ -87,7 +88,13 @@
           "description": "File system path to where the arduino-cli is located (leave blank to use the bundled CLI)."
         }
       }
-    }
+    },
+    "snippets": [
+      {
+        "language": "cpp",
+        "path": "snippets/arduino.json"
+      }
+    ]
   },
   "extensionDependencies": [
     "ms-vscode.vscode-serial-monitor",
