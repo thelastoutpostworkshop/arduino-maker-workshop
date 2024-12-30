@@ -570,21 +570,37 @@ export class ArduinoCLI {
 		let compilerPath = '';
 
 		try {
-			// Read build.options.json file and dynamically add paths
-			const includeDataPath = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "build.options.json");
-			const includeData: BuildOptions = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
-			if (includeData.hardwareFolders) {
-				includePaths.add(`${includeData.hardwareFolders}/**`);
-			}
-			if (includeData.otherLibrariesFolders) {
-				includePaths.add(`${includeData.otherLibrariesFolders}/**`);
-			}
-			if (includeData.sketchLocation) {
-				includePaths.add(`${includeData.sketchLocation}/**`);
-			}
+			// Read includes.cache file and dynamically add paths
+			const includeDataPath = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "includes.cache");
+			const includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
+			includeData.forEach((entry: any) => {
+				if (!entry.Sourcefile) {
+					if (entry.Includepath) {
+						includePaths.add(`${entry.Includepath}/**`);
+					}
+				}
+			});
 		} catch (error) {
-			arduinoExtensionChannel.appendLine('IntelliSense: build.options.json not found');
+			arduinoExtensionChannel.appendLine('IntelliSense: includes.cache not found, fallback to build.options.json');
+			try {
+				// Read build.options.json file and dynamically add paths
+				const includeDataPath = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "build.options.json");
+				const includeData: BuildOptions = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
+				if (includeData.hardwareFolders) {
+					includePaths.add(`${includeData.hardwareFolders}/**`);
+				}
+				if (includeData.otherLibrariesFolders) {
+					includePaths.add(`${includeData.otherLibrariesFolders}/**`);
+				}
+				if (includeData.sketchLocation) {
+					includePaths.add(`${includeData.sketchLocation}/**`);
+				}
+			} catch (error) {
+				arduinoExtensionChannel.appendLine('Cannot generate IntelliSense: build.options.json not found');
+			}
+			return;
 		}
+
 
 		try {
 			// Read compile_commands.json file to extract the compilerPath
