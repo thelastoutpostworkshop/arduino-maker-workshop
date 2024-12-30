@@ -426,17 +426,16 @@ export class ArduinoCLI {
 			case 'win32':
 				return path.join(this.context.extensionPath, 'arduino_cli', 'win32', 'arduino-cli.exe');
 			case 'darwin':
-				return path.join(this.context.extensionPath, 'arduino_cli', 'darwin', arch, 'arduino-cli');
 			case 'linux':
-				const linuxCLIPath = path.join(this.context.extensionPath, 'arduino_cli', 'linux', arch, 'arduino-cli');
+				const unixCLIPath = path.join(this.context.extensionPath, 'arduino_cli', platform, arch, 'arduino-cli');
 				try {
-					fs.chmodSync(linuxCLIPath, 0o755); // Set execute permission
-					console.log(`Execute permission set for ${linuxCLIPath}`);
+					await fs.chmodSync(unixCLIPath, 0o755); // Set execute permission
+					console.log(`Execute permission set for ${unixCLIPath}`);
 				} catch (err) {
-					console.error(`Failed to set execute permission for ${linuxCLIPath}:`, err);
+					console.error(`Failed to set execute permission for ${unixCLIPath}:`, err);
 					throw err;
 				}
-				return linuxCLIPath
+				return unixCLIPath
 			default:
 				this._lastCLIError = `Unsupported platform: ${platform}`;
 				break;
