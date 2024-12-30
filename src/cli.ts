@@ -263,7 +263,7 @@ export class ArduinoCLI {
 		}
 		this.compileUploadChannel.appendLine("Upload starting...");
 		this.compileOrUploadRunning = true;
-		
+
 		if (this.serialMoniorAPI) {
 			const port = arduinoProject.getPort();
 			this.serialMoniorAPI.stopMonitoringPort(port);
@@ -380,7 +380,7 @@ export class ArduinoCLI {
 			}
 		}
 
-		if(platform === 'darwin') {
+		if (platform === 'darwin') {
 			try {
 				let arduinoCLIPath = path.join(arduinoCLIInstallPath, arduinoCLIExecutable);
 				await workspace.fs.stat(arduinoCLIPath);
@@ -408,7 +408,15 @@ export class ArduinoCLI {
 			case 'darwin':
 				return path.join(this.context.extensionPath, 'arduino_cli', 'darwin', arch, 'arduino-cli');
 			case 'linux':
-				return path.join(this.context.extensionPath, 'arduino_cli', 'linux',arch, 'arduino-cli');
+				const linuxCLIPath = path.join(this.context.extensionPath, 'arduino_cli', 'linux', arch, 'arduino-cli');
+				try {
+					fs.chmodSync(linuxCLIPath, 0o755); // Set execute permission
+					console.log(`Execute permission set for ${linuxCLIPath}`);
+				} catch (err) {
+					console.error(`Failed to set execute permission for ${linuxCLIPath}:`, err);
+					throw err;
+				}
+				return linuxCLIPath
 			default:
 				this._lastCLIError = `Unsupported platform: ${platform}`;
 				break;
@@ -521,7 +529,7 @@ export class ArduinoCLI {
 	public setBuildResult(result: boolean) {
 		const compileResult: CompileResult = { result: result };
 		const buildPath = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput());
-		if(fs.existsSync(buildPath)) {
+		if (fs.existsSync(buildPath)) {
 			const resultFile = path.join(buildPath, COMPILE_RESULT_FILE);
 			fs.writeFileSync(resultFile, JSON.stringify(compileResult, null, 2), 'utf-8');
 		}
