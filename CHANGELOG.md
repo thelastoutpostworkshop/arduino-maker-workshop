@@ -2,6 +2,9 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
+**Version 0.5.1**
+- Implement notification and cancel for upload by [rudeb0t](https://github.com/rudeb0t).
+
 **Version 0.5.0**
 - Linux x64 now supported
 - Bugs corrected
