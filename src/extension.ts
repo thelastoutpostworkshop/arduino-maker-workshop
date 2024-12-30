@@ -25,6 +25,8 @@ const quickAccessProvider = new QuickAccessProvider();
 export const arduinoProject: ArduinoProject = new ArduinoProject();
 export let arduinoCLI: ArduinoCLI;
 
+let debounceTimeout: NodeJS.Timeout | undefined; // To debounce changes to settings
+
 export async function activate(context: ExtensionContext) {
 	arduinoCLI = new ArduinoCLI(context);
 	if (await arduinoCLI.isCLIReady()) {
@@ -120,24 +122,30 @@ export async function activate(context: ExtensionContext) {
 
 			workspace.onDidChangeConfiguration((event) => {
 				// Check if the `arduinoMakerWorkshop.arduinoCLI.executable` setting has changed
-				if (event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.executable')) {
-					const newExecutable = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI').get<string>('executable');
-					if(newExecutable && newExecutable?.trim().length > 0) {
-						window.showInformationMessage(`Arduino CLI executable changed to: ${newExecutable}`);
-					} else {
-						window.showErrorMessage(`Arduino CLI executable cannot be empty`);
-					}
+				if (debounceTimeout) {
+					clearTimeout(debounceTimeout);
 				}
 
-				// Check if the `arduinoMakerWorkshop.arduinoCLI.installPath` setting has changed
-				if (event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.installPath')) {
-					const newPath = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI').get<string>('installPath');
-					if(newPath && newPath?.trim().length > 0) {
-						window.showInformationMessage(`Arduino CLI executable changed to: ${newPath}`);
-					} else {
-						window.showInformationMessage(`Bundled Arduino CLI will be used`);
+				debounceTimeout = setTimeout(() => {
+					if (event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.executable')) {
+						const newExecutable = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI').get<string>('executable');
+						if (newExecutable && newExecutable?.trim().length > 0) {
+							window.showInformationMessage(`Arduino CLI executable changed to: ${newExecutable}`);
+						} else {
+							window.showErrorMessage(`Arduino CLI executable cannot be empty`);
+						}
 					}
-				}
+
+					// Check if the `arduinoMakerWorkshop.arduinoCLI.installPath` setting has changed
+					if (event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.installPath')) {
+						const newPath = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI').get<string>('installPath');
+						if (newPath && newPath?.trim().length > 0) {
+							window.showInformationMessage(`Arduino CLI executable changed to: ${newPath}`);
+						} else {
+							window.showInformationMessage(`Bundled Arduino CLI will be used`);
+						}
+					}
+				}, 500); // Adjust the debounce delay as needed (500ms here)
 			});
 
 		} else {
