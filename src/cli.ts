@@ -600,13 +600,13 @@ export class ArduinoCLI {
 			arduinoExtensionChannel.appendLine('IntelliSense: compile_commands.json not found');
 		}
 
-		const defines: string[] = [];
+		const defines = new Set<string>(); // Use a Set to ensure uniqueness
 		let match;
 		const defineRegex = /-D([^\s]+)/g;
 		while ((match = defineRegex.exec(output)) !== null) {
-			defines.push(match[1]);
+			defines.add(match[1]);
 		}
-		defines.push("USBCON");
+		defines.add("USBCON");
 
 		// Create c_cpp_properties.json 
 		const cppProperties = {
@@ -614,7 +614,7 @@ export class ArduinoCLI {
 				name: "Arduino",
 				includePath: Array.from(includePaths),
 				compilerPath: compilerPath,
-				defines: defines,
+				defines: Array.from(defines),
 				cStandard: "c17",
 				cppStandard: "c++17",
 			}],
