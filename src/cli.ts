@@ -485,7 +485,6 @@ export class ArduinoCLI {
 	}
 
 	private executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = this.arduinoCLIChannel, successMsg: string = ""): Promise<string | void> {
-		// outputChannel.clear();
 		if (showOutput) {
 			channel.show(true);
 		}
