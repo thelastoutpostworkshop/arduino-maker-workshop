@@ -565,7 +565,8 @@ export class ArduinoCLI {
 	}
 
 	private createIntellisenseFile(output: string) {
-		const includePaths = new Set<string>();
+		const includePathsForIntelissense = new Set<string>();
+		const includePathsForArduinoSearch = new Set<string>();
 		let compilerPath = '';
 		let compileCommandJson: string = "";
 
@@ -576,12 +577,14 @@ export class ArduinoCLI {
 			includeData.forEach((entry: any) => {
 				if (!entry.Sourcefile) {
 					if (entry.Includepath) {
-						includePaths.add(`${entry.Includepath}/**`);
+						includePathsForIntelissense.add(`${entry.Includepath}/**`);
+						includePathsForArduinoSearch.add(entry.Includepath);
 					}
 				} else {
 					if (entry.Include) {
 						if (entry.Includepath) {
-							includePaths.add(`${entry.Includepath}/**`);
+							includePathsForIntelissense.add(`${entry.Includepath}/**`);
+							includePathsForArduinoSearch.add(entry.Includepath);
 						}
 					}
 				}
@@ -598,10 +601,10 @@ export class ArduinoCLI {
 			// 	includePaths.add(`${includeData.hardwareFolders}/**`);
 			// }
 			if (includeData.otherLibrariesFolders) {
-				includePaths.add(`${includeData.otherLibrariesFolders}/**`);
+				includePathsForIntelissense.add(`${includeData.otherLibrariesFolders}/**`);
 			}
 			if (includeData.sketchLocation) {
-				includePaths.add(`${includeData.sketchLocation}/**`);
+				includePathsForIntelissense.add(`${includeData.sketchLocation}/**`);
 			}
 		} catch (error) {
 			arduinoExtensionChannel.appendLine('IntelliSense: build.options.json not found');
@@ -631,13 +634,14 @@ export class ArduinoCLI {
 		}
 		defines.add("USBCON");
 
-		const arduinoHeaderPath = this.findArduinoHeaderRecursively(Array.from(includePaths));
+		const arduinoHeaderPath = this.findArduinoHeaderRecursively(Array.from(includePathsForArduinoSearch));
 
 		// Create c_cpp_properties.json 
 		const cppProperties = {
 			configurations: [{
 				name: "Arduino",
-				includePath: Array.from(includePaths),
+				includePath: Array.from(includePathsForIntelissense),
+				forcedInclude: arduinoHeaderPath ? [arduinoHeaderPath] : [], // Add arduinoHeaderPath if it exists
 				compilerPath: compilerPath,
 				defines: Array.from(defines),
 				cStandard: "c17",
