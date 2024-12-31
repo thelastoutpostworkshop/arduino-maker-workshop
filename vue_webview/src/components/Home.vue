@@ -1,26 +1,55 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { computed, watch, onMounted, ref } from 'vue';
+import { computed, watch, onMounted, ref, reactive } from 'vue';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName } from '@shared/messages';
 import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
 import arduinoImage from '@/assets/extension_icon.png';
+import { getAvailablePorts } from '@/utilities/utils';
 
 const router = useRouter()
 const store = useVsCodeStore();
+
 const portSelected = ref('');
 const sketchName = ref("");
 const useProgrammer = ref(false);
 const programmer = ref("");
+const monitorPortSettings = reactive({port: "", baudRate: 115200, lineEnding: "\r\n", dataBits: 8, parity: "none", stopBits: "one"});
 
-const portsAvailable = computed(() => {
-  const filtered = store.boardConnected?.detected_ports.map((detectedPort) => {
-    return detectedPort.port.label ?? 'Unknown'; // Provide a default if label is undefined
-  }) ?? [];
-  return filtered;
-});
+const portsAvailable = computed(() => getAvailablePorts(store));
 
-function createNewSkecth() {
+// This is a macOS-specific thing. The upload port is on /dev/cu.* and the serial port is on /dev/tty.*
+const serialPortsAvailable = computed(() => getAvailablePorts(store).map((p: any) => p.replace("/dev/cu.", "/dev/tty.")));
+
+const lineEndings = [
+    {title: "CR", value: "\r"},
+    {title: "CRLF", value: "\r\n"},
+    {title: "LF", value: "\n"},
+    {title: "None", value: "none"},
+];
+const parity = [
+    {title: "None", value: "none"},
+    {title: "Odd", value: "odd"},
+    {title: "Even", value: "even"},
+    {title: "Mark", value: "mark"},
+    {title: "Space", value: "space"}
+];
+const stopBits = [
+    {title: "One", value: "one"},
+    {title: "Onepointfive", value: "onepointfive"},
+    {title: "Two", value: "two"}
+];
+
+function getStoredMonitorPortSettings() {
+  monitorPortSettings.port = store.projectInfo?.monitorPortSettings.port ?? "";
+  monitorPortSettings.baudRate = store.projectInfo?.monitorPortSettings.baudRate ?? 115200;
+  monitorPortSettings.lineEnding = store.projectInfo?.monitorPortSettings.lineEnding ?? "\r\n";
+  monitorPortSettings.dataBits = store.projectInfo?.monitorPortSettings.dataBits ?? 8;
+  monitorPortSettings.parity = store.projectInfo?.monitorPortSettings.parity ?? "none";
+  monitorPortSettings.stopBits = store.projectInfo?.monitorPortSettings.stopBits ?? "one";
+}
+
+function createNewSketch() {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CREATE_NEW_SKETCH, errorMessage: "", payload: sketchName.value });
 }
 
@@ -74,15 +103,26 @@ watch(
         }
       }
     }
-    if(projectInfo) {
+    if (projectInfo) {
       useProgrammer.value = projectInfo.useProgrammer;
       programmer.value = projectInfo.programmer;
+    }
+    if (projectInfo?.monitorPortSettings) {
+      getStoredMonitorPortSettings();
     }
   },
   { immediate: true }
 );
 
+watch(monitorPortSettings, (newMonitorPortSettings) => {
+  store.sendMessage({
+    command: ARDUINO_MESSAGES.SET_MONITOR_PORT_SETTINGS, errorMessage: "", payload: JSON.stringify(newMonitorPortSettings)
+  });
+});
 
+watch(() => store.projectInfo?.monitorPortSettings, (newMonitorPortSettings) => {
+  getStoredMonitorPortSettings();
+});
 
 watch((portSelected), (newPort) => {
   if (newPort && store.projectInfo) {
@@ -95,11 +135,9 @@ watch([() => store.cliStatus, () => store.projectStatus], () => { }, { immediate
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
+  getStoredMonitorPortSettings();
 });
-
 </script>
-
-
 <template>
   <v-container>
     <v-responsive>
@@ -187,7 +225,7 @@ onMounted(() => {
             </v-text-field>
 
             <v-card-actions>
-              <v-btn @click="createNewSkecth" :disabled="sketchName.trim().length == 0">New Sketch</v-btn>
+              <v-btn @click="createNewSketch" :disabled="sketchName.trim().length == 0">New Sketch</v-btn>
             </v-card-actions>
           </v-card>
           <div v-if="store.projectStatus == null && !store.projectInfo?.board == null">
@@ -207,6 +245,64 @@ onMounted(() => {
               <v-btn @click="router.push({ name: 'board-selection' })">Select a board first</v-btn>
             </div>
           </div>
+          <v-card class="mt-5 pa-4" v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board"
+            color="primary" prepend-icon="mdi-serial-port" rounded="lg">
+            <template #title>
+              <h2 class="text-h6 font-weight-bold">Serial Monitor Settings</h2>
+            </template>
+
+            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.port" :items="serialPortsAvailable"
+              density="compact" label="Serial Port">
+              <template v-slot:loader>
+                <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
+                  indeterminate></v-progress-linear>
+              </template>
+              <template v-if="store.boardConnected?.detected_ports" v-slot:append>
+                <v-btn @click="refreshPorts" icon="mdi-refresh"
+                  variant="text"></v-btn>
+              </template>
+            </v-select>
+            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.baudRate" :items="[
+              300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 74880, 115200, 230400, 250000
+            ]"
+              density="compact" label="Baud Rate">
+              <template v-slot:loader>
+                <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
+                  indeterminate></v-progress-linear>
+              </template>
+            </v-select>
+            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.lineEnding" :items="lineEndings"
+              item-title="title" item-value="value"
+              density="compact" label="Line Ending">
+              <template v-slot:loader>
+                <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
+                  indeterminate></v-progress-linear>
+              </template>
+            </v-select>
+            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.dataBits" :items="[5, 6, 7, 8]"
+              density="compact" label="Data Bits">
+              <template v-slot:loader>
+                <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
+                  indeterminate></v-progress-linear>
+              </template>
+            </v-select>
+            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.stopBits" :items="stopBits"
+              item-title="title" item-value="value"
+              density="compact" label="Stop Bits">
+              <template v-slot:loader>
+                <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
+                  indeterminate></v-progress-linear>
+              </template>
+            </v-select>
+            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.parity" :items="parity"
+              item-title="title" item-value="value"
+              density="compact" label="Parity">
+              <template v-slot:loader>
+                <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
+                  indeterminate></v-progress-linear>
+              </template>
+            </v-select>
+          </v-card>
         </v-col>
       </v-row>
     </v-responsive>
