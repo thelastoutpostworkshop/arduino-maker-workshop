@@ -29,7 +29,6 @@ export class VueWebviewPanel {
         // Handle messages from the Vue web application
         this._panel.webview.onDidReceiveMessage(
             (message: WebviewToExtensionMessage) => {
-                // arduinoExtensionChannel.appendLine(`Message from Vue App: ${message.command}`);
                 switch (message.command) {
                     case ARDUINO_MESSAGES.CLI_CREATE_NEW_SKETCH:
                         arduinoCLI.createNewSketch(message.payload);
@@ -90,6 +89,9 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.SET_PORT:
                         this.setPort(message);
+                        break;
+                    case ARDUINO_MESSAGES.SET_MONITOR_PORT_SETTINGS:
+                        this.setMonitorPortSettings(message);
                         break;
                     case ARDUINO_MESSAGES.SET_PROGRAMMER:
                         arduinoProject.setProgrammer(message.payload);
@@ -192,6 +194,9 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.SET_CONFIGURATION_REQUIRED:
                         arduinoProject.setConfigurationRequired(message.payload);
                         break;
+                    case ARDUINO_MESSAGES.LOG_DEBUG:
+                        arduinoExtensionChannel.appendLine(`WebView DEBUG message: ${message.payload}`)
+                        break;
                     default:
                         arduinoExtensionChannel.appendLine(`Unknown command received from webview: ${message.command}`);
                 }
@@ -222,6 +227,12 @@ export class VueWebviewPanel {
         const port = message.payload;
         arduinoExtensionChannel.appendLine(`New Port=:${port}`);
         arduinoProject.setPort(port);
+    }
+
+    private setMonitorPortSettings(message: WebviewToExtensionMessage) {
+        const monitorPortSettings = JSON.parse(message.payload);
+        arduinoExtensionChannel.appendLine(`New monitorPortSettings=:${JSON.stringify(monitorPortSettings)}`);
+        arduinoProject.setMonitorPortSettings(monitorPortSettings);
     }
 
     private createWebviewMessage(command: string): WebviewToExtensionMessage {

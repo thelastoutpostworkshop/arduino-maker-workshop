@@ -16,7 +16,7 @@ const fs = require('fs');
 export class ArduinoCLI {
 	public arduinoCLIPath: string = "";
 	public compileOrUploadRunning: boolean = false;
-	private serialMoniorAPI: SerialMonitorApi | undefined = undefined;
+	private serialMonitorAPI: SerialMonitorApi | undefined = undefined;
 	private arduinoCLIChannel: OutputChannel;
 	private compileUploadChannel: OutputChannel;
 	private cliArgs = new CLIArguments();
@@ -30,7 +30,7 @@ export class ArduinoCLI {
 		this.compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
 
 		getSerialMonitorApi(Version.latest, context).then((api) => {
-			this.serialMoniorAPI = api;
+			this.serialMonitorAPI = api;
 		});
 	}
 
@@ -266,9 +266,9 @@ export class ArduinoCLI {
 		this.compileUploadChannel.appendLine("Upload starting...");
 		this.compileOrUploadRunning = true;
 
-		if (this.serialMoniorAPI) {
+		if (this.serialMonitorAPI) {
 			const port = arduinoProject.getPort();
-			this.serialMoniorAPI.stopMonitoringPort(port);
+			this.serialMonitorAPI.stopMonitoringPort(port);
 		}
 		try {
 			await window.withProgress(
@@ -293,8 +293,13 @@ export class ArduinoCLI {
 						"CLI: Failed to upload", false, true, this.compileUploadChannel
 					);
 					uploadStatusBarItem.text = uploadStatusBarNotExecuting;
-					if (this.serialMoniorAPI) {
-						this.serialMoniorAPI.startMonitoringPort({ port: arduinoProject.getPort(), baudRate: 115200, lineEnding: LineEnding.None, dataBits: 8, stopBits: StopBits.One, parity: Parity.None }).then((port) => {
+					if (this.serialMonitorAPI) {
+						let monitorPortSettings = arduinoProject.getMonitorPortSettings();
+						arduinoExtensionChannel.appendLine(`Starting serial monitor with settings: ${JSON.stringify(monitorPortSettings)}`);
+						this.serialMonitorAPI.startMonitoringPort(monitorPortSettings).then((port) => {
+							arduinoExtensionChannel.appendLine(`Serial monitor started on port ${port}`);
+						}).catch((err) => {
+							arduinoExtensionChannel.appendLine(`Error starting serial monitor: ${err.message}`);
 						});
 					}
 				}

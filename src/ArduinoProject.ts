@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
-import { ARDUINO_ERRORS, ArduinoProjectConfiguration, ArduinoProjectStatus, CompileResult } from './shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectConfiguration, ArduinoProjectStatus, CompileResult } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel } from './extension';
+import { LineEnding, MonitorPortSettings, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
+import { VueWebviewPanel } from './VueWebviewPanel';
 
 const path = require('path');
 const fs = require('fs');
@@ -11,9 +13,15 @@ const ARDUINO_SETTINGS: string = "arduino.json";
 const ARDUINO_SKETCH_EXTENSION: string = ".ino";
 const ARDUINO_DEFAULT_OUTPUT: string = "build";
 
+export function getMonitorPortSettingsDefault() : MonitorPortSettings {
+    return {
+        port: "", baudRate: 115200, lineEnding: LineEnding.CRLF, dataBits: 8, parity: Parity.None, stopBits: StopBits.One
+    };
+}
+
 export class ArduinoProject {
+    private configJson: ArduinoProjectConfiguration;
     private arduinoConfigurationPath: string = "";
-    private configJson: ArduinoProjectConfiguration = { port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "", programmer: "", useProgrammer: false, configurationRequired: false };
     private projectFullPath: string = "";
     private projectStatus: ArduinoProjectStatus = { status: ARDUINO_ERRORS.NO_ERRORS };
 
@@ -26,6 +34,10 @@ export class ArduinoProject {
             arduinoExtensionChannel.appendLine(`No workspace available, open a workspace by using the File > Open Folder... menu, and then selecting a folder`);
             vscode.window.showErrorMessage('No workspace available, open a workspace by using the File > Open Folder... menu, and then selecting a folder');
         }
+        this.configJson = {
+            port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "", programmer: "", useProgrammer: false, configurationRequired: false,
+            monitorPortSettings: getMonitorPortSettingsDefault()
+        };
     }
     public isUploadReady(): boolean {
         if (this.configJson.port.trim().length !== 0) {
@@ -78,7 +90,18 @@ export class ArduinoProject {
         } else {
             try {
                 const configContent = fs.readFileSync(this.arduinoConfigurationPath, 'utf-8');
-                this.configJson = JSON.parse(configContent);
+                let configJson = JSON.parse(configContent);
+
+                if (configJson.monitorPortSettings === undefined) {
+                    configJson.monitorPortSettings = getMonitorPortSettingsDefault();
+                    if (configJson.port.trim().length !== 0) {
+                        configJson.monitorPortSettings.port = configJson.port;
+                    }
+                    this.writeVSCodeArduinoConfiguration();
+                }
+
+                this.configJson = configJson;
+
                 if (!this.configJson.configuration) {
                     this.configJson.configuration = "";
                     this.writeVSCodeArduinoConfiguration();
@@ -124,15 +147,36 @@ export class ArduinoProject {
 
     public setPort(port: string): void {
         this.configJson.port = port;
-        fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
+        if (this.configJson.monitorPortSettings.port.trim().length === 0) {
+            arduinoExtensionChannel.appendLine(`Monitor port is empty. Default to ${this.configJson.port}`);
+            this.configJson.monitorPortSettings.port = this.configJson.port;
+            VueWebviewPanel.sendMessage({
+                command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO,
+                errorMessage: "",
+                payload: this.configJson
+            })
+        }
+        this.writeVSCodeArduinoConfiguration();
     }
+
+    public getMonitorPortSettings(): MonitorPortSettings {
+        return this.configJson.monitorPortSettings;
+    }
+
+    public setMonitorPortSettings(monitorPortSettings: MonitorPortSettings) {
+        arduinoExtensionChannel.appendLine(`New monitor port settings applied: $${JSON.stringify(monitorPortSettings)}`)
+        this.configJson.monitorPortSettings = monitorPortSettings;
+        this.writeVSCodeArduinoConfiguration();
+    }
+
     public updateBoardConfiguration(newConfig: string): void {
         this.configJson.configuration = newConfig;
-        fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
+        this.writeVSCodeArduinoConfiguration();
     }
 
     private writeVSCodeArduinoConfiguration() {
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
+        arduinoExtensionChannel.appendLine(`Wrote configuration to ${this.arduinoConfigurationPath}`);
     }
     public getProjectPath(): string {
         return this.projectFullPath;
@@ -173,18 +217,18 @@ export class ArduinoProject {
     }
     public setProgrammer(programmer: string): void {
         this.configJson.programmer = programmer;
-        fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
+        this.writeVSCodeArduinoConfiguration();
     }
     public useProgrammer(): boolean {
         return this.configJson.useProgrammer || false;
     }
     public setUseProgrammer(use: boolean): void {
         this.configJson.useProgrammer = use;
-        fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
+        this.writeVSCodeArduinoConfiguration();
     }
     public setConfigurationRequired(required: boolean): void {
         this.configJson.configurationRequired = required;
-        fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
+        this.writeVSCodeArduinoConfiguration();
     }
     public isConfigurationRequired(): boolean {
         return this.configJson.configurationRequired || false;
