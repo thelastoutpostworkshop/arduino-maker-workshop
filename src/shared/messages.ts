@@ -1,3 +1,5 @@
+import { MonitorPortSettings } from "@microsoft/vscode-serial-monitor-api";
+
 export const ArduinoExtensionChannelName = 'Arduino Extension';
 
 // Message exchange with webciew
@@ -89,7 +91,8 @@ export interface ArduinoProjectConfiguration {
   output: string;
   board: string;
   programmer: string;
-  useProgrammer: boolean
+  useProgrammer: boolean;
+  monitorPortSettings: MonitorPortSettings
 };
 
 export enum ARDUINO_ERRORS {
@@ -422,6 +425,7 @@ export const ARDUINO_MESSAGES = {
   SET_BOARD: 'setArduinoBoard',
   SET_BOARD_OPTIONS: 'setArduinoBoardOptions',
   SET_PORT: 'setArduinoPort',
+  SET_MONITOR_PORT_SETTINGS: 'setMonitorPortSettings',
   SET_PROGRAMMER: 'setArduinoProgrammer',
   SET_USE_PROGRAMMER: 'setArduinoUseProgrammer',
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
@@ -432,5 +436,6 @@ export const ARDUINO_MESSAGES = {
   REQUEST_BOARD_CONNECTED: "requestBoardConnected",
   INSTALL_ZIP_LIBRARY: "installZipLibrary",
   CHANGE_THEME_COLOR: "changeThemeColor",
-  SET_CONFIGURATION_REQUIRED: "SetConfigurationRequired"
+  SET_CONFIGURATION_REQUIRED: "SetConfigurationRequired",
+  LOG_DEBUG: "logDebug"
 };
