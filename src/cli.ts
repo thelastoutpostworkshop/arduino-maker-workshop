@@ -632,6 +632,8 @@ export class ArduinoCLI {
 		}
 		defines.add("USBCON");
 
+		const arduinoHeaderPath = this.findArduinoHeaderRecursively(Array.from(includePaths));
+
 		// Create c_cpp_properties.json 
 		const cppProperties = {
 			configurations: [{
@@ -650,210 +652,31 @@ export class ArduinoCLI {
 		fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
 	}
 
-	private createIntellisenseFile_2() {
-		const includePaths = new Set<string>();
-		let compilerPath = '';
-
+	private findFileRecursively(dir: string, fileName: string): string | null {
 		try {
-			// Read includes.cache file and dynamically add paths
-			const includeDataPath = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "includes.cache");
-			const includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
-			includeData.forEach((entry: any) => {
-				if (entry.Includepath) {
-					// Dynamically calculate the most common denominator
-					const commonDenominator = this.getCommonDenominator(entry.Includepath);
-					includePaths.add(`${commonDenominator}/**`);
-				}
-			});
-		} catch (error) {
-			window.showErrorMessage('Cannot generate IntelliSense: includes.cache not found');
-			return;
-		}
-
-		try {
-			// Read compile_commands.json file to extract the compilerPath
-			const compileCommandJson = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "compile_commands.json");
-			const compileInfo = JSON.parse(fs.readFileSync(compileCommandJson, 'utf8'));
-			for (const entry of compileInfo) {
-				if (entry.arguments && Array.isArray(entry.arguments) && entry.arguments.length > 0) {
-					compilerPath = entry.arguments[0]; // Take the first argument
-					break; // Stop after finding the first valid entry
+			const entries = fs.readdirSync(dir, { withFileTypes: true });
+			for (const entry of entries) {
+				const fullPath = path.join(dir, entry.name);
+				if (entry.isDirectory()) {
+					// Recursively search in subdirectories
+					const result = this.findFileRecursively(fullPath, fileName);
+					if (result) return result;
+				} else if (entry.isFile() && entry.name === fileName) {
+					return fullPath;
 				}
 			}
 		} catch (error) {
-			window.showErrorMessage('Cannot generate IntelliSense: compile_commands.json not found');
-			return;
+			// Handle errors (e.g., permission denied) gracefully
+			console.error(`Error accessing directory: ${dir}`, error);
 		}
-
-		// Create c_cpp_properties.json with the simplified paths
-		const cppProperties = {
-			configurations: [{
-				name: "Arduino",
-				includePath: Array.from(includePaths), // Use the Set to ensure unique paths
-				compilerPath: compilerPath,
-				cStandard: "c17",
-				cppStandard: "c++17",
-			}],
-			version: 4
-		};
-
-		// Write to c_cpp_properties.json
-		const cppPropertiesPath = path.join(arduinoProject.getProjectPath(), VSCODE_FOLDER, CPP_PROPERTIES);
-		fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
+		return null; // Return null if the file is not found
 	}
-
-	/**
-	 * Dynamically calculate the most common denominator of a given path.
-	 */
-	private getCommonDenominator(pathString: string): string {
-		const parts = pathString.split(path.sep);
-		let commonPath = parts[0];
-
-		// Dynamically build the common path by iterating through the segments
-		for (let i = 1; i < parts.length - 1; i++) {
-			commonPath = path.join(commonPath, parts[i]);
-
-			// If this directory is likely a project root, stop further processing
-			// (Can customize this condition based on specific needs)
-			if (this.isLikelyRoot(parts[i])) {
-				break;
-			}
+	
+	private findArduinoHeaderRecursively(includePaths: string[]): string | null {
+		for (const dir of includePaths) {
+			const result = this.findFileRecursively(dir, 'Arduino.h');
+			if (result) return result;
 		}
-
-		return commonPath;
-	}
-
-	/**
-	 * Check if the current directory segment is likely a root for includes.
-	 */
-	private isLikelyRoot(directorySegment: string): boolean {
-		// Customize conditions for identifying a root (e.g., "libraries" or specific keywords).
-		return directorySegment.toLowerCase().includes("packages") || directorySegment.toLowerCase().includes("arduino");
-	}
-
-
-	private createIntellisenseFile_old(compileJsonOutput: string) {
-		try {
-			const compileInfo: Compile = JSON.parse(compileJsonOutput);
-
-			// Extract include paths from used libraries
-			const includePaths = new Set<string>();
-			if (compileInfo.builder_result.used_libraries) {
-				compileInfo.builder_result.used_libraries.forEach(library => {
-					includePaths.add(`${library.source_dir}/**`); // Add recursive include
-				});
-			}
-
-			// Add core paths (e.g., ESP32 core and variant paths)
-			const corePath = compileInfo.builder_result.build_platform.install_dir;
-			includePaths.add(`${corePath}/**`);
-
-			// Extract defines
-			const defines = compileInfo.builder_result.build_properties
-				.filter(prop => prop.startsWith("-D"))
-				.map(prop => prop.substring(2)); // Remove "-D" prefix
-
-			// Extract compiler path if available
-			const compilerPathProperty = compileInfo.builder_result.build_properties.find(prop =>
-				prop.startsWith("compiler.path")
-			);
-			const compilerPath = compilerPathProperty
-				? compilerPathProperty.split("=")[1].trim() // Extract the path
-				: "/path/to/compiler"; // Default placeholder if not found
-
-			// Extract compiler path if available
-			const compilerCommand = compileInfo.builder_result.build_properties.find(prop =>
-				prop.startsWith("compiler.cpp.cmd")
-			);
-			const compilerName = compilerCommand
-				? compilerCommand.split("=")[1].trim() // Extract the path
-				: "(compiler name)"; // Default placeholder if not found
-
-			// Create c_cpp_properties.json
-			const cppProperties = {
-				configurations: [
-					{
-						name: "Arduino",
-						includePath: Array.from(includePaths),
-						defines: defines,
-						compilerPath: `${compilerPath}/${compilerName}`,
-						cStandard: "c17",
-						cppStandard: "c++17",
-						intelliSenseMode: "gcc-x86"
-					}
-				],
-				version: 4
-			};
-
-			const cppPropertiesPath = path.join(
-				arduinoProject.getProjectPath(),
-				VSCODE_FOLDER,
-				CPP_PROPERTIES
-			);
-			fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
-
-			window.showInformationMessage("Generated c_cpp_properties.json for IntelliSense.");
-		} catch (error) {
-			window.showErrorMessage(`Failed to generate intellisense c_cpp_properties.json: ${error}`);
-		}
+		return null; // Return null if the file is not found in any directory
 	}
 }
-
-// public generateCppPropertiesFromCompileOutput(output: string) {
-//     const defines: string[] = [];
-
-//     // Regular expressions to match include paths and defines
-//     const defineRegex = /-D([^\s]+)/g;
-//     const includeRegex = /"-I([^"]+)"/g;
-
-//     const includePaths = new Set();
-
-//     let match;
-
-//     while ((match = includeRegex.exec(output)) !== null) {
-//         let path = match[1]; // Capture the path inside the quotes
-
-//         // Normalize the path (handle backslashes, especially on Windows)
-//         path = path.replace(/\\\\/g, "\\"); // Convert backslashes to forward slashes for consistency
-
-//         includePaths.add(path + "\\**"); // Use a Set to avoid duplicates
-//     }
-
-//     while ((match = defineRegex.exec(output)) !== null) {
-//         defines.push(match[1]);
-//     }
-
-//     includePaths.add(this.getProjectPath() + "\\**");
-//     try {
-//         const includeDataPath = path.join(this.getProjectPath(), this.getOutput(), "includes.cache");
-//         const includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
-//         includeData.forEach((entry: any) => {
-//             if (entry.Includepath) {
-//                 includePaths.add(entry.Includepath + "\\**");
-//             }
-//         });
-
-//     } catch (error) {
-//         vscode.window.showErrorMessage('Cannot generate IntelliSense includes.cache not found');
-//         return;
-//     }
-
-//     // Create c_cpp_properties.json
-//     const cppProperties = {
-//         configurations: [{
-//             name: "Arduino",
-//             includePath: Array.from(includePaths),
-//             defines: defines,
-//             // compilerPath: "/path/to/compiler",  // You can retrieve this from output if needed
-//             cStandard: "c17",
-//             cppStandard: "c++17",
-//             intelliSenseMode: "gcc-x86"
-//         }],
-//         version: 4
-//     };
-
-//     const cppPropertiesPath = path.join(this.getProjectPath(), VSCODE_FOLDER, CPP_PROPERTIES);
-//     fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
-
-//     vscode.window.showInformationMessage('Generated c_cpp_properties.json for IntelliSense.');
-// }
