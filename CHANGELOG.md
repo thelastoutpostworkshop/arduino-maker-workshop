@@ -2,7 +2,7 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
-**Version 0.5.5**
+**Version 0.5.6**
 - Code Snippets added
 - IntelliSense improvements
 - Serial monitor settings on Home page by [rudeb0t](https://github.com/rudeb0t)
