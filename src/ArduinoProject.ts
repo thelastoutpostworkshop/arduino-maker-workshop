@@ -97,10 +97,10 @@ export class ArduinoProject {
                     if (configJson.port.trim().length !== 0) {
                         configJson.monitorPortSettings.port = configJson.port;
                     }
+                    this.configJson = configJson;
                     this.writeVSCodeArduinoConfiguration();
                 }
 
-                this.configJson = configJson;
 
                 if (!this.configJson.configuration) {
                     this.configJson.configuration = "";
