@@ -621,6 +621,14 @@ export class ArduinoCLI {
 			for (const entry of compileInfo) {
 				if (entry.arguments && Array.isArray(entry.arguments) && entry.arguments.length > 0) {
 					compilerArgs = entry.arguments;
+					compilerArgs.forEach((arg) => {
+						const potentialPath = arg.trim(); // Remove any leading/trailing whitespace
+
+						// Check if the argument is a valid path and is a directory
+						if (fs.existsSync(potentialPath) && fs.statSync(potentialPath).isDirectory()) {
+							includePathsForIntelissense.add(`${path.resolve(potentialPath)}/**`);
+						}
+					});
 					compilerPath = entry.arguments[0]; // Take the first argument
 					break; // Stop after finding the first valid entry
 				}
