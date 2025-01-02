@@ -7,14 +7,10 @@ The **Arduino Maker Workshop** extension provides a collection of snippets to st
 
 ## **Table of Contents**
 1. [Introduction](#introduction)
-2. [Installation](#installation)
-3. [Available Snippets](#available-snippets)
+2. [Available Snippets](#available-snippets)
    - [Basic Arduino Snippets](#basic-arduino-snippets)
    - [ESP32-Specific Snippets](#esp32-specific-snippets)
-4. [How to Use](#how-to-use)
-5. [Contributing](#contributing)
-6. [Changelog](#changelog)
-7. [Support](#support)
+3. [How to Use](#how-to-use)
 
 ---
 
