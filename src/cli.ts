@@ -619,10 +619,8 @@ export class ArduinoCLI {
 			compileCommandJson = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "compile_commands.json");
 			const compileInfo = JSON.parse(fs.readFileSync(compileCommandJson, 'utf8'));
 			for (const entry of compileInfo) {
-				if (entry.arguments) {
-					compilerArgs = entry.arguments;
-				}
 				if (entry.arguments && Array.isArray(entry.arguments) && entry.arguments.length > 0) {
+					compilerArgs = entry.arguments;
 					compilerPath = entry.arguments[0]; // Take the first argument
 					break; // Stop after finding the first valid entry
 				}
