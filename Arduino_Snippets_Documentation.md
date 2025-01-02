@@ -1,7 +1,7 @@
 
 # **Arduino Snippets for VS Code**
 
-Welcome to the **Arduino Snippets Extension**! This extension provides a collection of snippets to streamline your Arduino development in Visual Studio Code. From basic syntax to advanced ESP32 functionalities, these snippets save time and reduce coding errors.
+The **Arduino Maker Workshop** extension provides a collection of snippets to streamline your Arduino development in Visual Studio Code. From basic syntax to advanced ESP32 functionalities, these snippets save time and reduce coding errors.
 
 ---
 
@@ -21,15 +21,6 @@ Welcome to the **Arduino Snippets Extension**! This extension provides a collect
 ## **Introduction**
 
 This extension offers a wide range of Arduino programming snippets, including commonly used functions and advanced ESP32-specific features. It is ideal for beginners and experts alike, simplifying repetitive coding tasks.
-
----
-
-## **Installation**
-
-1. Open **Visual Studio Code**.
-2. Navigate to the Extensions view (`Ctrl+Shift+X`).
-3. Search for **Arduino Snippets**.
-4. Click **Install**.
 
 ---
 
@@ -111,25 +102,3 @@ xTaskCreatePinnedToCore(
 4. Customize the placeholders (e.g., pin numbers, values) as needed.
 
 ---
-
-## **Contributing**
-
-Contributions are welcome! To propose a new snippet or improve existing ones:
-1. Fork the [GitHub repository](https://github.com/your-repo).
-2. Create a new branch for your changes.
-3. Submit a pull request.
-
----
-
-## **Changelog**
-
-### **Version 1.0.0**
-- Initial release with basic Arduino and ESP32-specific snippets.
-
----
-
-## **Support**
-
-For questions, issues, or feature requests, reach out via:
-- Email: support@example.com
-- GitHub: [Issues Page](https://github.com/your-repo/issues)
