@@ -1,5 +1,5 @@
 
-# **Arduino Snippets for VS Code**
+# **Arduino Maker Workshop Snippets**
 
 The **Arduino Maker Workshop** extension provides a collection of snippets to streamline your Arduino development in Visual Studio Code. From basic syntax to advanced ESP32 functionalities, these snippets save time and reduce coding errors.
 
