@@ -574,6 +574,7 @@ export class ArduinoCLI {
 		const includePathsForArduinoSearch = new Set<string>();
 		let compilerPath = '';
 		let compileCommandJson: string = "";
+		let compilerArgs: string[] = [];
 
 		try {
 			// Read includes.cache file and dynamically add paths
@@ -602,9 +603,6 @@ export class ArduinoCLI {
 			// Read build.options.json file and dynamically add paths
 			const includeDataPath = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "build.options.json");
 			const includeData: BuildOptions = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
-			// if (includeData.hardwareFolders) {
-			// 	includePaths.add(`${includeData.hardwareFolders}/**`);
-			// }
 			if (includeData.otherLibrariesFolders) {
 				includePathsForIntelissense.add(`${includeData.otherLibrariesFolders}/**`);
 			}
@@ -621,6 +619,9 @@ export class ArduinoCLI {
 			compileCommandJson = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), "compile_commands.json");
 			const compileInfo = JSON.parse(fs.readFileSync(compileCommandJson, 'utf8'));
 			for (const entry of compileInfo) {
+				if (entry.arguments) {
+					compilerArgs = entry.arguments;
+				}
 				if (entry.arguments && Array.isArray(entry.arguments) && entry.arguments.length > 0) {
 					compilerPath = entry.arguments[0]; // Take the first argument
 					break; // Stop after finding the first valid entry
@@ -648,6 +649,7 @@ export class ArduinoCLI {
 				includePath: Array.from(includePathsForIntelissense),
 				forcedInclude: arduinoHeaderPath ? [arduinoHeaderPath] : [], // Add arduinoHeaderPath if it exists
 				compilerPath: compilerPath,
+				compilerArgs: compilerArgs,
 				defines: Array.from(defines),
 				cStandard: "c17",
 				cppStandard: "c++17"
