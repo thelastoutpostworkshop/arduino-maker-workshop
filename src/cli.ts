@@ -650,8 +650,7 @@ export class ArduinoCLI {
 				compilerPath: compilerPath,
 				defines: Array.from(defines),
 				cStandard: "c17",
-				cppStandard: "c++17",
-				compileCommands: compileCommandJson
+				cppStandard: "c++17"
 			}],
 			version: 4
 		};
@@ -679,7 +678,7 @@ export class ArduinoCLI {
 		}
 		return null; // Return null if the file is not found
 	}
-	
+
 	private findArduinoHeaderRecursively(includePaths: string[]): string | null {
 		for (const dir of includePaths) {
 			const result = this.findFileRecursively(dir, 'Arduino.h');
