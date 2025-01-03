@@ -238,20 +238,33 @@ export function loadArduinoConfiguration(): boolean {
 	return true;
 }
 
+function compile(clean: boolean = false) {
+	if (arduinoProject.isCompileReady()) {
+		arduinoCLI.compile(clean);
+
+	} else {
+		window.showErrorMessage('Select a board first before compiling');
+	}
+}
+
 function vsCommandUpload(): Disposable {
 	return commands.registerCommand('quickAccessView.upload', async () => {
-		arduinoCLI.upload();
+		if (arduinoProject.isUploadReady()){
+			arduinoCLI.upload();
+		} else {
+			window.showErrorMessage('Last compile must be successful, cannot upload');
+		}
 	});
 }
 
 function vsCommandCompileClean(): Disposable {
 	return commands.registerCommand('compile.clean', async () => {
-		arduinoCLI.compile(true);
+		compile(true);
 	});
 }
 function vsCommandCompile(clean: boolean = false): Disposable {
 	return commands.registerCommand('quickAccessView.compile', async () => {
-		arduinoCLI.compile(false);
+		compile(false);
 	});
 }
 
