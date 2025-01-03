@@ -13,6 +13,13 @@ const ARDUINO_SETTINGS: string = "arduino.json";
 const ARDUINO_SKETCH_EXTENSION: string = ".ino";
 const ARDUINO_DEFAULT_OUTPUT: string = "build";
 
+export enum UPLOAD_READY_STATUS {
+    READY,
+    NO_PORT,
+    LAST_COMPILE_FAILED,
+    UNKNOWN
+}
+
 export function getMonitorPortSettingsDefault() : MonitorPortSettings {
     return {
         port: "", baudRate: 115200, lineEnding: LineEnding.CRLF, dataBits: 8, parity: Parity.None, stopBits: StopBits.One
@@ -39,18 +46,22 @@ export class ArduinoProject {
             monitorPortSettings: getMonitorPortSettingsDefault()
         };
     }
-    public isUploadReady(): boolean {
+    public isUploadReady(): UPLOAD_READY_STATUS {
         if (this.configJson.port.trim().length !== 0) {
             const resultFile = path.join(this.getProjectPath(), this.getOutput(), COMPILE_RESULT_FILE);
             try {
                 const content = fs.readFileSync(resultFile, 'utf-8');
                 const result: CompileResult = JSON.parse(content);
-                return result.result;
+                if(result.result) {
+                    return UPLOAD_READY_STATUS.READY
+                } else {
+                    return UPLOAD_READY_STATUS.LAST_COMPILE_FAILED
+                }
             } catch (error) {
-                return false;
+                return UPLOAD_READY_STATUS.UNKNOWN;
             }
         }
-        return false;
+        return UPLOAD_READY_STATUS.NO_PORT;
     }
     public isCompileReady(): boolean {
         if (this.configJson.board.trim().length > 0) {

@@ -1,5 +1,5 @@
 import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind } from "vscode";
-import { ArduinoProject } from './ArduinoProject';
+import { ArduinoProject, UPLOAD_READY_STATUS } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, quickAccessCompileCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, THEME_COLOR } from "./shared/messages";
@@ -244,13 +244,22 @@ async function compile(clean: boolean = false) {
 
 function vsCommandUpload(): Disposable {
 	return commands.registerCommand('quickAccessView.upload', async () => {
-		if (arduinoProject.isUploadReady()){
-			arduinoCLI.upload();
-		} else {
-			await compile();
-			if (arduinoProject.isUploadReady()){
+		switch (arduinoProject.isUploadReady()) {
+			case UPLOAD_READY_STATUS.READY:
 				arduinoCLI.upload();
-			}
+				break;
+			case UPLOAD_READY_STATUS.NO_PORT:
+				window.showErrorMessage("No port is selected for upload");
+				break;
+			case UPLOAD_READY_STATUS.LAST_COMPILE_FAILED:
+				await compile();
+				if (arduinoProject.isUploadReady() == UPLOAD_READY_STATUS.READY) {
+					arduinoCLI.upload();
+				}
+				break;
+			default:
+				window.showErrorMessage("Cannot assess upload readiness, please recompile clean");
+				break;
 		}
 	});
 }
