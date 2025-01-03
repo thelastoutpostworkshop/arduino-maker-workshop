@@ -7,7 +7,7 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 
 ## Tutorial : [Get Started](https://youtu.be/rduTUUVkzqM)
 
-## Arduino Code Snippets [Documentation](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/blob/main/Arduino_Snippets_Documentation.md)
+## Arduino Code Snippets : [Documentation](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/blob/main/Arduino_Snippets_Documentation.md)
 ![new sketch](.readme/snippets.gif)
 
 ## New Sketch
