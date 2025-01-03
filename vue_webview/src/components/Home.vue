@@ -182,7 +182,7 @@ onMounted(() => {
               </template>
             </v-text-field>
             <v-select :disabled="!store.boardConnected?.detected_ports" v-model="portSelected" :items="portsAvailable"
-              density="compact" label="Port">
+              density="compact" label="Upload Port">
               <template v-slot:loader>
                 <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
                   indeterminate></v-progress-linear>
