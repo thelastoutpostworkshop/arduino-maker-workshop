@@ -184,17 +184,14 @@ export function updateStateCompileUpload() {
 		if (arduinoProject.isCompileReady()) {
 			quickAccessProvider.enableItem(quickAccessCompileCommandName);
 			quickAccessProvider.enableItem(compileCommandCleanName);
+			quickAccessProvider.enableItem(quickAccessUploadCommandName);
 			compileStatusBarItem.show();
+			uploadStatusBarItem.show();
 		} else {
 			quickAccessProvider.disableItem(quickAccessCompileCommandName);
 			quickAccessProvider.disableItem(compileCommandCleanName);
-			compileStatusBarItem.hide();
-		}
-		if (arduinoProject.isUploadReady()) {
-			quickAccessProvider.enableItem(quickAccessUploadCommandName);
-			uploadStatusBarItem.show();
-		} else {
 			quickAccessProvider.disableItem(quickAccessUploadCommandName);
+			compileStatusBarItem.hide();
 			uploadStatusBarItem.hide();
 		}
 	} else {

@@ -74,7 +74,14 @@ class QuickAccessItem extends TreeItem {
     } else {
       // Update the label to show it's disabled and apply the grey color
       this.label = `${this.label}`;
-      this.tooltip = `${this.tooltip} - disabled, not an Arduino Project`;
+      this.tooltip = `${this.tooltip} - disabled`;
+      if (this.label === quickAccessCompileCommandName || this.label === compileCommandCleanName) {
+        this.tooltip = `${this.tooltip} - select a board first in Home`;
+      }
+      if (this.label === quickAccessUploadCommandName) {
+        this.tooltip = `${this.tooltip} - Last compile must be successful, cannot upload`;
+      }
+
       if (this.iconName) {
         this.iconPath = new ThemeIcon(this.iconName, new ThemeColor('disabledForeground'));
       }
