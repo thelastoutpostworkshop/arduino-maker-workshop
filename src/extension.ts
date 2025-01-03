@@ -233,7 +233,7 @@ export function loadArduinoConfiguration(): boolean {
 	return true;
 }
 
-function compile(clean: boolean = false) {
+async function compile(clean: boolean = false) {
 	if (arduinoProject.isCompileReady()) {
 		arduinoCLI.compile(clean);
 
@@ -247,7 +247,10 @@ function vsCommandUpload(): Disposable {
 		if (arduinoProject.isUploadReady()){
 			arduinoCLI.upload();
 		} else {
-			window.showErrorMessage('Last compile must be successful, cannot upload');
+			await compile();
+			if (arduinoProject.isUploadReady()){
+				arduinoCLI.upload();
+			}
 		}
 	});
 }
