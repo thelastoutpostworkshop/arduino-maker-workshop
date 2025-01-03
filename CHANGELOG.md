@@ -4,7 +4,7 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 
 **Version 0.6.1**
 - Serial monitor settings on Home page by [rudeb0t](https://github.com/rudeb0t)
-- Code Snippets added [Documentation](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/blob/main/Arduino_Snippets_Documentation.md)
+- Code Snippets added : [Documentation](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/blob/main/Arduino_Snippets_Documentation.md)
 - IntelliSense improvements
 - Upload command will trigger compile if build is not valid
 
