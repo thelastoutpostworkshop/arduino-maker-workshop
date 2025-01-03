@@ -28,7 +28,7 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 ![new sketch](.readme/library_example.gif)
 
 ## About IntelliSense
-IntelliSense data (c_cpp_properties.json) is generated after each successfull compile.  
+IntelliSense data (c_cpp_properties.json) is generated after each successful compile.  
 For a new project, IntelliSense mark almost everything as "undefined" until you make your first good compile.
 
 ## Contributors
