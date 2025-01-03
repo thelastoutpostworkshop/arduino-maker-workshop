@@ -235,7 +235,7 @@ export function loadArduinoConfiguration(): boolean {
 
 async function compile(clean: boolean = false) {
 	if (arduinoProject.isCompileReady()) {
-		arduinoCLI.compile(clean);
+		return arduinoCLI.compile(clean);
 
 	} else {
 		window.showErrorMessage('Select a board first before compiling');
