@@ -5,7 +5,6 @@ export const quickAccessCompileCommandName = 'Compile';
 export const compileCommandCleanName = 'Compile (clean)';
 export const quickAccessUploadCommandName = 'Upload';
 export const homeCommandName = 'Maker Workshop Home';
-export const intellisenseCommandName = 'intellisense';
 
 export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
   private _onDidChangeTreeData: EventEmitter<QuickAccessItem | undefined | null | void> = new EventEmitter<QuickAccessItem | undefined | null | void>();

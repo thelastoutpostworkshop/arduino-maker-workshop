@@ -1,7 +1,7 @@
 import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind } from "vscode";
 import { ArduinoProject } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
-import { compileCommandCleanName, quickAccessCompileCommandName, intellisenseCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
+import { compileCommandCleanName, quickAccessCompileCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, THEME_COLOR } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
 
@@ -197,13 +197,11 @@ export function updateStateCompileUpload() {
 			quickAccessProvider.disableItem(quickAccessUploadCommandName);
 			uploadStatusBarItem.hide();
 		}
-		quickAccessProvider.enableItem(intellisenseCommandName);
 	} else {
 		compileStatusBarItem.hide();
 		quickAccessProvider.disableItem(quickAccessCompileCommandName);
 		quickAccessProvider.disableItem(compileCommandCleanName);
 		quickAccessProvider.disableItem(quickAccessUploadCommandName);
-		quickAccessProvider.disableItem(intellisenseCommandName);
 	}
 }
 
