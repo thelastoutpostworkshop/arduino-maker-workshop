@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve the Arduino Maker Extension
+about: Create a report to help us improve the Arduino Maker Workshop Extension
 title: ''
 labels: ''
 assignees: ''
