@@ -1,9 +1,17 @@
 {
-  "configuration": "",
-  "board": "esp32:esp32:esp32s3",
-  "sketch": "coralie_radio.ino",
+  "port": "",
+  "configuration": "UploadSpeed=921600,USBMode=hwcdc,CDCOnBoot=default,MSCOnBoot=default,DFUOnBoot=default,UploadMode=default,CPUFreq=240,FlashMode=qio,FlashSize=4M,PartitionScheme=default,DebugLevel=none,PSRAM=disabled,LoopCore=1,EventsCore=1,EraseFlash=none,JTAGAdapter=default,ZigbeeMode=default",
   "output": "build",
-  "port": "COM1",
-  "programmer": "esptool",
-  "useProgrammer": true
+  "board": "esp32:esp32:esp32s3",
+  "programmer": "",
+  "useProgrammer": false,
+  "configurationRequired": true,
+  "monitorPortSettings": {
+    "port": "COM5",
+    "baudRate": 9600,
+    "lineEnding": "\r\n",
+    "dataBits": 8,
+    "parity": "none",
+    "stopBits": "one"
+  }
 }
