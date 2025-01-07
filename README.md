@@ -1,5 +1,5 @@
 # Arduino Maker Workshop
-The ultimate tool for makers to bring Arduino projects to life in Visual Studio Code on Windows.
+The ultimate tool for makers to bring Arduino projects to life in Visual Studio Code.
 
 > **Currently supported on Windows x64 and MacOS ARM64 and Linux x64**, help needed for [for other platforms](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/discussions/2)
 ## Microcontrollers Platforms
