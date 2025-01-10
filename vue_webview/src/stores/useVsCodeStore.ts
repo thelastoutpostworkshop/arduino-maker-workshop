@@ -76,13 +76,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH:
-                        loadMockData('libsearch.json').then((mockPayload) => {
+                        loadMockData('libsearch_accel.json').then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED:
-                        loadMockData('libinstalled.json').then((mockPayload) => {
+                        loadMockData('libinstalled_accel.json').then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
