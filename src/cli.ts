@@ -284,7 +284,7 @@ export class ArduinoCLI {
 						this.cancelExecution(); // Ensure the compilation process stops
 						this.compileUploadChannel.appendLine("Upload cancelled by user.");
 						uploadStatusBarItem.text = uploadStatusBarNotExecuting;
-						this.setBuildResult(false);
+						// this.setBuildResult(false);
 						throw new Error("Upload cancelled by user."); // Stop further execution
 					});
 
