@@ -123,6 +123,9 @@ function isLibraryInstalled(library: LibraryInformation): boolean {
 }
 
 function isLibraryUpdatable(library: LibraryInformation): boolean {
+  if(library.zipLibrary) {
+    return false;
+  }
   if (store.outdated?.libraries) {
     for (const element of store.outdated.libraries) {
       if (library.name === element.library.name) {
