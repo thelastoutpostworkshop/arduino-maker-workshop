@@ -89,6 +89,7 @@ function updateLibariesInformation() {
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: "", payload: "" });
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_OUTDATED, errorMessage: "", payload: "" });
   // Force recompute when component mounts
   if (areLibrariesAvailable.value) {
     updateLibariesInformation();
@@ -122,10 +123,14 @@ function isLibraryInstalled(library: LibraryInformation): boolean {
 }
 
 function isLibraryUpdatable(library: LibraryInformation): boolean {
-  if (library.zipLibrary) {
-    return false;
+  if (store.outdated?.libraries) {
+    for (const element of store.outdated.libraries) {
+      if (library.name === element.library.name) {
+        return true; // Exit the function as soon as a match is found
+      }
+    }
   }
-  return library.installedVersion !== library.latestVersion;
+  return false; // Default to false if no match is found
 }
 
 function isLibraryDeprecated(library: LibraryInformation): boolean {
@@ -164,7 +169,7 @@ function filterLibs(filter: FilterLibraries): LibraryInformation[] {
         filtered = store.libariesInformation.filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library) && !library.zipLibrary);
         break;
       case FilterLibraries.updatable:
-        filtered = store.libariesInformation.filter((library) => isLibraryUpdatable(library) && isLibraryInstalled(library));
+        filtered = store.libariesInformation.filter((library) =>isLibraryInstalled(library) && isLibraryUpdatable(library));
         break;
       case FilterLibraries.deprecated:
         filtered = store.libariesInformation.filter((library) => isLibraryDeprecated(library));
@@ -214,7 +219,7 @@ watch(zipFile, () => {
         <v-icon>mdi-library</v-icon>
         <span class="text-h4 font-weight-bold ml-5">Library Manager</span>
       </v-row>
-      <v-card v-if="!store.libariesInformation" class="mt-5">
+      <v-card v-if="!store.libariesInformation || !store.outdated" class="mt-5">
         <v-card-item title="Loading Libraries">
           <template v-slot:subtitle>
             Please wait

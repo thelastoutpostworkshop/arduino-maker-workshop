@@ -119,7 +119,12 @@ export interface ArduinoCLIStatus {
 
 export interface Outdated {
   platforms: any;
-  libraries: any;
+  libraries: OutdatedLibraries[];
+}
+
+export interface OutdatedLibraries {
+  library: Library;
+  release: Release;
 }
 
 // Compile output interfaces
