@@ -58,7 +58,7 @@ export class ArduinoProject {
                     return UPLOAD_READY_STATUS.LAST_COMPILE_FAILED
                 }
             } catch (error) {
-                return UPLOAD_READY_STATUS.UNKNOWN;
+                return UPLOAD_READY_STATUS.LAST_COMPILE_FAILED;
             }
         }
         return UPLOAD_READY_STATUS.NO_PORT;
