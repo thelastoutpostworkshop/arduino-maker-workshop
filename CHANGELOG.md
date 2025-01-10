@@ -6,6 +6,7 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 - Fixed libraries with patchlevel 0 showing wrongly as updatable ([issue](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/22))
 - Fixed upload error when starting a new sketch
 - Fixed cancel or upload error forcing a recompilation
+- Fixed user error reporting when create a sketch with a name that already exist
 
 **Version 0.6.1**
 - Serial monitor settings on Home page by [rudeb0t](https://github.com/rudeb0t)

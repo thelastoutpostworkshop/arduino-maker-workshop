@@ -484,7 +484,7 @@ export class ArduinoCLI {
 			await commands.executeCommand('vscode.openFolder', newProjectUri, { forceNewWindow: false });
 			return result;
 		} catch (error: any) {
-			window.showErrorMessage(`CLI: Failed to create new sketch - ${error.message}`);
+			window.showErrorMessage(`CLI: Failed to create new sketch - Sketch '${name}' may already exist`);
 			throw error;
 		}
 	}
