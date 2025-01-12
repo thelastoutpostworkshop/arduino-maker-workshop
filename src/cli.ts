@@ -25,7 +25,7 @@ export class ArduinoCLI {
 	private cliStatus: ArduinoCLIStatus = { VersionString: "", Date: "" };
 	private arduinoConfig = new ArduinoConfiguration();
 	private activeProcess: any | null = null;
-	private cliCache:CliCache = null;
+	private cliCache:CliCache;
 
 	constructor(private context: ExtensionContext) {
 		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
