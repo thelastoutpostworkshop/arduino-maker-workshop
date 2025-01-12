@@ -529,7 +529,6 @@ export class ArduinoCLI {
 		if (showOutput) {
 			channel.show(true);
 		}
-		this.arduinoCLIChannel.appendLine('');
 		this.arduinoCLIChannel.appendLine('Running Arduino CLI...');
 		this.arduinoCLIChannel.appendLine(`${command}`);
 		this.arduinoCLIChannel.appendLine(args.join(' '));
@@ -583,6 +582,7 @@ export class ArduinoCLI {
 				channel.appendLine(`Failed to run command: ${err.message}`);
 				reject(undefined);
 			});
+			this.arduinoCLIChannel.appendLine('');
 		});
 	}
 
