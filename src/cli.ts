@@ -383,7 +383,7 @@ export class ArduinoCLI {
 	): Promise<string> {
 		try {
 			const args = getArguments();
-			if (shouldCache) {
+			if (shouldCache == CacheState.USE_CACHE) {
 				const cacheKey = args.join('');
 				const cachedData = this.cliCache.get(cacheKey);
 				if (cachedData) {
