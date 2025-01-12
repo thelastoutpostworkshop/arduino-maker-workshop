@@ -3,6 +3,7 @@
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
 **Version 0.6.3**
+- UI Performance improvement by using cache to avoid repeated calls to the arduino-cli
 - Correctly report to the user the a project is compiled "clean"
 
 **Version 0.6.2**
