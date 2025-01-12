@@ -25,12 +25,13 @@ export class ArduinoCLI {
 	private cliStatus: ArduinoCLIStatus = { VersionString: "", Date: "" };
 	private arduinoConfig = new ArduinoConfiguration();
 	private activeProcess: any | null = null;
+	private cliCache:CliCache = null;
 
 	constructor(private context: ExtensionContext) {
 		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
 		this.compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
 		const cacheDirectory = path.join(context.globalStorageUri.fsPath, 'arduino-cli-cache');
-		const cache = new CliCache(cacheDirectory);
+		this.cliCache = new CliCache(cacheDirectory);
 		arduinoExtensionChannel.appendLine(`arduino-cli cache created: ${cacheDirectory}`)
 
 		getSerialMonitorApi(Version.latest, context).then((api) => {
@@ -376,13 +377,25 @@ export class ArduinoCLI {
 	): Promise<string> {
 		try {
 			const args = getArguments();
-			const result = await this.executeArduinoCommand(`${this.arduinoCLIPath}`, args, returnOutput, showOutput, channel, successMSG);
-			if (!result && returnOutput) {
-				const errorMsg = `${errorMessagePrefix}: No result`;
-				window.showErrorMessage(errorMsg);
-				throw new Error("Command result empty");
+			const cacheKey = args.join('');
+			const cachedData = this.cliCache.get(cacheKey);
+			if (cachedData) {
+				this.arduinoCLIChannel.appendLine(`Cache hit:${cacheKey}`);
+				return cachedData;
+			} else {
+				this.arduinoCLIChannel.appendLine(`Cache miss, running command...`);
+			
+				const result = await this.executeArduinoCommand(`${this.arduinoCLIPath}`, args, returnOutput, showOutput, channel, successMSG);
+				if (!result && returnOutput) {
+					const errorMsg = `${errorMessagePrefix}: No result`;
+					window.showErrorMessage(errorMsg);
+					throw new Error("Command result empty");
+				}
+				// Cache the result for 10 minutes (600,000 ms)
+				this.cliCache.set(cacheKey, result, 600000);
+				return result || '';
 			}
-			return result || '';
+
 		} catch (error: any) {
 			window.showErrorMessage(`${errorMessagePrefix}`);
 			throw error;
