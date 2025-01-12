@@ -91,7 +91,7 @@ export class CliCache {
      */
     public clear(): void {
         try {
-            fs.readdirSync(this.cacheDirectory).forEach((file) => {
+            fs.readdirSync(this.cacheDirectory).forEach((file:string) => {
                 fs.unlinkSync(path.join(this.cacheDirectory, file));
             });
         } catch (error) {
