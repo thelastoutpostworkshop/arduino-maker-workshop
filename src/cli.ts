@@ -403,7 +403,7 @@ export class ArduinoCLI {
 					return result || '';
 				}
 			} else {
-				this.arduinoCLIChannel.appendLine(`Cache miss, running command...`);
+				this.arduinoCLIChannel.appendLine(`No caching, running command...`);
 
 				const result = await this.executeArduinoCommand(`${this.arduinoCLIPath}`, args, returnOutput, showOutput, channel, successMSG);
 				if (!result && returnOutput) {
