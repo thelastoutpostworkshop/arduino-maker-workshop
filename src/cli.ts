@@ -136,24 +136,24 @@ export class ArduinoCLI {
 		);
 	}
 
-	public async runInstallCoreVersion(board_id: string): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getInstallCoreVersionArguments(board_id),
-			"CLI: Failed to install board", CacheState.NO_CACHE, true, true
-		);
-	}
-
 	public async runUninstallLibrary(version: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getUninstallLibraryArguments(version),
 			"CLI: Failed to remove library", CacheState.NO_CACHE, true, true
 		);
 	}
-
+	
 	public async runUninstallCoreVersion(version: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getUninstallCoreArguments(version),
 			"CLI: Failed to remove board", CacheState.NO_CACHE, true, true
+		);
+	}
+
+	public async runInstallCoreVersion(board_id: string): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getInstallCoreVersionArguments(board_id),
+			"CLI: Failed to install board", CacheState.NO_CACHE, true, true
 		);
 	}
 
