@@ -171,6 +171,23 @@ export class ArduinoCLI {
 
 	// #region arduino-cli library related commands
 	//
+	public async runInstallLibraryVersion(library: string): Promise<string> {
+		// Invalidate cache for libraries
+		this.cliCache.delete(this.cliArgs.getLibraryInstalledArguments().join(''));
+		
+		return this.runArduinoCommand(
+			() => this.cliArgs.getInstallLibraryVersionArguments(library),
+			"CLI: Failed to install library", CacheState.NO_CACHE, true, true
+		);
+	}
+
+	public async runUninstallLibrary(version: string): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getUninstallLibraryArguments(version),
+			"CLI: Failed to remove library", CacheState.NO_CACHE, true, true
+		);
+	}
+
 	public async searchLibraryInstalled(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getLibraryInstalledArguments(),
@@ -185,19 +202,6 @@ export class ArduinoCLI {
 		);
 	}
 
-	public async runInstallLibraryVersion(library: string): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getInstallLibraryVersionArguments(library),
-			"CLI: Failed to install library", CacheState.NO_CACHE, true, true
-		);
-	}
-
-	public async runUninstallLibrary(version: string): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getUninstallLibraryArguments(version),
-			"CLI: Failed to remove library", CacheState.NO_CACHE, true, true
-		);
-	}
 	// #endregion
 
 	// #region arduino-cli boards/Core related commands
