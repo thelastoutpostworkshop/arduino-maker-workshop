@@ -4,7 +4,7 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 
 **Version 0.6.3**
 - UI Performance improvement by using cache to avoid repeated calls to the arduino-cli
-- Correctly report to the user the a project is compiled "clean"
+- Correctly report to the user that a project is compiled "clean"
 
 **Version 0.6.2**
 - Fixed libraries with patchlevel 0 showing wrongly as updatable ([issue](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/22))
