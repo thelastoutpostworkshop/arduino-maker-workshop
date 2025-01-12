@@ -188,7 +188,7 @@ export class ArduinoCLI {
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibraryInstalledArguments()));
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibrarySearchArguments()));
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getOutdatedArguments()));
-		
+
 		return this.runArduinoCommand(
 			() => this.cliArgs.getUninstallLibraryArguments(version),
 			"CLI: Failed to remove library", CacheState.NO_CACHE, true, true
@@ -208,17 +208,10 @@ export class ArduinoCLI {
 			"CLI: Failed to get library available", CacheState.USE_CACHE
 		);
 	}
-
 	// #endregion
 
 	// #region arduino-cli boards/Core related commands
 	//
-	public async searchCore(): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getCoreSearchArguments(),
-			"CLI: Failed to get boards available", CacheState.USE_CACHE
-		);
-	}
 
 	public async runUninstallCoreVersion(version: string): Promise<string> {
 		return this.runArduinoCommand(
@@ -231,6 +224,13 @@ export class ArduinoCLI {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getInstallCoreVersionArguments(board_id),
 			"CLI: Failed to install board", CacheState.NO_CACHE, true, true
+		);
+	}
+
+	public async searchCore(): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getCoreSearchArguments(),
+			"CLI: Failed to get boards available", CacheState.USE_CACHE
 		);
 	}
 
