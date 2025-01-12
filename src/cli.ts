@@ -25,7 +25,7 @@ export class ArduinoCLI {
 	private cliStatus: ArduinoCLIStatus = { VersionString: "", Date: "" };
 	private arduinoConfig = new ArduinoConfiguration();
 	private activeProcess: any | null = null;
-	private cliCache:CliCache;
+	private cliCache: CliCache;
 
 	constructor(private context: ExtensionContext) {
 		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
@@ -246,7 +246,7 @@ export class ArduinoCLI {
 
 					const output = await arduinoCLI.runArduinoCommand(
 						() => this.cliArgs.getCompileCommandArguments(false, clean, arduinoProject.isConfigurationRequired()),
-						"CLI: Failed to compile project", true, true, this.compileUploadChannel, "Compilation success!"
+						"CLI: Failed to compile project", false, true, true, this.compileUploadChannel, "Compilation success!"
 					);
 					// Compilation success
 					this.compileUploadChannel.appendLine("Compilation completed successfully.");
@@ -296,7 +296,7 @@ export class ArduinoCLI {
 
 					await arduinoCLI.runArduinoCommand(
 						() => this.cliArgs.getUploadArguments(),
-						"CLI: Failed to upload", false, true, this.compileUploadChannel
+						"CLI: Failed to upload", false, false, true, this.compileUploadChannel
 					);
 					uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 					if (this.serialMonitorAPI) {
@@ -370,6 +370,7 @@ export class ArduinoCLI {
 	private async runArduinoCommand(
 		getArguments: () => string[],
 		errorMessagePrefix: string,
+		shouldCache: boolean = false,
 		returnOutput: boolean = true,
 		showOutput: boolean = false,
 		channel: OutputChannel = this.arduinoCLIChannel,
@@ -384,7 +385,7 @@ export class ArduinoCLI {
 				return cachedData;
 			} else {
 				this.arduinoCLIChannel.appendLine(`Cache miss, running command...`);
-			
+
 				const result = await this.executeArduinoCommand(`${this.arduinoCLIPath}`, args, returnOutput, showOutput, channel, successMSG);
 				if (!result && returnOutput) {
 					const errorMsg = `${errorMessagePrefix}: No result`;
