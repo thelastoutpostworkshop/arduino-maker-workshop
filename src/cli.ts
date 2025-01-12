@@ -97,6 +97,10 @@ export class ArduinoCLI {
 	}
 
 	public async removeCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
+		// Invalidate cache core & boards
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getBoardsListArguments()));
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getCoreSearchArguments()));
+
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigRemoveAdditionalBoardURLArgs(URL),
 			"CLI: Failed to delete additional Board URL", CacheState.NO_CACHE
@@ -104,6 +108,10 @@ export class ArduinoCLI {
 	}
 
 	public async addCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
+		// Invalidate cache core & boards
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getBoardsListArguments()));
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getCoreSearchArguments()));
+
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigAddAdditionalBoardURLArgs(URL),
 			"CLI: Failed to add additional Board URL", CacheState.NO_CACHE
@@ -111,6 +119,10 @@ export class ArduinoCLI {
 	}
 
 	public async setCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
+		// Invalidate cache core & boards
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getBoardsListArguments()));
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getCoreSearchArguments()));
+		
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetAdditionalBoardURLArgs(URL),
 			"CLI: Failed to set additional Board URL", CacheState.NO_CACHE
@@ -164,7 +176,7 @@ export class ArduinoCLI {
 	public async getOutdatedBoardAndLib(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getOutdatedArguments(),
-			"CLI: Failed to get outdated Board and Libraries information", CacheState.USE_CACHE
+			"CLI: Failed to get outdated Board and Libraries information", CacheState.NO_CACHE
 		);
 	}
 	// #endregion
@@ -172,10 +184,9 @@ export class ArduinoCLI {
 	// #region arduino-cli library related commands
 	//
 	public async runInstallLibraryVersion(library: string): Promise<string> {
-		// Invalidate cache for libraries commands & outdated commands
+		// Invalidate cache for libraries commands 
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibraryInstalledArguments()));
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibrarySearchArguments()));
-		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getOutdatedArguments()));
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getInstallLibraryVersionArguments(library),
@@ -184,10 +195,9 @@ export class ArduinoCLI {
 	}
 
 	public async runUninstallLibrary(version: string): Promise<string> {
-		// Invalidate cache for libraries commands & outdated commands
+		// Invalidate cache for libraries commands 
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibraryInstalledArguments()));
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibrarySearchArguments()));
-		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getOutdatedArguments()));
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getUninstallLibraryArguments(version),
@@ -212,8 +222,11 @@ export class ArduinoCLI {
 
 	// #region arduino-cli boards/Core related commands
 	//
-
 	public async runUninstallCoreVersion(version: string): Promise<string> {
+		// Invalidate cache core & boards
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getBoardsListArguments()));
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getCoreSearchArguments()));
+
 		return this.runArduinoCommand(
 			() => this.cliArgs.getUninstallCoreArguments(version),
 			"CLI: Failed to remove board", CacheState.NO_CACHE, true, true
@@ -221,6 +234,10 @@ export class ArduinoCLI {
 	}
 
 	public async runInstallCoreVersion(board_id: string): Promise<string> {
+		// Invalidate cache core & boards
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getBoardsListArguments()));
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getCoreSearchArguments()));
+
 		return this.runArduinoCommand(
 			() => this.cliArgs.getInstallCoreVersionArguments(board_id),
 			"CLI: Failed to install board", CacheState.NO_CACHE, true, true
