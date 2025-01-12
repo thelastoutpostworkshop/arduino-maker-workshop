@@ -3,7 +3,7 @@ const fs = require('fs');
 
 interface CacheMetadata {
     timestamp: number;
-    ttl: number; // Time-to-live in milliseconds
+    ttlMinutes: number; // Time-to-live in minutes
 }
 
 export class CliCache {
@@ -27,9 +27,10 @@ export class CliCache {
             try {
                 const metadataPath = this.getMetadataFilePath(key);
                 const metadata: CacheMetadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
+                const ttlMilliseconds = metadata.ttlMinutes * 60 * 1000;
 
                 // Check if the cache is still valid
-                if (Date.now() - metadata.timestamp < metadata.ttl) {
+                if (Date.now() - metadata.timestamp < ttlMilliseconds) {
                     const data = JSON.parse(fs.readFileSync(cacheFilePath, 'utf-8'));
                     return data;
                 } else {
@@ -48,24 +49,25 @@ export class CliCache {
     /**
      * Store data in the cache with a specified TTL.
      */
-    public set(key: string, data: any, ttl: number): void {
+    public set(key: string, data: any, ttlMinutes: number): void {
         const cacheFilePath = this.getCacheFilePath(key);
         const metadataPath = this.getMetadataFilePath(key);
-
+    
         try {
             // Write the data to a file
             fs.writeFileSync(cacheFilePath, JSON.stringify(data, null, 2), 'utf-8');
-
+    
             // Write metadata to a separate file
             const metadata: CacheMetadata = {
                 timestamp: Date.now(),
-                ttl,
+                ttlMinutes, // Store TTL in minutes
             };
             fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), 'utf-8');
         } catch (error) {
             console.error(`Failed to save cache for key ${key}: ${error}`);
         }
     }
+    
 
     /**
      * Delete a specific cache entry.

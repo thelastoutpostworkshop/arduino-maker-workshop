@@ -398,8 +398,8 @@ export class ArduinoCLI {
 						window.showErrorMessage(errorMsg);
 						throw new Error("Command result empty");
 					}
-					// Cache the result for 10 minutes (600,000 ms)
-					this.cliCache.set(cacheKey, result, 600000);
+					// Cache the result for 10 minutes
+					this.cliCache.set(cacheKey, result, 10);
 					return result || '';
 				}
 			} else {
