@@ -14,6 +14,11 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
+enum CacheState {
+	USE_CACHE,
+	NO_CACHE
+}
+
 export class ArduinoCLI {
 	public arduinoCLIPath: string = "";
 	public compileOrUploadRunning: boolean = false;
@@ -74,141 +79,141 @@ export class ArduinoCLI {
 	public async getOutdatedBoardAndLib(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getOutdatedArguments(),
-			"CLI: Failed to get outdated Board and Libraries information"
+			"CLI: Failed to get outdated Board and Libraries information", CacheState.USE_CACHE
 		);
 	}
 	public async searchLibraryInstalled(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getLibraryInstalledArguments(),
-			"CLI: Failed to get library installed"
+			"CLI: Failed to get library installed", CacheState.USE_CACHE
 		);
 	}
 	public async getCLIConfig(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigDumpArgs(),
-			"CLI: Failed to get CLI Config information"
+			"CLI: Failed to get CLI Config information", CacheState.NO_CACHE
 		);
 	}
 
 	public async removeCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigRemoveAdditionalBoardURLArgs(URL),
-			"CLI: Failed to delete additional Board URL", false
+			"CLI: Failed to delete additional Board URL", CacheState.NO_CACHE
 		);
 	}
 
 	public async addCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigAddAdditionalBoardURLArgs(URL),
-			"CLI: Failed to add additional Board URL", false
+			"CLI: Failed to add additional Board URL", CacheState.NO_CACHE
 		);
 	}
 
 	public async setCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetAdditionalBoardURLArgs(URL),
-			"CLI: Failed to set additional Board URL", false
+			"CLI: Failed to set additional Board URL", CacheState.NO_CACHE
 		);
 	}
 	public async searchCore(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getCoreSearchArguments(),
-			"CLI: Failed to get boards available"
+			"CLI: Failed to get boards available", CacheState.USE_CACHE
 		);
 	}
 
 	public async searchLibrary(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getLibrarySearchArguments(),
-			"CLI: Failed to get library available"
+			"CLI: Failed to get library available", CacheState.USE_CACHE
 		);
 	}
 
 	public async runInstallLibraryVersion(library: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getInstallLibraryVersionArguments(library),
-			"CLI: Failed to install library", true, true
+			"CLI: Failed to install library", CacheState.NO_CACHE, true, true
 		);
 	}
 
 	public async runInstallCoreVersion(board_id: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getInstallCoreVersionArguments(board_id),
-			"CLI: Failed to install board", true, true
+			"CLI: Failed to install board", CacheState.NO_CACHE, true, true
 		);
 	}
 
 	public async runUninstallLibrary(version: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getUninstallLibraryArguments(version),
-			"CLI: Failed to remove library", true, true
+			"CLI: Failed to remove library", CacheState.NO_CACHE, true, true
 		);
 	}
 
 	public async runUninstallCoreVersion(version: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getUninstallCoreArguments(version),
-			"CLI: Failed to remove board", true, true
+			"CLI: Failed to remove board", CacheState.NO_CACHE, true, true
 		);
 	}
 
 	public async getCoreUpdate(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getCoreUpdateArguments(),
-			"CLI: Failed to get board update information"
+			"CLI: Failed to get board update information", CacheState.NO_CACHE
 		);
 	}
 	public async getBoardsListAll(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getBoardsListArguments(),
-			"CLI: Failed to get boards list "
+			"CLI: Failed to get boards list ", CacheState.USE_CACHE
 		);
 	}
 
 	public async getBoardConnected(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getBoardConnectedArguments(),
-			"CLI: Failed to get Boards "
+			"CLI: Failed to get Boards ", CacheState.NO_CACHE
 		);
 	}
 	public async getArduinoConfig(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigDumpArgs(),
-			"CLI: Failed to get arduino configuration information"
+			"CLI: Failed to get arduino configuration information", CacheState.NO_CACHE
 		);
 	}
 	public async initArduinoConfiguration(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigInitArgs(),
-			"CLI: Failed to create arduino config file",
+			"CLI: Failed to create arduino config file", CacheState.NO_CACHE,
 			true, false
 		);
 	}
 	public async setConfigDownloadDirectory(downloadPath: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetDowloadDirectory(downloadPath),
-			"CLI: Failed to set download directory setting",
+			"CLI: Failed to set download directory setting", CacheState.NO_CACHE,
 			false, false
 		);
 	}
 	public async setConfigDataDirectory(configPath: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetDataDirectory(configPath),
-			"CLI: Failed to set data directory setting",
+			"CLI: Failed to set data directory setting", CacheState.NO_CACHE,
 			false, false
 		);
 	}
 	public async setConfigUserDirectory(arduinoDir: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetUserDirectory(arduinoDir),
-			"CLI: Failed to set user directory setting",
+			"CLI: Failed to set user directory setting", CacheState.NO_CACHE,
 			false, false
 		);
 	}
 	public async setConfigLibrary(enable: boolean): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetLibrarySetting(enable),
-			"CLI: Failed to set library setting",
+			"CLI: Failed to set library setting", CacheState.NO_CACHE,
 			false, false
 		);
 	}
@@ -246,7 +251,7 @@ export class ArduinoCLI {
 
 					const output = await arduinoCLI.runArduinoCommand(
 						() => this.cliArgs.getCompileCommandArguments(false, clean, arduinoProject.isConfigurationRequired()),
-						"CLI: Failed to compile project", false, true, true, this.compileUploadChannel, "Compilation success!"
+						"CLI: Failed to compile project", CacheState.NO_CACHE, true, true, this.compileUploadChannel, "Compilation success!"
 					);
 					// Compilation success
 					this.compileUploadChannel.appendLine("Compilation completed successfully.");
@@ -296,7 +301,7 @@ export class ArduinoCLI {
 
 					await arduinoCLI.runArduinoCommand(
 						() => this.cliArgs.getUploadArguments(),
-						"CLI: Failed to upload", false, false, true, this.compileUploadChannel
+						"CLI: Failed to upload", CacheState.NO_CACHE, false, true, this.compileUploadChannel
 					);
 					uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 					if (this.serialMonitorAPI) {
@@ -326,7 +331,7 @@ export class ArduinoCLI {
 			await arduinoCLI.setConfigLibrary(true);
 			this.runArduinoCommand(
 				() => this.cliArgs.getInstallZipLibrary(destinationPath),
-				"CLI: Failed to get arduino configuration information"
+				"CLI: Failed to get arduino configuration information", CacheState.NO_CACHE
 			);
 		} catch (error) {
 			window.showErrorMessage(`Failed to install zip library: ${error}`);
@@ -336,7 +341,7 @@ export class ArduinoCLI {
 	private async checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
 		const result = await this.runArduinoCommand(
 			() => this.cliArgs.getVersionArguments(),
-			"CLI: Failed to get Arduino CLI version information"
+			"CLI: Failed to get Arduino CLI version information", CacheState.NO_CACHE
 		);
 		arduinoCLI.getCoreUpdate();
 		return (JSON.parse(result));
@@ -370,7 +375,7 @@ export class ArduinoCLI {
 	private async runArduinoCommand(
 		getArguments: () => string[],
 		errorMessagePrefix: string,
-		shouldCache: boolean = false,
+		shouldCache: CacheState,
 		returnOutput: boolean = true,
 		showOutput: boolean = false,
 		channel: OutputChannel = this.arduinoCLIChannel,
