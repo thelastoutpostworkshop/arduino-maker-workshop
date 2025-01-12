@@ -2,6 +2,9 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
+**Version 0.6.3**
+- Correctly report to the user the a project is compiled "clean"
+
 **Version 0.6.2**
 - Fixed libraries with patchlevel 0 showing wrongly as updatable ([issue](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/22))
 - Fixed upload error when starting a new sketch

@@ -219,10 +219,11 @@ export class ArduinoCLI {
 		await workspace.saveAll();
 
 		try {
+			const compileTitle = clean ? "Compiling project clean..." : "Compiling project...";
 			await window.withProgress(
 				{
 					location: ProgressLocation.Notification,
-					title: "Compiling project...",
+					title: compileTitle,
 					cancellable: true,
 				},
 				async (progress, token) => {
