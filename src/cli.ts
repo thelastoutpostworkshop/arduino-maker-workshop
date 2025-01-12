@@ -1,7 +1,7 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext, ProgressLocation } from "vscode";
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
-import { ArduinoCLIStatus, BuildOptions, Compile, CompileResult } from "./shared/messages";
-import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Version } from "@microsoft/vscode-serial-monitor-api";
+import { ArduinoCLIStatus, BuildOptions, CompileResult } from "./shared/messages";
+import { getSerialMonitorApi, SerialMonitorApi, Version } from "@microsoft/vscode-serial-monitor-api";
 import { COMPILE_RESULT_FILE, VSCODE_FOLDER } from "./ArduinoProject";
 import { CLIArguments } from "./cliArgs";
 import { ArduinoConfiguration } from "./config";
@@ -52,6 +52,7 @@ export class ArduinoCLI {
 		return this.cliStatus;
 	}
 
+	// Determine if the arduino-cli is ready to be used
 	public async isCLIReady(): Promise<boolean> {
 		await this.getArduinoCliPath();
 
@@ -67,6 +68,16 @@ export class ArduinoCLI {
 		}
 	}
 
+	private async checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
+		const result = await this.runArduinoCommand(
+			() => this.cliArgs.getVersionArguments(),
+			"CLI: Failed to get Arduino CLI version information", CacheState.NO_CACHE
+		);
+		arduinoCLI.getCoreUpdate();
+		return (JSON.parse(result));
+	}
+
+	// Verify the arduino config
 	public async isConfigReady(): Promise<boolean> {
 		const isVerified = await this.arduinoConfig.verify();
 		if (!isVerified) {
@@ -76,18 +87,8 @@ export class ArduinoCLI {
 		return true;
 	}
 
-	public async getOutdatedBoardAndLib(): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getOutdatedArguments(),
-			"CLI: Failed to get outdated Board and Libraries information", CacheState.USE_CACHE
-		);
-	}
-	public async searchLibraryInstalled(): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getLibraryInstalledArguments(),
-			"CLI: Failed to get library installed", CacheState.USE_CACHE
-		);
-	}
+	// #region arduino-cli config related commands
+	//
 	public async getCLIConfig(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigDumpArgs(),
@@ -113,67 +114,6 @@ export class ArduinoCLI {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetAdditionalBoardURLArgs(URL),
 			"CLI: Failed to set additional Board URL", CacheState.NO_CACHE
-		);
-	}
-	public async searchCore(): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getCoreSearchArguments(),
-			"CLI: Failed to get boards available", CacheState.USE_CACHE
-		);
-	}
-
-	public async searchLibrary(): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getLibrarySearchArguments(),
-			"CLI: Failed to get library available", CacheState.USE_CACHE
-		);
-	}
-
-	public async runInstallLibraryVersion(library: string): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getInstallLibraryVersionArguments(library),
-			"CLI: Failed to install library", CacheState.NO_CACHE, true, true
-		);
-	}
-
-	public async runUninstallLibrary(version: string): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getUninstallLibraryArguments(version),
-			"CLI: Failed to remove library", CacheState.NO_CACHE, true, true
-		);
-	}
-	
-	public async runUninstallCoreVersion(version: string): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getUninstallCoreArguments(version),
-			"CLI: Failed to remove board", CacheState.NO_CACHE, true, true
-		);
-	}
-
-	public async runInstallCoreVersion(board_id: string): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getInstallCoreVersionArguments(board_id),
-			"CLI: Failed to install board", CacheState.NO_CACHE, true, true
-		);
-	}
-
-	public async getCoreUpdate(): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getCoreUpdateArguments(),
-			"CLI: Failed to get board update information", CacheState.NO_CACHE
-		);
-	}
-	public async getBoardsListAll(): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getBoardsListArguments(),
-			"CLI: Failed to get boards list ", CacheState.USE_CACHE
-		);
-	}
-
-	public async getBoardConnected(): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getBoardConnectedArguments(),
-			"CLI: Failed to get Boards ", CacheState.NO_CACHE
 		);
 	}
 	public async getArduinoConfig(): Promise<string> {
@@ -217,6 +157,92 @@ export class ArduinoCLI {
 			false, false
 		);
 	}
+	// #endregion
+
+	// #region arduino-cli outdated related commands
+	//
+	public async getOutdatedBoardAndLib(): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getOutdatedArguments(),
+			"CLI: Failed to get outdated Board and Libraries information", CacheState.USE_CACHE
+		);
+	}
+	// #endregion
+
+	// #region arduino-cli library related commands
+	//
+	public async searchLibraryInstalled(): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getLibraryInstalledArguments(),
+			"CLI: Failed to get library installed", CacheState.USE_CACHE
+		);
+	}
+
+	public async searchLibrary(): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getLibrarySearchArguments(),
+			"CLI: Failed to get library available", CacheState.USE_CACHE
+		);
+	}
+
+	public async runInstallLibraryVersion(library: string): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getInstallLibraryVersionArguments(library),
+			"CLI: Failed to install library", CacheState.NO_CACHE, true, true
+		);
+	}
+
+	public async runUninstallLibrary(version: string): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getUninstallLibraryArguments(version),
+			"CLI: Failed to remove library", CacheState.NO_CACHE, true, true
+		);
+	}
+	// #endregion
+
+	// #region arduino-cli boards/Core related commands
+	//
+	public async searchCore(): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getCoreSearchArguments(),
+			"CLI: Failed to get boards available", CacheState.USE_CACHE
+		);
+	}
+
+	public async runUninstallCoreVersion(version: string): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getUninstallCoreArguments(version),
+			"CLI: Failed to remove board", CacheState.NO_CACHE, true, true
+		);
+	}
+
+	public async runInstallCoreVersion(board_id: string): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getInstallCoreVersionArguments(board_id),
+			"CLI: Failed to install board", CacheState.NO_CACHE, true, true
+		);
+	}
+
+	public async getCoreUpdate(): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getCoreUpdateArguments(),
+			"CLI: Failed to get board update information", CacheState.NO_CACHE
+		);
+	}
+	public async getBoardsListAll(): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getBoardsListArguments(),
+			"CLI: Failed to get boards list ", CacheState.USE_CACHE
+		);
+	}
+
+	public async getBoardConnected(): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getBoardConnectedArguments(),
+			"CLI: Failed to get Boards ", CacheState.NO_CACHE
+		);
+	}
+	// #endregion
 
 	public async compile(clean: boolean = false) {
 		if (this.compileOrUploadRunning) {
@@ -336,15 +362,6 @@ export class ArduinoCLI {
 		} catch (error) {
 			window.showErrorMessage(`Failed to install zip library: ${error}`);
 		}
-	}
-
-	private async checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
-		const result = await this.runArduinoCommand(
-			() => this.cliArgs.getVersionArguments(),
-			"CLI: Failed to get Arduino CLI version information", CacheState.NO_CACHE
-		);
-		arduinoCLI.getCoreUpdate();
-		return (JSON.parse(result));
 	}
 
 	public async getBoardConfiguration(): Promise<string> {
