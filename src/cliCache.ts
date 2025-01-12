@@ -1,12 +1,12 @@
-import * as fs from 'fs';
-import * as path from 'path';
+const path = require('path');
+const fs = require('fs');
 
 interface CacheMetadata {
     timestamp: number;
     ttl: number; // Time-to-live in milliseconds
 }
 
-export class FileBasedCache {
+export class CliCache {
     private cacheDirectory: string;
 
     constructor(cacheDirectory: string) {
@@ -37,7 +37,7 @@ export class FileBasedCache {
                     this.delete(key);
                 }
             } catch (error) {
-                console.error(`Failed to read cache for key ${key}: ${error.message}`);
+                console.error(`Failed to read cache for key ${key}: ${error}`);
                 this.delete(key);
             }
         }
@@ -63,7 +63,7 @@ export class FileBasedCache {
             };
             fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), 'utf-8');
         } catch (error) {
-            console.error(`Failed to save cache for key ${key}: ${error.message}`);
+            console.error(`Failed to save cache for key ${key}: ${error}`);
         }
     }
 
@@ -82,7 +82,7 @@ export class FileBasedCache {
                 fs.unlinkSync(metadataPath);
             }
         } catch (error) {
-            console.error(`Failed to delete cache for key ${key}: ${error.message}`);
+            console.error(`Failed to delete cache for key ${key}: ${error}`);
         }
     }
 
@@ -95,7 +95,7 @@ export class FileBasedCache {
                 fs.unlinkSync(path.join(this.cacheDirectory, file));
             });
         } catch (error) {
-            console.error(`Failed to clear cache: ${error.message}`);
+            console.error(`Failed to clear cache: ${error}`);
         }
     }
 

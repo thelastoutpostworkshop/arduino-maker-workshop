@@ -5,6 +5,7 @@ import { getSerialMonitorApi, LineEnding, Parity, SerialMonitorApi, StopBits, Ve
 import { COMPILE_RESULT_FILE, VSCODE_FOLDER } from "./ArduinoProject";
 import { CLIArguments } from "./cliArgs";
 import { ArduinoConfiguration } from "./config";
+import { CliCache } from "./cliCache";
 
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
 
@@ -28,6 +29,9 @@ export class ArduinoCLI {
 	constructor(private context: ExtensionContext) {
 		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
 		this.compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
+		const cacheDirectory = path.join(context.globalStorageUri.fsPath, 'arduino-cli-cache');
+		const cache = new CliCache(cacheDirectory);
+		arduinoExtensionChannel.appendLine(`arduino-cli cache created: ${cacheDirectory}`)
 
 		getSerialMonitorApi(Version.latest, context).then((api) => {
 			this.serialMonitorAPI = api;
