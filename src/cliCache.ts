@@ -101,6 +101,10 @@ export class CliCache {
         }
     }
 
+    public getCacheKeyFromArguments(args: string[]):string {
+        return args.join('');
+    }
+
     /**
      * Get the file path for the cache data.
      */

@@ -172,9 +172,11 @@ export class ArduinoCLI {
 	// #region arduino-cli library related commands
 	//
 	public async runInstallLibraryVersion(library: string): Promise<string> {
-		// Invalidate cache for libraries
-		this.cliCache.delete(this.cliArgs.getLibraryInstalledArguments().join(''));
-		
+		// Invalidate cache for libraries commands & outdated commands
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibraryInstalledArguments()));
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibrarySearchArguments()));
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getOutdatedArguments()));
+
 		return this.runArduinoCommand(
 			() => this.cliArgs.getInstallLibraryVersionArguments(library),
 			"CLI: Failed to install library", CacheState.NO_CACHE, true, true
@@ -182,6 +184,11 @@ export class ArduinoCLI {
 	}
 
 	public async runUninstallLibrary(version: string): Promise<string> {
+		// Invalidate cache for libraries commands & outdated commands
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibraryInstalledArguments()));
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibrarySearchArguments()));
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getOutdatedArguments()));
+		
 		return this.runArduinoCommand(
 			() => this.cliArgs.getUninstallLibraryArguments(version),
 			"CLI: Failed to remove library", CacheState.NO_CACHE, true, true
@@ -405,7 +412,7 @@ export class ArduinoCLI {
 		try {
 			const args = getArguments();
 			if (shouldCache == CacheState.USE_CACHE) {
-				const cacheKey = args.join('');
+				const cacheKey = this.cliCache.getCacheKeyFromArguments(args);
 				const cachedData = this.cliCache.get(cacheKey);
 				if (cachedData) {
 					this.arduinoCLIChannel.appendLine(`Cache hit:${cacheKey}`);
