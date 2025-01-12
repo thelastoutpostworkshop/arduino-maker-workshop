@@ -383,11 +383,25 @@ export class ArduinoCLI {
 	): Promise<string> {
 		try {
 			const args = getArguments();
-			const cacheKey = args.join('');
-			const cachedData = this.cliCache.get(cacheKey);
-			if (cachedData) {
-				this.arduinoCLIChannel.appendLine(`Cache hit:${cacheKey}`);
-				return cachedData;
+			if (shouldCache) {
+				const cacheKey = args.join('');
+				const cachedData = this.cliCache.get(cacheKey);
+				if (cachedData) {
+					this.arduinoCLIChannel.appendLine(`Cache hit:${cacheKey}`);
+					return cachedData;
+				} else {
+					this.arduinoCLIChannel.appendLine(`Cache miss, running command...`);
+
+					const result = await this.executeArduinoCommand(`${this.arduinoCLIPath}`, args, returnOutput, showOutput, channel, successMSG);
+					if (!result && returnOutput) {
+						const errorMsg = `${errorMessagePrefix}: No result`;
+						window.showErrorMessage(errorMsg);
+						throw new Error("Command result empty");
+					}
+					// Cache the result for 10 minutes (600,000 ms)
+					this.cliCache.set(cacheKey, result, 600000);
+					return result || '';
+				}
 			} else {
 				this.arduinoCLIChannel.appendLine(`Cache miss, running command...`);
 
@@ -397,8 +411,6 @@ export class ArduinoCLI {
 					window.showErrorMessage(errorMsg);
 					throw new Error("Command result empty");
 				}
-				// Cache the result for 10 minutes (600,000 ms)
-				this.cliCache.set(cacheKey, result, 600000);
 				return result || '';
 			}
 
