@@ -408,13 +408,15 @@ export class ArduinoCLI {
 				throw new Error("Unable to get Board Configuration");
 			}
 			const configBoardArgs = this.cliArgs.getBoardConfigurationArguments();
-			const result = await this.executeArduinoCommand(`${arduinoCLI.arduinoCLIPath}`, configBoardArgs, true, false);
+
+			const result = await this.runArduinoCommand(
+				() => configBoardArgs,
+				"CLI: Failed to get board configuration", { caching: CacheState.NO_CACHE, ttl: 0 }, true, false
+			);
 
 			if (!result) {
-				window.showErrorMessage(`CLI: No result from get board configuration`);
 				throw new Error("Command result empty");
 			}
-			// updateStateCompileUpload();
 			return result;
 
 		} catch (error: any) {
