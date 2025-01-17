@@ -241,17 +241,8 @@ export class ArduinoCLI {
 
 	// #region arduino-cli boards/Core related commands
 	//
-	public async runUninstallCoreVersion(version: string): Promise<string> {
-		// Invalidate cache core & boards
-		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getBoardsListArguments()));
-		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getCoreSearchArguments()));
 
-		return this.runArduinoCommand(
-			() => this.cliArgs.getUninstallCoreArguments(version),
-			"CLI: Failed to remove board", { caching: CacheState.NO_CACHE, ttl: 0 }, true, true
-		);
-	}
-
+	// Installs cores and corresponding tool dependencies.
 	public async runInstallCoreVersion(board_id: string): Promise<string> {
 		// Invalidate cache core & boards
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getBoardsListArguments()));
@@ -263,6 +254,19 @@ export class ArduinoCLI {
 		);
 	}
 
+	// Uninstalls cores and corresponding tool dependencies if no longer used.
+	public async runUninstallCoreVersion(version: string): Promise<string> {
+		// Invalidate cache core & boards
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getBoardsListArguments()));
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getCoreSearchArguments()));
+
+		return this.runArduinoCommand(
+			() => this.cliArgs.getUninstallCoreArguments(version),
+			"CLI: Failed to remove board", { caching: CacheState.NO_CACHE, ttl: 0 }, true, true
+		);
+	}
+
+	// Get all the cores avalaible in the Arduino registry
 	public async searchCore(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getCoreSearchArguments(),
@@ -270,12 +274,15 @@ export class ArduinoCLI {
 		);
 	}
 
+	// Updates the index of cores to the latest version.
 	public async getCoreUpdate(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getCoreUpdateArguments(),
 			"CLI: Failed to get board update information", { caching: CacheState.NO_CACHE, ttl: 0 }
 		);
 	}
+
+	// Get all boards in the Boards Manager
 	public async getBoardsListAll(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getBoardsListArguments(),
@@ -283,6 +290,7 @@ export class ArduinoCLI {
 		);
 	}
 
+	// Detects and displays a list of boards connected to the current computer
 	public async getBoardConnected(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getBoardConnectedArguments(),
@@ -394,6 +402,7 @@ export class ArduinoCLI {
 		}
 		this.compileOrUploadRunning = false;
 	}
+
 	public async installZipLibrary(buffer: ArrayBuffer) {
 		try {
 			const tempDir = os.tmpdir();
