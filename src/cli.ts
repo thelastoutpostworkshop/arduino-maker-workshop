@@ -98,15 +98,16 @@ export class ArduinoCLI {
 	public async getArduinoConfig(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigDumpArgs(),
-			"CLI: Failed to get arduino configuration information", { caching: CacheState.NO, ttl: 0 }
+			"CLI: Failed to get arduino configuration information", { caching: CacheState.YES, ttl: 120 }
 		);
 	}
 
 	// Remove additionnal board URL
 	public async removeCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
-		// Invalidate cache core & boards
+		// Invalidate caches 
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getBoardsListArguments()));
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getCoreSearchArguments()));
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getConfigDumpArgs()));
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigRemoveAdditionalBoardURLArgs(URL),
@@ -116,9 +117,10 @@ export class ArduinoCLI {
 
 	// Add additionnal board URL
 	public async addCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
-		// Invalidate cache core & boards
+		// Invalidate caches
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getBoardsListArguments()));
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getCoreSearchArguments()));
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getConfigDumpArgs()));
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigAddAdditionalBoardURLArgs(URL),
@@ -128,9 +130,10 @@ export class ArduinoCLI {
 
 	// Change additionnal board URL
 	public async setCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
-		// Invalidate cache core & boards
+		// Invalidate caches
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getBoardsListArguments()));
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getCoreSearchArguments()));
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getConfigDumpArgs()));
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetAdditionalBoardURLArgs(URL),
@@ -149,6 +152,9 @@ export class ArduinoCLI {
 
 	// Set directory used to stage downloaded archives during Boards/Library Manager installations.
 	public async setConfigDownloadDirectory(downloadPath: string): Promise<string> {
+		// Invalidate cache
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getConfigDumpArgs()));
+
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetDowloadDirectory(downloadPath),
 			"CLI: Failed to set download directory setting", { caching: CacheState.NO, ttl: 0 },
@@ -158,6 +164,9 @@ export class ArduinoCLI {
 
 	// Set directory used to store Boards/Library Manager index files and Boards Manager platform installations.
 	public async setConfigDataDirectory(configPath: string): Promise<string> {
+		// Invalidate cache
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getConfigDumpArgs()));
+
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetDataDirectory(configPath),
 			"CLI: Failed to set data directory setting", { caching: CacheState.NO, ttl: 0 },
@@ -167,6 +176,9 @@ export class ArduinoCLI {
 
 	// Set the equivalent of the Arduino IDE's "sketchbook" directory. Library Manager installations are made to the libraries subdirectory of the user director
 	public async setConfigUserDirectory(arduinoDir: string): Promise<string> {
+		// Invalidate cache
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getConfigDumpArgs()));
+
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetUserDirectory(arduinoDir),
 			"CLI: Failed to set user directory setting", { caching: CacheState.NO, ttl: 0 },
@@ -176,6 +188,9 @@ export class ArduinoCLI {
 
 	// Enable the use of the --git-url and --zip-file flags with arduino-cli lib install
 	public async setConfigLibrary(enable: boolean): Promise<string> {
+		// Invalidate cache
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getConfigDumpArgs()));
+
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetLibrarySetting(enable),
 			"CLI: Failed to set library setting", { caching: CacheState.NO, ttl: 0 },
