@@ -95,12 +95,6 @@ export class ArduinoCLI {
 	// #region arduino-cli config related commands
 	//
 	// Get the current configuration
-	public async getCLIConfig(): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getConfigDumpArgs(),
-			"CLI: Failed to get CLI Config information", { caching: CacheState.NO_CACHE, ttl: 0 }
-		);
-	}
 	public async getArduinoConfig(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigDumpArgs(),

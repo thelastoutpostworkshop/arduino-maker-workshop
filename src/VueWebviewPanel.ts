@@ -162,7 +162,7 @@ export class VueWebviewPanel {
                         openExample(message.payload);
                         break;
                     case ARDUINO_MESSAGES.CLI_GET_CONFIG:
-                        arduinoCLI.getCLIConfig().then((result) => {
+                        arduinoCLI.getArduinoConfig().then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
