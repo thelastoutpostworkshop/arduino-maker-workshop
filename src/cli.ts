@@ -270,7 +270,7 @@ export class ArduinoCLI {
 	public async searchCore(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getCoreSearchArguments(),
-			"CLI: Failed to get boards available", { caching: CacheState.YES, ttl: 10 }
+			"CLI: Failed to get boards available", { caching: CacheState.YES, ttl: 120 }
 		);
 	}
 
