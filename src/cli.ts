@@ -19,6 +19,11 @@ enum CacheState {
 	NO_CACHE
 }
 
+interface CacheSettings {
+	caching: CacheState,
+	ttl: number
+}
+
 export class ArduinoCLI {
 	public arduinoCLIPath: string = "";
 	public compileOrUploadRunning: boolean = false;
@@ -71,7 +76,7 @@ export class ArduinoCLI {
 	private async checkArduinoCLICommand(): Promise<ArduinoCLIStatus> {
 		const result = await this.runArduinoCommand(
 			() => this.cliArgs.getVersionArguments(),
-			"CLI: Failed to get Arduino CLI version information", CacheState.NO_CACHE
+			"CLI: Failed to get Arduino CLI version information", { caching: CacheState.NO_CACHE, ttl: 10 }
 		);
 		arduinoCLI.getCoreUpdate();
 		return (JSON.parse(result));
@@ -92,7 +97,7 @@ export class ArduinoCLI {
 	public async getCLIConfig(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigDumpArgs(),
-			"CLI: Failed to get CLI Config information", CacheState.NO_CACHE
+			"CLI: Failed to get CLI Config information", { caching: CacheState.NO_CACHE, ttl: 0 }
 		);
 	}
 
@@ -103,7 +108,7 @@ export class ArduinoCLI {
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigRemoveAdditionalBoardURLArgs(URL),
-			"CLI: Failed to delete additional Board URL", CacheState.NO_CACHE
+			"CLI: Failed to delete additional Board URL", { caching: CacheState.NO_CACHE, ttl: 0 }
 		);
 	}
 
@@ -114,7 +119,7 @@ export class ArduinoCLI {
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigAddAdditionalBoardURLArgs(URL),
-			"CLI: Failed to add additional Board URL", CacheState.NO_CACHE
+			"CLI: Failed to add additional Board URL", { caching: CacheState.NO_CACHE, ttl: 0 }
 		);
 	}
 
@@ -122,50 +127,50 @@ export class ArduinoCLI {
 		// Invalidate cache core & boards
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getBoardsListArguments()));
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getCoreSearchArguments()));
-		
+
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetAdditionalBoardURLArgs(URL),
-			"CLI: Failed to set additional Board URL", CacheState.NO_CACHE
+			"CLI: Failed to set additional Board URL", { caching: CacheState.NO_CACHE, ttl: 0 }
 		);
 	}
 	public async getArduinoConfig(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigDumpArgs(),
-			"CLI: Failed to get arduino configuration information", CacheState.NO_CACHE
+			"CLI: Failed to get arduino configuration information", { caching: CacheState.NO_CACHE, ttl: 0 }
 		);
 	}
 	public async initArduinoConfiguration(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigInitArgs(),
-			"CLI: Failed to create arduino config file", CacheState.NO_CACHE,
+			"CLI: Failed to create arduino config file", { caching: CacheState.NO_CACHE, ttl: 0 },
 			true, false
 		);
 	}
 	public async setConfigDownloadDirectory(downloadPath: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetDowloadDirectory(downloadPath),
-			"CLI: Failed to set download directory setting", CacheState.NO_CACHE,
+			"CLI: Failed to set download directory setting", { caching: CacheState.NO_CACHE, ttl: 0 },
 			false, false
 		);
 	}
 	public async setConfigDataDirectory(configPath: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetDataDirectory(configPath),
-			"CLI: Failed to set data directory setting", CacheState.NO_CACHE,
+			"CLI: Failed to set data directory setting", { caching: CacheState.NO_CACHE, ttl: 0 },
 			false, false
 		);
 	}
 	public async setConfigUserDirectory(arduinoDir: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetUserDirectory(arduinoDir),
-			"CLI: Failed to set user directory setting", CacheState.NO_CACHE,
+			"CLI: Failed to set user directory setting", { caching: CacheState.NO_CACHE, ttl: 0 },
 			false, false
 		);
 	}
 	public async setConfigLibrary(enable: boolean): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetLibrarySetting(enable),
-			"CLI: Failed to set library setting", CacheState.NO_CACHE,
+			"CLI: Failed to set library setting", { caching: CacheState.NO_CACHE, ttl: 0 },
 			false, false
 		);
 	}
@@ -176,7 +181,7 @@ export class ArduinoCLI {
 	public async getOutdatedBoardAndLib(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getOutdatedArguments(),
-			"CLI: Failed to get outdated Board and Libraries information", CacheState.NO_CACHE
+			"CLI: Failed to get outdated Board and Libraries information", { caching: CacheState.NO_CACHE, ttl: 0 }
 		);
 	}
 	// #endregion
@@ -190,7 +195,7 @@ export class ArduinoCLI {
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getInstallLibraryVersionArguments(library),
-			"CLI: Failed to install library", CacheState.NO_CACHE, true, true
+			"CLI: Failed to install library", { caching: CacheState.NO_CACHE, ttl: 0 }, true, true
 		);
 	}
 
@@ -201,21 +206,21 @@ export class ArduinoCLI {
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getUninstallLibraryArguments(version),
-			"CLI: Failed to remove library", CacheState.NO_CACHE, true, true
+			"CLI: Failed to remove library", { caching: CacheState.NO_CACHE, ttl: 0 }, true, true
 		);
 	}
 
 	public async searchLibraryInstalled(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getLibraryInstalledArguments(),
-			"CLI: Failed to get library installed", CacheState.USE_CACHE
+			"CLI: Failed to get library installed", { caching: CacheState.USE_CACHE, ttl: 10 }
 		);
 	}
 
 	public async searchLibrary(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getLibrarySearchArguments(),
-			"CLI: Failed to get library available", CacheState.USE_CACHE
+			"CLI: Failed to get library available", { caching: CacheState.USE_CACHE, ttl: 10 }
 		);
 	}
 	// #endregion
@@ -229,7 +234,7 @@ export class ArduinoCLI {
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getUninstallCoreArguments(version),
-			"CLI: Failed to remove board", CacheState.NO_CACHE, true, true
+			"CLI: Failed to remove board", { caching: CacheState.NO_CACHE, ttl: 0 }, true, true
 		);
 	}
 
@@ -240,34 +245,34 @@ export class ArduinoCLI {
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getInstallCoreVersionArguments(board_id),
-			"CLI: Failed to install board", CacheState.NO_CACHE, true, true
+			"CLI: Failed to install board", { caching: CacheState.NO_CACHE, ttl: 0 }, true, true
 		);
 	}
 
 	public async searchCore(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getCoreSearchArguments(),
-			"CLI: Failed to get boards available", CacheState.USE_CACHE
+			"CLI: Failed to get boards available", { caching: CacheState.USE_CACHE, ttl: 10 }
 		);
 	}
 
 	public async getCoreUpdate(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getCoreUpdateArguments(),
-			"CLI: Failed to get board update information", CacheState.NO_CACHE
+			"CLI: Failed to get board update information", { caching: CacheState.NO_CACHE, ttl: 0 }
 		);
 	}
 	public async getBoardsListAll(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getBoardsListArguments(),
-			"CLI: Failed to get boards list ", CacheState.USE_CACHE
+			"CLI: Failed to get boards list ", { caching: CacheState.USE_CACHE, ttl: 10 }
 		);
 	}
 
 	public async getBoardConnected(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getBoardConnectedArguments(),
-			"CLI: Failed to get Boards ", CacheState.NO_CACHE
+			"CLI: Failed to get Boards ", { caching: CacheState.NO_CACHE, ttl: 0 }
 		);
 	}
 	// #endregion
@@ -305,7 +310,7 @@ export class ArduinoCLI {
 
 					const output = await arduinoCLI.runArduinoCommand(
 						() => this.cliArgs.getCompileCommandArguments(false, clean, arduinoProject.isConfigurationRequired()),
-						"CLI: Failed to compile project", CacheState.NO_CACHE, true, true, this.compileUploadChannel, "Compilation success!"
+						"CLI: Failed to compile project", { caching: CacheState.NO_CACHE, ttl: 0 }, true, true, this.compileUploadChannel, "Compilation success!"
 					);
 					// Compilation success
 					this.compileUploadChannel.appendLine("Compilation completed successfully.");
@@ -355,7 +360,7 @@ export class ArduinoCLI {
 
 					await arduinoCLI.runArduinoCommand(
 						() => this.cliArgs.getUploadArguments(),
-						"CLI: Failed to upload", CacheState.NO_CACHE, false, true, this.compileUploadChannel
+						"CLI: Failed to upload", { caching: CacheState.NO_CACHE, ttl: 0 }, false, true, this.compileUploadChannel
 					);
 					uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 					if (this.serialMonitorAPI) {
@@ -385,7 +390,7 @@ export class ArduinoCLI {
 			await arduinoCLI.setConfigLibrary(true);
 			this.runArduinoCommand(
 				() => this.cliArgs.getInstallZipLibrary(destinationPath),
-				"CLI: Failed to get arduino configuration information", CacheState.NO_CACHE
+				"CLI: Failed to get arduino configuration information", { caching: CacheState.NO_CACHE, ttl: 0 }
 			);
 		} catch (error) {
 			window.showErrorMessage(`Failed to install zip library: ${error}`);
@@ -420,7 +425,7 @@ export class ArduinoCLI {
 	private async runArduinoCommand(
 		getArguments: () => string[],
 		errorMessagePrefix: string,
-		shouldCache: CacheState,
+		cache: CacheSettings,
 		returnOutput: boolean = true,
 		showOutput: boolean = false,
 		channel: OutputChannel = this.arduinoCLIChannel,
@@ -428,7 +433,7 @@ export class ArduinoCLI {
 	): Promise<string> {
 		try {
 			const args = getArguments();
-			if (shouldCache == CacheState.USE_CACHE) {
+			if (cache.caching == CacheState.USE_CACHE) {
 				const cacheKey = this.cliCache.getCacheKeyFromArguments(args);
 				const cachedData = this.cliCache.get(cacheKey);
 				if (cachedData) {
@@ -443,8 +448,7 @@ export class ArduinoCLI {
 						window.showErrorMessage(errorMsg);
 						throw new Error("Command result empty");
 					}
-					// Cache the result for 10 minutes
-					this.cliCache.set(cacheKey, result, 10);
+					this.cliCache.set(cacheKey, result, cache.ttl);
 					return result || '';
 				}
 			} else {
