@@ -138,6 +138,7 @@ export class ArduinoCLI {
 		);
 	}
 
+	// Create and initialize a new arduino configuration file
 	public async initArduinoConfiguration(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigInitArgs(),
@@ -145,6 +146,8 @@ export class ArduinoCLI {
 			true, false
 		);
 	}
+
+	// Set directory used to stage downloaded archives during Boards/Library Manager installations.
 	public async setConfigDownloadDirectory(downloadPath: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetDowloadDirectory(downloadPath),
@@ -152,6 +155,8 @@ export class ArduinoCLI {
 			false, false
 		);
 	}
+
+	// Set directory used to store Boards/Library Manager index files and Boards Manager platform installations.
 	public async setConfigDataDirectory(configPath: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetDataDirectory(configPath),
@@ -159,6 +164,8 @@ export class ArduinoCLI {
 			false, false
 		);
 	}
+
+	// Set the equivalent of the Arduino IDE's "sketchbook" directory. Library Manager installations are made to the libraries subdirectory of the user director
 	public async setConfigUserDirectory(arduinoDir: string): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetUserDirectory(arduinoDir),
@@ -166,6 +173,8 @@ export class ArduinoCLI {
 			false, false
 		);
 	}
+
+	// Enable the use of the --git-url and --zip-file flags with arduino-cli lib install
 	public async setConfigLibrary(enable: boolean): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetLibrarySetting(enable),
