@@ -226,7 +226,7 @@ export class ArduinoCLI {
 	public async searchLibraryInstalled(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getLibraryInstalledArguments(),
-			"CLI: Failed to get library installed", { caching: CacheState.YES, ttl: 10 }
+			"CLI: Failed to get library installed", { caching: CacheState.YES, ttl: 120 }
 		);
 	}
 
@@ -234,7 +234,7 @@ export class ArduinoCLI {
 	public async searchLibrary(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getLibrarySearchArguments(),
-			"CLI: Failed to get library available", { caching: CacheState.YES, ttl: 10 }
+			"CLI: Failed to get library available", { caching: CacheState.YES, ttl: 120 }
 		);
 	}
 	// #endregion
@@ -286,7 +286,7 @@ export class ArduinoCLI {
 	public async getBoardsListAll(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getBoardsListArguments(),
-			"CLI: Failed to get boards list ", { caching: CacheState.YES, ttl: 10 }
+			"CLI: Failed to get boards list ", { caching: CacheState.YES, ttl: 120 }
 		);
 	}
 
