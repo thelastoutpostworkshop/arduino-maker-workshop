@@ -94,13 +94,21 @@ export class ArduinoCLI {
 
 	// #region arduino-cli config related commands
 	//
+	// Get the current configuration
 	public async getCLIConfig(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigDumpArgs(),
 			"CLI: Failed to get CLI Config information", { caching: CacheState.NO_CACHE, ttl: 0 }
 		);
 	}
+	public async getArduinoConfig(): Promise<string> {
+		return this.runArduinoCommand(
+			() => this.cliArgs.getConfigDumpArgs(),
+			"CLI: Failed to get arduino configuration information", { caching: CacheState.NO_CACHE, ttl: 0 }
+		);
+	}
 
+	// Remove additionnal board URL
 	public async removeCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
 		// Invalidate cache core & boards
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getBoardsListArguments()));
@@ -112,6 +120,7 @@ export class ArduinoCLI {
 		);
 	}
 
+	// Add additionnal board URL
 	public async addCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
 		// Invalidate cache core & boards
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getBoardsListArguments()));
@@ -123,6 +132,7 @@ export class ArduinoCLI {
 		);
 	}
 
+	// Change additionnal board URL
 	public async setCLIConfigAdditionalBoardURL(URL: string): Promise<string> {
 		// Invalidate cache core & boards
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getBoardsListArguments()));
@@ -133,12 +143,7 @@ export class ArduinoCLI {
 			"CLI: Failed to set additional Board URL", { caching: CacheState.NO_CACHE, ttl: 0 }
 		);
 	}
-	public async getArduinoConfig(): Promise<string> {
-		return this.runArduinoCommand(
-			() => this.cliArgs.getConfigDumpArgs(),
-			"CLI: Failed to get arduino configuration information", { caching: CacheState.NO_CACHE, ttl: 0 }
-		);
-	}
+
 	public async initArduinoConfiguration(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigInitArgs(),
