@@ -186,6 +186,7 @@ export class ArduinoCLI {
 
 	// #region arduino-cli outdated related commands
 	//
+	// Get cores and libraries that can be upgraded
 	public async getOutdatedBoardAndLib(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getOutdatedArguments(),
@@ -196,6 +197,8 @@ export class ArduinoCLI {
 
 	// #region arduino-cli library related commands
 	//
+
+	// Install a library version
 	public async runInstallLibraryVersion(library: string): Promise<string> {
 		// Invalidate cache for libraries commands 
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibraryInstalledArguments()));
@@ -207,6 +210,7 @@ export class ArduinoCLI {
 		);
 	}
 
+	// Uninstall a library version
 	public async runUninstallLibrary(version: string): Promise<string> {
 		// Invalidate cache for libraries commands 
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibraryInstalledArguments()));
@@ -218,6 +222,7 @@ export class ArduinoCLI {
 		);
 	}
 
+	// Get the list of libraries installed
 	public async searchLibraryInstalled(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getLibraryInstalledArguments(),
@@ -225,6 +230,7 @@ export class ArduinoCLI {
 		);
 	}
 
+	// Get all the libraries avalaible in the Arduino registry
 	public async searchLibrary(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getLibrarySearchArguments(),
