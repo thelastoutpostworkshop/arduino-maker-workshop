@@ -111,7 +111,7 @@ export class ArduinoCLI {
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigRemoveAdditionalBoardURLArgs(URL),
-			"CLI: Failed to delete additional Board URL", { caching: CacheState.NO, ttl: 0 }
+			"CLI: Failed to delete additional Board URL", { caching: CacheState.NO, ttl: 0 }, false, false
 		);
 	}
 
@@ -124,7 +124,7 @@ export class ArduinoCLI {
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigAddAdditionalBoardURLArgs(URL),
-			"CLI: Failed to add additional Board URL", { caching: CacheState.NO, ttl: 0 }
+			"CLI: Failed to add additional Board URL", { caching: CacheState.NO, ttl: 0 }, false, false
 		);
 	}
 
@@ -137,7 +137,7 @@ export class ArduinoCLI {
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigSetAdditionalBoardURLArgs(URL),
-			"CLI: Failed to set additional Board URL", { caching: CacheState.NO, ttl: 0 }
+			"CLI: Failed to set additional Board URL", { caching: CacheState.NO, ttl: 0 }, false, false
 		);
 	}
 
