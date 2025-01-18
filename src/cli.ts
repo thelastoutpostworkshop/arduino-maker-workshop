@@ -449,7 +449,7 @@ export class ArduinoCLI {
 
 			const result = await this.runArduinoCommand(
 				() => configBoardArgs,
-				"CLI: Failed to get board configuration", { caching: CacheState.YES, ttl: 120 }, true, false
+				"CLI: Failed to get board configuration", { caching: CacheState.NO, ttl: 0 }, true, false
 			);
 
 			if (!result) {
