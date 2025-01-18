@@ -101,10 +101,14 @@ export class CliCache {
         }
     }
 
-    public getCacheKeyFromArguments(args: string[]):string {
-        return args.join('');
+    public getCacheKeyFromArguments(args: string[]): string {
+        const doubleDashIndex = args.findIndex(arg => arg.startsWith("--"));
+        // Exclude arguments from the first "--" and beyond
+        const relevantArgs = doubleDashIndex !== -1 ? args.slice(0, doubleDashIndex) : args;
+        return relevantArgs.join('');
     }
-
+    
+    
     /**
      * Get the file path for the cache data.
      */
