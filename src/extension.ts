@@ -33,6 +33,10 @@ export async function activate(context: ExtensionContext) {
 		arduinoExtensionChannel.appendLine(`Arduino CLI is ready, path: ${arduinoCLI.arduinoCLIPath}`);
 		if (await arduinoCLI.isConfigReady()) {
 			arduinoExtensionChannel.appendLine(`Arduino Config file is good`);
+			const userDirectory = await arduinoCLI.getConfigUserDirectory();
+			if(userDirectory) {
+				arduinoExtensionChannel.appendLine(`User directory is: ${userDirectory}`);
+			}
 
 			context.subscriptions.push(
 				workspace.onDidChangeConfiguration((e) => {

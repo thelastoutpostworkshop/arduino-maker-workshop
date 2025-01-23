@@ -9,6 +9,7 @@ const removeOption: string = 'remove';
 const addOption: string = 'add';
 const initOption: string = 'init';
 const setOption: string = 'set';
+const getOption: string = 'get';
 const compileCommandArduino: string = 'compile';
 const compileCleanOption: string = '--clean';
 const buildPathArduino: string = '--build-path';
@@ -77,6 +78,14 @@ export class CLIArguments {
             `${setOption}`,
             `${configDirUserSetting}`,
             `${dir}`,
+        ];
+        return command;
+    }
+    public getConfigGetUserDirectory(): string[] {
+        const command = [
+            `${configCommandArduino}`,
+            `${getOption}`,
+            `${configDirUserSetting}`
         ];
         return command;
     }

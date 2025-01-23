@@ -186,6 +186,16 @@ export class ArduinoCLI {
 		);
 	}
 
+	// Set the equivalent of the Arduino IDE's "sketchbook" directory. Library Manager installations are made to the libraries subdirectory of the user director
+	public async getConfigUserDirectory(): Promise<string> {
+
+		return this.runArduinoCommand(
+			() => this.cliArgs.getConfigGetUserDirectory(),
+			"CLI: Failed to get user directory setting", { caching: CacheState.NO, ttl: 0 },
+			true, false
+		);
+	}
+
 	// Enable the use of the --git-url and --zip-file flags with arduino-cli lib install
 	public async setConfigLibrary(enable: boolean): Promise<string> {
 		// Invalidate cache
