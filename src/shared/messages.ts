@@ -442,6 +442,5 @@ export const ARDUINO_MESSAGES = {
   INSTALL_ZIP_LIBRARY: "installZipLibrary",
   CHANGE_THEME_COLOR: "changeThemeColor",
   SET_CONFIGURATION_REQUIRED: "SetConfigurationRequired",
-  LOG_DEBUG: "logDebug",
-  RELOAD_LIBRARY_MANAGER:"reloadLibraryManager"
+  LOG_DEBUG: "logDebug"
 };

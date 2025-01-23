@@ -155,9 +155,12 @@ export async function activate(context: ExtensionContext) {
 						const config = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
 						const userDirectory = config.get<string>('userDirectory', '');
 						if (await directoryExists(userDirectory)) {
+							if (VueWebviewPanel.currentPanel) {
+								VueWebviewPanel.currentPanel.dispose();
+								VueWebviewPanel.currentPanel = undefined; 
+							}
 							arduinoCLI.setConfigUserDirectory(userDirectory);
 							arduinoCLI.clearLibraryCache();
-							VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.RELOAD_LIBRARY_MANAGER, errorMessage: "", payload: ""});
 							window.showInformationMessage(`User directory changed to: ${userDirectory}`);
 						} else {
 							window.showErrorMessage(`${userDirectory} does not exist create it first`);
