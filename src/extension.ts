@@ -156,6 +156,7 @@ export async function activate(context: ExtensionContext) {
 						const userDirectory = config.get<string>('userDirectory', '');
 						if (await directoryExists(userDirectory)) {
 							arduinoCLI.setConfigUserDirectory(userDirectory);
+							arduinoCLI.clearLibraryCache();
 							window.showInformationMessage(`User directory changed to: ${userDirectory}`);
 						} else {
 							window.showErrorMessage(`${userDirectory} does not exist create it first`);

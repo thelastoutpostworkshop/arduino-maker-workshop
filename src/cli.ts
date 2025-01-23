@@ -226,8 +226,7 @@ export class ArduinoCLI {
 	// Install a library version
 	public async runInstallLibraryVersion(library: string): Promise<string> {
 		// Invalidate cache for libraries commands 
-		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibraryInstalledArguments()));
-		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibrarySearchArguments()));
+		this.clearLibraryCache();
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getInstallLibraryVersionArguments(library),
@@ -238,13 +237,18 @@ export class ArduinoCLI {
 	// Uninstall a library version
 	public async runUninstallLibrary(version: string): Promise<string> {
 		// Invalidate cache for libraries commands 
-		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibraryInstalledArguments()));
-		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibrarySearchArguments()));
+		this.clearLibraryCache();
 
 		return this.runArduinoCommand(
 			() => this.cliArgs.getUninstallLibraryArguments(version),
 			"CLI: Failed to remove library", { caching: CacheState.NO, ttl: 0 }, true, true
 		);
+	}
+
+	// Invalidate cache for libraries 
+	public clearLibraryCache() {
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibraryInstalledArguments()));
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibrarySearchArguments()));
 	}
 
 	// Get the list of libraries installed
