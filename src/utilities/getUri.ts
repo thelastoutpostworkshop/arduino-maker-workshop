@@ -1,5 +1,5 @@
 import { Uri, Webview } from "vscode";
-
+const fs = require('fs');
 /**
  * A helper function which will get the webview URI of a given file or resource.
  *
@@ -13,4 +13,13 @@ import { Uri, Webview } from "vscode";
  */
 export function getUri(webview: Webview, extensionUri: Uri, pathList: string[]) {
   return webview.asWebviewUri(Uri.joinPath(extensionUri, ...pathList));
+}
+
+export async function directoryExists(dirPath: string): Promise<boolean> {
+  try {
+    const stats = await fs.promises.stat(dirPath);
+    return stats.isDirectory();
+  } catch (error) {
+      return false;
+  }
 }

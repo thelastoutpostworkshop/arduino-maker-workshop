@@ -4,6 +4,7 @@ import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, quickAccessCompileCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, THEME_COLOR } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
+import { directoryExists } from "./utilities/getUri";
 
 const os = require('os');
 
@@ -34,7 +35,7 @@ export async function activate(context: ExtensionContext) {
 		if (await arduinoCLI.isConfigReady()) {
 			arduinoExtensionChannel.appendLine(`Arduino Config file is good`);
 			const userDirectory = await arduinoCLI.getConfigUserDirectory();
-			if(userDirectory) {
+			if (userDirectory) {
 				arduinoExtensionChannel.appendLine(`User directory is: ${userDirectory}`);
 				const config = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
 				config.update('userDirectory', userDirectory, ConfigurationTarget.Global);
@@ -149,7 +150,16 @@ export async function activate(context: ExtensionContext) {
 						} else {
 							arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 						}
-
+					}
+					if (event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.userDirectory')) {
+						const config = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
+						const userDirectory = config.get<string>('userDirectory', '');
+						if (await directoryExists(userDirectory)) {
+							arduinoCLI.setConfigUserDirectory(userDirectory);
+							window.showInformationMessage(`User directory changed to: ${userDirectory}`);
+						} else {
+							window.showErrorMessage(`${userDirectory} does not exist create it first`);
+						}
 					}
 				}, 500); // Debounce delay (500ms here)
 			});
