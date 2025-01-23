@@ -160,7 +160,7 @@ export async function activate(context: ExtensionContext) {
 						}
 						arduinoCLI.setConfigUserDirectory(userDirectory);
 						arduinoCLI.clearLibraryCache();
-						window.showInformationMessage(`User directory changed to: ${userDirectory}`);
+						window.showInformationMessage(`User directory set to: ${userDirectory}`);
 
 					}
 				}, 500); // Debounce delay (500ms here)
