@@ -157,6 +157,7 @@ export async function activate(context: ExtensionContext) {
 						if (await directoryExists(userDirectory)) {
 							arduinoCLI.setConfigUserDirectory(userDirectory);
 							arduinoCLI.clearLibraryCache();
+							VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.RELOAD_LIBRARY_MANAGER, errorMessage: "", payload: ""});
 							window.showInformationMessage(`User directory changed to: ${userDirectory}`);
 						} else {
 							window.showErrorMessage(`${userDirectory} does not exist create it first`);
