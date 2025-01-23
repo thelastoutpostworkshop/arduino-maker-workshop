@@ -86,6 +86,11 @@
           "type": "string",
           "default": "",
           "description": "File system path to where the arduino-cli is located (leave blank to use the bundled CLI)."
+        },
+        "arduinoMakerWorkshop.arduinoCLI.userDirectory": {
+          "type": "string",
+          "default": "",
+          "description": "File system path to the equivalent of the Arduino IDE's 'sketchbook' directory. Library Manager installations are made to the libraries subdirectory of the user director."
         }
       }
     },
