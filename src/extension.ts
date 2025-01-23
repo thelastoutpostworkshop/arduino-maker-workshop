@@ -1,4 +1,4 @@
-import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind } from "vscode";
+import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind, ConfigurationTarget } from "vscode";
 import { ArduinoProject, UPLOAD_READY_STATUS } from './ArduinoProject';
 import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, quickAccessCompileCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
@@ -36,6 +36,8 @@ export async function activate(context: ExtensionContext) {
 			const userDirectory = await arduinoCLI.getConfigUserDirectory();
 			if(userDirectory) {
 				arduinoExtensionChannel.appendLine(`User directory is: ${userDirectory}`);
+				const config = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
+				config.update('userDirectory', userDirectory, ConfigurationTarget.Global);
 			}
 
 			context.subscriptions.push(
