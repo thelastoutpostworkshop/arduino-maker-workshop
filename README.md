@@ -33,13 +33,19 @@ IntelliSense data (c_cpp_properties.json) is generated after each successful com
 For a new project, IntelliSense mark almost everything as "undefined" until you make your first good compile.
 IntelliSense is generated based on the arduino-cli build outputs.
 
+## Troobleshooting
+If you get this error message:
+> No workspace available, open a workspace by using the File > Open Folder... menu, and then selecting a folder
+
+It means you must open a workspace in Visual Studio Code, see the [official documentation](https://code.visualstudio.com/docs/editor/workspaces).
+
 ## Contributors
 Contributors are welcomed! 
 Take a look at [the project](https://github.com/users/thelastoutpostworkshop/projects/3) to see features to be implemented or bugs to be fixed
 
 If you want to submit pull requests, [here is how you can do it](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project).
 
-## Extension Development
+**Extension Development**
 Install the dependancies:
 - run `npm install` in the main folder of the extension
 - run `npm install` in the webview folder
