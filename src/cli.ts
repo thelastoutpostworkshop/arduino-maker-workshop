@@ -100,7 +100,7 @@ export class ArduinoCLI {
 	public async getArduinoConfig(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getConfigDumpArgs(),
-			"CLI: Failed to get arduino configuration information", { caching: CacheState.YES, ttl: DEFAULT_CACHE_TTL }
+			"CLI: Failed to get arduino configuration information", { caching: CacheState.NO, ttl: 0 }
 		);
 	}
 
