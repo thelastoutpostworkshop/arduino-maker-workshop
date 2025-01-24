@@ -38,8 +38,14 @@ export async function activate(context: ExtensionContext) {
 			if (userDirectory) {
 				arduinoExtensionChannel.appendLine(`User directory is: ${userDirectory}`);
 				const config = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
-				config.update('userDirectory', userDirectory, ConfigurationTarget.Global);
-			}
+				const currentValue = config.get<string>('userDirectory', '');
+			  
+				// Only update if the current value is different
+				if (currentValue !== userDirectory) {
+				  await config.update('userDirectory', userDirectory, ConfigurationTarget.Global);
+				  arduinoExtensionChannel.appendLine(`User directory setting updated to: ${userDirectory}`);
+				} 
+			  }
 
 			context.subscriptions.push(
 				workspace.onDidChangeConfiguration((e) => {
