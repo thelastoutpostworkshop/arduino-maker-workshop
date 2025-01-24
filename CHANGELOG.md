@@ -4,6 +4,7 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 
 **Version 0.6.5**
 - Added user setting to set user directory, equivalent of the Arduino IDE's 'sketchbook' directory. Library Manager installations are made to the libraries subdirectory of the user director
+- Added support for macOS Intel by [rudeb0t](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/28)
 - UI Performance improvement by using cache to avoid repeated calls to the arduino-cli
 - Correctly report to the user that a project is compiled "clean"
 - Fixed bug when adding additional URL
