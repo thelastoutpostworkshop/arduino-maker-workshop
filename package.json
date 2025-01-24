@@ -3,7 +3,7 @@
   "displayName": "Arduino Maker Workshop",
   "publisher": "TheLastOutpostWorkshop",
   "description": "The ultimate tool for makers to bring Arduino projects to life!",
-  "version": "0.6.6",
+  "version": "0.6.7",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -79,16 +79,19 @@
       "properties": {
         "arduinoMakerWorkshop.arduinoCLI.executable": {
           "type": "string",
+          "scope": "machine",
           "default": "arduino-cli",
           "description": "Executable filename for the arduino-cli."
         },
         "arduinoMakerWorkshop.arduinoCLI.installPath": {
           "type": "string",
+          "scope": "machine",
           "default": "",
           "description": "File system path to where the arduino-cli is located (leave blank to use the bundled CLI)."
         },
         "arduinoMakerWorkshop.arduinoCLI.userDirectory": {
           "type": "string",
+          "scope": "machine",
           "default": "",
           "description": "File system path to the equivalent of the Arduino IDE's 'sketchbook' directory. Library Manager installations are made to the libraries subdirectory of the user director."
         }
