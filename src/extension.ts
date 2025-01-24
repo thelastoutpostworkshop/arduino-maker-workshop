@@ -34,18 +34,7 @@ export async function activate(context: ExtensionContext) {
 		arduinoExtensionChannel.appendLine(`Arduino CLI is ready, path: ${arduinoCLI.arduinoCLIPath}`);
 		if (await arduinoCLI.isConfigReady()) {
 			arduinoExtensionChannel.appendLine(`Arduino Config file is good`);
-			const userDirectory = await arduinoCLI.getConfigUserDirectory();
-			if (userDirectory) {
-				arduinoExtensionChannel.appendLine(`User directory is: ${userDirectory}`);
-				const config = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
-				const currentValue = config.get<string>('userDirectory', '');
-			  
-				// Only update if the current value is different
-				if (currentValue !== userDirectory) {
-				  await config.update('userDirectory', userDirectory, ConfigurationTarget.Global);
-				  arduinoExtensionChannel.appendLine(`User directory setting updated to: ${userDirectory}`);
-				} 
-			  }
+			await verifyUserDirectorySetting();
 
 			context.subscriptions.push(
 				workspace.onDidChangeConfiguration((e) => {
@@ -158,16 +147,7 @@ export async function activate(context: ExtensionContext) {
 						}
 					}
 					if (event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.userDirectory')) {
-						const config = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
-						const userDirectory = config.get<string>('userDirectory', '');
-						if (VueWebviewPanel.currentPanel) {
-							VueWebviewPanel.currentPanel.dispose();
-							VueWebviewPanel.currentPanel = undefined;
-						}
-						arduinoCLI.setConfigUserDirectory(userDirectory);
-						arduinoCLI.clearLibraryCache();
-						window.showInformationMessage(`User directory set to: ${userDirectory}`);
-
+						changeUserDirectory();
 					}
 				}, 500); // Debounce delay (500ms here)
 			});
@@ -181,6 +161,36 @@ export async function activate(context: ExtensionContext) {
 		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 	}
 
+}
+
+async function verifyUserDirectorySetting() {
+	const userDirectory = await arduinoCLI.getConfigUserDirectory();
+	if (userDirectory) {
+		arduinoExtensionChannel.appendLine(`User directory is: ${userDirectory}`);
+		const config = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
+		const currentValue = config.get<string>('userDirectory', '');
+		console.log(`currentValue: ${currentValue}`);
+		// Only update if the current value is different
+		if (currentValue.trim() !== userDirectory.trim()) {
+			console.log(`currentValue !== userDirectory: ${userDirectory}`);
+			await config.update('userDirectory', userDirectory, ConfigurationTarget.Global);
+			arduinoExtensionChannel.appendLine(`User directory setting updated to: ${userDirectory}`);
+		}
+	}
+}
+
+function changeUserDirectory() {
+	const config = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
+	const userDirectory = config.get<string>('userDirectory', '');
+	console.log(`userDirectory changed to: ${userDirectory}`);
+	if (VueWebviewPanel.currentPanel) {
+		VueWebviewPanel.currentPanel.dispose();
+		VueWebviewPanel.currentPanel = undefined;
+	}
+	arduinoCLI.setConfigUserDirectory(userDirectory);
+	arduinoCLI.clearLibraryCache();
+	console.log(`User directory set to: ${userDirectory}`);
+	window.showInformationMessage(`User directory set to: ${userDirectory}`);
 }
 
 function isWatchedExtension(filePath: string): boolean {
