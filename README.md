@@ -7,6 +7,10 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 
 ## Tutorial : [Get Started](https://youtu.be/rduTUUVkzqM)
 
+## Settings
+- You can set the user directory, equivalent of the Arduino IDE's 'sketchbook' directory. Library Manager installations are made to the libraries subdirectory of the user directory
+- You can change the Arduino CLI used (not recommended)
+
 ## Arduino Code Snippets : [Documentation](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/blob/main/Arduino_Snippets_Documentation.md)
 ![new sketch](.readme/snippets.gif)
 
