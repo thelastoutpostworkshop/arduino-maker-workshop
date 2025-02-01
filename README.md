@@ -15,6 +15,8 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 ![new sketch](.readme/snippets.gif)
 
 ## New Sketch
+> Make sure you have a workspace [open](https://code.visualstudio.com/docs/editor/workspaces).
+
 ![new sketch](.readme/new_sketch.gif)
 
 ## Board Selection
