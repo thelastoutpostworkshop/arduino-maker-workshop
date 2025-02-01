@@ -4,7 +4,6 @@ import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, quickAccessCompileCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, THEME_COLOR } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
-import { directoryExists } from "./utilities/getUri";
 
 const os = require('os');
 
