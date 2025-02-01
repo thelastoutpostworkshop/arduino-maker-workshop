@@ -1,8 +1,9 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionContext } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
-import { ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, changeTheme, loadArduinoConfiguration, openExample, updateStateCompileUpload } from "./extension";
+import { ARDUINO_SKETCH_EXTENSION } from "./ArduinoProject";
 
 const path = require('path');
 const os = require('os');
@@ -35,6 +36,10 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                         const projectStatus: ArduinoProjectStatus = { status: arduinoProject.isFolderArduinoProject(), cli_status: arduinoCLI.getCLIStatus() };
+                        if(projectStatus.status == ARDUINO_ERRORS.WRONG_FOLDER_NAME) {
+                            projectStatus.folderName = arduinoProject.getStatus().folderName;
+                            projectStatus.sketchName = arduinoProject.getStatus().sketchName+ARDUINO_SKETCH_EXTENSION;
+                        }
                         message.payload = projectStatus;
                         VueWebviewPanel.sendMessage(message);
                         break;

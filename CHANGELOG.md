@@ -2,6 +2,9 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
+**Version 0.6.8**
+- Added the folder name and sketch name in the error message when folder name and sketch name do not match
+
 **Version 0.6.7**
 - Added user setting to set user directory, equivalent of the Arduino IDE's 'sketchbook' directory. Library Manager installations are made to the libraries subdirectory of the user director
 - Added support for macOS Intel by [rudeb0t](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/28)

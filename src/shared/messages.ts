@@ -107,6 +107,8 @@ export enum ARDUINO_ERRORS {
 export interface ArduinoProjectStatus {
   cli_status?: ArduinoCLIStatus;
   status: ARDUINO_ERRORS;
+  folderName?:string;
+  sketchName?:string;
 }
 
 export interface ArduinoCLIStatus {

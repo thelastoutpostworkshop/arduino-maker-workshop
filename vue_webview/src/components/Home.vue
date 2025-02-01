@@ -14,7 +14,7 @@ const portSelected = ref('');
 const sketchName = ref("");
 const useProgrammer = ref(false);
 const programmer = ref("");
-const monitorPortSettings = reactive({port: "", baudRate: 115200, lineEnding: "\r\n", dataBits: 8, parity: "none", stopBits: "one"});
+const monitorPortSettings = reactive({ port: "", baudRate: 115200, lineEnding: "\r\n", dataBits: 8, parity: "none", stopBits: "one" });
 
 const portsAvailable = computed(() => getAvailablePorts(store));
 
@@ -22,22 +22,22 @@ const portsAvailable = computed(() => getAvailablePorts(store));
 const serialPortsAvailable = computed(() => getAvailablePorts(store).map((p: any) => p.replace("/dev/cu.", "/dev/tty.")));
 
 const lineEndings = [
-    {title: "CR", value: "\r"},
-    {title: "CRLF", value: "\r\n"},
-    {title: "LF", value: "\n"},
-    {title: "None", value: "none"},
+  { title: "CR", value: "\r" },
+  { title: "CRLF", value: "\r\n" },
+  { title: "LF", value: "\n" },
+  { title: "None", value: "none" },
 ];
 const parity = [
-    {title: "None", value: "none"},
-    {title: "Odd", value: "odd"},
-    {title: "Even", value: "even"},
-    {title: "Mark", value: "mark"},
-    {title: "Space", value: "space"}
+  { title: "None", value: "none" },
+  { title: "Odd", value: "odd" },
+  { title: "Even", value: "even" },
+  { title: "Mark", value: "mark" },
+  { title: "Space", value: "space" }
 ];
 const stopBits = [
-    {title: "One", value: "one"},
-    {title: "Onepointfive", value: "onepointfive"},
-    {title: "Two", value: "two"}
+  { title: "One", value: "one" },
+  { title: "Onepointfive", value: "onepointfive" },
+  { title: "Two", value: "two" }
 ];
 
 function getStoredMonitorPortSettings() {
@@ -188,8 +188,7 @@ onMounted(() => {
                   indeterminate></v-progress-linear>
               </template>
               <template v-if="store.boardConnected?.detected_ports" v-slot:append>
-                <v-btn @click="refreshPorts" icon="mdi-refresh"
-                  variant="text"></v-btn>
+                <v-btn @click="refreshPorts" icon="mdi-refresh" variant="text"></v-btn>
               </template>
             </v-select>
             <div v-if="store.boardOptions?.programmers">
@@ -210,10 +209,14 @@ onMounted(() => {
             </div>
           </v-card>
           <v-card v-if="store.projectStatus?.status == ARDUINO_ERRORS.WRONG_FOLDER_NAME" class="pa-4"
-            color="blue-grey-darken-3" prepend-icon="mdi-alert-circle-outline" rounded="lg">
+            color="red-darken-3" prepend-icon="mdi-alert-circle-outline" rounded="lg">
             <template #title>
               <h2 class="text-h6 font-weight-bold">Sketch name and folder name do not match</h2>
             </template>
+            <v-card-text>
+              Your sketch name is '{{ store.projectStatus?.sketchName }}' and folder name is '{{
+                store.projectStatus?.folderName }}', they must have the same name.
+            </v-card-text>
           </v-card>
           <v-card v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_INO_FILES" class="pa-4"
             color="blue-grey-darken-3" prepend-icon="mdi-folder-plus-outline" rounded="lg">
@@ -245,58 +248,54 @@ onMounted(() => {
               <v-btn @click="router.push({ name: 'board-selection' })">Select a board first</v-btn>
             </div>
           </div>
-          <v-card class="mt-5 pa-4" v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board"
-            color="primary" prepend-icon="mdi-serial-port" rounded="lg">
+          <v-card class="mt-5 pa-4"
+            v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board" color="primary"
+            prepend-icon="mdi-serial-port" rounded="lg">
             <template #title>
               <h2 class="text-h6 font-weight-bold">Serial Monitor Settings</h2>
             </template>
 
-            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.port" :items="serialPortsAvailable"
-              density="compact" label="Serial Port">
+            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.port"
+              :items="serialPortsAvailable" density="compact" label="Serial Port">
               <template v-slot:loader>
                 <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
                   indeterminate></v-progress-linear>
               </template>
               <template v-if="store.boardConnected?.detected_ports" v-slot:append>
-                <v-btn @click="refreshPorts" icon="mdi-refresh"
-                  variant="text"></v-btn>
+                <v-btn @click="refreshPorts" icon="mdi-refresh" variant="text"></v-btn>
               </template>
             </v-select>
             <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.baudRate" :items="[
               300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 74880, 115200, 230400, 250000
-            ]"
-              density="compact" label="Baud Rate">
+            ]" density="compact" label="Baud Rate">
               <template v-slot:loader>
                 <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
                   indeterminate></v-progress-linear>
               </template>
             </v-select>
-            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.lineEnding" :items="lineEndings"
-              item-title="title" item-value="value"
-              density="compact" label="Line Ending">
+            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.lineEnding"
+              :items="lineEndings" item-title="title" item-value="value" density="compact" label="Line Ending">
               <template v-slot:loader>
                 <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
                   indeterminate></v-progress-linear>
               </template>
             </v-select>
-            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.dataBits" :items="[5, 6, 7, 8]"
-              density="compact" label="Data Bits">
+            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.dataBits"
+              :items="[5, 6, 7, 8]" density="compact" label="Data Bits">
               <template v-slot:loader>
                 <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
                   indeterminate></v-progress-linear>
               </template>
             </v-select>
-            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.stopBits" :items="stopBits"
-              item-title="title" item-value="value"
-              density="compact" label="Stop Bits">
+            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.stopBits"
+              :items="stopBits" item-title="title" item-value="value" density="compact" label="Stop Bits">
               <template v-slot:loader>
                 <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
                   indeterminate></v-progress-linear>
               </template>
             </v-select>
-            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.parity" :items="parity"
-              item-title="title" item-value="value"
-              density="compact" label="Parity">
+            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.parity"
+              :items="parity" item-title="title" item-value="value" density="compact" label="Parity">
               <template v-slot:loader>
                 <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
                   indeterminate></v-progress-linear>

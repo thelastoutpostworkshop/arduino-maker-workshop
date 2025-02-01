@@ -10,7 +10,7 @@ const fs = require('fs');
 export const VSCODE_FOLDER: string = ".vscode";
 export const COMPILE_RESULT_FILE: string = "compile_result.json";
 const ARDUINO_SETTINGS: string = "arduino.json";
-const ARDUINO_SKETCH_EXTENSION: string = ".ino";
+export const ARDUINO_SKETCH_EXTENSION: string = ".ino";
 const ARDUINO_DEFAULT_OUTPUT: string = "build";
 
 export enum UPLOAD_READY_STATUS {
@@ -143,6 +143,8 @@ export class ArduinoProject {
                         error = ARDUINO_ERRORS.NO_ERRORS;
                         break;
                     } else {
+                        this.projectStatus.sketchName = sketchBase;
+                        this.projectStatus.folderName = folderName;
                         error = ARDUINO_ERRORS.WRONG_FOLDER_NAME;
                     }
                 }
