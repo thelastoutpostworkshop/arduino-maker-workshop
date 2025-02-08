@@ -1,0 +1,682 @@
+{
+  "installed_libraries": [
+    {
+      "library": {
+        "name": "ArduinoJson",
+        "author": "Benoit Blanchon \u003cblog.benoitblanchon.fr\u003e",
+        "maintainer": "Benoit Blanchon \u003cblog.benoitblanchon.fr\u003e",
+        "sentence": "A simple and efficient JSON library for embedded C++.",
+        "paragraph": "⭐ 6785 stars on GitHub! Supports serialization, deserialization, MessagePack, streams, filtering, and more. Fully tested and documented.",
+        "website": "https://arduinojson.org/?utm_source=meta\u0026utm_medium=library.properties",
+        "category": "Data Processing",
+        "architectures": [
+          "*"
+        ],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ArduinoJson",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ArduinoJson\\src",
+        "version": "7.3.0",
+        "license": "MIT",
+        "properties": {},
+        "location": "user",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ArduinoJson\\examples\\JsonConfigFile",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ArduinoJson\\examples\\JsonFilterExample",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ArduinoJson\\examples\\JsonGeneratorExample",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ArduinoJson\\examples\\JsonHttpClient",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ArduinoJson\\examples\\JsonParserExample",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ArduinoJson\\examples\\JsonServer",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ArduinoJson\\examples\\JsonUdpBeacon",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ArduinoJson\\examples\\MsgPackParser",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ArduinoJson\\examples\\ProgmemExample",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ArduinoJson\\examples\\StringExample"
+        ],
+        "provides_includes": [
+          "ArduinoJson.h",
+          "ArduinoJson.hpp"
+        ],
+        "compatible_with": {}
+      }
+    },
+    {
+      "library": {
+        "name": "DFRobotDFPlayerMini",
+        "author": "DFRobot",
+        "maintainer": "Angelo \u003cangelo.qiao@dfrobot.com\u003e",
+        "sentence": "Driver for DFPlayer Mini from DFRobot",
+        "paragraph": "Easy-to-use and reliable library for DFPlayer Mini",
+        "website": "https://github.com/DFRobot/DFRobotDFPlayerMini",
+        "category": "Device Control",
+        "architectures": [
+          "*"
+        ],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\DFRobotDFPlayerMini",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\DFRobotDFPlayerMini",
+        "version": "1.0.5",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "flat",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\DFRobotDFPlayerMini\\examples\\AdvancedSettingViaSerial1",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\DFRobotDFPlayerMini\\examples\\AdvancedSettingWithoutACK",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\DFRobotDFPlayerMini\\examples\\AdvancedSettingWithoutReset",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\DFRobotDFPlayerMini\\examples\\FullFunction",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\DFRobotDFPlayerMini\\examples\\GetStarted",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\DFRobotDFPlayerMini\\examples\\ReadValues"
+        ],
+        "provides_includes": [
+          "DFRobotDFPlayerMini.h"
+        ],
+        "compatible_with": {}
+      },
+      "release": {
+        "author": "DFRobot",
+        "version": "1.0.6",
+        "maintainer": "Angelo \u003cangelo.qiao@dfrobot.com\u003e",
+        "sentence": "Driver for DFPlayer Mini from DFRobot",
+        "paragraph": "Easy-to-use and reliable library for DFPlayer Mini",
+        "website": "https://github.com/DFRobot/DFRobotDFPlayerMini",
+        "category": "Device Control",
+        "architectures": [
+          "*"
+        ],
+        "types": [
+          "Contributed"
+        ]
+      }
+    },
+    {
+      "library": {
+        "name": "GPIOViewer",
+        "author": "The Last Outpost Workshop",
+        "maintainer": "The Last Outpost Workshop \u003cthelastoutpostworkshop@gmail.com\u003e",
+        "sentence": "Web Application to view GPIO pins live!",
+        "paragraph": "Web Application to view GPIO pins live! Works on any ESP32 Boards with Arduino Core from Espressif",
+        "website": "https://github.com/thelastoutpostworkshop/gpio_viewer",
+        "category": "Other",
+        "architectures": [
+          "esp32"
+        ],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\GPIOViewer",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\GPIOViewer\\src",
+        "version": "1.6.1",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\GPIOViewer\\examples\\gpioviewer"
+        ],
+        "provides_includes": [
+          "gpio_viewer.h"
+        ],
+        "compatible_with": {}
+      }
+    },
+    {
+      "library": {
+        "name": "SimpleRotary",
+        "author": "MPrograms",
+        "maintainer": "MPrograms",
+        "sentence": "Library for using rotary encorders.",
+        "paragraph": "Library for using rotary encoders. Supports direction, debouncing, button press, button long press, error correction, high and low triggering, button press time.",
+        "website": "https://github.com/mprograms/SimpleRotary",
+        "category": "Sensors",
+        "architectures": [
+          "*"
+        ],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\src",
+        "version": "1.1.3",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\options",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\push",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\pushLong",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\pushReset",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\pushTime",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\pushType",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\SimpleRotary\\examples\\rotate"
+        ],
+        "provides_includes": [
+          "SimpleRotary.h"
+        ],
+        "compatible_with": {}
+      }
+    },
+    {
+      "library": {
+        "name": "Adafruit BusIO",
+        "author": "Adafruit",
+        "maintainer": "Adafruit \u003cinfo@adafruit.com\u003e",
+        "sentence": "This is a library for abstracting away UART, I2C and SPI interfacing",
+        "paragraph": "This is a library for abstracting away UART, I2C and SPI interfacing",
+        "website": "https://github.com/adafruit/Adafruit_BusIO",
+        "category": "Signal Input/Output",
+        "architectures": [
+          "*"
+        ],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO",
+        "version": "1.17.0",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "flat",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\genericdevice_uartregtest",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\genericdevice_uarttest",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\i2c_address_detect",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\i2c_readwrite",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\i2c_registers",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\i2corspi_register",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\spi_modetest",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\spi_readwrite",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\spi_register_bits",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_BusIO\\examples\\spi_registers"
+        ],
+        "provides_includes": [
+          "Adafruit_BusIO_Register.h",
+          "Adafruit_GenericDevice.h",
+          "Adafruit_I2CDevice.h",
+          "Adafruit_I2CRegister.h",
+          "Adafruit_SPIDevice.h"
+        ],
+        "compatible_with": {}
+      }
+    },
+    {
+      "library": {
+        "name": "bb_spi_lcd",
+        "author": "Larry Bank",
+        "maintainer": "Larry Bank",
+        "sentence": "Color SPI LCD+OLED library with many unique features.",
+        "paragraph": "Supports most popular LCD and OLED color display controllers. Includes DMA support, display Windows BMP (and RLE), bitmap rotation, transparent text, translucent 1-bpp masks and optimized primitives. Optional back buffer for fast memory operations.",
+        "website": "https://github.com/bitbank2/bb_spi_lcd",
+        "category": "Display",
+        "architectures": [
+          "*"
+        ],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\src",
+        "version": "2.8.0",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\UNO_shield_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\atoms3_gif",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\callback_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\cyd_gif_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\cyd_touch_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\parallel_shield_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\spi_lcd_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\spi_touch_test",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\spilcd_prop_font",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\bb_spi_lcd\\examples\\wio_dma_gif_demo"
+        ],
+        "provides_includes": [
+          "bb_spi_lcd.h"
+        ],
+        "compatible_with": {}
+      }
+    },
+    {
+      "library": {
+        "name": "Adafruit NeoPixel",
+        "author": "Adafruit",
+        "maintainer": "Adafruit \u003cinfo@adafruit.com\u003e",
+        "sentence": "Arduino library for controlling single-wire-based LED pixels and strip.",
+        "paragraph": "Arduino library for controlling single-wire-based LED pixels and strip.",
+        "website": "https://github.com/adafruit/Adafruit_NeoPixel",
+        "category": "Display",
+        "architectures": [
+          "*"
+        ],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel",
+        "version": "1.12.4",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "flat",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\RGBWstrandtest",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\StrandtestArduinoBLE",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\StrandtestArduinoBLECallback",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\StrandtestBLE",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\StrandtestBLE_nodelay",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\buttoncycler",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\simple",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\simple_new_operator",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\strandtest",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\strandtest_nodelay",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Adafruit_NeoPixel\\examples\\strandtest_wheel"
+        ],
+        "provides_includes": [
+          "Adafruit_NeoPixel.h"
+        ],
+        "compatible_with": {}
+      }
+    },
+    {
+      "library": {
+        "name": "Async TCP",
+        "author": "Me-No-Dev",
+        "maintainer": "Mathieu Carbou \u003cmathieu.carbou@gmail.com\u003e",
+        "sentence": "Async TCP Library for ESP32",
+        "paragraph": "Async TCP Library for ESP32",
+        "website": "https://github.com/mathieucarbou/AsyncTCP.git",
+        "category": "Other",
+        "architectures": [
+          "*"
+        ],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Async_TCP",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Async_TCP\\src",
+        "version": "3.3.2",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Async_TCP\\examples\\Client"
+        ],
+        "provides_includes": [
+          "AsyncTCP.h"
+        ],
+        "compatible_with": {}
+      },
+      "release": {
+        "author": "ESP32Async",
+        "version": "3.3.5",
+        "maintainer": "ESP32Async",
+        "sentence": "Async TCP Library for ESP32",
+        "paragraph": "Async TCP Library for ESP32",
+        "website": "https://github.com/ESP32Async/AsyncTCP.git",
+        "category": "Other",
+        "architectures": [
+          "*"
+        ],
+        "types": [
+          "Contributed"
+        ]
+      }
+    },
+    {
+      "library": {
+        "name": "Bonezegei_Printf",
+        "author": "Bonezegei (Jofel Batutay)",
+        "maintainer": "Jofel Batutay \u003cjofelbatutay@gmail.com\u003e",
+        "sentence": "Simple Printf",
+        "paragraph": "Printf for boards without printf functions",
+        "website": "https://github.com/bonezegei/Bonezegei_Printf",
+        "category": "Other",
+        "architectures": [
+          "*"
+        ],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Bonezegei_Printf",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Bonezegei_Printf\\src",
+        "version": "1.0.1",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Bonezegei_Printf\\examples\\SimplePrintf"
+        ],
+        "provides_includes": [
+          "Bonezegei_Printf.h"
+        ],
+        "compatible_with": {}
+      }
+    },
+    {
+      "library": {
+        "name": "TFT_eSPI",
+        "author": "Bodmer",
+        "maintainer": "Bodmer",
+        "sentence": "TFT graphics library for Arduino processors with performance optimisation for RP2040, STM32, ESP8266 and ESP32",
+        "paragraph": "Supports TFT displays using drivers (ILI9341 etc.) that operate with hardware SPI or 8/16-bit parallel.",
+        "website": "https://github.com/Bodmer/TFT_eSPI",
+        "category": "Display",
+        "architectures": [
+          "*"
+        ],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI",
+        "version": "2.5.43",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "flat",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\160 x 128\\Arduino_Life",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\160 x 128\\Pong_v3",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\160 x 128\\RLE_Font_test",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\160 x 128\\TFT_Char_times",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\160 x 128\\TFT_Clock",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\160 x 128\\TFT_Clock_Digital",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\160 x 128\\TFT_Ellipse",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\160 x 128\\TFT_Meter_5",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\160 x 128\\TFT_Print_Test",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\160 x 128\\TFT_Rainbow",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\160 x 128\\TFT_flash_jpg",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\160 x 128\\TFT_graphicstest_PDQ3",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\160 x 128\\TFT_graphicstest_small",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\160 x 128\\UTFT_demo_fast",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\All_Free_Fonts_Demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\Cellular_Automata",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\Free_Font_Demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\Keypad_240x320",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\RLE_Font_test",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\Read_ID_bitbash",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_ArcFill",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Char_times",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Clock",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Clock_Digital",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Custom_Fonts",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Ellipse",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_FillArcSpiral",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Float_Test",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Mandlebrot",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Matrix",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Meter_linear",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Meters",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Pie_Chart",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Pong",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Print_Test",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Rainbow_one_lib",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Read_Reg",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Spiro",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Starfield",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_String_Align",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_Terminal",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_graphicstest_PDQ",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\TFT_graphicstest_one_lib",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\320 x 240\\UTFT_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\Cellular_Automata",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\Demo_3D_cube",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\Free_Font_Demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\Graph_2",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\Keypad_480x320",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\TFT_Char_times",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\TFT_Ellipse",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\TFT_Meter_4",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\TFT_Meters",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\TFT_Padding_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\TFT_Print_Test",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\TFT_Rainbow480",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\TFT_String_Align",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\TFT_flash_jpg",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\TFT_graphicstest_one_lib",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\TFT_ring_meter",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\Touch_Controller_Demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\480 x 320\\UTFT_Demo_480x320",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\DMA test\\Bouncy_Circles",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\DMA test\\Flash_Jpg_DMA",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\DMA test\\SpriteRotatingCube",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\DMA test\\boing_ball",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\GUI Widgets\\Buttons\\Button_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\GUI Widgets\\Graphs\\Graph_demo_1",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\GUI Widgets\\Graphs\\Graph_demo_2",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\GUI Widgets\\Meters\\Analogue_meters",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\GUI Widgets\\Sliders\\Slider_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\Animated_Eyes_1",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\Animated_Eyes_2",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\ESP32_SDcard_jpeg",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\ESP8266_uncannyEyes",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\Gradient_Fill",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\Julia_Set",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\Local_Custom_Fonts",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\On_Off_Button",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\TFT_Button_Label_Datum",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\TFT_Flash_Bitmap",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\TFT_SPIFFS_BMP",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\TFT_Screen_Capture",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\Touch_calibrate",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\Viewport_Demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\Viewport_graphicstest",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\alphaBlend_Test",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Generic\\drawXBitmap",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\PNG Images\\Flash_PNG",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\PNG Images\\Flash_transparent_PNG",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\PNG Images\\LittleFS_PNG",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\PNG Images\\LittleFS_PNG_DMA",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\FLASH_Array\\Font_Demo_1_Array",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\FLASH_Array\\Font_Demo_2_Array",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\FLASH_Array\\Font_Demo_3_Array",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\FLASH_Array\\Font_Demo_4_Array",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\FLASH_Array\\Print_Smooth_Font",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\FLASH_Array\\Smooth_font_gradient",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\FLASH_Array\\Smooth_font_reading_TFT",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\FLASH_Array\\Unicode_test",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\LittleFS\\Font_Demo_1",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\LittleFS\\Font_Demo_2",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\LittleFS\\Font_Demo_3",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\LittleFS\\Font_Demo_4",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\LittleFS\\Print_Smooth_Font",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\LittleFS\\Smooth_font_gradient",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\LittleFS\\Smooth_font_reading_TFT",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\LittleFS\\Unicode_test",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\SD_Card\\ESP32_Smooth_Font_SD",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\SPIFFS\\Font_Demo_1",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\SPIFFS\\Font_Demo_2",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\SPIFFS\\Font_Demo_3",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\SPIFFS\\Font_Demo_4",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\SPIFFS\\Print_Smooth_Font",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\SPIFFS\\Smooth_font_gradient",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\SPIFFS\\Smooth_font_reading_TFT",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Fonts\\SPIFFS\\Unicode_test",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Graphics\\Anti-aliased_Clock",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Graphics\\Arc_meter_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Graphics\\Colour_Wheel",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Graphics\\Draw_Arc",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Graphics\\Draw_Smooth_Circles",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Graphics\\Smooth_Arc",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Graphics\\Smooth_Graphics_Demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Smooth Graphics\\Smooth_Rounded_Rectangles",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Animated_dial",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\One_bit_Sprite_Demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\One_bit_Yin_Yang",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Orrery",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Rotated_Sprite_1",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Rotated_Sprite_2",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Rotated_Sprite_3",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Sprite_RLE_Font_test",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Sprite_TFT_Rainbow",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Sprite_draw",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Sprite_draw_4bit",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Sprite_image_4bit",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Sprite_scroll",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Sprite_scroll_16bit",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Sprite_scroll_1bit",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Sprite_scroll_4bit",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Sprite_scroll_8bit",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Sprite_scroll_wrap_1bit",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Transparent_Sprite_Demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Sprite\\Transparent_Sprite_Demo_4bit",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Test and diagnostics\\Colour_Test",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Test and diagnostics\\Read_User_Setup",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Test and diagnostics\\TFT_ReadWrite_Test",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\Test and diagnostics\\Test_Touch_Controller",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\TFT_eSPI\\examples\\ePaper\\Floyd_Steinberg"
+        ],
+        "provides_includes": [
+          "TFT_eSPI.h"
+        ],
+        "compatible_with": {}
+      }
+    },
+    {
+      "library": {
+        "name": "ESP Async WebServer",
+        "author": "Me-No-Dev",
+        "maintainer": "Mathieu Carbou \u003cmathieu.carbou@gmail.com\u003e",
+        "sentence": "Asynchronous HTTP and WebSocket Server Library for ESP32, ESP8266 and RP2040",
+        "paragraph": "Supports: WebSocket, SSE, Authentication, Arduino Json 7, File Upload, Static File serving, URL Rewrite, URL Redirect, etc",
+        "website": "https://github.com/mathieucarbou/ESPAsyncWebServer",
+        "category": "Other",
+        "architectures": [
+          "*"
+        ],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\src",
+        "version": "3.6.0",
+        "license": "LGPL-3.0",
+        "properties": {},
+        "location": "user",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\CaptivePortal",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\Filters",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\Issue162",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\Issue85",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\SSE_perftest",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\SimpleServer",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\ESP_Async_WebServer\\examples\\StreamFiles"
+        ],
+        "provides_includes": [
+          "ESPAsyncWebServer.h"
+        ],
+        "compatible_with": {}
+      },
+      "release": {
+        "author": "ESP32Async",
+        "version": "3.7.0",
+        "maintainer": "ESP32Async",
+        "sentence": "Asynchronous HTTP and WebSocket Server Library for ESP32, ESP8266 and RP2040",
+        "paragraph": "Supports: WebSocket, SSE, Authentication, Arduino Json 7, File Upload, Static File serving, URL Rewrite, URL Redirect, etc",
+        "website": "https://github.com/ESP32Async/ESPAsyncWebServer",
+        "category": "Other",
+        "architectures": [
+          "*"
+        ],
+        "types": [
+          "Contributed"
+        ]
+      }
+    },
+    {
+      "library": {
+        "name": "AnimatedGIF",
+        "author": "Larry Bank",
+        "maintainer": "Larry Bank",
+        "sentence": "Universal GIF player for MCUs with at least 32K of RAM.",
+        "paragraph": "Designed to provide an optimized GIF player that can run on any MCU and take advantage of file IO, LCD displays, DMA, etc by providing callback functions. You can play multi-frame GIFs stored in RAM, FLASH, SDCard or any other media you choose. Plenty of sample code is provided to demonstrate these options.",
+        "website": "https://github.com/bitbank2/AnimatedGIF",
+        "category": "Display",
+        "architectures": [
+          "*"
+        ],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\src",
+        "version": "2.1.1",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\ESP32-LGFX-SDCard-GifPlayer",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\ESP32_LEDMatrix_I2S",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\TFT_eSPI_memory",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\TinyPico_Display_GIF",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\adafruit_gfx_memory",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\adafruit_gfx_sdcard",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\best_practices_example",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\big_mem_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\bitbank_lcd_library",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\cyd_cooked_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\gif_animated_digits",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\gif_benchmark",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\gif_from_spi_flash",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\gif_transparency_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\oled_gif_demo",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\play_all_sd_files",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\AnimatedGIF\\examples\\turbo_t_qt_example"
+        ],
+        "provides_includes": [
+          "AnimatedGIF.h"
+        ],
+        "compatible_with": {}
+      }
+    },
+    {
+      "library": {
+        "name": "Modulino",
+        "author": "Arduino",
+        "maintainer": "Arduino \u003cinfo@arduino.cc\u003e",
+        "sentence": "Arduino Library for Modulinos",
+        "website": "https://github.com/arduino-libraries/Modulino",
+        "category": "Communication",
+        "architectures": [
+          "*"
+        ],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\src",
+        "version": "0.4.2",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\examples\\Modulino_Buttons\\Basic",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\examples\\Modulino_Buttons\\Button2Integration",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\examples\\Modulino_Buzzer\\Basic",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\examples\\Modulino_Buzzer\\Simple_melody",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\examples\\Modulino_Distance\\Basic",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\examples\\Modulino_Knob\\Basic",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\examples\\Modulino_Knob\\EncoderSetter",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\examples\\Modulino_Movement\\Basic",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\examples\\Modulino_Pixels\\Basic",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\examples\\Modulino_Pixels\\Simple_Animation",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\examples\\Modulino_Thermo\\Basic",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\examples\\Modulino_Thermo\\TemperatureHumidityMatrix",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\examples\\Utilities\\AddressChanger",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\examples\\Utilities\\FirmwareUpdater",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\Modulino\\examples\\Utilities\\Modulino_PlugNPlay"
+        ],
+        "provides_includes": [
+          "Modulino.h"
+        ],
+        "compatible_with": {}
+      }
+    },
+    {
+      "library": {
+        "name": "PNGdec",
+        "author": "Larry Bank",
+        "maintainer": "Larry Bank",
+        "sentence": "Universal PNG decoder for MCUs with at least 48K of RAM.",
+        "paragraph": "Designed to provide a fully functional PNG decoder that can use minimal memory by decoding a line at a time with an optional callback function. Supports all pixel formats.",
+        "website": "https://github.com/bitbank2/PNGdec",
+        "category": "Display",
+        "architectures": [
+          "*"
+        ],
+        "install_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\PNGdec",
+        "source_dir": "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\PNGdec\\src",
+        "version": "1.0.3",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "user",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\PNGdec\\examples\\1bpp_transparent_oled",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\PNGdec\\examples\\png_benchmark",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\PNGdec\\examples\\png_comparison",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\PNGdec\\examples\\png_transparency",
+          "C:\\Users\\Charles\\Documents\\Arduino\\libraries\\PNGdec\\examples\\sdcard_slideshow"
+        ],
+        "provides_includes": [
+          "PNGdec.h"
+        ],
+        "compatible_with": {}
+      }
+    }
+  ]
+}
