@@ -436,6 +436,7 @@ export class ArduinoCLI {
 
 	public async installZipLibrary(buffer: ArrayBuffer) {
 		try {
+			this.clearLibraryCache();
 			const tempDir = os.tmpdir();
 			const tempFileName = `library_${Date.now()}.zip`;
 			const destinationPath = path.join(tempDir, tempFileName);
