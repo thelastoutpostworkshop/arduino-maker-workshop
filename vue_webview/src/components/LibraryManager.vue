@@ -89,7 +89,7 @@ function updateLibariesInformation() {
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: "", payload: "" });
-  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_OUTDATED, errorMessage: "", payload: "" });
+  // store.sendMessage({ command: ARDUINO_MESSAGES.CLI_OUTDATED, errorMessage: "", payload: "" });
   // Force recompute when component mounts
   if (areLibrariesAvailable.value) {
     updateLibariesInformation();

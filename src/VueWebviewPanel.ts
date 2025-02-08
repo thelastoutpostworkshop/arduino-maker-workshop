@@ -157,12 +157,12 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
-                    case ARDUINO_MESSAGES.CLI_OUTDATED:
-                        arduinoCLI.getOutdatedBoardAndLib().then((result) => {
-                            message.payload = result;
-                            VueWebviewPanel.sendMessage(message);
-                        });
-                        break;
+                    // case ARDUINO_MESSAGES.CLI_OUTDATED:
+                    //     arduinoCLI.getOutdatedBoardAndLib().then((result) => {
+                    //         message.payload = result;
+                    //         VueWebviewPanel.sendMessage(message);
+                    //     });
+                    //     break;
                     case ARDUINO_MESSAGES.OPEN_LIBRARY:
                         openExample(message.payload);
                         break;
