@@ -4,8 +4,8 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 
 **Version 0.6.9**
 - Fixed bug when installing a library through zip ([issue](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/36))
-- Added action button to remove an updatable library (feature request by omarbaf)
-- Added action button to remove an updatable board (based on feature request by omarbaf)
+- Added action button to remove an updatable library ([feature request](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/37) by omarbaf)
+- Added action button to remove an updatable board ([feature request](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/37) by omarbaf)
 - Added the folder name and sketch name in the error message when folder name and sketch name do not matchb
 
 **Version 0.6.7**
