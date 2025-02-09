@@ -29,13 +29,13 @@ onMounted(() => {
 
 const boardHeaders = [
   { title: 'Name', value: 'name', key: 'name', sortable: true },
-  { title: 'Installed', value: 'installed_version', key: 'installed_version', align: 'center' as const, sortable: false, width: '15%' },
-  { title: 'Latest', value: 'latest_version', key: 'latest_version', align: 'center' as const, sortable: false, width: '15%' },
-  { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '10%' },
+  { title: 'Installed', value: 'installed_version', key: 'installed_version', align: 'center' as const, sortable: false, width: '11%' },
+  { title: 'Latest', value: 'latest_version', key: 'latest_version', align: 'center' as const, sortable: false, width: '11%' },
+  { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '21%' },
 ];
 const urlHeaders = [
   { title: 'URLs', value: 'title' },
-  { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '20%' },
+  { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '21%' },
 ];
 
 const additionalBoardURLs = computed(() => {
