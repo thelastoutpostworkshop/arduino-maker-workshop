@@ -21,7 +21,7 @@ const headers = [
   { title: 'Name', value: 'name', key: 'name', sortable: true },
   { title: 'Installed', value: 'installedVersion', key: 'installedVersion', align: 'center' as const, sortable: false, width: '15%' },
   { title: 'Latest', value: 'latestVersion', key: 'latestVersion', align: 'center' as const, sortable: false, width: '15%' },
-  { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '10%' },
+  { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '15%' },
 ];
 
 
@@ -123,7 +123,7 @@ function isLibraryInstalled(library: LibraryInformation): boolean {
 }
 
 function isLibraryUpdatable(library: LibraryInformation): boolean {
-  if(library.zipLibrary) {
+  if (library.zipLibrary) {
     return false;
   }
   if (store.outdated?.libraries) {
@@ -172,7 +172,7 @@ function filterLibs(filter: FilterLibraries): LibraryInformation[] {
         filtered = store.libariesInformation.filter((library) => isLibraryInstalled(library) && !isLibraryUpdatable(library) && !library.zipLibrary);
         break;
       case FilterLibraries.updatable:
-        filtered = store.libariesInformation.filter((library) =>isLibraryInstalled(library) && isLibraryUpdatable(library));
+        filtered = store.libariesInformation.filter((library) => isLibraryInstalled(library) && isLibraryUpdatable(library));
         break;
       case FilterLibraries.deprecated:
         filtered = store.libariesInformation.filter((library) => isLibraryDeprecated(library));
@@ -188,7 +188,7 @@ function filterLibs(filter: FilterLibraries): LibraryInformation[] {
         break;
     }
   }
-  searchLibrary.value="";
+  searchLibrary.value = "";
   return filtered;
 }
 
@@ -292,13 +292,13 @@ watch(zipFile, () => {
           <template v-slot:item.actions="{ item }">
             <v-tooltip>
               <template v-slot:activator="{ props }">
-                <v-btn v-if="!isLibraryInstalled(item) || isLibraryUpdatable(item)" icon
+                <v-btn v-if="!isLibraryInstalled(item) || isLibraryUpdatable(item)" icon size="small"
                   @click="installLibrary(item.name, item.latestVersion)" v-bind="props" variant="text">
                   <v-icon>
                     mdi-tray-arrow-down
                   </v-icon>
                 </v-btn>
-                <v-btn v-if="isLibraryInstalled(item) && !isLibraryUpdatable(item)" icon
+                <v-btn v-if="isLibraryInstalled(item) || isLibraryUpdatable(item)" icon size="small"
                   @click="uninstallLibrary(item.name)" v-bind="props" variant="text">
                   <v-icon>
                     mdi-trash-can
