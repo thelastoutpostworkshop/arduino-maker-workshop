@@ -165,12 +165,12 @@ function saveURL() {
   dialogURL.value = false;
   editMode.value = false;
   additionalURL.value = '';
-  postSaveURL.value = true; 
+  postSaveURL.value = true;
 }
 
 function goToNotInstalledTab() {
-  filterBoards.value = FilterBoards.not_installed; 
-  postSaveURL.value = false; 
+  filterBoards.value = FilterBoards.not_installed;
+  postSaveURL.value = false;
 }
 
 function editURL(item: any) {
@@ -265,23 +265,24 @@ const isURLInvalid = computed(() => {
           <template v-slot:item.actions="{ item }">
             <v-tooltip v-if="!isPlatformInstalled(item) || isPlatformUpdatable(item)">
               <template v-slot:activator="{ props }">
-                <v-btn @click="updatePlatformVersion(item.id)" icon v-bind="props" variant="text">
-                  <v-icon v-if="!isPlatformInstalled(item) || isPlatformUpdatable(item)">
+                <v-btn @click="updatePlatformVersion(item.id)" icon v-bind="props" size="small">
+                  <v-icon v-if="!isPlatformInstalled(item) || isPlatformUpdatable(item)" >
                     mdi-tray-arrow-down
                   </v-icon>
                 </v-btn>
               </template>
               <span> Install latest {{ item.name }}</span>
             </v-tooltip>
-            <v-tooltip v-if="isPlatformInstalled(item) && !isPlatformUpdatable(item)">
+            <v-tooltip>
               <template v-slot:activator="{ props }">
-                <v-btn @click="uninstallPlatform(item.id)" icon v-bind="props" variant="text">
-                  <v-icon v-if="isPlatformInstalled(item) && !isPlatformUpdatable(item)">
+                <v-btn v-if="isPlatformInstalled(item) || isPlatformUpdatable(item)" @click="uninstallPlatform(item.id)"
+                  icon v-bind="props" size="small">
+                  <v-icon>
                     mdi-trash-can
                   </v-icon>
                 </v-btn>
               </template>
-              <span v-if="isPlatformInstalled(item) && !isPlatformUpdatable(item)"> Uninstall {{ item.name }}</span>
+              <span> Uninstall {{ item.name }}</span>
             </v-tooltip>
           </template>
         </v-data-table>
