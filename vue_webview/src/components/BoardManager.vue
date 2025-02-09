@@ -263,9 +263,9 @@ const isURLInvalid = computed(() => {
             </v-card>
           </template>
           <template v-slot:item.actions="{ item }">
-            <v-tooltip v-if="!isPlatformInstalled(item) || isPlatformUpdatable(item)">
+            <v-tooltip >
               <template v-slot:activator="{ props }">
-                <v-btn @click="updatePlatformVersion(item.id)" icon v-bind="props" size="small">
+                <v-btn v-if="!isPlatformInstalled(item) || isPlatformUpdatable(item)" @click="updatePlatformVersion(item.id)" icon v-bind="props" size="small">
                   <v-icon v-if="!isPlatformInstalled(item) || isPlatformUpdatable(item)" >
                     mdi-tray-arrow-down
                   </v-icon>
@@ -275,7 +275,7 @@ const isURLInvalid = computed(() => {
             </v-tooltip>
             <v-tooltip>
               <template v-slot:activator="{ props }">
-                <v-btn v-if="isPlatformInstalled(item) || isPlatformUpdatable(item)" @click="uninstallPlatform(item.id)"
+                <v-btn v-if="isPlatformInstalled(item) " @click="uninstallPlatform(item.id)"
                   icon v-bind="props" size="small">
                   <v-icon>
                     mdi-trash-can
