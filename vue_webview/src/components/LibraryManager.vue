@@ -19,9 +19,9 @@ const zipFile = ref<File | undefined>(undefined);
 
 const headers = [
   { title: 'Name', value: 'name', key: 'name', sortable: true },
-  { title: 'Installed', value: 'installedVersion', key: 'installedVersion', align: 'center' as const, sortable: false, width: '15%' },
-  { title: 'Latest', value: 'latestVersion', key: 'latestVersion', align: 'center' as const, sortable: false, width: '15%' },
-  { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '15%' },
+  { title: 'Installed', value: 'installedVersion', key: 'installedVersion', align: 'center' as const, sortable: false, width: '11%' },
+  { title: 'Latest', value: 'latestVersion', key: 'latestVersion', align: 'center' as const, sortable: false, width: '11%' },
+  { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false, width: '21%' },
 ];
 
 
