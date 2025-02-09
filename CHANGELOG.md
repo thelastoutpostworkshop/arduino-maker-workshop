@@ -3,23 +3,23 @@
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
 **Version 0.6.9**
-- Fixed bug when installing a library through zip ([issue](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/36))
-- Added action button to remove an updatable library ([feature request](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/37) by omarbaf)
-- Added action button to remove an updatable board ([feature request](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/37) by omarbaf)
-- Added the folder name and sketch name in the error message when folder name and sketch name do not match
+- Fix bug when installing a library through zip ([issue](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/36))
+- Add action button to remove an updatable library ([feature request](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/37) by omarbaf)
+- Add action button to remove an updatable board ([feature request](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/37) by omarbaf)
+- Add folder name and sketch name in the error message when folder name and sketch name do not match
 
 **Version 0.6.7**
-- Added user setting to set user directory, equivalent of the Arduino IDE's 'sketchbook' directory. Library Manager installations are made to the libraries subdirectory of the user director
-- Added support for macOS Intel by [rudeb0t](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/28)
+- Add user setting to set user directory, equivalent of the Arduino IDE's 'sketchbook' directory. Library Manager installations are made to the libraries subdirectory of the user director
+- Add support for macOS Intel by [rudeb0t](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/28)
 - UI Performance improvement by using cache to avoid repeated calls to the arduino-cli
 - Correctly report to the user that a project is compiled "clean"
-- Fixed bug when adding additional URL
+- Fix bug when adding additional URL
 
 **Version 0.6.2**
-- Fixed libraries with patchlevel 0 showing wrongly as updatable ([issue](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/22))
-- Fixed upload error when starting a new sketch
-- Fixed cancel or upload error forcing a recompilation
-- Fixed user error reporting when create a sketch with a name that already exist
+- Fix libraries with patchlevel 0 showing wrongly as updatable ([issue](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/22))
+- Fix upload error when starting a new sketch
+- Fix cancel or upload error forcing a recompilation
+- Fix user error reporting when create a sketch with a name that already exist
 
 **Version 0.6.1**
 - Serial monitor settings on Home page by [rudeb0t](https://github.com/rudeb0t)
@@ -29,10 +29,10 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 
 **Version 0.5.1**
 - Implement notification and cancel for upload by [rudeb0t](https://github.com/rudeb0t)
-- Fixed bundled CLI permission on macOS Silicon by [rudeb0t](https://github.com/rudeb0t)
-- Fixed Arduino CLI path in settings on Windows
+- Fix bundled CLI permission on macOS Silicon by [rudeb0t](https://github.com/rudeb0t)
+- Fix Arduino CLI path in settings on Windows
 - Changes to Arduino CLI settings are applied to the current workspace
-- Fixed intellisense adding duplicate defines
+- Fix intellisense adding duplicate defines
 
 **Version 0.5.0**
 - Linux x64 now supported
