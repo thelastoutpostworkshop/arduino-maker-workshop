@@ -347,7 +347,7 @@ const isURLInvalid = computed(() => {
             <template v-slot:item.actions="{ item }">
               <v-tooltip>
                 <template v-slot:activator="{ props }">
-                  <v-btn @click="editURL(item)" icon v-bind="props" variant="text">
+                  <v-btn @click="editURL(item)" icon v-bind="props" size="small">
                     <v-icon>
                       mdi-pencil
                     </v-icon>
@@ -357,7 +357,7 @@ const isURLInvalid = computed(() => {
               </v-tooltip>
               <v-tooltip>
                 <template v-slot:activator="{ props }">
-                  <v-btn @click="deleteURL(item)" icon v-bind="props" variant="text">
+                  <v-btn @click="deleteURL(item)" icon v-bind="props" size="small">
                     <v-icon>
                       mdi-trash-can
                     </v-icon>
