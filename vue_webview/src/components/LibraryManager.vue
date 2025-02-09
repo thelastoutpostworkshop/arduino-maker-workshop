@@ -298,6 +298,11 @@ watch(zipFile, () => {
                     mdi-tray-arrow-down
                   </v-icon>
                 </v-btn>
+              </template>
+              <span> Install latest {{ item.name }}</span>
+            </v-tooltip>
+            <v-tooltip>
+              <template v-slot:activator="{ props }">
                 <v-btn v-if="isLibraryInstalled(item) || isLibraryUpdatable(item)" icon size="small"
                   @click="uninstallLibrary(item.name)" v-bind="props" variant="text">
                   <v-icon>
@@ -305,8 +310,7 @@ watch(zipFile, () => {
                   </v-icon>
                 </v-btn>
               </template>
-              <span v-if="!isLibraryInstalled(item) || isLibraryUpdatable(item)"> Install latest {{ item.name }}</span>
-              <span v-if="isLibraryInstalled(item) && !isLibraryUpdatable(item)"> Uninstall {{ item.name }}</span>
+              <span> Uninstall {{ item.name }}</span>
             </v-tooltip>
           </template>
           <template v-slot:top>
