@@ -443,7 +443,9 @@ export class ArduinoCLI {
 
 			fs.writeFileSync(destinationPath, Buffer.from(buffer));
 			await arduinoCLI.setConfigLibrary(true);
-			this.runArduinoCommand(
+			
+			// Here we have to wait for the arduino-cli to complete, because the webview must wait before asking for installed libraries
+			await this.runArduinoCommand(
 				() => this.cliArgs.getInstallZipLibrary(destinationPath),
 				"CLI: Failed to get arduino configuration information", { caching: CacheState.NO, ttl: 0 }
 			);
