@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionCo
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoCLI, arduinoExtensionChannel, arduinoProject, changeTheme, loadArduinoConfiguration, openExample, updateStateCompileUpload } from "./extension";
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, changeTheme, loadArduinoConfiguration, openExample, shouldDetectPorts, updateStateCompileUpload } from "./extension";
 import { ARDUINO_SKETCH_EXTENSION } from "./ArduinoProject";
 
 const path = require('path');
@@ -14,7 +14,9 @@ export class VueWebviewPanel {
     private _disposables: Disposable[] = [];
     public static currentPanel: VueWebviewPanel | undefined;
     private usbChange() {
-        VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.REQUEST_BOARD_CONNECTED, errorMessage: "", payload: "" });
+        if(shouldDetectPorts()) {
+            VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.REQUEST_BOARD_CONNECTED, errorMessage: "", payload: "" });
+        }
     }
     private constructor(panel: WebviewPanel, extensionUri: Uri) {
         this._panel = panel;

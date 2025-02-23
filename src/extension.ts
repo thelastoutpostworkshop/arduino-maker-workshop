@@ -176,10 +176,22 @@ async function verifyUserDirectorySetting() {
 	}
 }
 
+export function shouldDetectPorts(): boolean {
+	const config = workspace.getConfiguration('arduinoMakerWorkshop');
+	const disableAutoPortDetection = config.get<boolean>('disableAutoPortDetection', false);
+
+	// Only disable port detection on Windows if the setting is enabled
+	if (os.platform() === 'win32' && disableAutoPortDetection) {
+		return false; // Skip port detection
+	}
+
+	return true; // Proceed with port detection
+}
+
 function changeUserDirectory() {
 	const config = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
 	const userDirectory = config.get<string>('userDirectory', '');
-	if(userDirectory.trim().length > 0) {
+	if (userDirectory.trim().length > 0) {
 		if (VueWebviewPanel.currentPanel) {
 			VueWebviewPanel.currentPanel.dispose();
 			VueWebviewPanel.currentPanel = undefined;
@@ -187,7 +199,7 @@ function changeUserDirectory() {
 		arduinoCLI.setConfigUserDirectory(userDirectory);
 		arduinoCLI.clearLibraryCache();
 		window.showInformationMessage(`User directory set to: ${userDirectory}`);
-	} 
+	}
 }
 
 function isWatchedExtension(filePath: string): boolean {
