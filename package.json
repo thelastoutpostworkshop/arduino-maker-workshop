@@ -94,6 +94,12 @@
           "scope": "machine",
           "default": "",
           "description": "File system path to the equivalent of the Arduino IDE's 'sketchbook' directory. Library Manager installations are made to the libraries subdirectory of the user director."
+        },
+        "arduinoMakerWorkshop.disableAutoPortDetection": {
+          "type": "boolean",
+          "default": false,
+          "scope": "machine",
+          "description": "Disable automatic port detection (only applies on Windows)."
         }
       }
     },
