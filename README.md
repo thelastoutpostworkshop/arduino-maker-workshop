@@ -10,6 +10,7 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 ## Settings
 - You can set the user directory, equivalent of the Arduino IDE's 'sketchbook' directory. Library Manager installations are made to the libraries subdirectory of the user directory
 - You can change the Arduino CLI used (*not recommended*) instead of using the built-in Arduino CLI (*recommended*)
+- You can disable automatic port detection on Windows
 
 ## Arduino Code Snippets : [Documentation](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/blob/main/Arduino_Snippets_Documentation.md)
 ![new sketch](.readme/snippets.gif)
