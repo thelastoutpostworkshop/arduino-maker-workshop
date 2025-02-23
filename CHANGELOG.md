@@ -2,6 +2,9 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
+**Version 0.7.0**
+- Add user setting to disable automatic port detection on Windows ([issue #30](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/30))
+
 **Version 0.6.9**
 - Fix bug when installing a library through zip ([issue](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/36))
 - Add action button to remove an updatable library ([feature request](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/37) by omarbaf)
