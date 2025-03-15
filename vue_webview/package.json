@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@mdi/font": "7.4.47",
-    "pinia": "^2.2.4",
+    "pinia": "^3.0.1",
     "roboto-fontface": "*",
     "vue": "^3.4.31",
     "vue-router": "^4.4.5",

@@ -2,6 +2,9 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
+**Version 0.7.1**
+- Arduino CLI v1.2.0 
+
 **Version 0.7.0**
 - Add user setting to disable automatic port detection on Windows ([issue #30](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/30))
 
