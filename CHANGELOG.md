@@ -2,6 +2,9 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
+**Version 0.7.2**
+- Arduino CLI v1.2.2 
+
 **Version 0.7.1**
 - Arduino CLI v1.2.0 
 
