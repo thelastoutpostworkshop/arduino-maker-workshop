@@ -341,7 +341,11 @@ export class ArduinoCLI {
 		await workspace.saveAll();
 
 		try {
-			const compileTitle = clean ? "Compiling project clean..." : "Compiling project...";
+			const verboseFlag = this.cliArgs.getVerboseOption();
+			const compileMode = verboseFlag ? "verbose" : "silent";
+			const compileTitle = clean
+				? `Compiling project clean (${compileMode})...`
+				: `Compiling project (${compileMode})...`;
 			await window.withProgress(
 				{
 					location: ProgressLocation.Notification,
@@ -443,7 +447,7 @@ export class ArduinoCLI {
 
 			fs.writeFileSync(destinationPath, Buffer.from(buffer));
 			await arduinoCLI.setConfigLibrary(true);
-			
+
 			// Here we have to wait for the arduino-cli to complete, because the webview must wait before asking for installed libraries
 			await this.runArduinoCommand(
 				() => this.cliArgs.getInstallZipLibrary(destinationPath),
