@@ -3,7 +3,7 @@
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
 **Version 0.7.3**
-- Fix a problem when creating sketch on an alternate drive ([issue #30](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/30))
+- Fix a problem when creating sketch on an alternate drive ([issue #58](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/58#issuecomment-3021072025))
 - Add user setting to enable verbose compilation or not (default is verbose)
 
 **Version 0.7.2**
