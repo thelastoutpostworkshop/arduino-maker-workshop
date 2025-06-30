@@ -20,7 +20,7 @@ export enum UPLOAD_READY_STATUS {
     UNKNOWN
 }
 
-export function getMonitorPortSettingsDefault() : MonitorPortSettings {
+export function getMonitorPortSettingsDefault(): MonitorPortSettings {
     return {
         port: "", baudRate: 115200, lineEnding: LineEnding.CRLF, dataBits: 8, parity: Parity.None, stopBits: StopBits.One
     };
@@ -52,7 +52,7 @@ export class ArduinoProject {
             try {
                 const content = fs.readFileSync(resultFile, 'utf-8');
                 const result: CompileResult = JSON.parse(content);
-                if(result.result) {
+                if (result.result) {
                     return UPLOAD_READY_STATUS.READY
                 } else {
                     return UPLOAD_READY_STATUS.LAST_COMPILE_FAILED
@@ -109,7 +109,7 @@ export class ArduinoProject {
                         configJson.monitorPortSettings.port = configJson.port;
                     }
                 }
-                
+
                 this.configJson = configJson;
                 this.writeVSCodeArduinoConfiguration();
 
@@ -127,35 +127,35 @@ export class ArduinoProject {
     }
 
     public isFolderArduinoProject(): ARDUINO_ERRORS {
-        try {
-            let error: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_INO_FILES;
+        let error: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_INO_FILES;
 
-            const folderName = path.basename(this.getProjectPath());
-            const files = fs.readdirSync(this.getProjectPath());
+        const folderName = path.basename(this.getProjectPath());
+        const files = fs.readdirSync(this.getProjectPath());
 
-            for (const file of files) {
-                const filePath = path.join(this.getProjectPath(), file);
+        for (const file of files) {
+            const filePath = path.join(this.getProjectPath(), file);
 
+            try {
                 if (fs.statSync(filePath).isFile() && path.extname(file).toLowerCase() === ARDUINO_SKETCH_EXTENSION) {
                     const sketchBase = path.basename(file, ARDUINO_SKETCH_EXTENSION);
 
                     if (sketchBase === folderName) {
-                        error = ARDUINO_ERRORS.NO_ERRORS;
-                        break;
+                        return ARDUINO_ERRORS.NO_ERRORS;
                     } else {
                         this.projectStatus.sketchName = sketchBase;
                         this.projectStatus.folderName = folderName;
                         error = ARDUINO_ERRORS.WRONG_FOLDER_NAME;
                     }
                 }
+            } catch (err) {
+                console.warn(`Skipping file ${file}:`, err);
+                continue; // skip problematic file
             }
-
-            return error;
-        } catch (error) {
-            console.error('Error reading folder:', error);
-            return ARDUINO_ERRORS.INTERNAL;
         }
+
+        return error;
     }
+
 
     public setPort(port: string): void {
         this.configJson.port = port;
