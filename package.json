@@ -100,6 +100,11 @@
           "default": false,
           "scope": "machine",
           "description": "Disable automatic port detection (only applies on Windows)."
+        },
+        "arduinoMakerWorkshop.verboseCompile": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable verbose output during Arduino CLI compile."
         }
       }
     },

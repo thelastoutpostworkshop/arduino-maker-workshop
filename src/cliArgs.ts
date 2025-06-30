@@ -1,4 +1,5 @@
 import { arduinoProject } from "./extension";
+import { workspace } from 'vscode';
 
 const path = require('path');
 
@@ -45,6 +46,10 @@ const configDirUserSetting: string = 'directories.user';
 const configLibrarySetting: string = 'library.enable_unsafe_install';
 
 export class CLIArguments {
+    public getVerboseOption(): boolean {
+        const config = workspace.getConfiguration('arduinoMakerWorkshop');
+        return config.get<boolean>('verboseCompile', true);
+    }
     public getConfigSetLibrarySetting(enable: boolean): string[] {
         const command = [
             `${configCommandArduino}`,
@@ -270,11 +275,13 @@ export class CLIArguments {
     }
     public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false, configurationRequired: boolean): string[] {
         const compileCommand = [
-            `${compileCommandArduino}`,
-            `${verboseOptionArduino}`,
-            `${noColorOptionArduino}`,
-            `${fqbnOptionArduino}`
+            `${compileCommandArduino}`
         ];
+        if (this.getVerboseOption()) {
+            compileCommand.push(verboseOptionArduino);
+        }
+        compileCommand.push(noColorOptionArduino);
+        compileCommand.push(fqbnOptionArduino);
         if (configurationRequired) {
             compileCommand.push(`${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`);
         } else {
