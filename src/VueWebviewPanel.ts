@@ -14,7 +14,7 @@ export class VueWebviewPanel {
     private _disposables: Disposable[] = [];
     public static currentPanel: VueWebviewPanel | undefined;
     private usbChange() {
-        if(shouldDetectPorts()) {
+        if (shouldDetectPorts()) {
             VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.REQUEST_BOARD_CONNECTED, errorMessage: "", payload: "" });
         }
     }
@@ -38,9 +38,9 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                         const projectStatus: ArduinoProjectStatus = { status: arduinoProject.isFolderArduinoProject(), cli_status: arduinoCLI.getCLIStatus() };
-                        if(projectStatus.status == ARDUINO_ERRORS.WRONG_FOLDER_NAME) {
+                        if (projectStatus.status == ARDUINO_ERRORS.WRONG_FOLDER_NAME) {
                             projectStatus.folderName = arduinoProject.getStatus().folderName;
-                            projectStatus.sketchName = arduinoProject.getStatus().sketchName+ARDUINO_SKETCH_EXTENSION;
+                            projectStatus.sketchName = arduinoProject.getStatus().sketchName + ARDUINO_SKETCH_EXTENSION;
                         }
                         message.payload = projectStatus;
                         VueWebviewPanel.sendMessage(message);
@@ -125,6 +125,11 @@ export class VueWebviewPanel {
                         const libToInstall = message.payload;
                         arduinoCLI.runInstallLibraryVersion(libToInstall).then(() => {
                             message.command = ARDUINO_MESSAGES.LIBRARY_VERSION_INSTALLED;
+                            VueWebviewPanel.sendMessage(message);
+                        }).catch(() => {
+                            // Library installation error
+                            message.payload = "";
+                            message.command = ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLATION_ERROR;
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;

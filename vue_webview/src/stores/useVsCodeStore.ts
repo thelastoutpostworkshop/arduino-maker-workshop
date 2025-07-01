@@ -176,7 +176,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.CLI_BOARD_SEARCH:
                     if (this.boards === null) {
                         vscode.postMessage(message);
-                    } 
+                    }
                     break;
                 case ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH:
                     if (!this.libraries) {
@@ -313,6 +313,9 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: "", payload: "" });
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_UPDATE_INDEX, errorMessage: "", payload: "" });
+                    break;
+                case ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLATION_ERROR:
+                    this.libraryUpdating = "";
                     break;
                 case ARDUINO_MESSAGES.CORE_UNINSTALLED:
                 case ARDUINO_MESSAGES.CORE_VERSION_INSTALLED:
