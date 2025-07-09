@@ -108,6 +108,7 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.SET_OPTIMIZE_FOR_DEBUG:
                         arduinoProject.setOptimizeForDebug(message.payload);
+                        arduinoCLI.setBuildResult(false);
                         break;
                     case ARDUINO_MESSAGES.CLI_UPDATE_INDEX:
                         arduinoCLI.getCoreUpdate().then(() => {
