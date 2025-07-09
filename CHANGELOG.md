@@ -3,7 +3,7 @@
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
 **Version 0.7.4**
-- Add option to Optimize compile output for debugging, rather than for release ([feature request #59](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/59))
+- Add option to optimize compile output for debugging, rather than for release ([feature request #59](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/59))
 
 **Version 0.7.3**
 - Add user setting to enable verbose compilation or not (default is verbose)
