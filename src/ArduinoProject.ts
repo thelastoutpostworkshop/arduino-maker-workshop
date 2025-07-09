@@ -238,6 +238,9 @@ export class ArduinoProject {
     public useProgrammer(): boolean {
         return this.configJson.useProgrammer || false;
     }
+    public optimizeForDebug(): boolean {
+        return this.configJson.optimize_for_debug || false;
+    }
     public setUseProgrammer(use: boolean): void {
         this.configJson.useProgrammer = use;
         this.writeVSCodeArduinoConfiguration();

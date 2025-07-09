@@ -13,6 +13,7 @@ const setOption: string = 'set';
 const getOption: string = 'get';
 const compileCommandArduino: string = 'compile';
 const compileCleanOption: string = '--clean';
+const optimizeForDebugOption: string = '--optimize-for-debug';
 const buildPathArduino: string = '--build-path';
 const verboseOptionArduino: string = '-v';
 const noColorOptionArduino: string = '--no-color';
@@ -280,6 +281,9 @@ export class CLIArguments {
         if (this.getVerboseOption()) {
             compileCommand.push(verboseOptionArduino);
         }
+        if (arduinoProject.optimizeForDebug()) {
+            compileCommand.push(`${optimizeForDebugOption}`);
+        }
         compileCommand.push(noColorOptionArduino);
         compileCommand.push(fqbnOptionArduino);
         if (configurationRequired) {
@@ -296,6 +300,7 @@ export class CLIArguments {
         if (clean) {
             compileCommand.push(`${compileCleanOption}`);
         }
+
         return compileCommand;
     }
     public getConfigDumpArgs(): string[] {
