@@ -92,6 +92,7 @@ export interface ArduinoProjectConfiguration {
   board: string;
   programmer: string;
   useProgrammer: boolean;
+  optimize_for_debug: boolean;
   monitorPortSettings: MonitorPortSettings
 };
 
@@ -107,8 +108,8 @@ export enum ARDUINO_ERRORS {
 export interface ArduinoProjectStatus {
   cli_status?: ArduinoCLIStatus;
   status: ARDUINO_ERRORS;
-  folderName?:string;
-  sketchName?:string;
+  folderName?: string;
+  sketchName?: string;
 }
 
 export interface ArduinoCLIStatus {
@@ -422,7 +423,7 @@ export const ARDUINO_MESSAGES = {
   CLI_INSTALL_LIBRARY: 'cli_InstallLibrary',
   CLI_UNINSTALL_LIBRARY: 'cli_UnInstallLibrary',
   CLI_LIBRARY_INSTALLED: 'cli_libraryInstalled',
-  CLI_LIBRARY_INSTALLATION_ERROR:'cli_libraryInstallationError',
+  CLI_LIBRARY_INSTALLATION_ERROR: 'cli_libraryInstallationError',
   CLI_GET_CONFIG: 'cli_getConfig',
   CLI_CONFIG_REMOVE_ADDITIONAL_URL: 'cli_congifRemoveAdditionnalUrl',
   CLI_CONFIG_ADD_ADDITIONAL_URL: 'cli_congifAddAdditionnalUrl',
@@ -435,6 +436,7 @@ export const ARDUINO_MESSAGES = {
   SET_MONITOR_PORT_SETTINGS: 'setMonitorPortSettings',
   SET_PROGRAMMER: 'setArduinoProgrammer',
   SET_USE_PROGRAMMER: 'setArduinoUseProgrammer',
+  SET_OPTIMIZE_FOR_DEBUG: 'setOptimizeForDebug',
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
   CORE_UNINSTALLED: 'coreUninstalled',
   LIBRARY_VERSION_INSTALLED: 'libraryVersionInstalled',

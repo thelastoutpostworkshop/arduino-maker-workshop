@@ -14,6 +14,7 @@ const portSelected = ref('');
 const sketchName = ref("");
 const useProgrammer = ref(false);
 const programmer = ref("");
+const optimize_for_debug = ref(false);
 const monitorPortSettings = reactive({ port: "", baudRate: 115200, lineEnding: "\r\n", dataBits: 8, parity: "none", stopBits: "one" });
 
 const portsAvailable = computed(() => getAvailablePorts(store));
@@ -80,6 +81,11 @@ watch(useProgrammer, (newStatus) => {
     store.sendMessage({ command: ARDUINO_MESSAGES.SET_USE_PROGRAMMER, errorMessage: "", payload: newStatus });
   }
 });
+watch(optimize_for_debug, (newStatus) => {
+  if (newStatus != undefined) {
+    store.sendMessage({ command: ARDUINO_MESSAGES.SET_OPTIMIZE_FOR_DEBUG, errorMessage: "", payload: newStatus });
+  }
+});
 
 watch(
   [() => store.boardConnected, () => store.projectInfo],
@@ -106,6 +112,7 @@ watch(
     if (projectInfo) {
       useProgrammer.value = projectInfo.useProgrammer;
       programmer.value = projectInfo.programmer;
+      optimize_for_debug.value = projectInfo.optimize_for_debug;
     }
     if (projectInfo?.monitorPortSettings) {
       getStoredMonitorPortSettings();
@@ -205,6 +212,14 @@ onMounted(() => {
 
                   </v-select>
                 </span>
+              </v-row>
+              <v-row class="ml-2">
+                <div>
+                  <v-checkbox v-model="optimize_for_debug" label="Optimize Compile Output for Debugging">
+
+                  </v-checkbox>
+
+                </div>
               </v-row>
             </div>
           </v-card>
