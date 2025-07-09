@@ -42,7 +42,7 @@ export class ArduinoProject {
             vscode.window.showErrorMessage('No workspace available, open a workspace by using the File > Open Folder... menu, and then selecting a folder');
         }
         this.configJson = {
-            port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "", programmer: "", useProgrammer: false, configurationRequired: false,
+            port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "", programmer: "", useProgrammer: false, optimize_for_debug: false, configurationRequired: false,
             monitorPortSettings: getMonitorPortSettingsDefault()
         };
     }
@@ -108,6 +108,10 @@ export class ArduinoProject {
                     if (configJson.port.trim().length !== 0) {
                         configJson.monitorPortSettings.port = configJson.port;
                     }
+                }
+
+                if(configJson.optimize_for_debug == undefined) {
+                    configJson.optimize_for_debug = false;
                 }
 
                 this.configJson = configJson;
@@ -236,6 +240,10 @@ export class ArduinoProject {
     }
     public setUseProgrammer(use: boolean): void {
         this.configJson.useProgrammer = use;
+        this.writeVSCodeArduinoConfiguration();
+    }
+    public setOptimizeForDebug(optimize: boolean): void {
+        this.configJson.optimize_for_debug = optimize;
         this.writeVSCodeArduinoConfiguration();
     }
     public setConfigurationRequired(required: boolean): void {
