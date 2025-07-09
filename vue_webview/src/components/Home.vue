@@ -199,7 +199,7 @@ onMounted(() => {
               </template>
             </v-select>
             <div v-if="store.boardOptions?.programmers">
-              <v-row align="center" class="pt-3 ml-2">
+              <v-row class="pt-3 ml-2">
                 <span>
                   <v-checkbox v-model="useProgrammer" label="Use programmer">
 
@@ -215,7 +215,7 @@ onMounted(() => {
               </v-row>
               <v-row class="ml-2">
                 <div>
-                  <v-checkbox v-model="optimize_for_debug" label="Optimize Compile Output for Debugging">
+                  <v-checkbox v-model="optimize_for_debug" label="Optimize compile output for debugging, rather than for release">
 
                   </v-checkbox>
 
