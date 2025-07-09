@@ -342,7 +342,8 @@ export class ArduinoCLI {
 
 		try {
 			const verboseFlag = this.cliArgs.getVerboseOption();
-			const compileMode = verboseFlag ? "verbose" : "silent";
+			const optimizeDebugFlag = arduinoProject.optimizeForDebug();
+			const compileMode = (optimizeDebugFlag ? "for debug, ":"for release, ")+(verboseFlag ? "verbose" : "silent");
 			const compileTitle = clean
 				? `Compiling project clean (${compileMode})...`
 				: `Compiling project (${compileMode})...`;
