@@ -232,7 +232,7 @@ export class ArduinoProject {
         return this.configJson.programmer || '';
     }
     public setProgrammer(programmer: string): void {
-        this.configJson.programmer = programmer;
+        this.configJson.programmer = programmer.toLowerCase();
         this.writeVSCodeArduinoConfiguration();
     }
     public useProgrammer(): boolean {
