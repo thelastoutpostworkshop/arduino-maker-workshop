@@ -10,7 +10,7 @@ watch(
     () => store.currentTheme,
     (newTheme) => {
         if(newTheme) {
-            theme.global.name.value = newTheme;
+            theme.change(newTheme);
         }
     }
 );
