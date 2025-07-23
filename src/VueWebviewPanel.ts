@@ -51,8 +51,10 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                         const projectInfo = this.createWebviewMessage(ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO);
                         if (loadArduinoConfiguration()) {
+                            arduinoExtensionChannel.appendLine(`Loading project configuration`);
                             projectInfo.payload = arduinoProject.getArduinoConfiguration();
                         } else {
+                            arduinoExtensionChannel.appendLine(`Not an Arduino Project`);
                             projectInfo.errorMessage = "Not an Arduino Project";
                         }
                         VueWebviewPanel.sendMessage(projectInfo);
