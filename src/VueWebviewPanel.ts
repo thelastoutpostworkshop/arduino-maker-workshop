@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionCo
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoCLI, arduinoExtensionChannel, arduinoProject, changeTheme, loadArduinoConfiguration, openExample, shouldDetectPorts, updateStateCompileUpload } from "./extension";
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, loadArduinoConfiguration, openExample, shouldDetectPorts, updateStateCompileUpload } from "./extension";
 import { ARDUINO_SKETCH_EXTENSION } from "./ArduinoProject";
 
 const path = require('path');
@@ -58,6 +58,11 @@ export class VueWebviewPanel {
                             projectInfo.errorMessage = "Not an Arduino Project";
                         }
                         VueWebviewPanel.sendMessage(projectInfo);
+                        break;
+                    case ARDUINO_MESSAGES.ARDUINO_YAML_INFO:
+                        if(arduinoYaml.exists()) {
+                            arduinoExtensionChannel.appendLine(`A yaml file is in the project`);
+                        }
                         break;
                     case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                         arduinoCLI.getBoardConfiguration().then((result) => {

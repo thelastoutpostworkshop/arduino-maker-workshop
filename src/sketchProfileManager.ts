@@ -20,20 +20,15 @@ export class SketchProfileManager {
 
   constructor(private sketchFolder: string) {}
 
-  async exists(): Promise<boolean> {
+  exists(): boolean {
     const file = path.join(this.sketchFolder, SketchProfileManager.FILENAME);
-    try {
-      await fs.access(file);
-      return true;
-    } catch {
-      return false;
-    }
+    return fs.existsSync(file);
   }
 
-  async read(): Promise<SketchYaml | undefined> {
+  read(): SketchYaml | undefined {
     const file = path.join(this.sketchFolder, SketchProfileManager.FILENAME);
     try {
-      const content = await fs.readFile(file, 'utf8');
+      const content = fs.readFileSync(file, 'utf8');
       const data = yaml.parse(content) as SketchYaml;
       return data;
     } catch (error) {
@@ -42,13 +37,13 @@ export class SketchProfileManager {
     }
   }
 
-  async write(yamlData: SketchYaml): Promise<void> {
+  write(yamlData: SketchYaml): void {
     const file = path.join(this.sketchFolder, SketchProfileManager.FILENAME);
     const content = yaml.stringify(yamlData);
-    await fs.writeFile(file, content, 'utf8');
+    fs.writeFileSync(file, content, 'utf8');
   }
 
-  async createFromArduinoJson(arduinoJson: any, sketchFilename: string): Promise<void> {
+  createFromArduinoJson(arduinoJson: any, sketchFilename: string): void {
     const yamlData: SketchYaml = {
       sketch: sketchFilename,
       profiles: {
@@ -62,16 +57,16 @@ export class SketchProfileManager {
       },
     };
 
-    await this.write(yamlData);
+    this.write(yamlData);
   }
 
-  async listProfiles(): Promise<string[]> {
-    const yamlData = await this.read();
+  listProfiles(): string[] {
+    const yamlData = this.read();
     return yamlData ? Object.keys(yamlData.profiles) : [];
   }
 
-  async getProfile(name: string): Promise<BuildProfile | undefined> {
-    const yamlData = await this.read();
+  getProfile(name: string): BuildProfile | undefined {
+    const yamlData = this.read();
     return yamlData?.profiles[name];
   }
 }

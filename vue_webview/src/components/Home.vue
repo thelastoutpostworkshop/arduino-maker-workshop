@@ -62,7 +62,6 @@ function refreshPorts() {
 watch(() => store.projectStatus?.status, (newStatus) => {
   if (newStatus == ARDUINO_ERRORS.NO_ERRORS) {
     store.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
-    store.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_YAML_INFO, errorMessage: "", payload: "" });
   }
 }, { deep: true });
 
