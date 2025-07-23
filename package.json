@@ -153,6 +153,7 @@
   ],
   "dependencies": {
     "@microsoft/vscode-serial-monitor-api": "^0.1.7",
-    "usb": "^2.14.0"
+    "usb": "^2.14.0",
+    "yaml": "^2.8.0"
   }
 }
