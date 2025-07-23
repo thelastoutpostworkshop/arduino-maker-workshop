@@ -430,6 +430,7 @@ export const ARDUINO_MESSAGES = {
   CLI_CONFIG_SET_ADDITIONAL_URL: 'cli_congifSetAdditionnalUrl',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
   ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
+  ARDUINO_YAML_INFO: 'getArduinoYamlInfo',
   SET_BOARD: 'setArduinoBoard',
   SET_BOARD_OPTIONS: 'setArduinoBoardOptions',
   SET_PORT: 'setArduinoPort',
