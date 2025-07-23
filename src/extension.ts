@@ -4,6 +4,7 @@ import { VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, quickAccessCompileCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, THEME_COLOR } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
+import { SketchProfileManager } from "./sketchProfileManager";
 
 const os = require('os');
 
@@ -23,6 +24,7 @@ arduinoExtensionChannel.appendLine(`Arduino Extension started on ${os.platform}`
 const quickAccessProvider = new QuickAccessProvider();
 
 export const arduinoProject: ArduinoProject = new ArduinoProject();
+export const arduinoYaml:SketchProfileManager = new SketchProfileManager(arduinoProject.getProjectPath());
 export let arduinoCLI: ArduinoCLI;
 
 let debounceTimeout: NodeJS.Timeout | undefined; // To debounce changes to settings

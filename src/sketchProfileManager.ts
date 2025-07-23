@@ -1,7 +1,6 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
+const path = require('path');
+const fs = require('fs');
 import * as yaml from 'yaml';
-import { Uri } from 'vscode';
 
 interface BuildProfile {
   fqbn: string;
@@ -19,10 +18,10 @@ interface SketchYaml {
 export class SketchProfileManager {
   static readonly FILENAME = 'sketch.yaml';
 
-  constructor(private sketchFolder: Uri) {}
+  constructor(private sketchFolder: string) {}
 
   async exists(): Promise<boolean> {
-    const file = path.join(this.sketchFolder.fsPath, SketchProfileManager.FILENAME);
+    const file = path.join(this.sketchFolder, SketchProfileManager.FILENAME);
     try {
       await fs.access(file);
       return true;
@@ -32,7 +31,7 @@ export class SketchProfileManager {
   }
 
   async read(): Promise<SketchYaml | undefined> {
-    const file = path.join(this.sketchFolder.fsPath, SketchProfileManager.FILENAME);
+    const file = path.join(this.sketchFolder, SketchProfileManager.FILENAME);
     try {
       const content = await fs.readFile(file, 'utf8');
       const data = yaml.parse(content) as SketchYaml;
@@ -44,7 +43,7 @@ export class SketchProfileManager {
   }
 
   async write(yamlData: SketchYaml): Promise<void> {
-    const file = path.join(this.sketchFolder.fsPath, SketchProfileManager.FILENAME);
+    const file = path.join(this.sketchFolder, SketchProfileManager.FILENAME);
     const content = yaml.stringify(yamlData);
     await fs.writeFile(file, content, 'utf8');
   }
