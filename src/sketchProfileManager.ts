@@ -17,7 +17,7 @@ interface SketchYaml {
 }
 
 export class SketchProfileManager {
-  static readonly FILENAME = 'arduino.sketch.yaml';
+  static readonly FILENAME = 'sketch.yaml';
 
   constructor(private sketchFolder: Uri) {}
 
