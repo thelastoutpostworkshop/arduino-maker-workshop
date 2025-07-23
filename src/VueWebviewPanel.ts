@@ -234,7 +234,7 @@ export class VueWebviewPanel {
 
     private setConfiguration(message: WebviewToExtensionMessage) {
         const configuration = message.payload;
-        arduinoExtensionChannel.appendLine(`New Configration=:${configuration}`);
+        // arduinoExtensionChannel.appendLine(`New Configration=:${configuration}`);
         arduinoProject.setConfiguration(configuration);
         arduinoProject.setConfigurationRequired(true);
     }

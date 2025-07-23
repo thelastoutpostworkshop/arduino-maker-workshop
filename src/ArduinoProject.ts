@@ -192,7 +192,7 @@ export class ArduinoProject {
 
     private writeVSCodeArduinoConfiguration() {
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
-        arduinoExtensionChannel.appendLine(`Wrote configuration to ${this.arduinoConfigurationPath}`);
+        // arduinoExtensionChannel.appendLine(`Wrote configuration to ${this.arduinoConfigurationPath}`);
     }
     public getProjectPath(): string {
         return this.projectFullPath;
