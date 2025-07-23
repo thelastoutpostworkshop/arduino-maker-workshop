@@ -228,7 +228,7 @@ export class VueWebviewPanel {
 
     private setBoard(message: WebviewToExtensionMessage) {
         const fqbn = message.payload;
-        arduinoExtensionChannel.appendLine(`Set Board FQBN=:${fqbn}`);
+        // arduinoExtensionChannel.appendLine(`Set Board FQBN=:${fqbn}`);
         arduinoProject.setBoard(fqbn);
     }
 
@@ -241,13 +241,13 @@ export class VueWebviewPanel {
 
     private setPort(message: WebviewToExtensionMessage) {
         const port = message.payload;
-        arduinoExtensionChannel.appendLine(`New Port=:${port}`);
+        // arduinoExtensionChannel.appendLine(`New Port=:${port}`);
         arduinoProject.setPort(port);
     }
 
     private setMonitorPortSettings(message: WebviewToExtensionMessage) {
         const monitorPortSettings = JSON.parse(message.payload);
-        arduinoExtensionChannel.appendLine(`New monitorPortSettings=:${JSON.stringify(monitorPortSettings)}`);
+        // arduinoExtensionChannel.appendLine(`New monitorPortSettings=:${JSON.stringify(monitorPortSettings)}`);
         arduinoProject.setMonitorPortSettings(monitorPortSettings);
     }
 
