@@ -125,7 +125,7 @@ export class VueWebviewPanel {
                                     window.showInformationMessage(`Build profile will be used`)
                                 }
                             } else {
-                                arduinoYaml.createFromArduinoJson();
+                                arduinoYaml.create();
                                 window.showInformationMessage(`A sketch.yaml file was created, build profile will be used`)
                             }
                         }

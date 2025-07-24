@@ -58,7 +58,7 @@ export class SketchProfileManager {
         fs.writeFileSync(file, content, 'utf8');
     }
 
-    createFromArduinoJson(): void {
+    create(): void {
         const yamlData: SketchYaml = {
             profiles: {
                 profile_1: {
