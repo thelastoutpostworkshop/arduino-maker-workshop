@@ -59,11 +59,7 @@ export class VueWebviewPanel {
                         }
                         VueWebviewPanel.sendMessage(projectInfo);
                         break;
-                    case ARDUINO_MESSAGES.ARDUINO_YAML_INFO:
-                        if(arduinoYaml.exists()) {
-                            arduinoExtensionChannel.appendLine(`A yaml file is in the project`);
-                        }
-                        break;
+
                     case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                         arduinoCLI.getBoardConfiguration().then((result) => {
                             message.payload = result;
@@ -115,6 +111,9 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.SET_USE_PROGRAMMER:
                         arduinoProject.setUseProgrammer(message.payload);
+                        break;
+                    case ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE:
+                        arduinoProject.setUseBuildProfile(message.payload);
                         break;
                     case ARDUINO_MESSAGES.SET_OPTIMIZE_FOR_DEBUG:
                         arduinoProject.setOptimizeForDebug(message.payload);
