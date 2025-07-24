@@ -15,6 +15,7 @@ const sketchName = ref("");
 const useProgrammer = ref(false);
 const programmer = ref("");
 const optimize_for_debug = ref(false);
+const useBuildProfile = ref(false);
 const monitorPortSettings = reactive({ port: "", baudRate: 115200, lineEnding: "\r\n", dataBits: 8, parity: "none", stopBits: "one" });
 
 const portsAvailable = computed(() => getAvailablePorts(store));
@@ -215,10 +216,17 @@ onMounted(() => {
               </v-row>
               <v-row class="ml-2">
                 <div>
-                  <v-checkbox v-model="optimize_for_debug" label="Optimize compile output for debugging, rather than for release">
+                  <v-checkbox v-model="optimize_for_debug"
+                    label="Optimize compile output for debugging, rather than for release">
 
                   </v-checkbox>
 
+                </div>
+              </v-row>
+              <v-row class="ml-2">
+                <div>
+                  <v-checkbox v-model="useBuildProfile" label="Build using a profile" color="secondary">
+                  </v-checkbox>
                 </div>
               </v-row>
             </div>
