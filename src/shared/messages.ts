@@ -411,6 +411,33 @@ export enum THEME_COLOR {
   highContrast
 }
 
+// Build profiles
+//
+export interface SketchYaml {
+    profiles: Record<string, BuildProfile>;
+}
+
+export interface LibraryDependency {
+    name: string;     // e.g. "Adafruit GFX Library"
+    version?: string; // e.g. "1.11.3"
+}
+export interface BuildProfile {
+    notes?: string;
+    fqbn: string;
+    programmer?: string;
+    platforms?: PlatformDependencyProfile[];
+    libraries?: LibraryDependency[];
+    port?: string;
+    port_config?: Record<string, string>;
+    protocol?: string;
+    buildProperties?: Record<string, string>; // Optional addition, not in spec but can be useful
+}
+
+export interface PlatformDependencyProfile {
+    platform: string; // e.g. "esp32:esp32 (2.0.11)"
+    platform_index_url?: string;
+}
+
 export const ARDUINO_MESSAGES = {
   CLI_BOARD_OPTIONS: 'cli_getArduinoBoardOptions',
   CLI_BOARD_SEARCH: 'cli_getArduinoBoardSearch',

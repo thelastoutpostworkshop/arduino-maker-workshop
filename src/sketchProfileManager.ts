@@ -2,33 +2,7 @@ const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
 import { arduinoProject } from './extension';
-import { platform } from 'os';
-
-interface SketchYaml {
-    profiles: Record<string, BuildProfile>;
-}
-
-interface BuildProfile {
-    notes?: string;
-    fqbn: string;
-    programmer?: string;
-    platforms?: PlatformDependency[];
-    libraries?: LibraryDependency[];
-    port?: string;
-    port_config?: Record<string, string>;
-    protocol?: string;
-    buildProperties?: Record<string, string>; // Optional addition, not in spec but can be useful
-}
-
-interface PlatformDependency {
-    platform: string; // e.g. "esp32:esp32 (2.0.11)"
-    platform_index_url?: string;
-}
-
-export interface LibraryDependency {
-    name: string;     // e.g. "Adafruit GFX Library"
-    version?: string; // e.g. "1.11.3"
-}
+import { BuildProfile, SketchYaml } from './shared/messages';
 
 export class SketchProfileManager {
     static readonly FILENAME = 'sketch.yaml';
