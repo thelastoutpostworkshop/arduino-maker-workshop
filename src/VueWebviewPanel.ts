@@ -118,7 +118,7 @@ export class VueWebviewPanel {
                         if (arduinoProject.useBuildProfile()) {
                             const result = arduinoYaml.verify();
                             if (!result.valid) {
-                                window.showErrorMessage(`Build profile errors: ${result.errors}`);
+                                window.showErrorMessage(`Build profile: ${result.errors}`);
                                 console.log('YAML validation failed:', result.errors);
                             } else {
                                 window.showInformationMessage(`Build profile will be used`)

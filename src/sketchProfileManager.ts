@@ -73,28 +73,32 @@ export class SketchProfileManager {
     verify(): { valid: boolean; errors: string[] } {
         const errors: string[] = [];
 
-        const data = this.read();
-        if (!data) {
-            return { valid: false, errors: ['Unable to read sketch.yaml'] };
-        }
+        if (this.exists()) {
+            const data = this.read();
+            if (!data) {
+                return { valid: false, errors: ['Unable to read sketch.yaml'] };
+            }
 
-        if (typeof data.sketch !== 'string' || !data.sketch.trim()) {
-            errors.push('Missing or invalid "sketch" field.');
-        }
+            if (typeof data.sketch !== 'string' || !data.sketch.trim()) {
+                errors.push('Missing or invalid "sketch" field.');
+            }
 
-        if (!data.profiles || typeof data.profiles !== 'object') {
-            errors.push('Missing or invalid "profiles" section.');
-        } else {
-            const profileKeys = Object.keys(data.profiles);
-            if (profileKeys.length === 0) {
-                errors.push('No profiles defined in "profiles" section.');
+            if (!data.profiles || typeof data.profiles !== 'object') {
+                errors.push('Missing or invalid "profiles" section.');
             } else {
-                for (const [name, profile] of Object.entries(data.profiles)) {
-                    if (!profile.fqbn || typeof profile.fqbn !== 'string') {
-                        errors.push(`Profile "${name}" is missing a valid "fqbn".`);
+                const profileKeys = Object.keys(data.profiles);
+                if (profileKeys.length === 0) {
+                    errors.push('No profiles defined in "profiles" section.');
+                } else {
+                    for (const [name, profile] of Object.entries(data.profiles)) {
+                        if (!profile.fqbn || typeof profile.fqbn !== 'string') {
+                            errors.push(`Profile "${name}" is missing a valid "fqbn".`);
+                        }
                     }
                 }
             }
+        } else {
+            return { valid: false, errors: ['Create a sketch.yaml first'] };
         }
 
         return { valid: errors.length === 0, errors };
