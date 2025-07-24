@@ -4,6 +4,7 @@ import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, loadArduinoConfiguration, openExample, shouldDetectPorts, updateStateCompileUpload } from "./extension";
 import { ARDUINO_SKETCH_EXTENSION } from "./ArduinoProject";
+import { SketchProfileManager } from "./sketchProfileManager";
 
 const path = require('path');
 const os = require('os');
@@ -114,6 +115,15 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE:
                         arduinoProject.setUseBuildProfile(message.payload);
+                        if (arduinoProject.useBuildProfile()) {
+                            const result = arduinoYaml.verify();
+                            if (!result.valid) {
+                                window.showErrorMessage(`Build profile errors: ${result.errors}`);
+                                console.log('YAML validation failed:', result.errors);
+                            } else {
+                                window.showInformationMessage(`Build profile will be used`)
+                            }
+                        }
                         break;
                     case ARDUINO_MESSAGES.SET_OPTIMIZE_FOR_DEBUG:
                         arduinoProject.setOptimizeForDebug(message.payload);

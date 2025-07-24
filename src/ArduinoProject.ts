@@ -250,6 +250,9 @@ export class ArduinoProject {
         this.configJson.useBuildProfile = use;
         this.writeVSCodeArduinoConfiguration();
     }
+    public useBuildProfile(): boolean {
+        return this.configJson.useBuildProfile || false;
+    }
     public setOptimizeForDebug(optimize: boolean): void {
         this.configJson.optimize_for_debug = optimize;
         this.writeVSCodeArduinoConfiguration();
