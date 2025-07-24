@@ -94,6 +94,7 @@ export interface ArduinoProjectConfiguration {
   useProgrammer: boolean;
   optimize_for_debug: boolean;
   monitorPortSettings: MonitorPortSettings
+  useBuildProfile:boolean;
 };
 
 export enum ARDUINO_ERRORS {
@@ -430,13 +431,13 @@ export const ARDUINO_MESSAGES = {
   CLI_CONFIG_SET_ADDITIONAL_URL: 'cli_congifSetAdditionnalUrl',
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
   ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
-  ARDUINO_YAML_INFO: 'getArduinoYamlInfo',
   SET_BOARD: 'setArduinoBoard',
   SET_BOARD_OPTIONS: 'setArduinoBoardOptions',
   SET_PORT: 'setArduinoPort',
   SET_MONITOR_PORT_SETTINGS: 'setMonitorPortSettings',
   SET_PROGRAMMER: 'setArduinoProgrammer',
   SET_USE_PROGRAMMER: 'setArduinoUseProgrammer',
+  SET_USE_BUILD_PROFILE: 'setUseBuildProfile',
   SET_OPTIMIZE_FOR_DEBUG: 'setOptimizeForDebug',
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
   CORE_UNINSTALLED: 'coreUninstalled',

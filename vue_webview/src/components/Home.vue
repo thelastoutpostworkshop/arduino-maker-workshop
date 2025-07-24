@@ -87,6 +87,11 @@ watch(optimize_for_debug, (newStatus) => {
     store.sendMessage({ command: ARDUINO_MESSAGES.SET_OPTIMIZE_FOR_DEBUG, errorMessage: "", payload: newStatus });
   }
 });
+watch(useBuildProfile, (newStatus) => {
+  if (newStatus != undefined) {
+    store.sendMessage({ command: ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE, errorMessage: "", payload: newStatus });
+  }
+});
 
 watch(
   [() => store.boardConnected, () => store.projectInfo],
@@ -114,6 +119,7 @@ watch(
       useProgrammer.value = projectInfo.useProgrammer;
       programmer.value = projectInfo.programmer;
       optimize_for_debug.value = projectInfo.optimize_for_debug;
+      useBuildProfile.value = projectInfo.useBuildProfile;
     }
     if (projectInfo?.monitorPortSettings) {
       getStoredMonitorPortSettings();
