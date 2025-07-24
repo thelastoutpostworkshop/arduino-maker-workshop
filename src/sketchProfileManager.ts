@@ -1,19 +1,33 @@
 const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
-import { ArduinoProjectConfiguration } from './shared/messages';
 import { arduinoProject } from './extension';
-
-interface BuildProfile {
-    fqbn: string;
-    port?: string;
-    platforms?: string[];
-    libraries?: string[];
-    buildProperties?: Record<string, string>;
-}
+import { platform } from 'os';
 
 interface SketchYaml {
     profiles: Record<string, BuildProfile>;
+}
+
+interface BuildProfile {
+    notes?: string;
+    fqbn: string;
+    programmer?: string;
+    platforms?: PlatformDependency[];
+    libraries?: LibraryDependency[];
+    port?: string;
+    port_config?: Record<string, string>;
+    protocol?: string;
+    buildProperties?: Record<string, string>; // Optional addition, not in spec but can be useful
+}
+
+interface PlatformDependency {
+    platform: string; // e.g. "esp32:esp32 (2.0.11)"
+    platform_index_url?: string;
+}
+
+export interface LibraryDependency {
+    name: string;     // e.g. "Adafruit GFX Library"
+    version?: string; // e.g. "1.11.3"
 }
 
 export class SketchProfileManager {
@@ -49,6 +63,11 @@ export class SketchProfileManager {
             profiles: {
                 profile_1: {
                     fqbn: arduinoProject.getBoardConfiguration(),
+                    platforms: [
+                        {
+                            platform: arduinoProject.getBoard()
+                        }
+                    ]
                 },
             },
         };
