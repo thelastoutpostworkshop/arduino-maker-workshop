@@ -1,6 +1,8 @@
 const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
+import { ArduinoProjectConfiguration } from './shared/messages';
+import { arduinoProject } from './extension';
 
 interface BuildProfile {
     fqbn: string;
@@ -11,7 +13,6 @@ interface BuildProfile {
 }
 
 interface SketchYaml {
-    sketch: string;
     profiles: Record<string, BuildProfile>;
 }
 
@@ -43,16 +44,11 @@ export class SketchProfileManager {
         fs.writeFileSync(file, content, 'utf8');
     }
 
-    createFromArduinoJson(arduinoJson: any, sketchFilename: string): void {
+    createFromArduinoJson(): void {
         const yamlData: SketchYaml = {
-            sketch: sketchFilename,
             profiles: {
-                default: {
-                    fqbn: arduinoJson.fqbn,
-                    port: arduinoJson.port,
-                    platforms: arduinoJson.fqbn
-                        ? [`${arduinoJson.fqbn.split(':')[0]}:${arduinoJson.fqbn.split(':')[1]}`]
-                        : undefined,
+                profile_1: {
+                    fqbn: arduinoProject.getBoardConfiguration(),
                 },
             },
         };
@@ -79,10 +75,6 @@ export class SketchProfileManager {
                 return { valid: false, errors: ['Unable to read sketch.yaml'] };
             }
 
-            if (typeof data.sketch !== 'string' || !data.sketch.trim()) {
-                errors.push('Missing or invalid "sketch" field.');
-            }
-
             if (!data.profiles || typeof data.profiles !== 'object') {
                 errors.push('Missing or invalid "profiles" section.');
             } else {
@@ -98,7 +90,7 @@ export class SketchProfileManager {
                 }
             }
         } else {
-            return { valid: false, errors: ['Create a sketch.yaml first'] };
+            return { valid: true, errors: ['Create a sketch.yaml first'] };
         }
 
         return { valid: errors.length === 0, errors };

@@ -116,12 +116,17 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE:
                         arduinoProject.setUseBuildProfile(message.payload);
                         if (arduinoProject.useBuildProfile()) {
-                            const result = arduinoYaml.verify();
-                            if (!result.valid) {
-                                window.showErrorMessage(`Build profile: ${result.errors}`);
-                                console.log('YAML validation failed:', result.errors);
+                            if (arduinoYaml.exists()) {
+                                const result = arduinoYaml.verify();
+                                if (!result.valid) {
+                                    window.showErrorMessage(`Build profile: ${result.errors}`);
+                                    console.log('YAML validation failed:', result.errors);
+                                } else {
+                                    window.showInformationMessage(`Build profile will be used`)
+                                }
                             } else {
-                                window.showInformationMessage(`Build profile will be used`)
+                                arduinoYaml.createFromArduinoJson();
+                                window.showInformationMessage(`A sketch.yaml file was created, build profile will be used`)
                             }
                         }
                         break;
