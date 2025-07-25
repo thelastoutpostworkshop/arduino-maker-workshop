@@ -2,20 +2,19 @@ const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
 import { arduinoProject } from './extension';
-import { BuildProfile, SketchYaml } from './shared/messages';
+import { BuildProfile, SketchYaml, YAML_FILENAME } from './shared/messages';
 
 export class SketchProfileManager {
-    static readonly FILENAME = 'sketch.yaml';
 
     constructor(private sketchFolder: string) { }
 
     exists(): boolean {
-        const file = path.join(this.sketchFolder, SketchProfileManager.FILENAME);
+        const file = path.join(this.sketchFolder, YAML_FILENAME);
         return fs.existsSync(file);
     }
 
     read(): SketchYaml | undefined {
-        const file = path.join(this.sketchFolder, SketchProfileManager.FILENAME);
+        const file = path.join(this.sketchFolder, YAML_FILENAME);
         try {
             const content = fs.readFileSync(file, 'utf8');
             const data = yaml.parse(content) as SketchYaml;
@@ -27,7 +26,7 @@ export class SketchProfileManager {
     }
 
     write(yamlData: SketchYaml): void {
-        const file = path.join(this.sketchFolder, SketchProfileManager.FILENAME);
+        const file = path.join(this.sketchFolder, YAML_FILENAME);
         const content = yaml.stringify(yamlData);
         fs.writeFileSync(file, content, 'utf8');
     }

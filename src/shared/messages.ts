@@ -1,6 +1,7 @@
 import { MonitorPortSettings } from "@microsoft/vscode-serial-monitor-api";
 
 export const ArduinoExtensionChannelName = 'Arduino Extension';
+export const YAML_FILENAME = 'sketch.yaml';
 
 // Message exchange with webciew
 export interface WebviewToExtensionMessage {
