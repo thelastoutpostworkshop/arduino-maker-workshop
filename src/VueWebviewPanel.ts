@@ -117,20 +117,20 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE:
                         arduinoProject.setUseBuildProfile(message.payload);
-                        if (arduinoProject.useBuildProfile()) {
-                            if (arduinoYaml.exists()) {
-                                const result = arduinoYaml.verify();
-                                if (!result.valid) {
-                                    window.showErrorMessage(`Build profile: ${result.errors}`);
-                                    console.log('YAML validation failed:', result.errors);
-                                } else {
-                                    window.showInformationMessage(`Build profile will be used`)
-                                }
-                            } else {
-                                arduinoYaml.create();
-                                window.showInformationMessage(`A sketch.yaml file was created, build profile will be used`)
-                            }
-                        }
+                        // if (arduinoProject.useBuildProfile()) {
+                        //     if (arduinoYaml.exists()) {
+                        //         const result = arduinoYaml.verify();
+                        //         if (!result.valid) {
+                        //             window.showErrorMessage(`Build profile: ${result.errors}`);
+                        //             console.log('YAML validation failed:', result.errors);
+                        //         } else {
+                        //             window.showInformationMessage(`Build profile will be used`)
+                        //         }
+                        //     } else {
+                        //         arduinoYaml.create();
+                        //         window.showInformationMessage(`A sketch.yaml file was created, build profile will be used`)
+                        //     }
+                        // }
                         break;
                     case ARDUINO_MESSAGES.SET_OPTIMIZE_FOR_DEBUG:
                         arduinoProject.setOptimizeForDebug(message.payload);
