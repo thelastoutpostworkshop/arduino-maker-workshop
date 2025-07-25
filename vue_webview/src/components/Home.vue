@@ -229,11 +229,24 @@ onMounted(() => {
 
                 </div>
               </v-row>
-              <v-row class="ml-2">
-                <div>
-                  <v-checkbox v-model="useBuildProfile" label="Build using a profile" color="secondary">
-                  </v-checkbox>
-                </div>
+              <v-row class="d-flex ml-2">
+                <v-checkbox v-model="useBuildProfile" color="secondary">
+                  <template #label>
+                    <div class="d-flex align-center gap-2">
+                      <span>Build using a profile</span>
+                      <v-tooltip location="top">
+                        <template #activator="{ props }">
+                          <v-btn v-bind="props" @click.stop="router.push({ name: 'profiles-manager' })" icon
+                            size="small" variant="text">
+                            <v-icon>mdi-application-array-outline</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>Go to profiles manager</span>
+                      </v-tooltip>
+                    </div>
+                  </template>
+                </v-checkbox>
+
               </v-row>
             </div>
           </v-card>
