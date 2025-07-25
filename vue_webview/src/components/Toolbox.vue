@@ -42,7 +42,7 @@ const boardToUpdate = computed(() => {
                 <v-badge v-if="libraryToUpdate" color="yellow" dot></v-badge>
             </template>
         </v-list-item>
-        <v-list-item prepend-icon="mdi-application-array-outline" v-tooltip @click="router.push({ name: 'library-examples' })">Profiles Manager</v-list-item>
+        <v-list-item prepend-icon="mdi-application-array-outline" v-tooltip @click="router.push({ name: 'profiles-manager' })">Profiles Manager</v-list-item>
         <v-list-item prepend-icon="mdi-test-tube" v-tooltip @click="router.push({ name: 'library-examples' })">Library Examples</v-list-item>
     </v-navigation-drawer>
 </template>
