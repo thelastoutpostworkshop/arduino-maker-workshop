@@ -5,7 +5,7 @@ import { ARDUINO_MESSAGES } from '@shared/messages';
 const store = useVsCodeStore();
 
 function createProfile() {
-  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_INSTALL_LIBRARY, errorMessage: "", payload: "" });
+  store.sendMessage({ command: ARDUINO_MESSAGES.CREATE_BUILD_PROFILE, errorMessage: "", payload: "" });
 }
 
 </script>
