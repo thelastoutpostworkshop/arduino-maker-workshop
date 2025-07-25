@@ -330,7 +330,7 @@ export class ArduinoCLI {
 	}
 	// #endregion
 
-	public async compile(clean: boolean = false) {
+	public async compile(clean: boolean = false, buildProfile = false) {
 		if (this.compileOrUploadRunning) {
 			this.compileUploadChannel.show();
 			return;
@@ -343,7 +343,7 @@ export class ArduinoCLI {
 		try {
 			const verboseFlag = this.cliArgs.getVerboseOption();
 			const optimizeDebugFlag = arduinoProject.optimizeForDebug();
-			const compileMode = (optimizeDebugFlag ? "for debug, ":"for release, ")+(verboseFlag ? "verbose" : "silent");
+			const compileMode = (optimizeDebugFlag ? "for debug, " : "for release, ") + (verboseFlag ? "verbose" : "silent")+ (buildProfile ? "creating a profile" : "");
 			const compileTitle = clean
 				? `Compiling project clean (${compileMode})...`
 				: `Compiling project (${compileMode})...`;
@@ -367,7 +367,7 @@ export class ArduinoCLI {
 					});
 
 					const output = await arduinoCLI.runArduinoCommand(
-						() => this.cliArgs.getCompileCommandArguments(false, clean, arduinoProject.isConfigurationRequired()),
+						() => this.cliArgs.getCompileCommandArguments(false, clean, arduinoProject.isConfigurationRequired(),buildProfile),
 						"CLI: Failed to compile project", { caching: CacheState.NO, ttl: 0 }, true, true, this.compileUploadChannel, "Compilation success!"
 					);
 					// Compilation success

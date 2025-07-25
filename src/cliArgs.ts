@@ -275,7 +275,7 @@ export class CLIArguments {
         command.push(arduinoProject.getProjectPath());
         return command;
     }
-    public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false, configurationRequired: boolean): string[] {
+    public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false, configurationRequired: boolean, buildProfile = false): string[] {
         const compileCommand = [
             `${compileCommandArduino}`
         ];
@@ -284,6 +284,9 @@ export class CLIArguments {
         }
         if (arduinoProject.optimizeForDebug()) {
             compileCommand.push(`${optimizeForDebugOption}`);
+        }
+        if (buildProfile) {
+            compileCommand.push(`${dumpProfileOption}`);
         }
         compileCommand.push(noColorOptionArduino);
         compileCommand.push(fqbnOptionArduino);

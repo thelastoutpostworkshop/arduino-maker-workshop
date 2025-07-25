@@ -113,6 +113,8 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.SET_USE_PROGRAMMER:
                         arduinoProject.setUseProgrammer(message.payload);
                         break;
+                    case ARDUINO_MESSAGES.CREATE_BUILD_PROFILE:
+                        break;
                     case ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE:
                         arduinoProject.setUseBuildProfile(message.payload);
                         if (arduinoProject.useBuildProfile()) {
