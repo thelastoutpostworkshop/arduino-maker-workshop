@@ -59,25 +59,13 @@ const profilesList = computed(() => {
                                     {{ profile.notes }}
                                 </v-card-subtitle>
                                 <v-card-text>
-                                    <span>FQBN: {{ profile.fqbn }}</span>
+                                    <div>Programmer: {{ profile.programmer }}</div>
+                                    <div>FQBN: {{ profile.fqbn }}</div>
                                 </v-card-text>
                             </v-card>
                         </v-expansion-panel-text>
                     </v-expansion-panel>
                 </v-expansion-panels>
-
-                <v-list v-if="profilesList.length">
-                    <v-list-item v-for="profile in profilesList" :key="profile.name" class="border mb-2 rounded">
-                        <template #title>
-                            <span class="font-weight-bold">{{ profile.name }}</span>
-                        </template>
-                        <template #subtitle>
-                            FQBN: {{ profile.fqbn }}<br />
-                            Port: {{ profile.port || '—' }}<br />
-                            Notes: {{ profile.notes || 'No description' }}
-                        </template>
-                    </v-list-item>
-                </v-list>
             </div>
             <div v-else>
                 <v-card class="mt-5" rounded="lg">
