@@ -1,7 +1,7 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionContext } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectStatus, PROFILES_STATUS, WebviewToExtensionMessage } from './shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectStatus, PROFILES_STATUS, WebviewToExtensionMessage, YAML_FILENAME } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, compile, loadArduinoConfiguration, openExample, shouldDetectPorts, updateStateCompileUpload } from "./extension";
 import { ARDUINO_SKETCH_EXTENSION } from "./ArduinoProject";
 import { SketchProfileManager } from "./sketchProfileManager";
@@ -114,12 +114,18 @@ export class VueWebviewPanel {
                         arduinoProject.setUseProgrammer(message.payload);
                         break;
                     case ARDUINO_MESSAGES.CREATE_BUILD_PROFILE:
-                        compile(false,true).then((profile)=>{
-                           arduinoYaml.updateProfile("test",profile);
+                        compile(false, true).then((profile) => {
+                            arduinoYaml.updateProfile("test", profile);
                         })
                         break;
                     case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
-        
+                        const yaml = arduinoYaml.getYaml();
+                        if (yaml) {
+                            message.payload = yaml;
+                            VueWebviewPanel.sendMessage(message);
+                        } else {
+                            window.showErrorMessage(`The ${YAML_FILENAME} is not valid`);
+                        }
                         break;
                     case ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE:
                         arduinoProject.setUseBuildProfile(message.payload);
