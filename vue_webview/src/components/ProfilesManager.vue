@@ -31,11 +31,20 @@ const profilesList = computed(() => {
                 <span class="text-h4 font-weight-bold ml-5">Profiles Manager</span>
             </v-row>
 
-            <v-btn class="mb-4" @click="createProfile">
-                Create a profile based on the current configuration
-            </v-btn>
-
-            <div v-if="store.profiles != null">
+            <v-card v-if="!store.profiles" class="mt-5">
+                <v-card-item title="Loading profiles">
+                    <template v-slot:subtitle>
+                        Please wait
+                    </template>
+                </v-card-item>
+                <v-card-text class="py-0">
+                    <v-progress-linear color="grey" indeterminate></v-progress-linear>
+                </v-card-text>
+            </v-card>
+            <div v-if="store.profiles">
+                <v-btn class="mb-4" @click="createProfile">
+                    Create a profile based on the current configuration
+                </v-btn>
                 <v-list v-if="profilesList.length">
                     <v-list-item v-for="profile in profilesList" :key="profile.name" class="border mb-2 rounded">
                         <template #title>
