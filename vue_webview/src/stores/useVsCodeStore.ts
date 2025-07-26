@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated, ArduinoConfig, LibraryInformation, THEME_COLOR, BuildProfile } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated, ArduinoConfig, LibraryInformation, THEME_COLOR, BuildProfile, SketchYaml } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 import * as yaml from 'yaml';
 
@@ -52,7 +52,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         boardUpdating: "",
         libraryUpdating: "",
         currentTheme: null as string | null,
-        profiles: null as BuildProfile | null,
+        profiles: null as SketchYaml | null,
     }),
     actions: {
         changeTheme(theme: THEME_COLOR) {
@@ -239,6 +239,9 @@ export const useVsCodeStore = defineStore('vsCode', {
                     if (this.projectInfo?.board) {
                         this.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS, errorMessage: "", payload: this.projectInfo.board });
                     }
+                    break;
+                case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
+                    this.profiles = message.payload;
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                     this.projectStatus = message.payload;
