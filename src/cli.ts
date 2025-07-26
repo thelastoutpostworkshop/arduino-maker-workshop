@@ -345,11 +345,11 @@ export class ArduinoCLI {
 		try {
 			if (createBuildProfile) {
 				useBuildProfile = true;
-				profileMsg = "Creating a build profile";
+				profileMsg = ", creating a build profile";
 			} else {
 				useBuildProfile = arduinoProject.useBuildProfile();
-				if(useBuildProfile && arduinoYaml.status() != PROFILES_STATUS.NOT_AVAILABLE) {
-					profileMsg = "Creating a build profile";
+				if(useBuildProfile && arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
+					profileMsg = ", using profile";
 				} else {
 					profileMsg = "";
 				}
