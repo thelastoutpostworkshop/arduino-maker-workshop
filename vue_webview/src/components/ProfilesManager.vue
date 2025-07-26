@@ -64,8 +64,8 @@ const profilesList = computed(() => {
                                             <v-list-item v-for="(platform, idx) in profile.platforms"
                                                 :key="`platform-${idx}`">
                                                 <v-list-item-title>
-                                                    {{ platform.platform }}<span v-if="platform.platform_version"> @ {{
-                                                        platform.platform_version }}</span>
+                                                    {{ platform.platform }}<span v-if="platform.platform_index_url"> @ {{
+                                                        platform.platform_index_url }}</span>
                                                 </v-list-item-title>
                                             </v-list-item>
                                         </v-list>
