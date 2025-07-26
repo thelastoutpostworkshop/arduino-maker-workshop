@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
 import { arduinoProject } from './extension';
-import { BuildProfile, SketchYaml, YAML_FILENAME } from './shared/messages';
+import { BuildProfile, PROFILES_STATUS, SketchYaml, YAML_FILENAME } from './shared/messages';
 import { VSCODE_FOLDER } from './ArduinoProject';
 
 export class SketchProfileManager {
@@ -15,11 +15,15 @@ export class SketchProfileManager {
         this.yamlInSketchFolder = path.join(this.sketchFolder, YAML_FILENAME);
     }
 
-    exists(): boolean {
-        if (!fs.existsSync(this.yamlInSketchFolder)) {
-            return fs.existsSync(this.yamlInVscodeFolder);
+    status(): PROFILES_STATUS {
+        if (fs.existsSync(this.yamlInSketchFolder)) {
+            return PROFILES_STATUS.ACTIVE;
         }
-        return true;
+        if (fs.existsSync(this.yamlInVscodeFolder)) {
+            return PROFILES_STATUS.INACTIVE;
+        }
+
+        return PROFILES_STATUS.NOT_AVAILABLE;
     }
 
     read(): SketchYaml | undefined {
@@ -33,12 +37,14 @@ export class SketchProfileManager {
             return undefined;
         }
     }
-    toggleProfileAvailability() {
+    toggleProfileAvailability():boolean {
         if (this.exists()) {
             if (fs.existsSync(this.yamlInSketchFolder)) {
                 fs.renameSync(this.yamlInSketchFolder, this.yamlInVscodeFolder);
+                return true;
             } else {
                 fs.renameSync(this.yamlInVscodeFolder, this.yamlInSketchFolder);
+                return false;
             }
         }
     }

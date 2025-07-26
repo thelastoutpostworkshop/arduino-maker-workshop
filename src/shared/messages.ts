@@ -414,6 +414,11 @@ export enum THEME_COLOR {
 
 // Build profiles
 //
+export enum PROFILES_STATUS {
+  NOT_AVAILABLE,
+  INACTIVE,
+  ACTIVE
+}
 export interface SketchYaml {
     profiles: Record<string, BuildProfile>;
 }
