@@ -120,12 +120,18 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
                         const yaml = arduinoYaml.getYaml();
-                        if (yaml) {
-                            message.payload = yaml;
+                        if (arduinoYaml.getLastError()) {
+                            message.errorMessage = arduinoYaml.getLastError();
                             VueWebviewPanel.sendMessage(message);
                         } else {
-                            message.payload = "";
-                            VueWebviewPanel.sendMessage(message);
+                            if (yaml) {
+                                message.payload = yaml;
+                                VueWebviewPanel.sendMessage(message);
+                            } else {
+                                message.payload = "";
+                                VueWebviewPanel.sendMessage(message);
+                            }
+
                         }
                         break;
                     case ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE:

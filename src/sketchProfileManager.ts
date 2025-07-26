@@ -9,6 +9,7 @@ export class SketchProfileManager {
 
     private yamlInVscodeFolder: string = "";
     private yamlInSketchFolder: string = "";
+    private lastError: string = "";
 
     constructor(private sketchFolder: string) {
         this.yamlInVscodeFolder = path.join(arduinoProject.getProjectPath(), VSCODE_FOLDER, YAML_FILENAME);
@@ -25,11 +26,15 @@ export class SketchProfileManager {
         return PROFILES_STATUS.NOT_AVAILABLE;
     }
 
+    getLastError():string {
+        return this.lastError;
+    }
+
     updateProfile(profileName: string, profileData: string | BuildProfile): void {
         const yamlData = this.getYaml() ?? { profiles: {} };
 
         let profile: BuildProfile;
-
+        this.lastError = "";
         if (typeof profileData === 'string') {
             try {
                 const parsed = yaml.parse(profileData) as SketchYaml;
@@ -37,11 +42,13 @@ export class SketchProfileManager {
                 profile = parsed?.profiles?.[firstProfileName];
 
                 if (!profile || typeof profile.fqbn !== 'string') {
-                    console.error("Invalid or missing profile in YAML string.");
+                    this.lastError = "Invalid or missing profile in YAML string.";
+                    console.error(this.lastError);
                     return;
                 }
             } catch (err) {
-                console.error("Failed to parse YAML string:", err);
+                this.lastError = `Failed to parse YAML string: ${err}`;
+                console.error(this.lastError);
                 return;
             }
         } else {
@@ -56,6 +63,7 @@ export class SketchProfileManager {
     getYaml(): SketchYaml | undefined {
         let file: string = "";
 
+        this.lastError = "";
         switch (this.status()) {
             case PROFILES_STATUS.ACTIVE:
                 file = this.yamlInSketchFolder;
@@ -72,7 +80,8 @@ export class SketchProfileManager {
                 const data = yaml.parse(content) as SketchYaml;
                 return data;
             } catch (error) {
-                console.error('Failed to read build profile:', error);
+                this.lastError = `Failed to read build profile: ${error}`;
+                console.error(this.lastError);
                 return undefined;
             }
         }
@@ -104,7 +113,7 @@ export class SketchProfileManager {
             default:
                 break;
         }
-        if(file.length > 0) {
+        if (file.length > 0) {
             const content = yaml.stringify(yamlData);
             fs.writeFileSync(file, content, 'utf8');
         }
