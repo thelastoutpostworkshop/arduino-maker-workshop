@@ -3,6 +3,7 @@ const fs = require('fs');
 import * as yaml from 'yaml';
 import { arduinoProject } from './extension';
 import { BuildProfile, SketchYaml, YAML_FILENAME } from './shared/messages';
+import { VSCODE_FOLDER } from './ArduinoProject';
 
 export class SketchProfileManager {
 
@@ -10,7 +11,11 @@ export class SketchProfileManager {
 
     exists(): boolean {
         const file = path.join(this.sketchFolder, YAML_FILENAME);
-        return fs.existsSync(file);
+        if (!fs.existsSync(file)) {
+            const file = path.join(arduinoProject.getProjectPath(), VSCODE_FOLDER,YAML_FILENAME)
+            return fs.existsSync(file);
+        }
+        return true;
     }
 
     read(): SketchYaml | undefined {
