@@ -285,6 +285,7 @@ export class CLIArguments {
         if (arduinoProject.optimizeForDebug()) {
             compileCommand.push(`${optimizeForDebugOption}`);
         }
+        compileCommand.push(noColorOptionArduino);
 
         if (arduinoProject.useBuildProfile()) {
             compileCommand.push(`${buildPathArduino}`);
@@ -294,7 +295,6 @@ export class CLIArguments {
             if (buildProfile) {
                 compileCommand.push(`${dumpProfileOption}`);
             }
-            compileCommand.push(noColorOptionArduino);
             compileCommand.push(fqbnOptionArduino);
             if (configurationRequired) {
                 compileCommand.push(`${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`);
