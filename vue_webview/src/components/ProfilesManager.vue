@@ -67,12 +67,14 @@ const profilesList = computed(() => {
                 </v-list>
             </div>
             <div v-else>
-                <v-card class="mt-5">
+                <v-card class="mt-5" rounded="lg">
                     <v-card-item title="No profiles">
                     </v-card-item>
-                    <v-btn class="mb-4" @click="createProfile">
-                        Add a profile based on the current configuration
-                    </v-btn>
+                    <v-card-actions>
+                        <v-btn class="mb-4" @click="createProfile">
+                            Add a profile based on the current configuration
+                        </v-btn>
+                    </v-card-actions>
                 </v-card>
             </div>
 
