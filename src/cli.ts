@@ -1,6 +1,6 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext, ProgressLocation } from "vscode";
-import { arduinoCLI, arduinoExtensionChannel, arduinoProject, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
-import { ArduinoCLIStatus, BuildOptions, CompileResult } from "./shared/messages";
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
+import { ArduinoCLIStatus, BuildOptions, CompileResult, PROFILES_STATUS } from "./shared/messages";
 import { getSerialMonitorApi, SerialMonitorApi, Version } from "@microsoft/vscode-serial-monitor-api";
 import { COMPILE_RESULT_FILE, VSCODE_FOLDER } from "./ArduinoProject";
 import { CLIArguments } from "./cliArgs";
@@ -330,7 +330,7 @@ export class ArduinoCLI {
 	}
 	// #endregion
 
-	public async compile(clean: boolean = false, overBuildProfile = false) {
+	public async compile(clean: boolean = false, createBuildProfile = false) {
 		if (this.compileOrUploadRunning) {
 			this.compileUploadChannel.show();
 			return;
@@ -338,12 +338,26 @@ export class ArduinoCLI {
 		this.compileOrUploadRunning = true;
 		this.compileUploadChannel.appendLine("Compile project starting...");
 
+		let useBuildProfile: boolean;
+		let profileMsg = ""
 		await workspace.saveAll();
 
 		try {
+			if (createBuildProfile) {
+				useBuildProfile = true;
+				profileMsg = "Creating a build profile";
+			} else {
+				useBuildProfile = arduinoProject.useBuildProfile();
+				if(useBuildProfile && arduinoYaml.status() != PROFILES_STATUS.NOT_AVAILABLE) {
+					profileMsg = "Creating a build profile";
+				} else {
+					profileMsg = "";
+				}
+			}
 			const verboseFlag = this.cliArgs.getVerboseOption();
 			const optimizeDebugFlag = arduinoProject.optimizeForDebug();
-			const compileMode = (optimizeDebugFlag ? "for debug, " : "for release, ") + (verboseFlag ? "verbose" : "silent")+ (overBuildProfile ? "creating a profile" : "");
+			const compileMode = (optimizeDebugFlag ? "for debug, " : "for release, ") + (verboseFlag ? "verbose" : "silent") + profileMsg;
+
 			const compileTitle = clean
 				? `Compiling project clean (${compileMode})...`
 				: `Compiling project (${compileMode})...`;
@@ -367,7 +381,7 @@ export class ArduinoCLI {
 					});
 
 					const output = await arduinoCLI.runArduinoCommand(
-						() => this.cliArgs.getCompileCommandArguments(false, clean, arduinoProject.isConfigurationRequired(),overBuildProfile),
+						() => this.cliArgs.getCompileCommandArguments(false, clean, arduinoProject.isConfigurationRequired(), createBuildProfile),
 						"CLI: Failed to compile project", { caching: CacheState.NO, ttl: 0 }, true, true, this.compileUploadChannel, "Compilation success!"
 					);
 					// Compilation success
