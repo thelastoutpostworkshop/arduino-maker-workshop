@@ -89,9 +89,22 @@ export class SketchProfileManager {
         }
     }
     write(yamlData: SketchYaml): void {
-        const file = path.join(this.sketchFolder, YAML_FILENAME);
-        const content = yaml.stringify(yamlData);
-        fs.writeFileSync(file, content, 'utf8');
+        let file: string = "";
+
+        switch (this.status()) {
+            case PROFILES_STATUS.ACTIVE:
+                file = this.yamlInSketchFolder;
+                break;
+            case PROFILES_STATUS.INACTIVE:
+                file = this.yamlInVscodeFolder
+                break;
+            default:
+                break;
+        }
+        if(file.length > 0) {
+            const content = yaml.stringify(yamlData);
+            fs.writeFileSync(file, content, 'utf8');
+        }
     }
 
     create(): void {
