@@ -52,18 +52,40 @@ const profilesList = computed(() => {
                         </v-expansion-panel-title>
                         <v-expansion-panel-text>
                             <v-card rounded="lg" color="primary">
-                                <v-card-title>
-                                    {{ profile.name }}
-                                </v-card-title>
-                                <v-card-subtitle>
-                                    {{ profile.notes }}
-                                </v-card-subtitle>
+                                <v-card-title>{{ profile.name }}</v-card-title>
+                                <v-card-subtitle>{{ profile.notes || 'No description' }}</v-card-subtitle>
                                 <v-card-text>
-                                    <div>Programmer: {{ profile.programmer }}</div>
-                                    <div>FQBN: {{ profile.fqbn }}</div>
+                                    <div><strong>Programmer:</strong> {{ profile.programmer || '—' }}</div>
+                                    <div><strong>FQBN:</strong> {{ profile.fqbn }}</div>
+
+                                    <div v-if="profile.platforms?.length" class="mt-4">
+                                        <strong>Platforms:</strong>
+                                        <v-list density="compact">
+                                            <v-list-item v-for="(platform, idx) in profile.platforms"
+                                                :key="`platform-${idx}`">
+                                                <v-list-item-title>
+                                                    {{ platform.platform }}<span v-if="platform.platform_version"> @ {{
+                                                        platform.platform_version }}</span>
+                                                </v-list-item-title>
+                                            </v-list-item>
+                                        </v-list>
+                                    </div>
+
+                                    <div v-if="profile.libraries?.length" class="mt-4">
+                                        <strong>Libraries:</strong>
+                                        <v-list density="compact">
+                                            <v-list-item v-for="(lib, idx) in profile.libraries"
+                                                :key="`library-${idx}`">
+                                                <v-list-item-title>
+                                                    {{ lib.name }}<span v-if="lib.version"> @ {{ lib.version }}</span>
+                                                </v-list-item-title>
+                                            </v-list-item>
+                                        </v-list>
+                                    </div>
                                 </v-card-text>
                             </v-card>
                         </v-expansion-panel-text>
+
                     </v-expansion-panel>
                 </v-expansion-panels>
             </div>
