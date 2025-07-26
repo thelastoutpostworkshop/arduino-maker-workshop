@@ -49,19 +49,15 @@ export class SketchProfileManager {
             }
         }
     }
-    toggleProfileAvailability(): PROFILES_STATUS {
-        switch (this.status()) {
-            case PROFILES_STATUS.ACTIVE:
-                fs.renameSync(this.yamlInSketchFolder, this.yamlInVscodeFolder);
-                return PROFILES_STATUS.INACTIVE;
-                break;
-            case PROFILES_STATUS.INACTIVE:
-                fs.renameSync(this.yamlInVscodeFolder, this.yamlInSketchFolder);
-                return PROFILES_STATUS.ACTIVE;
-                break;
-            default:
-                return PROFILES_STATUS.NOT_AVAILABLE;
-                break;
+    setProfileStatus(newStatus: PROFILES_STATUS) {
+        const currentStatus = this.status();
+        if (newStatus == PROFILES_STATUS.ACTIVE && currentStatus == PROFILES_STATUS.INACTIVE) {
+            fs.renameSync(this.yamlInVscodeFolder, this.yamlInSketchFolder);
+            return;
+        }
+        if (newStatus == PROFILES_STATUS.INACTIVE && currentStatus == PROFILES_STATUS.ACTIVE) {
+            fs.renameSync(this.yamlInSketchFolder, this.yamlInVscodeFolder);
+            return;
         }
     }
     write(yamlData: SketchYaml): void {

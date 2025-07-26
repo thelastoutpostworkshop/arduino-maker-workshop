@@ -1,7 +1,7 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionContext } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectStatus, WebviewToExtensionMessage } from './shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectStatus, PROFILES_STATUS, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, loadArduinoConfiguration, openExample, shouldDetectPorts, updateStateCompileUpload } from "./extension";
 import { ARDUINO_SKETCH_EXTENSION } from "./ArduinoProject";
 import { SketchProfileManager } from "./sketchProfileManager";
@@ -118,18 +118,15 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE:
                         arduinoProject.setUseBuildProfile(message.payload);
                         if (arduinoProject.useBuildProfile()) {
-                            if (arduinoYaml.exists()) {
-                                const result = arduinoYaml.verify();
-                                if (!result.valid) {
-                                    window.showErrorMessage(`Build profile: ${result.errors}`);
-                                    console.log('YAML validation failed:', result.errors);
-                                } else {
-                                    window.showInformationMessage(`Build profile will be used`)
-                                }
+                            if (arduinoYaml.status() == PROFILES_STATUS.NOT_AVAILABLE) {
+                                window.showInformationMessage(`Create a profile in the profile manager`);
                             } else {
-                                arduinoYaml.create();
-                                window.showInformationMessage(`A sketch.yaml file was created, build profile will be used`)
+                                arduinoYaml.setProfileStatus(PROFILES_STATUS.ACTIVE);
+                                window.showInformationMessage(`Build profile is now active`)
                             }
+                        } else {
+                            arduinoYaml.setProfileStatus(PROFILES_STATUS.INACTIVE);
+                            window.showInformationMessage(`Build profile is inactive`)
                         }
                         break;
                     case ARDUINO_MESSAGES.SET_OPTIMIZE_FOR_DEBUG:
