@@ -339,7 +339,7 @@ export class ArduinoCLI {
 		this.compileUploadChannel.appendLine("Compile project starting...");
 
 		let useBuildProfile: boolean;
-		let profileMsg = ""
+		let profileMsg = "";
 		await workspace.saveAll();
 
 		try {
@@ -348,12 +348,13 @@ export class ArduinoCLI {
 				profileMsg = ", creating a build profile";
 			} else {
 				useBuildProfile = arduinoProject.useBuildProfile();
-				if(useBuildProfile && arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
+				if (useBuildProfile && arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
 					profileMsg = ", using profile";
 				} else {
 					profileMsg = "";
 				}
 			}
+
 			const verboseFlag = this.cliArgs.getVerboseOption();
 			const optimizeDebugFlag = arduinoProject.optimizeForDebug();
 			const compileMode = (optimizeDebugFlag ? "for debug, " : "for release, ") + (verboseFlag ? "verbose" : "silent") + profileMsg;
@@ -361,39 +362,47 @@ export class ArduinoCLI {
 			const compileTitle = clean
 				? `Compiling project clean (${compileMode})...`
 				: `Compiling project (${compileMode})...`;
-			await window.withProgress(
+
+			const output = await window.withProgress(
 				{
 					location: ProgressLocation.Notification,
 					title: compileTitle,
 					cancellable: true,
 				},
 				async (progress, token) => {
-					// Update the status bar
 					compileStatusBarItem.text = compileStatusBarExecuting;
 
-					// If the token signals cancellation
 					token.onCancellationRequested(() => {
-						this.cancelExecution(); // Ensure the compilation process stops
+						this.cancelExecution();
 						this.compileUploadChannel.appendLine("Compilation cancelled by user.");
 						compileStatusBarItem.text = compileStatusBarNotExecuting;
 						this.setBuildResult(false);
-						throw new Error("Compilation cancelled by user."); // Stop further execution
+						throw new Error("Compilation cancelled by user.");
 					});
 
 					const output = await arduinoCLI.runArduinoCommand(
 						() => this.cliArgs.getCompileCommandArguments(false, clean, arduinoProject.isConfigurationRequired(), createBuildProfile),
-						"CLI: Failed to compile project", { caching: CacheState.NO, ttl: 0 }, true, true, this.compileUploadChannel, "Compilation success!"
+						"CLI: Failed to compile project",
+						{ caching: CacheState.NO, ttl: 0 },
+						true,
+						true,
+						this.compileUploadChannel,
+						"Compilation success!"
 					);
-					// Compilation success
+
 					this.compileUploadChannel.appendLine("Compilation completed successfully.");
 					this.setBuildResult(true);
-					if(!createBuildProfile) {
+
+					if (!createBuildProfile) {
 						this.createIntellisenseFile(output);
-					} else {
-						return output;
+						return "";
 					}
+
+					return output;
 				}
 			);
+
+			return output || "";
 		} catch (error) {
 			this.compileUploadChannel.appendLine(`Compilation failed`);
 			this.setBuildResult(false);
@@ -402,8 +411,10 @@ export class ArduinoCLI {
 			this.compileOrUploadRunning = false;
 			updateStateCompileUpload();
 		}
+
 		return "";
 	}
+
 
 	public async upload() {
 		if (this.compileOrUploadRunning) {
