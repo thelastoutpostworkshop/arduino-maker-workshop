@@ -124,7 +124,8 @@ export class VueWebviewPanel {
                             message.payload = yaml;
                             VueWebviewPanel.sendMessage(message);
                         } else {
-                            window.showErrorMessage(`The ${YAML_FILENAME} is not valid`);
+                            message.payload = "";
+                            VueWebviewPanel.sendMessage(message);
                         }
                         break;
                     case ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE:
