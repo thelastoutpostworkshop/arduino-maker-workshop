@@ -330,10 +330,10 @@ export class ArduinoCLI {
 	}
 	// #endregion
 
-	public async compile(clean: boolean = false, createBuildProfile = false) {
+	public async compile(clean: boolean = false, createBuildProfile = false):Promise<string>  {
 		if (this.compileOrUploadRunning) {
 			this.compileUploadChannel.show();
-			return;
+			return "";
 		}
 		this.compileOrUploadRunning = true;
 		this.compileUploadChannel.appendLine("Compile project starting...");
@@ -386,8 +386,12 @@ export class ArduinoCLI {
 					);
 					// Compilation success
 					this.compileUploadChannel.appendLine("Compilation completed successfully.");
-					this.createIntellisenseFile(output);
 					this.setBuildResult(true);
+					if(!createBuildProfile) {
+						this.createIntellisenseFile(output);
+					} else {
+						return output;
+					}
 				}
 			);
 		} catch (error) {
@@ -398,6 +402,7 @@ export class ArduinoCLI {
 			this.compileOrUploadRunning = false;
 			updateStateCompileUpload();
 		}
+		return "";
 	}
 
 	public async upload() {
