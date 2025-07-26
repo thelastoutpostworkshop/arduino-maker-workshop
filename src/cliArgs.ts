@@ -285,24 +285,31 @@ export class CLIArguments {
         if (arduinoProject.optimizeForDebug()) {
             compileCommand.push(`${optimizeForDebugOption}`);
         }
-        if (buildProfile) {
-            compileCommand.push(`${dumpProfileOption}`);
-        }
-        compileCommand.push(noColorOptionArduino);
-        compileCommand.push(fqbnOptionArduino);
-        if (configurationRequired) {
-            compileCommand.push(`${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`);
+
+        if (arduinoProject.useBuildProfile()) {
+            compileCommand.push(`${buildPathArduino}`);
+            compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput()));
+            compileCommand.push(arduinoProject.getProjectPath());
         } else {
-            compileCommand.push(`${arduinoProject.getBoard()}`);
-        }
-        compileCommand.push(`${buildPathArduino}`);
-        compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput()));
-        compileCommand.push(arduinoProject.getProjectPath());
-        if (jsonOutput) {
-            compileCommand.push(`${jsonOutputArduino}`);
-        }
-        if (clean) {
-            compileCommand.push(`${compileCleanOption}`);
+            if (buildProfile) {
+                compileCommand.push(`${dumpProfileOption}`);
+            }
+            compileCommand.push(noColorOptionArduino);
+            compileCommand.push(fqbnOptionArduino);
+            if (configurationRequired) {
+                compileCommand.push(`${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`);
+            } else {
+                compileCommand.push(`${arduinoProject.getBoard()}`);
+            }
+            compileCommand.push(`${buildPathArduino}`);
+            compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput()));
+            compileCommand.push(arduinoProject.getProjectPath());
+            if (jsonOutput) {
+                compileCommand.push(`${jsonOutputArduino}`);
+            }
+            if (clean) {
+                compileCommand.push(`${compileCleanOption}`);
+            }
         }
 
         return compileCommand;
