@@ -472,6 +472,7 @@ export const ARDUINO_MESSAGES = {
   SET_USE_PROGRAMMER: 'setArduinoUseProgrammer',
   SET_USE_BUILD_PROFILE: 'setUseBuildProfile',
   CREATE_BUILD_PROFILE:'createBuildProfile',
+  GET_BUILD_PROFILES:'getBuildProfiles',
   SET_OPTIMIZE_FOR_DEBUG: 'setOptimizeForDebug',
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
   CORE_UNINSTALLED: 'coreUninstalled',
