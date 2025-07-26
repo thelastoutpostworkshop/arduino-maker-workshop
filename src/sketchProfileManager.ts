@@ -98,6 +98,9 @@ export class SketchProfileManager {
             case PROFILES_STATUS.INACTIVE:
                 file = this.yamlInVscodeFolder
                 break;
+            case PROFILES_STATUS.NOT_AVAILABLE:
+                file = this.yamlInVscodeFolder
+                break;
             default:
                 break;
         }
