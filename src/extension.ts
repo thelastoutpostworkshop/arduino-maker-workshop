@@ -24,7 +24,7 @@ arduinoExtensionChannel.appendLine(`Arduino Extension started on ${os.platform}`
 const quickAccessProvider = new QuickAccessProvider();
 
 export const arduinoProject: ArduinoProject = new ArduinoProject();
-export const arduinoYaml:SketchProfileManager = new SketchProfileManager(arduinoProject.getProjectPath());
+export const arduinoYaml: SketchProfileManager = new SketchProfileManager(arduinoProject.getProjectPath());
 export let arduinoCLI: ArduinoCLI;
 
 let debounceTimeout: NodeJS.Timeout | undefined; // To debounce changes to settings
@@ -118,6 +118,8 @@ export async function activate(context: ExtensionContext) {
 				})
 			);
 
+			watchSketchYamlFile(context);
+
 			// Listening to theme change events
 			window.onDidChangeActiveColorTheme((colorTheme) => {
 				changeTheme(colorTheme.kind);
@@ -162,6 +164,35 @@ export async function activate(context: ExtensionContext) {
 		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 	}
 
+}
+
+function watchSketchYamlFile(context: ExtensionContext) {
+	const sketchYamlWatcher = workspace.createFileSystemWatcher('**/sketch.yaml');
+
+	// Register each event handler and store the disposables
+	const changeDisposable = sketchYamlWatcher.onDidChange((uri) => {
+		arduinoExtensionChannel.appendLine(`sketch.yaml changed: ${uri.fsPath}`);
+		// const validation = arduinoYaml.verify();
+		// if (!validation.valid) {
+		// 	window.showWarningMessage(`sketch.yaml has issues: ${validation.errors.join(', ')}`);
+		// }
+	});
+
+	const createDisposable = sketchYamlWatcher.onDidCreate((uri) => {
+		arduinoExtensionChannel.appendLine(`sketch.yaml created: ${uri.fsPath}`);
+	});
+
+	const deleteDisposable = sketchYamlWatcher.onDidDelete((uri) => {
+		arduinoExtensionChannel.appendLine(`sketch.yaml deleted: ${uri.fsPath}`);
+	});
+
+	// Push all disposables to the extension context
+	context.subscriptions.push(
+		sketchYamlWatcher,
+		changeDisposable,
+		createDisposable,
+		deleteDisposable
+	);
 }
 
 async function verifyUserDirectorySetting() {
@@ -278,9 +309,9 @@ export function loadArduinoConfiguration(): boolean {
 	return true;
 }
 
-export async function compile(clean: boolean = false,createBuildProfile = false):Promise<string> {
+export async function compile(clean: boolean = false, createBuildProfile = false): Promise<string> {
 	if (arduinoProject.isCompileReady()) {
-		return arduinoCLI.compile(clean,createBuildProfile);
+		return arduinoCLI.compile(clean, createBuildProfile);
 
 	} else {
 		window.showErrorMessage('Select a board first before compiling');
