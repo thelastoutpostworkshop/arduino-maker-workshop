@@ -423,16 +423,12 @@ export interface SketchYaml {
     profiles: Record<string, BuildProfile>;
 }
 
-export interface LibraryDependency {
-    name: string;     // e.g. "Adafruit GFX Library"
-    version?: string; // e.g. "1.11.3"
-}
 export interface BuildProfile {
     notes?: string;
     fqbn: string;
     programmer?: string;
     platforms?: PlatformDependencyProfile[];
-    libraries?: LibraryDependency[];
+    libraries?: string[];
     port?: string;
     port_config?: Record<string, string>;
     protocol?: string;
