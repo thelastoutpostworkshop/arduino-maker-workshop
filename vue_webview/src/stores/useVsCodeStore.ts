@@ -135,12 +135,12 @@ export const useVsCodeStore = defineStore('vsCode', {
                         });
                         break;
                     case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
-                        // loadMockData('sketch.yaml', false, true).then((mockPayload) => {
-                        //     message.payload = mockPayload;
-                        //     this.handleMessage(message);
-                        // });
-                        message.payload="";
-                        this.handleMessage(message);
+                        loadMockData('sketch.yaml', false, true).then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
+                        // message.payload="";
+                        // this.handleMessage(message);
                         break;
                     case ARDUINO_MESSAGES.CLI_UNINSTALL_CORE:
                         message.command = ARDUINO_MESSAGES.CORE_UNINSTALLED;

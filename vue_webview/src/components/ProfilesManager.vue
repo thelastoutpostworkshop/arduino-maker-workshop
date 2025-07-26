@@ -45,6 +45,14 @@ const profilesList = computed(() => {
                 <v-btn class="mb-4" @click="createProfile">
                     Add a profile based on the current configuration
                 </v-btn>
+                <v-expansion-panels multiple>
+                    <v-expansion-panel v-for="profile in profilesList" :key="profile.name">
+                        <v-expansion-panel-title>
+                            {{ profile.name }}
+                        </v-expansion-panel-title>
+                    </v-expansion-panel>
+                </v-expansion-panels>
+
                 <v-list v-if="profilesList.length">
                     <v-list-item v-for="profile in profilesList" :key="profile.name" class="border mb-2 rounded">
                         <template #title>
