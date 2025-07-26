@@ -1,5 +1,6 @@
 profiles:
   targetesp32v3.3.0:
+    notes: testing the limit of the AVR platform, may be unstable
     fqbn: esp32:esp32:esp32:UploadSpeed=921600,CPUFreq=240,FlashFreq=80,FlashMode=qio,FlashSize=4M,PartitionScheme=default,DebugLevel=none,PSRAM=disabled,LoopCore=1,EventsCore=1,EraseFlash=none,JTAGAdapter=default,ZigbeeMode=default
     platforms:
       - platform: esp32:esp32 (3.3.0)
