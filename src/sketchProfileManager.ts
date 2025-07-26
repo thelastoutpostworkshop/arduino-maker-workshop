@@ -7,13 +7,13 @@ import { VSCODE_FOLDER } from './ArduinoProject';
 
 export class SketchProfileManager {
 
-    private yamlInVscodeFolder:string = "";
-    private yamlInSketchFolder:string = "";
+    private yamlInVscodeFolder: string = "";
+    private yamlInSketchFolder: string = "";
 
     constructor(private sketchFolder: string) {
         this.yamlInVscodeFolder = path.join(arduinoProject.getProjectPath(), VSCODE_FOLDER, YAML_FILENAME);
         this.yamlInSketchFolder = path.join(this.sketchFolder, YAML_FILENAME);
-     }
+    }
 
     exists(): boolean {
         if (!fs.existsSync(this.yamlInSketchFolder)) {
@@ -34,8 +34,12 @@ export class SketchProfileManager {
         }
     }
     toggleProfileAvailability() {
-        if(this.exists()) {
-
+        if (this.exists()) {
+            if (fs.existsSync(this.yamlInSketchFolder)) {
+                fs.renameSync(this.yamlInSketchFolder, this.yamlInVscodeFolder);
+            } else {
+                fs.renameSync(this.yamlInVscodeFolder, this.yamlInSketchFolder);
+            }
         }
     }
     write(yamlData: SketchYaml): void {
