@@ -1,19 +1,29 @@
 import { defineStore } from 'pinia';
 import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated, ArduinoConfig, LibraryInformation, THEME_COLOR, BuildProfile } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
+import * as yaml from 'yaml';
 
-async function loadMockData(mockFile: string, jsonToString: boolean = true): Promise<string> {
+async function loadMockData(
+    mockFile: string,
+    jsonToString: boolean = true,
+    yamlFormat: boolean = false
+): Promise<any> {
     try {
         const response = await fetch(`/mock/${mockFile}`);
         if (!response.ok) {
             throw new Error(`Failed to fetch ${mockFile}: ${response.statusText}`);
         }
-        const mockData = await response.json();
-        if (jsonToString) {
-            return JSON.stringify(mockData);
-        } else {
-            return mockData;
+
+        const content = await response.text();
+
+        if (yamlFormat) {
+            const parsedYaml = yaml.parse(content);
+            return parsedYaml;
         }
+
+        // Default: treat it as JSON
+        const parsedJson = JSON.parse(content);
+        return jsonToString ? JSON.stringify(parsedJson) : parsedJson;
     } catch (error) {
         console.error('Error loading mock data:', error);
         return '';
@@ -42,7 +52,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         boardUpdating: "",
         libraryUpdating: "",
         currentTheme: null as string | null,
-        profiles:null as BuildProfile | null,
+        profiles: null as BuildProfile | null,
     }),
     actions: {
         changeTheme(theme: THEME_COLOR) {
@@ -120,6 +130,12 @@ export const useVsCodeStore = defineStore('vsCode', {
                         break;
                     case ARDUINO_MESSAGES.CLI_UPDATE_INDEX:
                         loadMockData('outdated.json').then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
+                        break;
+                    case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
+                        loadMockData('sketch.yaml', false, true).then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
