@@ -7,13 +7,17 @@ import { VSCODE_FOLDER } from './ArduinoProject';
 
 export class SketchProfileManager {
 
-    constructor(private sketchFolder: string) { }
+    private yamlInVscodeFolder:string = "";
+    private yamlInSketchFolder:string = "";
+
+    constructor(private sketchFolder: string) {
+        this.yamlInVscodeFolder = path.join(arduinoProject.getProjectPath(), VSCODE_FOLDER, YAML_FILENAME);
+        this.yamlInSketchFolder = path.join(this.sketchFolder, YAML_FILENAME);
+     }
 
     exists(): boolean {
-        const file = path.join(this.sketchFolder, YAML_FILENAME);
-        if (!fs.existsSync(file)) {
-            const file = path.join(arduinoProject.getProjectPath(), VSCODE_FOLDER,YAML_FILENAME)
-            return fs.existsSync(file);
+        if (!fs.existsSync(this.yamlInSketchFolder)) {
+            return fs.existsSync(this.yamlInVscodeFolder);
         }
         return true;
     }
@@ -29,7 +33,11 @@ export class SketchProfileManager {
             return undefined;
         }
     }
+    toggleProfileAvailability() {
+        if(this.exists()) {
 
+        }
+    }
     write(yamlData: SketchYaml): void {
         const file = path.join(this.sketchFolder, YAML_FILENAME);
         const content = yaml.stringify(yamlData);
