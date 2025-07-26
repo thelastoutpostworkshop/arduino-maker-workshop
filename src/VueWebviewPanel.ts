@@ -118,6 +118,9 @@ export class VueWebviewPanel {
                            arduinoYaml.updateProfile("test",profile);
                         })
                         break;
+                    case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
+        
+                        break;
                     case ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE:
                         arduinoProject.setUseBuildProfile(message.payload);
                         if (arduinoProject.useBuildProfile()) {

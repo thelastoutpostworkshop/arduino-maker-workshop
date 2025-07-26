@@ -26,7 +26,7 @@ export class SketchProfileManager {
     }
 
     updateProfile(profileName: string, profileData: string | BuildProfile): void {
-        const yamlData = this.read() ?? { profiles: {} };
+        const yamlData = this.getYaml() ?? { profiles: {} };
 
         let profile: BuildProfile;
 
@@ -49,11 +49,11 @@ export class SketchProfileManager {
         }
 
         yamlData.profiles[profileName] = profile;
-        this.write(yamlData);
+        this.writeYaml(yamlData);
     }
 
 
-    read(): SketchYaml | undefined {
+    getYaml(): SketchYaml | undefined {
         let file: string = "";
 
         switch (this.status()) {
@@ -88,7 +88,7 @@ export class SketchProfileManager {
             return;
         }
     }
-    write(yamlData: SketchYaml): void {
+    writeYaml(yamlData: SketchYaml): void {
         let file: string = "";
 
         switch (this.status()) {
@@ -124,16 +124,16 @@ export class SketchProfileManager {
             },
         };
 
-        this.write(yamlData);
+        this.writeYaml(yamlData);
     }
 
     listProfiles(): string[] {
-        const yamlData = this.read();
+        const yamlData = this.getYaml();
         return yamlData ? Object.keys(yamlData.profiles) : [];
     }
 
     getProfile(name: string): BuildProfile | undefined {
-        const yamlData = this.read();
+        const yamlData = this.getYaml();
         return yamlData?.profiles[name];
     }
 
@@ -141,7 +141,7 @@ export class SketchProfileManager {
         const errors: string[] = [];
 
         if (this.status() == PROFILES_STATUS.ACTIVE || this.status() == PROFILES_STATUS.INACTIVE) {
-            const data = this.read();
+            const data = this.getYaml();
             if (!data) {
                 return { valid: false, errors: ['Unable to read sketch.yaml'] };
             }
