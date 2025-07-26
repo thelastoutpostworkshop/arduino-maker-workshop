@@ -22,30 +22,46 @@ export class SketchProfileManager {
         if (fs.existsSync(this.yamlInVscodeFolder)) {
             return PROFILES_STATUS.INACTIVE;
         }
-
         return PROFILES_STATUS.NOT_AVAILABLE;
     }
 
     read(): SketchYaml | undefined {
-        const file = path.join(this.sketchFolder, YAML_FILENAME);
-        try {
-            const content = fs.readFileSync(file, 'utf8');
-            const data = yaml.parse(content) as SketchYaml;
-            return data;
-        } catch (error) {
-            console.error('Failed to read build profile:', error);
-            return undefined;
+        let file: string = "";
+
+        switch (this.status()) {
+            case PROFILES_STATUS.ACTIVE:
+                file = this.yamlInSketchFolder;
+                break;
+            case PROFILES_STATUS.INACTIVE:
+                file = this.yamlInVscodeFolder
+                break;
+            default:
+                break;
+        }
+        if (file.length > 0) {
+            try {
+                const content = fs.readFileSync(file, 'utf8');
+                const data = yaml.parse(content) as SketchYaml;
+                return data;
+            } catch (error) {
+                console.error('Failed to read build profile:', error);
+                return undefined;
+            }
         }
     }
-    toggleProfileAvailability():boolean {
-        if (this.exists()) {
-            if (fs.existsSync(this.yamlInSketchFolder)) {
+    toggleProfileAvailability(): PROFILES_STATUS {
+        switch (this.status()) {
+            case PROFILES_STATUS.ACTIVE:
                 fs.renameSync(this.yamlInSketchFolder, this.yamlInVscodeFolder);
-                return true;
-            } else {
+                return PROFILES_STATUS.INACTIVE;
+                break;
+            case PROFILES_STATUS.INACTIVE:
                 fs.renameSync(this.yamlInVscodeFolder, this.yamlInSketchFolder);
-                return false;
-            }
+                return PROFILES_STATUS.ACTIVE;
+                break;
+            default:
+                return PROFILES_STATUS.NOT_AVAILABLE;
+                break;
         }
     }
     write(yamlData: SketchYaml): void {
@@ -84,7 +100,7 @@ export class SketchProfileManager {
     verify(): { valid: boolean; errors: string[] } {
         const errors: string[] = [];
 
-        if (this.exists()) {
+        if (this.status() == PROFILES_STATUS.ACTIVE || this.status() == PROFILES_STATUS.INACTIVE) {
             const data = this.read();
             if (!data) {
                 return { valid: false, errors: ['Unable to read sketch.yaml'] };
