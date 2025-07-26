@@ -70,14 +70,15 @@ const profilesList = computed(() => {
                                             </v-list-item>
                                         </v-list>
                                     </div>
-
+                                    <div>
+                                        {{ profile.libraries }}
+                                    </div>
                                     <div v-if="profile.libraries?.length" class="mt-4">
                                         <strong>Libraries:</strong>
                                         <v-list density="compact">
-                                            <v-list-item v-for="(lib, idx) in profile.libraries"
-                                                :key="`library-${idx}`">
+                                            <v-list-item v-for="(lib) in profile.libraries">
                                                 <v-list-item-title>
-                                                    {{ lib.name }}<span v-if="lib.version"> @ {{ lib.version }}</span>
+                                                    {{ lib }}
                                                 </v-list-item-title>
                                             </v-list-item>
                                         </v-list>
