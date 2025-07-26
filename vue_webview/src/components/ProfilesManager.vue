@@ -31,7 +31,7 @@ const profilesList = computed(() => {
                 <span class="text-h4 font-weight-bold ml-5">Profiles Manager</span>
             </v-row>
 
-            <v-card v-if="!store.profiles" class="mt-5">
+            <v-card v-if="store.profiles == null" class="mt-5">
                 <v-card-item title="Loading profiles">
                     <template v-slot:subtitle>
                         Please wait
@@ -43,7 +43,7 @@ const profilesList = computed(() => {
             </v-card>
             <div v-if="store.profiles">
                 <v-btn class="mb-4" @click="createProfile">
-                    Create a profile based on the current configuration
+                    Add a profile based on the current configuration
                 </v-btn>
                 <v-list v-if="profilesList.length">
                     <v-list-item v-for="profile in profilesList" :key="profile.name" class="border mb-2 rounded">
@@ -57,7 +57,12 @@ const profilesList = computed(() => {
                         </template>
                     </v-list-item>
                 </v-list>
-
+            </div>
+            <div v-else>
+                <v-btn class="mb-4" @click="createProfile">
+                    Add a profile based on the current configuration
+                </v-btn>
+                create a profile
             </div>
 
         </v-responsive>
