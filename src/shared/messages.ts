@@ -419,6 +419,10 @@ export enum PROFILES_STATUS {
   INACTIVE,
   ACTIVE
 }
+export interface SketchProjectFile {
+  yaml:SketchYaml;
+  error:string;
+}
 export interface SketchYaml {
     profiles: Record<string, BuildProfile>;
 }
