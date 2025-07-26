@@ -115,7 +115,7 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.CREATE_BUILD_PROFILE:
                         compile(false,true).then((profile)=>{
-                            // console.log(profile);
+                           arduinoYaml.updateProfile("test",profile);
                         })
                         break;
                     case ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE:

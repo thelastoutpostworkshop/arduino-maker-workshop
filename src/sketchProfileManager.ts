@@ -25,6 +25,34 @@ export class SketchProfileManager {
         return PROFILES_STATUS.NOT_AVAILABLE;
     }
 
+    updateProfile(profileName: string, profileData: string | BuildProfile): void {
+        const yamlData = this.read() ?? { profiles: {} };
+
+        let profile: BuildProfile;
+
+        if (typeof profileData === 'string') {
+            try {
+                const parsed = yaml.parse(profileData) as SketchYaml;
+                const firstProfileName = Object.keys(parsed?.profiles ?? {})[0];
+                profile = parsed?.profiles?.[firstProfileName];
+
+                if (!profile || typeof profile.fqbn !== 'string') {
+                    console.error("Invalid or missing profile in YAML string.");
+                    return;
+                }
+            } catch (err) {
+                console.error("Failed to parse YAML string:", err);
+                return;
+            }
+        } else {
+            profile = profileData;
+        }
+
+        yamlData.profiles[profileName] = profile;
+        this.write(yamlData);
+    }
+
+
     read(): SketchYaml | undefined {
         let file: string = "";
 
