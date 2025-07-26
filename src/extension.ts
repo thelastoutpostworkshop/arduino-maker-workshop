@@ -278,12 +278,13 @@ export function loadArduinoConfiguration(): boolean {
 	return true;
 }
 
-async function compile(clean: boolean = false) {
+export async function compile(clean: boolean = false,createBuildProfile = false):Promise<string> {
 	if (arduinoProject.isCompileReady()) {
-		return arduinoCLI.compile(clean);
+		return arduinoCLI.compile(clean,createBuildProfile);
 
 	} else {
 		window.showErrorMessage('Select a board first before compiling');
+		return "";
 	}
 }
 

@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionCo
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectStatus, PROFILES_STATUS, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, loadArduinoConfiguration, openExample, shouldDetectPorts, updateStateCompileUpload } from "./extension";
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, compile, loadArduinoConfiguration, openExample, shouldDetectPorts, updateStateCompileUpload } from "./extension";
 import { ARDUINO_SKETCH_EXTENSION } from "./ArduinoProject";
 import { SketchProfileManager } from "./sketchProfileManager";
 
@@ -114,6 +114,9 @@ export class VueWebviewPanel {
                         arduinoProject.setUseProgrammer(message.payload);
                         break;
                     case ARDUINO_MESSAGES.CREATE_BUILD_PROFILE:
+                        compile(false,true).then((profile)=>{
+                            // console.log(profile);
+                        })
                         break;
                     case ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE:
                         arduinoProject.setUseBuildProfile(message.payload);
