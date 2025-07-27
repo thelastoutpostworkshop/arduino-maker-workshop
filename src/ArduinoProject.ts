@@ -181,7 +181,7 @@ export class ArduinoProject {
     }
 
     public setMonitorPortSettings(monitorPortSettings: MonitorPortSettings) {
-        arduinoExtensionChannel.appendLine(`New monitor port settings applied: $${JSON.stringify(monitorPortSettings)}`)
+        // arduinoExtensionChannel.appendLine(`New monitor port settings applied: $${JSON.stringify(monitorPortSettings)}`)
         this.configJson.monitorPortSettings = monitorPortSettings;
         this.writeVSCodeArduinoConfiguration();
     }
