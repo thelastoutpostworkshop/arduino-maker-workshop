@@ -1,12 +1,24 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, YAML_FILENAME } from '@shared/messages';
 
 const store = useVsCodeStore();
 
+const profileName = ref(`profile-${Date.now()}`);
+
 function createProfile() {
-    store.sendMessage({ command: ARDUINO_MESSAGES.CREATE_BUILD_PROFILE, errorMessage: "", payload: "" });
+    const name = profileName.value.trim();
+    if (!name) return;
+
+    store.sendMessage({
+        command: ARDUINO_MESSAGES.CREATE_BUILD_PROFILE,
+        errorMessage: '',
+        payload: name,
+    });
+
+    // Suggest a new default name for next time
+    profileName.value = `profile-${Date.now()}`;
 }
 
 onMounted(() => {
@@ -52,9 +64,13 @@ const profilesList = computed(() => {
                     </v-alert>
                 </div>
                 <div v-else-if="store.sketchProject.yaml">
-                    <v-btn class="mb-4" @click="createProfile">
-                        Add a profile based on the current configuration
-                    </v-btn>
+                    <v-row align="center" class="mb-4" dense>
+                        <v-text-field label="Profile name to be added" v-model="profileName" density="comfortable" hide-details
+                            class="mr-4" style="max-width: 300px"></v-text-field>
+                        <v-btn @click="createProfile">
+                            Add a profile based on the current configuration
+                        </v-btn>
+                    </v-row>
                     <v-expansion-panels multiple variant="inset">
                         <v-expansion-panel v-for="profile in profilesList" :key="profile.name">
                             <v-expansion-panel-title>
