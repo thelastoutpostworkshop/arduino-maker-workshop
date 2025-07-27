@@ -367,7 +367,7 @@ export class VueWebviewPanel {
     }
 }
 
-function sendBuildProfiles(message: WebviewToExtensionMessage) {
+export function sendBuildProfiles(message: WebviewToExtensionMessage) {
     const yaml = arduinoYaml.getYaml();
     let sketchProject: SketchProjectFile;
     if (arduinoYaml.getLastError()) {
