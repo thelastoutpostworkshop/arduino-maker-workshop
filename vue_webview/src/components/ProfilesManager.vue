@@ -75,8 +75,9 @@ const profilesList = computed(() => {
                                                     :key="`platform-${idx}`">
                                                     <v-list-item-title>
                                                         {{ platform.platform }}
-                                                        <span v-if="platform.platform_index_url"> @ {{
-                                                            platform.platform_index_url }}</span>
+                                                        <v-list-item-subtitle v-if="platform.platform_index_url">
+                                                            {{ platform.platform_index_url }}
+                                                        </v-list-item-subtitle>
                                                     </v-list-item-title>
                                                 </v-list-item>
                                             </v-list>
