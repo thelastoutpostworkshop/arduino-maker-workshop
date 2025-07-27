@@ -15,7 +15,6 @@ const sketchName = ref("");
 const useProgrammer = ref(false);
 const programmer = ref("");
 const optimize_for_debug = ref(false);
-const useBuildProfile = ref(false);
 const monitorPortSettings = reactive({ port: "", baudRate: 115200, lineEnding: "\r\n", dataBits: 8, parity: "none", stopBits: "one" });
 
 const portsAvailable = computed(() => getAvailablePorts(store));
@@ -87,11 +86,11 @@ watch(optimize_for_debug, (newStatus) => {
     store.sendMessage({ command: ARDUINO_MESSAGES.SET_OPTIMIZE_FOR_DEBUG, errorMessage: "", payload: newStatus });
   }
 });
-watch(useBuildProfile, (newStatus) => {
-  if (newStatus != undefined) {
-    store.sendMessage({ command: ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE, errorMessage: "", payload: newStatus });
-  }
-});
+// watch(useBuildProfile, (newStatus) => {
+//   if (newStatus != undefined) {
+//     store.sendMessage({ command: ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE, errorMessage: "", payload: newStatus });
+//   }
+// });
 
 watch(
   [() => store.boardConnected, () => store.projectInfo],
@@ -119,7 +118,6 @@ watch(
       useProgrammer.value = projectInfo.useProgrammer;
       programmer.value = projectInfo.programmer;
       optimize_for_debug.value = projectInfo.optimize_for_debug;
-      useBuildProfile.value = projectInfo.useBuildProfile;
     }
     if (projectInfo?.monitorPortSettings) {
       getStoredMonitorPortSettings();
@@ -230,7 +228,7 @@ onMounted(() => {
                 </div>
               </v-row>
               <v-row class="d-flex ml-2">
-                <v-checkbox v-model="useBuildProfile" color="secondary">
+                <!-- <v-checkbox v-model="useBuildProfile" color="secondary">
                   <template #label>
                     <div class="d-flex align-center gap-2">
                       <span>Build using a profile</span>
@@ -245,7 +243,7 @@ onMounted(() => {
                       </v-tooltip>
                     </div>
                   </template>
-                </v-checkbox>
+                </v-checkbox> -->
 
               </v-row>
             </div>

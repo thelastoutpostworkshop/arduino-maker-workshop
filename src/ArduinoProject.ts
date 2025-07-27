@@ -43,7 +43,7 @@ export class ArduinoProject {
         }
         this.configJson = {
             port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "", programmer: "", useProgrammer: false,
-            optimize_for_debug: false, useBuildProfile: false, configurationRequired: false,
+            optimize_for_debug: false, configurationRequired: false,
             monitorPortSettings: getMonitorPortSettingsDefault()
         };
     }
@@ -249,11 +249,11 @@ export class ArduinoProject {
         this.writeVSCodeArduinoConfiguration();
     }
     public setUseBuildProfile(use: boolean): void {
-        this.configJson.useBuildProfile = use;
+        // this.configJson.useBuildProfile = use;
         this.writeVSCodeArduinoConfiguration();
     }
     public useBuildProfile(): boolean {
-        return this.configJson.useBuildProfile || false;
+        return  false;
     }
     public setOptimizeForDebug(optimize: boolean): void {
         this.configJson.optimize_for_debug = optimize;
