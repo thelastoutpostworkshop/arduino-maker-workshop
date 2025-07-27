@@ -25,7 +25,7 @@ function createProfile() {
         payload: profileName.value.trim(),
     });
 
-    profileName.value = `profile-${Date.now()}`; // generate next default name
+    // profileName.value = `profile-${Date.now()}`; // generate next default name
 }
 
 onMounted(() => {
@@ -71,15 +71,24 @@ const profilesList = computed(() => {
                     </v-alert>
                 </div>
                 <div v-else-if="store.sketchProject.yaml">
-                    <v-form v-model="isProfileValid">
-                        <v-row class="mb-4" align="center">
-                            <v-text-field v-model="profileName" label="Profile name" :rules="profileRules"
-                                hide-details="auto" density="comfortable" class="mr-4" clearable style="max-width: 300px;" />
-                            <v-btn @click="createProfile" :disabled="!isProfileValid">
-                                Add a profile based on the current configuration
-                            </v-btn>
-                        </v-row>
-                    </v-form>
+                    <v-card class="mb-5 pl-5">
+                        <v-card-title>
+                            <span>Tools</span>
+                        </v-card-title>
+                        <v-card-text class="pt-4">
+                            <v-form v-model="isProfileValid">
+                                <v-row class="mb-4" align="center">
+                                    <v-text-field v-model="profileName" label="Profile name" :rules="profileRules"
+                                        hide-details="auto" density="comfortable" class="mr-4" clearable
+                                        style="max-width: 300px;" />
+                                    <v-btn @click="createProfile" :disabled="!isProfileValid">
+                                        Add a profile based on the current configuration
+                                    </v-btn>
+                                </v-row>
+                            </v-form>
+                        </v-card-text>
+                    </v-card>
+                    <div>Your Build Profiles:</div>
                     <v-expansion-panels multiple variant="inset">
                         <v-expansion-panel v-for="profile in profilesList" :key="profile.name">
                             <v-expansion-panel-title>
