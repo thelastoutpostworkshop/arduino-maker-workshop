@@ -74,7 +74,7 @@ const profilesList = computed(() => {
                     <v-form v-model="isProfileValid">
                         <v-row class="mb-4" align="center">
                             <v-text-field v-model="profileName" label="Profile name" :rules="profileRules"
-                                hide-details="auto" density="comfortable" class="mr-4" style="max-width: 300px;" />
+                                hide-details="auto" density="comfortable" class="mr-4" clearable style="max-width: 300px;" />
                             <v-btn @click="createProfile" :disabled="!isProfileValid">
                                 Add a profile based on the current configuration
                             </v-btn>
