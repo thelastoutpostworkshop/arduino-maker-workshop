@@ -26,7 +26,7 @@ export class SketchProfileManager {
         return PROFILES_STATUS.NOT_AVAILABLE;
     }
 
-    getLastError():string {
+    getLastError(): string {
         return this.lastError;
     }
 
@@ -78,6 +78,9 @@ export class SketchProfileManager {
             try {
                 const content = fs.readFileSync(file, 'utf8');
                 const data = yaml.parse(content) as SketchYaml;
+                if(!this.verify(data)) {
+                   return undefined;                 
+                }
                 return data;
             } catch (error) {
                 this.lastError = `Failed to read build profile: ${error}`;
@@ -146,33 +149,25 @@ export class SketchProfileManager {
         return yamlData?.profiles[name];
     }
 
-    verify(): { valid: boolean; errors: string[] } {
-        const errors: string[] = [];
-
+    verify(yaml:SketchYaml): boolean {
         if (this.status() == PROFILES_STATUS.ACTIVE || this.status() == PROFILES_STATUS.INACTIVE) {
-            const data = this.getYaml();
-            if (!data) {
-                return { valid: false, errors: ['Unable to read sketch.yaml'] };
+            if (!yaml.profiles || typeof yaml.profiles !== 'object') {
+                this.lastError = `Missing or invalid "profiles" section.`;
+                return false;
+            }
+            const profileKeys = Object.keys(yaml.profiles);
+            if (profileKeys.length === 0) {
+                this.lastError = `No profiles defined in "profiles" section.`;
+                return false;
             }
 
-            if (!data.profiles || typeof data.profiles !== 'object') {
-                errors.push('Missing or invalid "profiles" section.');
-            } else {
-                const profileKeys = Object.keys(data.profiles);
-                if (profileKeys.length === 0) {
-                    errors.push('No profiles defined in "profiles" section.');
-                } else {
-                    for (const [name, profile] of Object.entries(data.profiles)) {
-                        if (!profile.fqbn || typeof profile.fqbn !== 'string') {
-                            errors.push(`Profile "${name}" is missing a valid "fqbn".`);
-                        }
-                    }
+            for (const [name, profile] of Object.entries(yaml.profiles)) {
+                if (!profile.fqbn || typeof profile.fqbn !== 'string') {
+                    this.lastError = `Profile "${name}" is missing a valid "fqbn".`;
+                    return false;
                 }
             }
-        } else {
-            return { valid: true, errors: ['Create a sketch.yaml first'] };
         }
-
-        return { valid: errors.length === 0, errors };
+        return true;
     }
 }
