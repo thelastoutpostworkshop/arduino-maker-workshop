@@ -170,10 +170,10 @@ function watchSketchYamlFile(context: ExtensionContext) {
 	const sketchYamlWatcher = workspace.createFileSystemWatcher('**/sketch.yaml');
 
 	const changeDisposable = sketchYamlWatcher.onDidChange((uri) => {
-		const message:WebviewToExtensionMessage = {
-			command : ARDUINO_MESSAGES.GET_BUILD_PROFILES,
-			errorMessage:"",
-			payload:""
+		const message: WebviewToExtensionMessage = {
+			command: ARDUINO_MESSAGES.GET_BUILD_PROFILES,
+			errorMessage: "",
+			payload: ""
 		}
 		sendBuildProfiles(message);
 		arduinoExtensionChannel.appendLine(`sketch.yaml changed: ${uri.fsPath}`);
@@ -185,10 +185,22 @@ function watchSketchYamlFile(context: ExtensionContext) {
 
 	const createDisposable = sketchYamlWatcher.onDidCreate((uri) => {
 		arduinoExtensionChannel.appendLine(`sketch.yaml created: ${uri.fsPath}`);
+		const message: WebviewToExtensionMessage = {
+			command: ARDUINO_MESSAGES.GET_BUILD_PROFILES,
+			errorMessage: "",
+			payload: ""
+		}
+		sendBuildProfiles(message);
 	});
 
 	const deleteDisposable = sketchYamlWatcher.onDidDelete((uri) => {
 		arduinoExtensionChannel.appendLine(`sketch.yaml deleted: ${uri.fsPath}`);
+		const message: WebviewToExtensionMessage = {
+			command: ARDUINO_MESSAGES.GET_BUILD_PROFILES,
+			errorMessage: "",
+			payload: ""
+		}
+		sendBuildProfiles(message);
 	});
 
 	// Push all disposables to the extension context
