@@ -169,7 +169,6 @@ export async function activate(context: ExtensionContext) {
 function watchSketchYamlFile(context: ExtensionContext) {
 	const sketchYamlWatcher = workspace.createFileSystemWatcher('**/sketch.yaml');
 
-	// Register each event handler and store the disposables
 	const changeDisposable = sketchYamlWatcher.onDidChange((uri) => {
 		const message:WebviewToExtensionMessage = {
 			command : ARDUINO_MESSAGES.GET_BUILD_PROFILES,
