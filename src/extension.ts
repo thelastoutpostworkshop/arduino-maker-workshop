@@ -194,14 +194,10 @@ function watchSketchYamlFile(context: ExtensionContext) {
 			errorMessage: "",
 			payload: ""
 		}
-		if (VueWebviewPanel.currentPanel){
+		if (VueWebviewPanel.currentPanel) {
 			sendBuildProfiles(message);
 		}
 		arduinoExtensionChannel.appendLine(`sketch.yaml changed: ${uri.fsPath}`);
-		// const validation = arduinoYaml.verify();
-		// if (!validation.valid) {
-		// 	window.showWarningMessage(`sketch.yaml has issues: ${validation.errors.join(', ')}`);
-		// }
 	});
 
 	const createDisposable = sketchYamlWatcher.onDidCreate((uri) => {
@@ -211,7 +207,9 @@ function watchSketchYamlFile(context: ExtensionContext) {
 			errorMessage: "",
 			payload: ""
 		}
-		sendBuildProfiles(message);
+		if (VueWebviewPanel.currentPanel) {
+			sendBuildProfiles(message);
+		}
 	});
 
 	const deleteDisposable = sketchYamlWatcher.onDidDelete((uri) => {
@@ -221,7 +219,9 @@ function watchSketchYamlFile(context: ExtensionContext) {
 			errorMessage: "",
 			payload: ""
 		}
-		sendBuildProfiles(message);
+		if (VueWebviewPanel.currentPanel) {
+			sendBuildProfiles(message);
+		}
 	});
 
 	// Push all disposables to the extension context
