@@ -74,6 +74,8 @@ export class ArduinoProject {
         return false;
     }
     public getStatus(): ArduinoProjectStatus {
+        this.projectStatus.status= this.isFolderArduinoProject();
+        this.projectStatus.cli_status = arduinoCLI.getCLIStatus();
         return this.projectStatus;
     }
     public setStatus(status: ARDUINO_ERRORS) {

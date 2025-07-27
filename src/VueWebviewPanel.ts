@@ -38,11 +38,9 @@ export class VueWebviewPanel {
                         arduinoCLI.createNewSketch(message.payload);
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
-                        const projectStatus: ArduinoProjectStatus = { status: arduinoProject.isFolderArduinoProject(), cli_status: arduinoCLI.getCLIStatus() };
+                        const projectStatus = arduinoProject.getStatus();
                         if (projectStatus.status == ARDUINO_ERRORS.WRONG_FOLDER_NAME) {
                             arduinoExtensionChannel.appendLine(`Project status has errors`);
-                            projectStatus.folderName = arduinoProject.getStatus().folderName;
-                            projectStatus.sketchName = arduinoProject.getStatus().sketchName + ARDUINO_SKETCH_EXTENSION;
                         } else {
                             arduinoExtensionChannel.appendLine(`Project status is good`);
                         }
