@@ -78,12 +78,17 @@ const profilesList = computed(() => {
                         <v-card-text class="pt-4">
                             <v-form v-model="isProfileValid">
                                 <v-row class="mb-4" align="center">
-                                    <v-text-field v-model="profileName" label="Profile name" :rules="profileRules"
+                                    <v-text-field v-model="profileName" label="New Profile name" :rules="profileRules"
                                         hide-details="auto" density="comfortable" class="mr-4" clearable
                                         style="max-width: 300px;" />
-                                    <v-btn @click="createProfile" :disabled="!isProfileValid">
-                                        Add a profile based on the current configuration
-                                    </v-btn>
+                                    <v-tooltip location="top">
+                                        <template #activator="{ props }">
+                                            <v-btn v-bind="props" @click="createProfile" :disabled="!isProfileValid">
+                                                Create a new profile
+                                            </v-btn>
+                                        </template>
+                                        <span>Create a new profile using the current configuration</span>
+                                    </v-tooltip>
                                 </v-row>
                             </v-form>
                         </v-card-text>
