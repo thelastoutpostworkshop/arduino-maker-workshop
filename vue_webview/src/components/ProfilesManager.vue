@@ -6,19 +6,26 @@ import { ARDUINO_MESSAGES, YAML_FILENAME } from '@shared/messages';
 const store = useVsCodeStore();
 
 const profileName = ref(`profile-${Date.now()}`);
+const isProfileValid = ref(false);
+
+// Vuetify validation rules
+const profileRules = [
+    (v: string) => !!v || 'Name is required.',
+    (v: string) => {
+        const profiles = store.sketchProject?.yaml?.profiles || {};
+        return !(v in profiles) || `Profile "${v}" already exists.`;
+    },
+];
+
 
 function createProfile() {
-    const name = profileName.value.trim();
-    if (!name) return;
-
     store.sendMessage({
         command: ARDUINO_MESSAGES.CREATE_BUILD_PROFILE,
         errorMessage: '',
-        payload: name,
+        payload: profileName.value.trim(),
     });
 
-    // Suggest a new default name for next time
-    profileName.value = `profile-${Date.now()}`;
+    profileName.value = `profile-${Date.now()}`; // generate next default name
 }
 
 onMounted(() => {
@@ -64,13 +71,15 @@ const profilesList = computed(() => {
                     </v-alert>
                 </div>
                 <div v-else-if="store.sketchProject.yaml">
-                    <v-row align="center" class="mb-4" dense>
-                        <v-text-field label="Profile name to be added" v-model="profileName" density="comfortable" hide-details
-                            class="mr-4" style="max-width: 300px"></v-text-field>
-                        <v-btn @click="createProfile">
-                            Add a profile based on the current configuration
-                        </v-btn>
-                    </v-row>
+                    <v-form v-model="isProfileValid">
+                        <v-row class="mb-4" align="center">
+                            <v-text-field v-model="profileName" label="Profile name" :rules="profileRules"
+                                hide-details="auto" density="comfortable" class="mr-4" style="max-width: 300px;" />
+                            <v-btn @click="createProfile" :disabled="!isProfileValid">
+                                Add a profile based on the current configuration
+                            </v-btn>
+                        </v-row>
+                    </v-form>
                     <v-expansion-panels multiple variant="inset">
                         <v-expansion-panel v-for="profile in profilesList" :key="profile.name">
                             <v-expansion-panel-title>
