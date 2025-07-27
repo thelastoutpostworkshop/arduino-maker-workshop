@@ -95,7 +95,7 @@ export interface ArduinoProjectConfiguration {
   useProgrammer: boolean;
   optimize_for_debug: boolean;
   monitorPortSettings: MonitorPortSettings
-  useBuildProfile:boolean;
+  useBuildProfile: boolean;
 };
 
 export enum ARDUINO_ERRORS {
@@ -420,28 +420,28 @@ export enum PROFILES_STATUS {
   ACTIVE
 }
 export interface SketchProjectFile {
-  yaml:SketchYaml;
-  error:string;
+  yaml?: SketchYaml;
+  error: string;
 }
 export interface SketchYaml {
-    profiles: Record<string, BuildProfile>;
+  profiles: Record<string, BuildProfile>;
 }
 
 export interface BuildProfile {
-    notes?: string;
-    fqbn: string;
-    programmer?: string;
-    platforms?: PlatformDependencyProfile[];
-    libraries?: string[];
-    port?: string;
-    port_config?: Record<string, string>;
-    protocol?: string;
-    buildProperties?: Record<string, string>; // Optional addition, not in spec but can be useful
+  notes?: string;
+  fqbn: string;
+  programmer?: string;
+  platforms?: PlatformDependencyProfile[];
+  libraries?: string[];
+  port?: string;
+  port_config?: Record<string, string>;
+  protocol?: string;
+  buildProperties?: Record<string, string>; // Optional addition, not in spec but can be useful
 }
 
 export interface PlatformDependencyProfile {
-    platform: string; // e.g. "esp32:esp32 (2.0.11)"
-    platform_index_url?: string;
+  platform: string; // e.g. "esp32:esp32 (2.0.11)"
+  platform_index_url?: string;
 }
 
 export const ARDUINO_MESSAGES = {
@@ -471,9 +471,9 @@ export const ARDUINO_MESSAGES = {
   SET_PROGRAMMER: 'setArduinoProgrammer',
   SET_USE_PROGRAMMER: 'setArduinoUseProgrammer',
   SET_USE_BUILD_PROFILE: 'setUseBuildProfile',
-  CREATE_BUILD_PROFILE:'createBuildProfile',
-  GET_BUILD_PROFILES:'getBuildProfiles',
-  UPDATE_BUILD_PROFILES:'updateBuildProfiles',
+  CREATE_BUILD_PROFILE: 'createBuildProfile',
+  GET_BUILD_PROFILES: 'getBuildProfiles',
+  UPDATE_BUILD_PROFILES: 'updateBuildProfiles',
   SET_OPTIMIZE_FOR_DEBUG: 'setOptimizeForDebug',
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
   CORE_UNINSTALLED: 'coreUninstalled',

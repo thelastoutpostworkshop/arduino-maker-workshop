@@ -1,7 +1,7 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionContext } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectStatus, PROFILES_STATUS, WebviewToExtensionMessage, YAML_FILENAME } from './shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectStatus, PROFILES_STATUS, SketchProjectFile, WebviewToExtensionMessage, YAML_FILENAME } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, compile, loadArduinoConfiguration, openExample, shouldDetectPorts, updateStateCompileUpload } from "./extension";
 import { ARDUINO_SKETCH_EXTENSION } from "./ArduinoProject";
 import { SketchProfileManager } from "./sketchProfileManager";
@@ -120,15 +120,27 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
                         const yaml = arduinoYaml.getYaml();
+                        let sketchProject: SketchProjectFile;
                         if (arduinoYaml.getLastError()) {
-                            message.errorMessage = arduinoYaml.getLastError();
+                            sketchProject = {
+                                error: arduinoYaml.getLastError()
+                            }
+                            message.payload = sketchProject;
                             VueWebviewPanel.sendMessage(message);
                         } else {
+
                             if (yaml) {
-                                message.payload = yaml;
+                                sketchProject = {
+                                    yaml: yaml,
+                                    error: ""
+                                }
+                                message.payload = sketchProject;
                                 VueWebviewPanel.sendMessage(message);
                             } else {
-                                message.payload = "";
+                                sketchProject = {
+                                    error: ""
+                                }
+                                message.payload = sketchProject;
                                 VueWebviewPanel.sendMessage(message);
                             }
 
