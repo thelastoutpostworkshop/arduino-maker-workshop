@@ -137,7 +137,6 @@ export const useVsCodeStore = defineStore('vsCode', {
                     case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
                         loadMockData('sketch.yaml', false, true).then((mockPayload) => {
                             const sketchProject: SketchProjectFile = {
-                                yaml: mockPayload,
                                 error: ""
                             }
                             message.payload = sketchProject;

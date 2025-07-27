@@ -162,15 +162,29 @@ const profilesList = computed(() => {
                     </v-expansion-panels>
                 </div>
                 <div v-else>
-                    <v-card class="mt-5" rounded="lg">
-                        <v-card-item title="No profiles">
-                        </v-card-item>
-                        <v-card-actions>
-                            <v-btn class="mb-4" @click="createProfile">
-                                Add a profile based on the current configuration
-                            </v-btn>
-                        </v-card-actions>
+                    <v-card class="mb-5 pl-5">
+                        <v-card-title>
+                            <span>Create your first profile</span>
+                        </v-card-title>
+                        <v-card-text class="pt-4">
+                            <v-form v-model="isProfileValid">
+                                <v-row class="mb-4" align="center">
+                                    <v-text-field v-model="profileName" label="New Profile name" :rules="profileRules"
+                                        hide-details="auto" density="comfortable" class="mr-4" clearable
+                                        style="max-width: 300px;" />
+                                    <v-tooltip location="top">
+                                        <template #activator="{ props }">
+                                            <v-btn v-bind="props" @click="createProfile" :disabled="!isProfileValid">
+                                                Create a new profile
+                                            </v-btn>
+                                        </template>
+                                        <span>Create a new profile using the current configuration</span>
+                                    </v-tooltip>
+                                </v-row>
+                            </v-form>
+                        </v-card-text>
                     </v-card>
+
                 </div>
             </div>
 
