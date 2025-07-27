@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { computed, watch, onMounted, ref, reactive } from 'vue';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName } from '@shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, PROFILES_STATUS } from '@shared/messages';
 import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
 import arduinoImage from '@/assets/extension_icon.png';
@@ -147,6 +147,8 @@ watch([() => store.cliStatus, () => store.projectStatus], () => { }, { immediate
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
+  store.sendMessage({ command: ARDUINO_MESSAGES.GET_BUILD_PROFILES, errorMessage: '', payload: '' });
+
   getStoredMonitorPortSettings();
 });
 </script>
@@ -228,6 +230,17 @@ onMounted(() => {
                 </div>
               </v-row>
               <v-row class="d-flex ml-2">
+                <div v-if="store.sketchProject?.buildProfileStatus">
+                  <div v-if="store.sketchProject.buildProfileStatus == PROFILES_STATUS.ACTIVE">
+                    Build profile is active
+                  </div>
+                  <div v-if="store.sketchProject.buildProfileStatus == PROFILES_STATUS.INACTIVE">
+                    Build profile is inactive
+                  </div>
+                  <div v-if="store.sketchProject.buildProfileStatus == PROFILES_STATUS.NOT_AVAILABLE">
+                    No build profile found
+                  </div>
+                </div>
                 <!-- <v-checkbox v-model="useBuildProfile" color="secondary">
                   <template #label>
                     <div class="d-flex align-center gap-2">

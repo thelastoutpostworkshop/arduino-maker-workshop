@@ -414,13 +414,14 @@ export enum THEME_COLOR {
 // Build profiles
 //
 export enum PROFILES_STATUS {
-  NOT_AVAILABLE,
-  INACTIVE,
-  ACTIVE
+  NOT_AVAILABLE = 'none',
+  INACTIVE = 'inactive',
+  ACTIVE = 'active'
 }
 export interface SketchProjectFile {
   yaml?: SketchYaml;
   error: string;
+  buildProfileStatus:PROFILES_STATUS
 }
 export interface SketchYaml {
   profiles: Record<string, BuildProfile>;
@@ -470,7 +471,6 @@ export const ARDUINO_MESSAGES = {
   SET_PROGRAMMER: 'setArduinoProgrammer',
   SET_USE_PROGRAMMER: 'setArduinoUseProgrammer',
   SET_USE_BUILD_PROFILE: 'setUseBuildProfile',
-  CURRENT_BUILD_PROFILE_STATUS: 'getBuildProfileStatus',
   CREATE_BUILD_PROFILE: 'createBuildProfile',
   GET_BUILD_PROFILES: 'getBuildProfiles',
   UPDATE_BUILD_PROFILES: 'updateBuildProfiles',

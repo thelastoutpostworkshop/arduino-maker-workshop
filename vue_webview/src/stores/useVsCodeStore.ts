@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated, ArduinoConfig, LibraryInformation, THEME_COLOR, SketchProjectFile } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated, ArduinoConfig, LibraryInformation, THEME_COLOR, SketchProjectFile, PROFILES_STATUS } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 import * as yaml from 'yaml';
 
@@ -137,7 +137,9 @@ export const useVsCodeStore = defineStore('vsCode', {
                     case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
                         loadMockData('sketch.yaml', false, true).then((mockPayload) => {
                             const sketchProject: SketchProjectFile = {
-                                error: ""
+                                yaml:mockPayload,
+                                error: "",
+                                buildProfileStatus:PROFILES_STATUS.NOT_AVAILABLE
                             }
                             message.payload = sketchProject;
                             this.handleMessage(message);

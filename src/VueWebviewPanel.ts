@@ -113,7 +113,7 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.CREATE_BUILD_PROFILE:
                         compile(false, true).then((profile) => {
-                            if(profile) {
+                            if (profile) {
                                 arduinoYaml.updateProfile(message.payload, profile);
                                 window.showInformationMessage(`Profile ${message.payload} created`);
                             }
@@ -373,7 +373,8 @@ export function sendBuildProfiles(message: WebviewToExtensionMessage) {
     let sketchProject: SketchProjectFile;
     if (arduinoYaml.getLastError()) {
         sketchProject = {
-            error: arduinoYaml.getLastError()
+            error: arduinoYaml.getLastError(),
+            buildProfileStatus: arduinoYaml.status()
         };
         message.payload = sketchProject;
         VueWebviewPanel.sendMessage(message);
@@ -382,13 +383,15 @@ export function sendBuildProfiles(message: WebviewToExtensionMessage) {
         if (yaml) {
             sketchProject = {
                 yaml: yaml,
-                error: ""
+                error: "",
+                buildProfileStatus: arduinoYaml.status()
             };
             message.payload = sketchProject;
             VueWebviewPanel.sendMessage(message);
         } else {
             sketchProject = {
-                error: ""
+                error: "",
+                buildProfileStatus: arduinoYaml.status()
             };
             message.payload = sketchProject;
             VueWebviewPanel.sendMessage(message);
