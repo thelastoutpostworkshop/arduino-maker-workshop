@@ -189,12 +189,14 @@ function watchSketchYamlFile(context: ExtensionContext) {
 	const sketchYamlWatcher = workspace.createFileSystemWatcher('**/sketch.yaml');
 
 	const changeDisposable = sketchYamlWatcher.onDidChange((uri) => {
-		const message: WebviewToExtensionMessage = {
+		let message: WebviewToExtensionMessage = {
 			command: ARDUINO_MESSAGES.GET_BUILD_PROFILES,
 			errorMessage: "",
 			payload: ""
 		}
-		sendBuildProfiles(message);
+		if (VueWebviewPanel.currentPanel){
+			sendBuildProfiles(message);
+		}
 		arduinoExtensionChannel.appendLine(`sketch.yaml changed: ${uri.fsPath}`);
 		// const validation = arduinoYaml.verify();
 		// if (!validation.valid) {
