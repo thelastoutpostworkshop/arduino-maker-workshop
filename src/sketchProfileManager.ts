@@ -11,9 +11,9 @@ export class SketchProfileManager {
     private yamlInSketchFolder: string = "";
     private lastError: string = "";
 
-    constructor(private sketchFolder: string) {
+    constructor() {
         this.yamlInVscodeFolder = path.join(arduinoProject.getProjectPath(), VSCODE_FOLDER, YAML_FILENAME);
-        this.yamlInSketchFolder = path.join(this.sketchFolder, YAML_FILENAME);
+        this.yamlInSketchFolder = path.join(arduinoProject.getProjectPath(), YAML_FILENAME);
     }
 
     status(): PROFILES_STATUS {

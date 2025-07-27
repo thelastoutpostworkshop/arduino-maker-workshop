@@ -24,7 +24,7 @@ arduinoExtensionChannel.appendLine(`Arduino Extension started on ${os.platform}`
 const quickAccessProvider = new QuickAccessProvider();
 
 export const arduinoProject: ArduinoProject = new ArduinoProject();
-export const arduinoYaml: SketchProfileManager = new SketchProfileManager(arduinoProject.getProjectPath());
+export const arduinoYaml: SketchProfileManager = new SketchProfileManager();
 export let arduinoCLI: ArduinoCLI;
 
 let debounceTimeout: NodeJS.Timeout | undefined; // To debounce changes to settings
