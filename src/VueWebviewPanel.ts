@@ -119,32 +119,7 @@ export class VueWebviewPanel {
                         })
                         break;
                     case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
-                        const yaml = arduinoYaml.getYaml();
-                        let sketchProject: SketchProjectFile;
-                        if (arduinoYaml.getLastError()) {
-                            sketchProject = {
-                                error: arduinoYaml.getLastError()
-                            }
-                            message.payload = sketchProject;
-                            VueWebviewPanel.sendMessage(message);
-                        } else {
-
-                            if (yaml) {
-                                sketchProject = {
-                                    yaml: yaml,
-                                    error: ""
-                                }
-                                message.payload = sketchProject;
-                                VueWebviewPanel.sendMessage(message);
-                            } else {
-                                sketchProject = {
-                                    error: ""
-                                }
-                                message.payload = sketchProject;
-                                VueWebviewPanel.sendMessage(message);
-                            }
-
-                        }
+                        sendBuildProfiles(message);
                         break;
                     case ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE:
                         arduinoProject.setUseBuildProfile(message.payload);
@@ -389,5 +364,34 @@ export class VueWebviewPanel {
         </html>
       `;
         return hmltcontent;
+    }
+}
+
+function sendBuildProfiles(message: WebviewToExtensionMessage) {
+    const yaml = arduinoYaml.getYaml();
+    let sketchProject: SketchProjectFile;
+    if (arduinoYaml.getLastError()) {
+        sketchProject = {
+            error: arduinoYaml.getLastError()
+        };
+        message.payload = sketchProject;
+        VueWebviewPanel.sendMessage(message);
+    } else {
+
+        if (yaml) {
+            sketchProject = {
+                yaml: yaml,
+                error: ""
+            };
+            message.payload = sketchProject;
+            VueWebviewPanel.sendMessage(message);
+        } else {
+            sketchProject = {
+                error: ""
+            };
+            message.payload = sketchProject;
+            VueWebviewPanel.sendMessage(message);
+        }
+
     }
 }
