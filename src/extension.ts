@@ -1,8 +1,8 @@
 import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind, ConfigurationTarget } from "vscode";
 import { ArduinoProject, UPLOAD_READY_STATUS } from './ArduinoProject';
-import { VueWebviewPanel } from './VueWebviewPanel';
+import { sendBuildProfiles, VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, quickAccessCompileCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, THEME_COLOR } from "./shared/messages";
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, THEME_COLOR, WebviewToExtensionMessage } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
 import { SketchProfileManager } from "./sketchProfileManager";
 
@@ -171,6 +171,12 @@ function watchSketchYamlFile(context: ExtensionContext) {
 
 	// Register each event handler and store the disposables
 	const changeDisposable = sketchYamlWatcher.onDidChange((uri) => {
+		const message:WebviewToExtensionMessage = {
+			command : ARDUINO_MESSAGES.GET_BUILD_PROFILES,
+			errorMessage:"",
+			payload:""
+		}
+		sendBuildProfiles(message);
 		arduinoExtensionChannel.appendLine(`sketch.yaml changed: ${uri.fsPath}`);
 		// const validation = arduinoYaml.verify();
 		// if (!validation.valid) {
