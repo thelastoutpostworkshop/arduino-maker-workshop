@@ -153,7 +153,7 @@ export class ArduinoProject {
                     }
                 }
             } catch (err) {
-                console.warn(`Skipping file ${file}:`, err);
+                // console.warn(`Skipping file ${file}:`, err);
                 continue; // skip problematic file
             }
         }
