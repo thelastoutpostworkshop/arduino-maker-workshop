@@ -15,7 +15,7 @@ onMounted(() => {
 
 // Convert SketchYaml.profiles object to an array for display
 const profilesList = computed(() => {
-    if (!store.sketchProject?.yaml.profiles) return [];
+    if (!store.sketchProject?.yaml?.profiles) return [];
     return Object.entries(store.sketchProject.yaml.profiles).map(([name, data]) => ({
         name,
         ...data,
