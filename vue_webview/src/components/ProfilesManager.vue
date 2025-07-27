@@ -27,9 +27,27 @@ function createProfile() {
 
     // profileName.value = `profile-${Date.now()}`; // generate next default name
 }
+const selectedDefaultProfile = ref<string | null>(null);
+
+const defaultProfileOptions = computed(() => {
+    const profiles = profilesList.value.map((p) => p.name);
+    return ['<none>', ...profiles];
+});
+
+function updateDefaultProfile() {
+    const profileName = selectedDefaultProfile.value;
+    console.log(profileName);
+    // store.sendMessage({
+    //     command: ARDUINO_MESSAGES.SET_DEFAULT_PROFILE,
+    //     errorMessage: '',
+    //     payload: profileName === '<none>' ? '' : profileName,
+    // });
+}
+
 
 onMounted(() => {
     store.sendMessage({ command: ARDUINO_MESSAGES.GET_BUILD_PROFILES, errorMessage: '', payload: '' });
+    // selectedDefaultProfile.value = store.sketchProject?.yaml?.default_profile || '<none>';
 });
 
 // Convert SketchYaml.profiles object to an array for display
@@ -89,6 +107,11 @@ const profilesList = computed(() => {
                                         </template>
                                         <span>Create a new profile using the current configuration</span>
                                     </v-tooltip>
+                                </v-row>
+                                <v-row class="mb-4" align="center">
+                                    <v-select v-model="selectedDefaultProfile" :items="defaultProfileOptions"
+                                        label="Select a default Profile" style="max-width: 300px" density="comfortable"
+                                        @update:modelValue="updateDefaultProfile" />
                                 </v-row>
                             </v-form>
                         </v-card-text>
