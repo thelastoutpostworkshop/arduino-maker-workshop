@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated, ArduinoConfig, LibraryInformation, THEME_COLOR, SketchYaml } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated, ArduinoConfig, LibraryInformation, THEME_COLOR, SketchYaml, SketchProjectFile } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 import * as yaml from 'yaml';
 
@@ -52,7 +52,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         boardUpdating: "",
         libraryUpdating: "",
         currentTheme: null as string | null,
-        profiles: null as SketchYaml | null,
+        sketchProject: null as SketchProjectFile | null,
     }),
     actions: {
         changeTheme(theme: THEME_COLOR) {
@@ -136,7 +136,11 @@ export const useVsCodeStore = defineStore('vsCode', {
                         break;
                     case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
                         loadMockData('sketch.yaml', false, true).then((mockPayload) => {
-                            message.payload = mockPayload;
+                            const sketchProject: SketchProjectFile = {
+                                yaml: mockPayload,
+                                error: "Error in the Yaml File"
+                            }
+                            message.payload = sketchProject;
                             this.handleMessage(message);
                         });
                         // message.payload="";
@@ -243,7 +247,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     }
                     break;
                 case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
-                    this.profiles = message.payload;
+                    this.sketchProject = message.payload;
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                     this.projectStatus = message.payload;
