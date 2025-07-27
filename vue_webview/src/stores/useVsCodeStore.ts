@@ -138,7 +138,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         loadMockData('sketch.yaml', false, true).then((mockPayload) => {
                             const sketchProject: SketchProjectFile = {
                                 yaml: mockPayload,
-                                error: "Error in the Yaml File"
+                                error: ""
                             }
                             message.payload = sketchProject;
                             this.handleMessage(message);

@@ -51,7 +51,7 @@ const profilesList = computed(() => {
                         </div>
                     </v-alert>
                 </div>
-                <div v-else>
+                <div v-else-if="store.sketchProject.yaml">
                     <v-btn class="mb-4" @click="createProfile">
                         Add a profile based on the current configuration
                     </v-btn>
