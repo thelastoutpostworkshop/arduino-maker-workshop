@@ -330,7 +330,7 @@ export class ArduinoCLI {
 	}
 	// #endregion
 
-	public async compile(clean: boolean = false, createBuildProfile = false):Promise<string>  {
+	public async compile(clean: boolean = false, createBuildProfile = false): Promise<string> {
 		if (this.compileOrUploadRunning) {
 			this.compileUploadChannel.show();
 			return "";
@@ -359,9 +359,13 @@ export class ArduinoCLI {
 			const optimizeDebugFlag = arduinoProject.optimizeForDebug();
 			const compileMode = (optimizeDebugFlag ? "for debug, " : "for release, ") + (verboseFlag ? "verbose" : "silent") + profileMsg;
 
-			const compileTitle = clean
+			let compileTitle:string = clean
 				? `Compiling project clean (${compileMode})...`
 				: `Compiling project (${compileMode})...`;
+
+			if (createBuildProfile) {
+				compileTitle = "Compiling project to create a build profile..."
+			}
 
 			const output = await window.withProgress(
 				{
