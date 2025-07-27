@@ -287,14 +287,9 @@ export class CLIArguments {
         }
         compileCommand.push(noColorOptionArduino);
 
-        if (arduinoProject.useBuildProfile()) {
-            compileCommand.push(`${buildPathArduino}`);
-            compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput()));
-            compileCommand.push(arduinoProject.getProjectPath());
-        } else {
-            if (buildProfile) {
-                compileCommand.push(`${dumpProfileOption}`);
-            }
+        if (buildProfile) {
+            // Compile to create a build profile
+            compileCommand.push(`${dumpProfileOption}`);
             compileCommand.push(fqbnOptionArduino);
             if (configurationRequired) {
                 compileCommand.push(`${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`);
@@ -304,13 +299,34 @@ export class CLIArguments {
             compileCommand.push(`${buildPathArduino}`);
             compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput()));
             compileCommand.push(arduinoProject.getProjectPath());
-            if (jsonOutput) {
-                compileCommand.push(`${jsonOutputArduino}`);
-            }
-            if (clean) {
-                compileCommand.push(`${compileCleanOption}`);
-            }
+            return compileCommand;
         }
+
+        if (arduinoProject.useBuildProfile()) {
+            // Compile using a profile
+            compileCommand.push(`${buildPathArduino}`);
+            compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput()));
+            compileCommand.push(arduinoProject.getProjectPath());
+            return compileCommand;
+        }
+
+        // Compile with no profile
+        compileCommand.push(fqbnOptionArduino);
+        if (configurationRequired) {
+            compileCommand.push(`${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`);
+        } else {
+            compileCommand.push(`${arduinoProject.getBoard()}`);
+        }
+        compileCommand.push(`${buildPathArduino}`);
+        compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput()));
+        compileCommand.push(arduinoProject.getProjectPath());
+        if (jsonOutput) {
+            compileCommand.push(`${jsonOutputArduino}`);
+        }
+        if (clean) {
+            compileCommand.push(`${compileCleanOption}`);
+        }
+
 
         return compileCommand;
     }
