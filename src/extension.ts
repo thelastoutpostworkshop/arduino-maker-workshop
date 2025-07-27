@@ -2,7 +2,7 @@ import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusB
 import { ArduinoProject, UPLOAD_READY_STATUS } from './ArduinoProject';
 import { sendBuildProfiles, VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, quickAccessCompileCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, THEME_COLOR, WebviewToExtensionMessage } from "./shared/messages";
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, PROFILES_STATUS, THEME_COLOR, WebviewToExtensionMessage, YAML_FILENAME } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
 import { SketchProfileManager } from "./sketchProfileManager";
 
@@ -36,6 +36,7 @@ export async function activate(context: ExtensionContext) {
 		if (await arduinoCLI.isConfigReady()) {
 			arduinoExtensionChannel.appendLine(`Arduino Config file is good`);
 			await verifyUserDirectorySetting();
+			checkYamlStatus();
 
 			context.subscriptions.push(
 				workspace.onDidChangeConfiguration((e) => {
@@ -164,6 +165,24 @@ export async function activate(context: ExtensionContext) {
 		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
 	}
 
+}
+
+function checkYamlStatus() {
+	const yamlStatus = arduinoYaml.status();
+	switch (yamlStatus) {
+		case PROFILES_STATUS.ACTIVE:
+			arduinoExtensionChannel.appendLine(`A ${YAML_FILENAME} file is active`);
+			break;
+		case PROFILES_STATUS.INACTIVE:
+			arduinoExtensionChannel.appendLine(`A ${YAML_FILENAME} file is inactive`);
+			break;
+		case PROFILES_STATUS.NOT_AVAILABLE:
+			arduinoExtensionChannel.appendLine(`No ${YAML_FILENAME} found`);
+			break;
+		default:
+			arduinoExtensionChannel.appendLine(`Uknown yaml status ${yamlStatus}`);
+			break;
+	}
 }
 
 function watchSketchYamlFile(context: ExtensionContext) {
