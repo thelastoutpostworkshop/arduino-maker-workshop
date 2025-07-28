@@ -421,10 +421,11 @@ export enum PROFILES_STATUS {
 export interface SketchProjectFile {
   yaml?: SketchYaml;
   error: string;
-  buildProfileStatus:PROFILES_STATUS
+  buildProfileStatus: PROFILES_STATUS
 }
 export interface SketchYaml {
   profiles: Record<string, BuildProfile>;
+  defaultProfile?: string;
 }
 
 export interface BuildProfile {
