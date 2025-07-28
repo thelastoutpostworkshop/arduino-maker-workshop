@@ -119,6 +119,9 @@ export class VueWebviewPanel {
                             }
                         })
                         break;
+                    case ARDUINO_MESSAGES.SET_COMPILE_PROFILE:
+                        arduinoProject.setCompileProfile(message.payload);
+                        break;
                     case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
                         sendBuildProfiles(message);
                         break;

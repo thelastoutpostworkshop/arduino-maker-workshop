@@ -248,6 +248,10 @@ export class ArduinoProject {
         this.configJson.useProgrammer = use;
         this.writeVSCodeArduinoConfiguration();
     }
+    public setCompileProfile(profile:string): void {
+        this.configJson.compile_profile = profile;
+        this.writeVSCodeArduinoConfiguration();
+    }
     public useBuildProfile(): boolean {
         return  false;
     }
