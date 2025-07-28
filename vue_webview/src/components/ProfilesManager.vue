@@ -64,6 +64,18 @@ const profileStatusInformation = computed(() => {
             return null;
     }
 });
+
+function changeStatusBuildProfile() {
+    const status = store.sketchProject?.buildProfileStatus;
+    switch (status) {
+        case PROFILES_STATUS.ACTIVE:
+            store.sendMessage({ command: ARDUINO_MESSAGES.SET_STATUS_BUILD_PROFILE, errorMessage: '', payload: PROFILES_STATUS.INACTIVE });
+            break;
+        case PROFILES_STATUS.INACTIVE:
+            store.sendMessage({ command: ARDUINO_MESSAGES.SET_STATUS_BUILD_PROFILE, errorMessage: '', payload: PROFILES_STATUS.ACTIVE });
+            break;
+    }
+}
 onMounted(() => {
     store.sendMessage({ command: ARDUINO_MESSAGES.GET_BUILD_PROFILES, errorMessage: '', payload: '' });
     // selectedDefaultProfile.value = store.sketchProject?.yaml?.default_profile || '<none>';
@@ -143,11 +155,11 @@ const profilesList = computed(() => {
                                     <template #append>
                                         <v-tooltip location="top">
                                             <template #activator="{ props }">
-                                                <v-btn v-bind="props">
+                                                <v-btn @click="changeStatusBuildProfile" v-bind="props">
                                                     {{ profileStatusInformation.button }}
                                                 </v-btn>
                                             </template>
-                                            <span>{{profileStatusInformation.tooltip}}</span>
+                                            <span>{{ profileStatusInformation.tooltip }}</span>
                                         </v-tooltip>
                                     </template>
                                 </v-alert>

@@ -122,19 +122,8 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
                         sendBuildProfiles(message);
                         break;
-                    case ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE:
-                        arduinoProject.setUseBuildProfile(message.payload);
-                        if (arduinoProject.useBuildProfile()) {
-                            if (arduinoYaml.status() == PROFILES_STATUS.NOT_AVAILABLE) {
-                                window.showInformationMessage(`Create a profile in the profile manager`);
-                            } else {
-                                arduinoYaml.setProfileStatus(PROFILES_STATUS.ACTIVE);
-                                window.showInformationMessage(`Build profile is now active`)
-                            }
-                        } else {
-                            arduinoYaml.setProfileStatus(PROFILES_STATUS.INACTIVE);
-                            window.showInformationMessage(`Build profile is inactive`)
-                        }
+                    case ARDUINO_MESSAGES.SET_STATUS_BUILD_PROFILE:
+                        arduinoYaml.setProfileStatus(message.payload);
                         break;
                     case ARDUINO_MESSAGES.SET_OPTIMIZE_FOR_DEBUG:
                         arduinoProject.setOptimizeForDebug(message.payload);

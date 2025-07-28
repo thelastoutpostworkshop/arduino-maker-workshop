@@ -96,11 +96,14 @@ export class SketchProfileManager {
     }
     setProfileStatus(newStatus: PROFILES_STATUS) {
         const currentStatus = this.status();
-        if (newStatus == PROFILES_STATUS.ACTIVE && currentStatus == PROFILES_STATUS.INACTIVE) {
+        if(currentStatus == PROFILES_STATUS.NOT_AVAILABLE) {
+            return;
+        }
+        if (newStatus == PROFILES_STATUS.ACTIVE) {
             fs.renameSync(this.yamlInInactiveState, this.yamlInActiveState);
             return;
         }
-        if (newStatus == PROFILES_STATUS.INACTIVE && currentStatus == PROFILES_STATUS.ACTIVE) {
+        if (newStatus == PROFILES_STATUS.INACTIVE) {
             fs.renameSync(this.yamlInActiveState, this.yamlInInactiveState);
             return;
         }

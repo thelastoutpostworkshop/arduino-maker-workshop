@@ -470,7 +470,7 @@ export const ARDUINO_MESSAGES = {
   SET_MONITOR_PORT_SETTINGS: 'setMonitorPortSettings',
   SET_PROGRAMMER: 'setArduinoProgrammer',
   SET_USE_PROGRAMMER: 'setArduinoUseProgrammer',
-  SET_USE_BUILD_PROFILE: 'setUseBuildProfile',
+  SET_STATUS_BUILD_PROFILE: 'setStatusBuildProfile',
   CREATE_BUILD_PROFILE: 'createBuildProfile',
   GET_BUILD_PROFILES: 'getBuildProfiles',
   UPDATE_BUILD_PROFILES: 'updateBuildProfiles',
