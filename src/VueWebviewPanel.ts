@@ -125,6 +125,9 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.SET_STATUS_BUILD_PROFILE:
                         arduinoYaml.setProfileStatus(message.payload);
                         break;
+                    case ARDUINO_MESSAGES.SET_DEFAULT_PROFILE:
+                        arduinoYaml.setDefaultProfile(message.payload);
+                        break;
                     case ARDUINO_MESSAGES.SET_OPTIMIZE_FOR_DEBUG:
                         arduinoProject.setOptimizeForDebug(message.payload);
                         arduinoCLI.setBuildResult(false);
