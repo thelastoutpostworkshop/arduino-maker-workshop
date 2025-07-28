@@ -174,6 +174,36 @@ export class SketchProfileManager {
         return yamlData?.profiles[name];
     }
 
+    setDefaultProfile(profileName: string): void {
+        const yamlData = this.getYaml();
+        this.lastError = "";
+
+        if (!yamlData || !yamlData.profiles) {
+            this.lastError = "No build profiles available.";
+            return;
+        }
+
+        if (!yamlData.profiles[profileName]) {
+            this.lastError = `Profile "${profileName}" not found.`;
+            return;
+        }
+
+        // Reorder profiles with selected profile first
+        const reordered: Record<string, BuildProfile> = {
+            [profileName]: yamlData.profiles[profileName],
+        };
+
+        for (const [key, value] of Object.entries(yamlData.profiles)) {
+            if (key !== profileName) {
+                reordered[key] = value;
+            }
+        }
+
+        yamlData.profiles = reordered;
+        this.writeYaml(yamlData);
+    }
+
+
     verify(yaml: SketchYaml): boolean {
         if (this.status() == PROFILES_STATUS.ACTIVE || this.status() == PROFILES_STATUS.INACTIVE) {
             if (!yaml.profiles || typeof yaml.profiles !== 'object') {
