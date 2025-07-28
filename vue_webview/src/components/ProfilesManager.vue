@@ -35,8 +35,11 @@ const defaultProfileOptions = computed(() => {
 
 function updateDefaultProfile() {
     const profileName = selectedDefaultProfile.value;
-    console.log(profileName);
-    // store.sendMessage({
+    store.sendMessage({
+        command: ARDUINO_MESSAGES.SET_DEFAULT_PROFILE,
+        errorMessage: '',
+        payload: profileName,
+    });    // store.sendMessage({
     //     command: ARDUINO_MESSAGES.SET_DEFAULT_PROFILE,
     //     errorMessage: '',
     //     payload: profileName === '<none>' ? '' : profileName,
