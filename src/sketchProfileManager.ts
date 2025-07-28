@@ -1,26 +1,31 @@
 const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
-import { arduinoProject } from './extension';
+import { arduinoExtensionChannel, arduinoProject } from './extension';
 import { BuildProfile, PROFILES_STATUS, SketchYaml, YAML_FILENAME } from './shared/messages';
 import { VSCODE_FOLDER } from './ArduinoProject';
+import { workspace } from 'vscode';
 
 export class SketchProfileManager {
 
-    private yamlInVscodeFolder: string = "";
-    private yamlInSketchFolder: string = "";
+    private yamlInInactiveState: string = "";
+    private yamlInActiveState: string = "";
     private lastError: string = "";
 
     constructor() {
-        this.yamlInVscodeFolder = path.join(arduinoProject.getProjectPath(), VSCODE_FOLDER, YAML_FILENAME);
-        this.yamlInSketchFolder = path.join(arduinoProject.getProjectPath(), YAML_FILENAME);
+        const config = workspace.getConfiguration('arduinoMakerWorkshop');
+        const inactiveFolder = config.get<string>('buildProfilesInactiveFolder', "Build Profiles Inactive");
+        arduinoExtensionChannel.appendLine(`Build profiles inactive folder is '${inactiveFolder}'`);
+
+        this.yamlInInactiveState = path.join(arduinoProject.getProjectPath(), inactiveFolder, YAML_FILENAME);
+        this.yamlInActiveState = path.join(arduinoProject.getProjectPath(), YAML_FILENAME);
     }
 
     status(): PROFILES_STATUS {
-        if (fs.existsSync(this.yamlInSketchFolder)) {
+        if (fs.existsSync(this.yamlInActiveState)) {
             return PROFILES_STATUS.ACTIVE;
         }
-        if (fs.existsSync(this.yamlInVscodeFolder)) {
+        if (fs.existsSync(this.yamlInInactiveState)) {
             return PROFILES_STATUS.INACTIVE;
         }
         return PROFILES_STATUS.NOT_AVAILABLE;
@@ -66,10 +71,10 @@ export class SketchProfileManager {
         this.lastError = "";
         switch (this.status()) {
             case PROFILES_STATUS.ACTIVE:
-                file = this.yamlInSketchFolder;
+                file = this.yamlInActiveState;
                 break;
             case PROFILES_STATUS.INACTIVE:
-                file = this.yamlInVscodeFolder
+                file = this.yamlInInactiveState
                 break;
             default:
                 break;
@@ -78,8 +83,8 @@ export class SketchProfileManager {
             try {
                 const content = fs.readFileSync(file, 'utf8');
                 const data = yaml.parse(content) as SketchYaml;
-                if(!this.verify(data)) {
-                   return undefined;                 
+                if (!this.verify(data)) {
+                    return undefined;
                 }
                 return data;
             } catch (error) {
@@ -92,11 +97,11 @@ export class SketchProfileManager {
     setProfileStatus(newStatus: PROFILES_STATUS) {
         const currentStatus = this.status();
         if (newStatus == PROFILES_STATUS.ACTIVE && currentStatus == PROFILES_STATUS.INACTIVE) {
-            fs.renameSync(this.yamlInVscodeFolder, this.yamlInSketchFolder);
+            fs.renameSync(this.yamlInInactiveState, this.yamlInActiveState);
             return;
         }
         if (newStatus == PROFILES_STATUS.INACTIVE && currentStatus == PROFILES_STATUS.ACTIVE) {
-            fs.renameSync(this.yamlInSketchFolder, this.yamlInVscodeFolder);
+            fs.renameSync(this.yamlInActiveState, this.yamlInInactiveState);
             return;
         }
     }
@@ -105,13 +110,13 @@ export class SketchProfileManager {
 
         switch (this.status()) {
             case PROFILES_STATUS.ACTIVE:
-                file = this.yamlInSketchFolder;
+                file = this.yamlInActiveState;
                 break;
             case PROFILES_STATUS.INACTIVE:
-                file = this.yamlInVscodeFolder
+                file = this.yamlInInactiveState
                 break;
             case PROFILES_STATUS.NOT_AVAILABLE:
-                file = this.yamlInVscodeFolder
+                file = this.yamlInInactiveState
                 break;
             default:
                 break;
@@ -149,7 +154,7 @@ export class SketchProfileManager {
         return yamlData?.profiles[name];
     }
 
-    verify(yaml:SketchYaml): boolean {
+    verify(yaml: SketchYaml): boolean {
         if (this.status() == PROFILES_STATUS.ACTIVE || this.status() == PROFILES_STATUS.INACTIVE) {
             if (!yaml.profiles || typeof yaml.profiles !== 'object') {
                 this.lastError = `Missing or invalid "profiles" section.`;
