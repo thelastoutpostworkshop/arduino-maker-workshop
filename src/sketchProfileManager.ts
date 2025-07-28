@@ -13,12 +13,22 @@ export class SketchProfileManager {
     private lastError: string = "";
 
     constructor() {
+        this.setupInactiveFolder();
+        this.yamlInActiveState = path.join(arduinoProject.getProjectPath(), YAML_FILENAME);
+    }
+    private setupInactiveFolder() {
         const config = workspace.getConfiguration('arduinoMakerWorkshop');
         const inactiveFolder = config.get<string>('buildProfilesInactiveFolder', "Build Profiles Inactive");
-        arduinoExtensionChannel.appendLine(`Build profiles inactive folder is '${inactiveFolder}'`);
-
         this.yamlInInactiveState = path.join(arduinoProject.getProjectPath(), inactiveFolder, YAML_FILENAME);
-        this.yamlInActiveState = path.join(arduinoProject.getProjectPath(), YAML_FILENAME);
+        this.verifyInactiveFolder();
+        arduinoExtensionChannel.appendLine(`Build profiles inactive folder is '${inactiveFolder}'`);
+    }
+    private verifyInactiveFolder() {
+        const inactiveDir = path.dirname(this.yamlInInactiveState);
+
+        if (!fs.existsSync(inactiveDir)) {
+            fs.mkdirSync(inactiveDir, { recursive: true });
+        }
     }
 
     status(): PROFILES_STATUS {
@@ -109,12 +119,7 @@ export class SketchProfileManager {
 
         // Move from active → inactive
         if (newStatus === PROFILES_STATUS.INACTIVE) {
-            const inactiveDir = path.dirname(this.yamlInInactiveState);
-
-            if (!fs.existsSync(inactiveDir)) {
-                fs.mkdirSync(inactiveDir, { recursive: true });
-            }
-
+            this.verifyInactiveFolder();
             fs.renameSync(this.yamlInActiveState, this.yamlInInactiveState);
             return;
         }
