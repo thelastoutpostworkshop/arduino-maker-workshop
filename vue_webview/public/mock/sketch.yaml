@@ -16,4 +16,4 @@ profiles:
     libraries:
       - GFX Library for Arduino (1.6.0)
       - JPEGDEC (1.8.1)
-default_profile: test
+default_profile: targetesp32v3.3.0
