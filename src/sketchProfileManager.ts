@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
 import { arduinoExtensionChannel, arduinoProject } from './extension';
-import { BuildProfile, PROFILES_STATUS, SketchYaml, YAML_FILENAME } from './shared/messages';
+import { BuildProfile, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, YAML_FILENAME } from './shared/messages';
 import { VSCODE_FOLDER } from './ArduinoProject';
 import { workspace } from 'vscode';
 
@@ -183,12 +183,22 @@ export class SketchProfileManager {
             return;
         }
 
+        // Special case: remove default profile if "not" is passed
+        if (profileName === NO_DEFAULT_PROFILE) {
+            delete yamlData.defaultProfile;
+            this.writeYaml(yamlData);
+            return;
+        }
+
         if (!yamlData.profiles[profileName]) {
             this.lastError = `Profile "${profileName}" not found.`;
             return;
         }
 
-        // Reorder profiles with selected profile first
+        // Set default profile explicitly
+        yamlData.defaultProfile = profileName;
+
+        // Optional: Reorder profiles with selected profile first
         const reordered: Record<string, BuildProfile> = {
             [profileName]: yamlData.profiles[profileName],
         };
@@ -202,6 +212,7 @@ export class SketchProfileManager {
         yamlData.profiles = reordered;
         this.writeYaml(yamlData);
     }
+
 
 
     verify(yaml: SketchYaml): boolean {
