@@ -426,7 +426,7 @@ export interface SketchProjectFile {
 }
 export interface SketchYaml {
   profiles: Record<string, BuildProfile>;
-  defaultProfile?: string;
+  default_profile?: string;
 }
 
 export interface BuildProfile {

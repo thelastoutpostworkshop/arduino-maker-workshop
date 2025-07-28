@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, computed, ref } from 'vue';
+import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
 
@@ -31,6 +31,15 @@ const selectedDefaultProfile = ref<string | null>(null);
 const defaultProfileOptions = computed(() => {
     const profiles = profilesList.value.map((p) => p.name);
     return [NO_DEFAULT_PROFILE, ...profiles];
+});
+
+watchEffect(() => {
+    const defaultProfile = store.sketchProject?.yaml?.default_profile;
+    if (defaultProfile) {
+        selectedDefaultProfile.value = defaultProfile;
+    } else {
+        selectedDefaultProfile.value = NO_DEFAULT_PROFILE;
+    }
 });
 
 function updateDefaultProfile() {
