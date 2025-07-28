@@ -43,7 +43,7 @@ export class ArduinoProject {
         }
         this.configJson = {
             port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "", programmer: "", useProgrammer: false,
-            optimize_for_debug: false, configurationRequired: false,
+            optimize_for_debug: false, configurationRequired: false,compile_profile:"",
             monitorPortSettings: getMonitorPortSettingsDefault()
         };
     }

@@ -97,6 +97,7 @@ export interface ArduinoProjectConfiguration {
   useProgrammer: boolean;
   optimize_for_debug: boolean;
   monitorPortSettings: MonitorPortSettings
+  compile_profile:string
 };
 
 export enum ARDUINO_ERRORS {
