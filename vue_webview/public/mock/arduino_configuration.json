@@ -13,5 +13,8 @@
     "dataBits": 8,
     "parity": "none",
     "stopBits": "one"
-  }
+  },
+  "optimize_for_debug": true,
+  "useBuildProfile": false,
+  "compile_profile": "default_profile"
 }

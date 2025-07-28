@@ -144,6 +144,8 @@ watch(
       useProgrammer.value = projectInfo.useProgrammer;
       programmer.value = projectInfo.programmer;
       optimize_for_debug.value = projectInfo.optimize_for_debug;
+      selectedBuildProfile.value = projectInfo.compile_profile;
+      
     }
     if (projectInfo?.monitorPortSettings) {
       getStoredMonitorPortSettings();
