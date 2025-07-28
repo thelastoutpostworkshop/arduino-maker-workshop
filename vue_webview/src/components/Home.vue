@@ -59,6 +59,32 @@ function refreshPorts() {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
 }
 
+const profileStatusInformation = computed(() => {
+  const status = store.sketchProject?.buildProfileStatus;
+  switch (status) {
+    case PROFILES_STATUS.ACTIVE:
+      return {
+        color: 'success',
+        text: `The build profiles ${YAML_FILENAME} are active`,
+        showAppend: true,
+      };
+    case PROFILES_STATUS.INACTIVE:
+      return {
+        color: 'warning',
+        text: `The build profiles ${YAML_FILENAME} are inactive`,
+        showAppend: true,
+      };
+    case PROFILES_STATUS.NOT_AVAILABLE:
+      return {
+        color: 'error',
+        text: `No build profiles (${YAML_FILENAME}) found`,
+        showAppend: true,
+      };
+    default:
+      return null;
+  }
+});
+
 watch(() => store.projectStatus?.status, (newStatus) => {
   if (newStatus == ARDUINO_ERRORS.NO_ERRORS) {
     store.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
@@ -230,22 +256,21 @@ onMounted(() => {
                 </div>
               </v-row>
               <v-row class="ml-2">
-                <v-col cols="12">
-                  <div v-if="store.sketchProject?.buildProfileStatus">
-                    <div v-if="store.sketchProject.buildProfileStatus == PROFILES_STATUS.ACTIVE">
-                      <v-alert variant="tonal" icon="mdi-application-array-outline" title="Build Profiles Information" border="start"
-                        border-color="success" :text="`The build profiles (${YAML_FILENAME}) are active`" </v-alert>
-                    </div>
-                    <div v-if="store.sketchProject.buildProfileStatus == PROFILES_STATUS.INACTIVE">
-                      <v-alert variant="tonal" icon="mdi-application-array-outline" title="Build Profiles Information" border="start"
-                        border-color="warning" :text="`The build profiles (${YAML_FILENAME}) are inactive`" </v-alert>
-                    </div>
-                    <div v-if="store.sketchProject.buildProfileStatus == PROFILES_STATUS.NOT_AVAILABLE">
-                      <v-alert variant="tonal" icon="mdi-application-array-outline" title="Build Profiles Information" border="start"
-                        border-color="error" :text="`No build profiles (${YAML_FILENAME}) found`" </v-alert>
-                    </div>
-                  </div>
-
+                <v-col cols="12" v-if="profileStatusInformation">
+                  <v-alert variant="tonal" icon="mdi-application-array-outline" title="Build Profiles Information"
+                    border="start" :border-color="profileStatusInformation.color">
+                    {{ profileStatusInformation.text }}
+                    <template v-if="profileStatusInformation.showAppend" #append>
+                      <v-tooltip location="top">
+                        <template #activator="{ props }">
+                          <v-btn v-bind="props" icon variant="text" @click="$router.push({ name: 'profiles-manager' })">
+                            <v-icon>mdi-arrow-right</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>Open Profiles Manager</span>
+                      </v-tooltip>
+                    </template>
+                  </v-alert>
                 </v-col>
                 <!-- <v-checkbox v-model="useBuildProfile" color="secondary">
                   <template #label>
