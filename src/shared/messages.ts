@@ -3,6 +3,7 @@ import { MonitorPortSettings } from "@microsoft/vscode-serial-monitor-api";
 export const ArduinoExtensionChannelName = 'Arduino Extension';
 export const YAML_FILENAME = 'sketch.yaml';
 export const NO_DEFAULT_PROFILE = '<none>';
+export const DEFAULT_PROFILE = 'default_profile';
 
 // Message exchange with webciew
 export interface WebviewToExtensionMessage {
@@ -477,6 +478,7 @@ export const ARDUINO_MESSAGES = {
   GET_BUILD_PROFILES: 'getBuildProfiles',
   UPDATE_BUILD_PROFILES: 'updateBuildProfiles',
   SET_DEFAULT_PROFILE:'setDefaultProfile',
+  SET_COMPILE_PROFILE:'setCompileProfile',
   SET_OPTIMIZE_FOR_DEBUG: 'setOptimizeForDebug',
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
   CORE_UNINSTALLED: 'coreUninstalled',

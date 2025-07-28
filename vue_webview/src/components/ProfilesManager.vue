@@ -48,11 +48,7 @@ function updateDefaultProfile() {
         command: ARDUINO_MESSAGES.SET_DEFAULT_PROFILE,
         errorMessage: '',
         payload: profileName,
-    });    // store.sendMessage({
-    //     command: ARDUINO_MESSAGES.SET_DEFAULT_PROFILE,
-    //     errorMessage: '',
-    //     payload: profileName === '<none>' ? '' : profileName,
-    // });
+    });   
 }
 
 const profileStatusInformation = computed(() => {

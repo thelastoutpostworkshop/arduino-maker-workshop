@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { computed, watch, onMounted, ref, reactive } from 'vue';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
 import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
 import arduinoImage from '@/assets/extension_icon.png';
@@ -152,6 +152,28 @@ watch(
   { immediate: true }
 );
 
+const selectedBuildProfile = ref<string | null>(null);
+
+const buildProfileOptions = computed(() => {
+  const profiles = store.sketchProject?.yaml?.profiles || {};
+  const names = Object.keys(profiles);
+  return store.sketchProject?.yaml?.default_profile
+    ? ['Default Profile', ...names]
+    : names;
+});
+
+watch(selectedBuildProfile, (newProfile) => {
+  if (newProfile) {
+    const payload = newProfile === 'Default Profile' ? DEFAULT_PROFILE : newProfile;
+    store.sendMessage({
+      command: ARDUINO_MESSAGES.SET_COMPILE_PROFILE,
+      errorMessage: '',
+      payload,
+    });
+  }
+});
+
+
 watch(monitorPortSettings, (newMonitorPortSettings) => {
   store.sendMessage({
     command: ARDUINO_MESSAGES.SET_MONITOR_PORT_SETTINGS, errorMessage: "", payload: JSON.stringify(newMonitorPortSettings)
@@ -260,6 +282,15 @@ onMounted(() => {
                   <v-alert variant="tonal" icon="mdi-application-array-outline" title="Build Profiles Information"
                     border="start" :border-color="profileStatusInformation.color">
                     {{ profileStatusInformation.text }}
+
+                    <!-- Add dropdown if ACTIVE -->
+                    <template #text>
+                      <div class="mt-3" v-if="store.sketchProject?.buildProfileStatus === PROFILES_STATUS.ACTIVE">
+                        <v-select v-model="selectedBuildProfile" :items="buildProfileOptions"
+                          label="Compile with Profile" style="max-width: 300px" density="comfortable" />
+                      </div>
+                    </template>
+
                     <template v-if="profileStatusInformation.showAppend" #append>
                       <v-tooltip location="top">
                         <template #activator="{ props }">
