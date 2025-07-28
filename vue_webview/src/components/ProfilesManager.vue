@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed, ref } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
+import { ARDUINO_MESSAGES, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
 
 const store = useVsCodeStore();
 
@@ -30,7 +30,7 @@ const selectedDefaultProfile = ref<string | null>(null);
 
 const defaultProfileOptions = computed(() => {
     const profiles = profilesList.value.map((p) => p.name);
-    return ['<none>', ...profiles];
+    return [NO_DEFAULT_PROFILE, ...profiles];
 });
 
 function updateDefaultProfile() {
