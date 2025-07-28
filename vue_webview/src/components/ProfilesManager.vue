@@ -116,7 +116,7 @@ const profilesList = computed(() => {
                             </v-form>
                         </v-card-text>
                     </v-card>
-                    <div>Your Build Profiles:</div>
+                    <div>You have {{ profilesList.length }} build profiles:</div>
                     <v-expansion-panels multiple variant="inset">
                         <v-expansion-panel v-for="profile in profilesList" :key="profile.name">
                             <v-expansion-panel-title>
