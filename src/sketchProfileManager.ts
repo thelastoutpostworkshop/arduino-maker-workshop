@@ -16,7 +16,7 @@ export class SketchProfileManager {
         this.setupInactiveFolder();
         this.yamlInActiveState = path.join(arduinoProject.getProjectPath(), YAML_FILENAME);
     }
-    private setupInactiveFolder() {
+    setupInactiveFolder() {
         const config = workspace.getConfiguration('arduinoMakerWorkshop');
         const inactiveFolder = config.get<string>('buildProfilesInactiveFolder', "Build Profiles Inactive");
         this.yamlInInactiveState = path.join(arduinoProject.getProjectPath(), inactiveFolder, YAML_FILENAME);
