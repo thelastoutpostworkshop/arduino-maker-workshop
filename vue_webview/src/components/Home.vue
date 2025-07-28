@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { computed, watch, onMounted, ref, reactive } from 'vue';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, PROFILES_STATUS } from '@shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
 import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
 import arduinoImage from '@/assets/extension_icon.png';
@@ -229,18 +229,24 @@ onMounted(() => {
 
                 </div>
               </v-row>
-              <v-row class="d-flex ml-2">
-                <div v-if="store.sketchProject?.buildProfileStatus">
-                  <div v-if="store.sketchProject.buildProfileStatus == PROFILES_STATUS.ACTIVE">
-                    Build profile is active
+              <v-row class="ml-2">
+                <v-col cols="12">
+                  <div v-if="store.sketchProject?.buildProfileStatus">
+                    <div v-if="store.sketchProject.buildProfileStatus == PROFILES_STATUS.ACTIVE">
+                      <v-alert variant="tonal" icon="mdi-application-array-outline" title="Build Profiles Information" border="start"
+                        border-color="success" :text="`The build profiles (${YAML_FILENAME}) are active`" </v-alert>
+                    </div>
+                    <div v-if="store.sketchProject.buildProfileStatus == PROFILES_STATUS.INACTIVE">
+                      <v-alert variant="tonal" icon="mdi-application-array-outline" title="Build Profiles Information" border="start"
+                        border-color="warning" :text="`The build profiles (${YAML_FILENAME}) are inactive`" </v-alert>
+                    </div>
+                    <div v-if="store.sketchProject.buildProfileStatus == PROFILES_STATUS.NOT_AVAILABLE">
+                      <v-alert variant="tonal" icon="mdi-application-array-outline" title="Build Profiles Information" border="start"
+                        border-color="error" :text="`No build profiles (${YAML_FILENAME}) found`" </v-alert>
+                    </div>
                   </div>
-                  <div v-if="store.sketchProject.buildProfileStatus == PROFILES_STATUS.INACTIVE">
-                    Build profile is inactive
-                  </div>
-                  <div v-if="store.sketchProject.buildProfileStatus == PROFILES_STATUS.NOT_AVAILABLE">
-                    No build profile found
-                  </div>
-                </div>
+
+                </v-col>
                 <!-- <v-checkbox v-model="useBuildProfile" color="secondary">
                   <template #label>
                     <div class="d-flex align-center gap-2">
