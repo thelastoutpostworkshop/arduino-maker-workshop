@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed, ref } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, YAML_FILENAME } from '@shared/messages';
+import { ARDUINO_MESSAGES, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
 
 const store = useVsCodeStore();
 
@@ -16,7 +16,6 @@ const profileRules = [
         return !(v in profiles) || `Profile "${v}" already exists.`;
     },
 ];
-
 
 function createProfile() {
     store.sendMessage({
@@ -44,7 +43,27 @@ function updateDefaultProfile() {
     // });
 }
 
-
+const profileStatusInformation = computed(() => {
+    const status = store.sketchProject?.buildProfileStatus;
+    switch (status) {
+        case PROFILES_STATUS.ACTIVE:
+            return {
+                color: 'success',
+                text: `The build profiles are active and will be used for compilation`,
+                button: 'Deactivate',
+                tooltip: 'Deactivate the build profiles'
+            };
+        case PROFILES_STATUS.INACTIVE:
+            return {
+                color: 'warning',
+                text: `The build profiles are inactive and will not be used for compilation`,
+                button: 'Activate',
+                tooltip: 'Activate the build profiles'
+            };
+        default:
+            return null;
+    }
+});
 onMounted(() => {
     store.sendMessage({ command: ARDUINO_MESSAGES.GET_BUILD_PROFILES, errorMessage: '', payload: '' });
     // selectedDefaultProfile.value = store.sketchProject?.yaml?.default_profile || '<none>';
@@ -115,6 +134,25 @@ const profilesList = computed(() => {
                                 </v-row>
                             </v-form>
                         </v-card-text>
+                        <v-row class="mb-2">
+                            <v-col cols="12" v-if="profileStatusInformation">
+                                <v-alert variant="tonal" icon="mdi-application-array-outline"
+                                    title="Build Profiles Information" border="start"
+                                    :border-color="profileStatusInformation.color">
+                                    {{ profileStatusInformation.text }}
+                                    <template #append>
+                                        <v-tooltip location="top">
+                                            <template #activator="{ props }">
+                                                <v-btn v-bind="props">
+                                                    {{ profileStatusInformation.button }}
+                                                </v-btn>
+                                            </template>
+                                            <span>{{profileStatusInformation.tooltip}}</span>
+                                        </v-tooltip>
+                                    </template>
+                                </v-alert>
+                            </v-col>
+                        </v-row>
                     </v-card>
                     <div>You have {{ profilesList.length }} build profiles:</div>
                     <v-expansion-panels multiple variant="inset">
