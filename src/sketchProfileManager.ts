@@ -185,7 +185,7 @@ export class SketchProfileManager {
 
         // Special case: remove default profile if "not" is passed
         if (profileName === NO_DEFAULT_PROFILE) {
-            delete yamlData.defaultProfile;
+            delete yamlData.default_profile;
             this.writeYaml(yamlData);
             return;
         }
@@ -196,7 +196,7 @@ export class SketchProfileManager {
         }
 
         // Set default profile explicitly
-        yamlData.defaultProfile = profileName;
+        yamlData.default_profile = profileName;
 
         // Optional: Reorder profiles with selected profile first
         const reordered: Record<string, BuildProfile> = {
