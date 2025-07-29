@@ -1,5 +1,7 @@
-import { arduinoProject } from "./extension";
+import { arduinoProject, arduinoYaml } from "./extension";
 import { workspace } from 'vscode';
+import { BUILD_NAME_PROFILE, UNKNOWN_PROFILE } from "./shared/messages";
+import { profile } from "console";
 
 const path = require('path');
 
@@ -275,7 +277,7 @@ export class CLIArguments {
         command.push(arduinoProject.getProjectPath());
         return command;
     }
-    public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false, configurationRequired: boolean, buildProfile = false,useBuildProfile=false): string[] {
+    public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false, configurationRequired: boolean, buildProfile = false, useBuildProfile = false): string[] {
         const compileCommand = [
             `${compileCommandArduino}`
         ];
@@ -304,8 +306,14 @@ export class CLIArguments {
 
         if (useBuildProfile) {
             // Compile using a profile
+            let profilename = arduinoYaml.getDefaultProfileName();
+            if (!profilename) {
+                profilename = BUILD_NAME_PROFILE + UNKNOWN_PROFILE;
+            } else {
+                profilename = BUILD_NAME_PROFILE + profilename;
+            }
             compileCommand.push(`${buildPathArduino}`);
-            compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput()));
+            compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), profilename));
             compileCommand.push(arduinoProject.getProjectPath());
             return compileCommand;
         }
