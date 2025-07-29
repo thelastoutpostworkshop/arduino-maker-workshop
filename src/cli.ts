@@ -349,7 +349,7 @@ export class ArduinoCLI {
 			} else {
 				useBuildProfile = arduinoYaml.status() == PROFILES_STATUS.ACTIVE;
 				if (useBuildProfile) {
-					profileMsg = ", using profile";
+					profileMsg = `, using profile ${arduinoProject.getCompileProfile()}`;
 				} else {
 					profileMsg = "";
 				}
