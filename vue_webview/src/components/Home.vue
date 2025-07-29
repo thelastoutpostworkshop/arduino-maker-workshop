@@ -160,17 +160,16 @@ const buildProfileOptions = computed(() => {
   const profiles = store.sketchProject?.yaml?.profiles || {};
   const names = Object.keys(profiles);
   return store.sketchProject?.yaml?.default_profile
-    ? ['Default Profile', ...names]
+    ? [DEFAULT_PROFILE, ...names]
     : names;
 });
 
 watch(selectedBuildProfile, (newProfile) => {
   if (newProfile) {
-    const payload = newProfile === 'Default Profile' ? DEFAULT_PROFILE : newProfile;
     store.sendMessage({
       command: ARDUINO_MESSAGES.SET_COMPILE_PROFILE,
       errorMessage: '',
-      payload,
+      payload:newProfile,
     });
   }
 });
