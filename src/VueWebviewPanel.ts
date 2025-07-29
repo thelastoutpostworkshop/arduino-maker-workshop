@@ -123,7 +123,7 @@ export class VueWebviewPanel {
                         arduinoProject.setCompileProfile(message.payload);
                         break;
                     case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
-                        sendBuildProfiles(message);
+                        sendBuildProfiles();
                         break;
                     case ARDUINO_MESSAGES.SET_STATUS_BUILD_PROFILE:
                         arduinoYaml.setProfileStatus(message.payload);
