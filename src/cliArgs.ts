@@ -306,14 +306,8 @@ export class CLIArguments {
 
         if (useBuildProfile) {
             // Compile using a profile
-            let profilename = arduinoYaml.getDefaultProfileName();
-            if (!profilename) {
-                profilename = BUILD_NAME_PROFILE + UNKNOWN_PROFILE;
-            } else {
-                profilename = BUILD_NAME_PROFILE + profilename;
-            }
             compileCommand.push(`${buildPathArduino}`);
-            compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), profilename));
+            compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), arduinoYaml.getBuildFolderProfileName()));
             compileCommand.push(arduinoProject.getProjectPath());
             return compileCommand;
         }
