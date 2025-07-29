@@ -12,7 +12,7 @@ const store = useVsCodeStore();
 
 const portSelected = ref('');
 const sketchName = ref("");
-const useProgrammer = ref(false);
+const useProgrammer = ref(store.projectInfo?.useProgrammer ?? false);
 const programmer = ref("");
 const optimize_for_debug = ref(false);
 const monitorPortSettings = reactive({ port: "", baudRate: 115200, lineEnding: "\r\n", dataBits: 8, parity: "none", stopBits: "one" });
