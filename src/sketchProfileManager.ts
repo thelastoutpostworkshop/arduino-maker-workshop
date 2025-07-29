@@ -16,6 +16,9 @@ export class SketchProfileManager {
         this.setupInactiveFolder();
         this.yamlInActiveState = path.join(arduinoProject.getProjectPath(), YAML_FILENAME);
     }
+    private clearError() {
+        this.lastError = "";
+    }
     setupInactiveFolder() {
         const config = workspace.getConfiguration('arduinoMakerWorkshop');
         const inactiveFolder = config.get<string>('buildProfilesInactiveFolder', "Build Profiles Inactive");
@@ -49,7 +52,7 @@ export class SketchProfileManager {
         const yamlData = this.getYaml() ?? { profiles: {} };
 
         let profile: BuildProfile;
-        this.lastError = "";
+        this.clearError();
         if (typeof profileData === 'string') {
             try {
                 const parsed = yaml.parse(profileData) as SketchYaml;
@@ -78,7 +81,7 @@ export class SketchProfileManager {
     getYaml(): SketchYaml | undefined {
         let file: string = "";
 
-        this.lastError = "";
+        this.clearError();
         switch (this.status()) {
             case PROFILES_STATUS.ACTIVE:
                 file = this.yamlInActiveState;
@@ -176,7 +179,7 @@ export class SketchProfileManager {
 
     setDefaultProfile(profileName: string): void {
         const yamlData = this.getYaml();
-        this.lastError = "";
+        this.clearError();
 
         if (!yamlData || !yamlData.profiles) {
             this.lastError = "No build profiles available.";
@@ -214,6 +217,7 @@ export class SketchProfileManager {
     }
 
     getDefaultProfileName(): string | undefined {
+        this.clearError();
         const yamlData = this.getYaml();
         if (!yamlData || !yamlData.profiles) {
             this.lastError = "No YAML data or profiles found.";
@@ -229,6 +233,7 @@ export class SketchProfileManager {
     }
 
     verify(yaml: SketchYaml): boolean {
+        this.clearError();
         if (this.status() == PROFILES_STATUS.ACTIVE || this.status() == PROFILES_STATUS.INACTIVE) {
             if (!yaml.profiles || typeof yaml.profiles !== 'object') {
                 this.lastError = `Missing or invalid "profiles" section.`;
