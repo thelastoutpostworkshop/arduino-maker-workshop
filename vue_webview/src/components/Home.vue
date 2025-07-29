@@ -16,6 +16,7 @@ const useProgrammer = ref(false);
 const programmer = ref("");
 const optimize_for_debug = ref(false);
 const monitorPortSettings = reactive({ port: "", baudRate: 115200, lineEnding: "\r\n", dataBits: 8, parity: "none", stopBits: "one" });
+const selectedBuildProfile = ref<string | null>(null);
 
 const portsAvailable = computed(() => getAvailablePorts(store));
 
@@ -153,8 +154,6 @@ watch(
   },
   { immediate: true }
 );
-
-const selectedBuildProfile = ref<string | null>(null);
 
 const buildProfileOptions = computed(() => {
   const profiles = store.sketchProject?.yaml?.profiles || {};
