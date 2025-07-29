@@ -347,8 +347,8 @@ export class ArduinoCLI {
 				useBuildProfile = true;
 				profileMsg = ", creating a build profile";
 			} else {
-				useBuildProfile = arduinoProject.useBuildProfile();
-				if (useBuildProfile && arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
+				useBuildProfile = arduinoYaml.status() == PROFILES_STATUS.ACTIVE;
+				if (useBuildProfile) {
 					profileMsg = ", using profile";
 				} else {
 					profileMsg = "";
@@ -359,7 +359,7 @@ export class ArduinoCLI {
 			const optimizeDebugFlag = arduinoProject.optimizeForDebug();
 			const compileMode = (optimizeDebugFlag ? "for debug, " : "for release, ") + (verboseFlag ? "verbose" : "silent") + profileMsg;
 
-			let compileTitle:string = clean
+			let compileTitle: string = clean
 				? `Compiling project clean (${compileMode})...`
 				: `Compiling project (${compileMode})...`;
 
@@ -385,7 +385,7 @@ export class ArduinoCLI {
 					});
 
 					const output = await arduinoCLI.runArduinoCommand(
-						() => this.cliArgs.getCompileCommandArguments(false, clean, arduinoProject.isConfigurationRequired(), createBuildProfile),
+						() => this.cliArgs.getCompileCommandArguments(false, clean, arduinoProject.isConfigurationRequired(), createBuildProfile,useBuildProfile),
 						"CLI: Failed to compile project",
 						{ caching: CacheState.NO, ttl: 0 },
 						true,

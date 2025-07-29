@@ -275,7 +275,7 @@ export class CLIArguments {
         command.push(arduinoProject.getProjectPath());
         return command;
     }
-    public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false, configurationRequired: boolean, buildProfile = false): string[] {
+    public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false, configurationRequired: boolean, buildProfile = false,useBuildProfile=false): string[] {
         const compileCommand = [
             `${compileCommandArduino}`
         ];
@@ -302,7 +302,7 @@ export class CLIArguments {
             return compileCommand;
         }
 
-        if (arduinoProject.useBuildProfile()) {
+        if (useBuildProfile) {
             // Compile using a profile
             compileCommand.push(`${buildPathArduino}`);
             compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput()));
@@ -310,7 +310,7 @@ export class CLIArguments {
             return compileCommand;
         }
 
-        // Compile with no profile
+        // Compile with project configuration
         compileCommand.push(fqbnOptionArduino);
         if (configurationRequired) {
             compileCommand.push(`${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`);
