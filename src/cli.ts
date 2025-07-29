@@ -389,7 +389,7 @@ export class ArduinoCLI {
 					});
 
 					const output = await arduinoCLI.runArduinoCommand(
-						() => this.cliArgs.getCompileCommandArguments(false, clean, arduinoProject.isConfigurationRequired(), createBuildProfile,useBuildProfile),
+						() => this.cliArgs.getCompileCommandArguments(false, clean, arduinoProject.isConfigurationRequired(), createBuildProfile),
 						"CLI: Failed to compile project",
 						{ caching: CacheState.NO, ttl: 0 },
 						true,

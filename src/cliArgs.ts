@@ -284,7 +284,7 @@ export class CLIArguments {
         command.push(arduinoProject.getProjectPath());
         return command;
     }
-    public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false, configurationRequired: boolean, buildProfile = false, useBuildProfile = false): string[] {
+    public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false, configurationRequired: boolean, buildProfile = false): string[] {
         const compileCommand = [
             `${compileCommandArduino}`
         ];
@@ -311,7 +311,7 @@ export class CLIArguments {
             return compileCommand;
         }
 
-        if (useBuildProfile) {
+        if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
             // Compile using a profile
             compileCommand.push(`${buildPathArduino}`);
             compileCommand.push(this.getBuildPath());
