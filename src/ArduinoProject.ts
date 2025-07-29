@@ -49,7 +49,7 @@ export class ArduinoProject {
     }
     public isUploadReady(): UPLOAD_READY_STATUS {
         if (this.configJson.port.trim().length !== 0) {
-            const resultFile = path.join(this.getProjectPath(), this.getOutput(), COMPILE_RESULT_FILE);
+            const resultFile = path.join(arduinoCLI.getBuildPath(), COMPILE_RESULT_FILE);
             try {
                 const content = fs.readFileSync(resultFile, 'utf-8');
                 const result: CompileResult = JSON.parse(content);

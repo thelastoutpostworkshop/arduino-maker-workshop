@@ -280,7 +280,7 @@ export class CLIArguments {
             command.push(arduinoProject.getProgrammer());
         }
         command.push(`${inputDirOptionArduino}`);
-        command.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput()));
+        command.push(this.getBuildPath());
         command.push(arduinoProject.getProjectPath());
         return command;
     }
