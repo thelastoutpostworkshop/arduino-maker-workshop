@@ -16,8 +16,9 @@ const useProgrammer = ref(false);
 const programmer = ref("");
 const optimize_for_debug = ref(false);
 const monitorPortSettings = reactive({ port: "", baudRate: 115200, lineEnding: "\r\n", dataBits: 8, parity: "none", stopBits: "one" });
-const selectedBuildProfile = ref<string | null>(null);
-
+const selectedBuildProfile = ref<string | null>(
+  store.sketchProject?.yaml?.default_profile ?? null
+);
 const portsAvailable = computed(() => getAvailablePorts(store));
 
 // This is a macOS-specific thing. The upload port is on /dev/cu.* and the serial port is on /dev/tty.*
@@ -146,7 +147,7 @@ watch(
       programmer.value = projectInfo.programmer;
       optimize_for_debug.value = projectInfo.optimize_for_debug;
       selectedBuildProfile.value = projectInfo.compile_profile;
-      
+
     }
     if (projectInfo?.monitorPortSettings) {
       getStoredMonitorPortSettings();
