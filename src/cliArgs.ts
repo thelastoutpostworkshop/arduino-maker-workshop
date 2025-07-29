@@ -1,6 +1,6 @@
 import { arduinoProject, arduinoYaml } from "./extension";
 import { workspace } from 'vscode';
-import { BUILD_NAME_PROFILE, UNKNOWN_PROFILE } from "./shared/messages";
+import { BUILD_NAME_PROFILE, PROFILES_STATUS, UNKNOWN_PROFILE } from "./shared/messages";
 import { profile } from "console";
 
 const path = require('path');
@@ -253,6 +253,13 @@ export class CLIArguments {
         ];
         return compileCommand;
     }
+    public getBuildPath(): string {
+        if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
+            return path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), arduinoYaml.getBuildFolderProfileName());
+        } else {
+            return path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput());
+        }
+    }
     public getUploadArguments(): string[] {
         arduinoProject.readConfiguration();
         const command = [
@@ -307,7 +314,7 @@ export class CLIArguments {
         if (useBuildProfile) {
             // Compile using a profile
             compileCommand.push(`${buildPathArduino}`);
-            compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), arduinoYaml.getBuildFolderProfileName()));
+            compileCommand.push(this.getBuildPath());
             compileCommand.push(arduinoProject.getProjectPath());
             return compileCommand;
         }

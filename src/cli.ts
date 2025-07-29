@@ -745,7 +745,7 @@ export class ArduinoCLI {
 
 	public setBuildResult(result: boolean) {
 		const compileResult: CompileResult = { result: result };
-		const buildPath = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput());
+		const buildPath = this.cliArgs.getBuildPath();
 		if (fs.existsSync(buildPath)) {
 			const resultFile = path.join(buildPath, COMPILE_RESULT_FILE);
 			fs.writeFileSync(resultFile, JSON.stringify(compileResult, null, 2), 'utf-8');
