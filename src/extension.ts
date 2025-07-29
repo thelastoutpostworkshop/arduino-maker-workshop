@@ -192,12 +192,12 @@ function watchSketchYamlFile(context: ExtensionContext) {
 	const sketchYamlWatcher = workspace.createFileSystemWatcher('**/sketch.yaml');
 
 	const changeDisposable = sketchYamlWatcher.onDidChange((uri) => {
-		let message: WebviewToExtensionMessage = {
-			command: ARDUINO_MESSAGES.GET_BUILD_PROFILES,
-			errorMessage: "",
-			payload: ""
-		}
 		if (VueWebviewPanel.currentPanel) {
+			let message: WebviewToExtensionMessage = {
+				command: ARDUINO_MESSAGES.GET_BUILD_PROFILES,
+				errorMessage: "",
+				payload: ""
+			}
 			sendBuildProfiles(message);
 		}
 		arduinoExtensionChannel.appendLine(`sketch.yaml changed: ${uri.fsPath}`);
@@ -205,24 +205,24 @@ function watchSketchYamlFile(context: ExtensionContext) {
 
 	const createDisposable = sketchYamlWatcher.onDidCreate((uri) => {
 		arduinoExtensionChannel.appendLine(`sketch.yaml created: ${uri.fsPath}`);
-		const message: WebviewToExtensionMessage = {
-			command: ARDUINO_MESSAGES.GET_BUILD_PROFILES,
-			errorMessage: "",
-			payload: ""
-		}
 		if (VueWebviewPanel.currentPanel) {
+			const message: WebviewToExtensionMessage = {
+				command: ARDUINO_MESSAGES.GET_BUILD_PROFILES,
+				errorMessage: "",
+				payload: ""
+			}
 			sendBuildProfiles(message);
 		}
 	});
 
 	const deleteDisposable = sketchYamlWatcher.onDidDelete((uri) => {
 		arduinoExtensionChannel.appendLine(`sketch.yaml deleted: ${uri.fsPath}`);
-		const message: WebviewToExtensionMessage = {
-			command: ARDUINO_MESSAGES.GET_BUILD_PROFILES,
-			errorMessage: "",
-			payload: ""
-		}
 		if (VueWebviewPanel.currentPanel) {
+			const message: WebviewToExtensionMessage = {
+				command: ARDUINO_MESSAGES.GET_BUILD_PROFILES,
+				errorMessage: "",
+				payload: ""
+			}
 			sendBuildProfiles(message);
 		}
 	});
