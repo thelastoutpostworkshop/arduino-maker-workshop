@@ -213,7 +213,20 @@ export class SketchProfileManager {
         this.writeYaml(yamlData);
     }
 
+    getDefaultProfileName(): string | undefined {
+        const yamlData = this.getYaml();
+        if (!yamlData || !yamlData.profiles) {
+            this.lastError = "No YAML data or profiles found.";
+            return undefined;
+        }
 
+        const defaultProfile = yamlData.default_profile;
+        if (defaultProfile && yamlData.profiles[defaultProfile]) {
+            return defaultProfile;
+        }
+
+        return undefined;
+    }
 
     verify(yaml: SketchYaml): boolean {
         if (this.status() == PROFILES_STATUS.ACTIVE || this.status() == PROFILES_STATUS.INACTIVE) {
