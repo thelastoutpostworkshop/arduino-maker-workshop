@@ -193,7 +193,7 @@ function watchSketchYamlFile(context: ExtensionContext) {
 
 	const changeDisposable = sketchYamlWatcher.onDidChange((uri) => {
 		if (VueWebviewPanel.currentPanel) {
-			let message: WebviewToExtensionMessage = {
+			const message: WebviewToExtensionMessage = {
 				command: ARDUINO_MESSAGES.GET_BUILD_PROFILES,
 				errorMessage: "",
 				payload: ""
