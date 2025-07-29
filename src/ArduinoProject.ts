@@ -251,6 +251,11 @@ export class ArduinoProject {
     public setCompileProfile(profile: string): void {
         this.configJson.compile_profile = profile;
         this.writeVSCodeArduinoConfiguration();
+        VueWebviewPanel.sendMessage({
+            command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO,
+            errorMessage: "",
+            payload: this.configJson
+        })
     }
     public getCompileProfile(): string {
         return this.configJson.compile_profile || '';
