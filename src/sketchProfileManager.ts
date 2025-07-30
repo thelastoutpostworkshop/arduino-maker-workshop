@@ -98,14 +98,14 @@ export class SketchProfileManager {
                 const data = yaml.parse(content) as SketchYaml;
                 if (!this.verify(data) && this.status() == PROFILES_STATUS.ACTIVE) {
                     this.setProfileStatus(PROFILES_STATUS.INACTIVE); // Set inactive if the yaml is malformed.
-                    window.showErrorMessage(`The ${YAML_FILENAME} has errors and set inactive`);
+                    window.showErrorMessage(`The ${YAML_FILENAME} has errors and is now inactive`);
                     return undefined;
                 }
                 return data;
             } catch (error) {
                 if (this.status() == PROFILES_STATUS.ACTIVE) {
                     this.setProfileStatus(PROFILES_STATUS.INACTIVE); // Set inactive if any error reading the yaml file.
-                    window.showErrorMessage(`The ${YAML_FILENAME} has errors and set inactive`);
+                    window.showErrorMessage(`The ${YAML_FILENAME} has errors and is now inactive`);
                 }
                 this.lastError = `Failed to read build profile: ${error}`;
                 console.error(this.lastError);
