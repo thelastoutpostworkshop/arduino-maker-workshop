@@ -1,5 +1,5 @@
 import { arduinoProject, arduinoYaml } from "./extension";
-import { workspace } from 'vscode';
+import { window, workspace } from 'vscode';
 import { BUILD_NAME_PROFILE, DEFAULT_PROFILE, PROFILES_STATUS, UNKNOWN_PROFILE } from "./shared/messages";
 import { profile } from "console";
 
@@ -315,6 +315,10 @@ export class CLIArguments {
         if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
             // Compile using a profile
             const profileName = arduinoProject.getCompileProfile();
+            if(!profileName) {
+                window.showWarningMessage("You must select a profile");
+                return [];
+            }
             if(profileName !== DEFAULT_PROFILE) {
                 compileCommand.push(profileOption);
                 compileCommand.push(profileName);

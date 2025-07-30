@@ -535,6 +535,9 @@ export class ArduinoCLI {
 	): Promise<string> {
 		try {
 			const args = getArguments();
+			if(args.length == 0) {
+				window.showErrorMessage(errorMessagePrefix);
+			}
 			if (cache.caching == CacheState.YES) {
 				const cacheKey = this.cliCache.getCacheKeyFromArguments(args);
 				const cachedData = this.cliCache.get(cacheKey);
