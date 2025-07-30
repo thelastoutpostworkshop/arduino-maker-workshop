@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import arduinoIcon from '@/assets/extension_icon.png';
-import { useRouter } from 'vue-router'
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { onMounted, computed } from 'vue';
 import { ARDUINO_MESSAGES } from '@shared/messages';
 
 const store = useVsCodeStore();
-const router = useRouter()
 
 onMounted(() => {
     store.sendMessage({ command: ARDUINO_MESSAGES.CLI_UPDATE_INDEX, errorMessage: "", payload: "" });
@@ -23,26 +21,81 @@ const boardToUpdate = computed(() => {
 
 <template>
     <v-navigation-drawer permanent rail>
-        <v-list-item :prepend-avatar="arduinoIcon"></v-list-item>
-        <v-divider></v-divider>
-        <v-list-item prepend-icon="mdi-home" v-tooltip @click="router.push({ name: 'home' })">Project Home</v-list-item>
-        <v-list-item prepend-icon="mdi-format-list-checks" v-tooltip @click="router.push({ name: 'board-selection' })">Board
-            Selection</v-list-item>
-        <v-list-item prepend-icon="mdi-cog" v-tooltip @click="router.push({ name: 'board-configuration' })">Board
-            Configuration</v-list-item>
-        <v-list-item v-tooltip @click="router.push({ name: 'board-manager' })">Boards Manager
-            <template v-slot:prepend>
-                <v-icon>mdi-developer-board</v-icon>
-                <v-badge v-if="boardToUpdate" color="yellow" dot></v-badge>
+        <v-list-item :prepend-avatar="arduinoIcon" />
+        <v-divider />
+
+        <v-tooltip location="right">
+            <template #activator="{ props }">
+                <v-list-item v-bind="props" prepend-icon="mdi-home" :to="{ name: 'home' }" router>
+                    Project Home
+                </v-list-item>
             </template>
-        </v-list-item>
-        <v-list-item v-tooltip @click="router.push({ name: 'library-manager' })">Library Manager
-            <template v-slot:prepend>
-                <v-icon>mdi-library</v-icon>
-                <v-badge v-if="libraryToUpdate" color="yellow" dot></v-badge>
+            <span>Project Home</span>
+        </v-tooltip>
+
+        <v-tooltip location="right">
+            <template #activator="{ props }">
+                <v-list-item v-bind="props" prepend-icon="mdi-format-list-checks" :to="{ name: 'board-selection' }"
+                    router>
+                    Board Selection
+                </v-list-item>
             </template>
-        </v-list-item>
-        <v-list-item prepend-icon="mdi-application-array-outline" v-tooltip @click="router.push({ name: 'profiles-manager' })">Profiles Manager</v-list-item>
-        <v-list-item prepend-icon="mdi-test-tube" v-tooltip @click="router.push({ name: 'library-examples' })">Library Examples</v-list-item>
+            <span>Select your board</span>
+        </v-tooltip>
+
+        <v-tooltip location="right">
+            <template #activator="{ props }">
+                <v-list-item v-bind="props" prepend-icon="mdi-cog" :to="{ name: 'board-configuration' }" router>
+                    Board Configuration
+                </v-list-item>
+            </template>
+            <span>Board Configuration</span>
+        </v-tooltip>
+
+        <v-tooltip location="right">
+            <template #activator="{ props }">
+                <v-list-item v-bind="props" :to="{ name: 'board-manager' }" router>
+                    Boards Manager
+                    <template #prepend>
+                        <v-icon>mdi-developer-board</v-icon>
+                        <v-badge v-if="boardToUpdate" color="yellow" dot />
+                    </template>
+                </v-list-item>
+            </template>
+            <span>Boards Manager</span>
+        </v-tooltip>
+
+        <v-tooltip location="right">
+            <template #activator="{ props }">
+                <v-list-item v-bind="props" :to="{ name: 'library-manager' }" router>
+                    Library Manager
+                    <template #prepend>
+                        <v-icon>mdi-library</v-icon>
+                        <v-badge v-if="libraryToUpdate" color="yellow" dot />
+                    </template>
+                </v-list-item>
+            </template>
+            <span>Library Manager</span>
+        </v-tooltip>
+
+        <v-tooltip location="right">
+            <template #activator="{ props }">
+                <v-list-item v-bind="props" prepend-icon="mdi-application-array-outline"
+                    :to="{ name: 'profiles-manager' }" router>
+                    Profiles Manager
+                </v-list-item>
+            </template>
+            <span>Profiles Manager</span>
+        </v-tooltip>
+
+        <v-tooltip location="right">
+            <template #activator="{ props }">
+                <v-list-item v-bind="props" prepend-icon="mdi-test-tube" :to="{ name: 'library-examples' }" router>
+                    Library Examples
+                </v-list-item>
+            </template>
+            <span>Library Examples</span>
+        </v-tooltip>
     </v-navigation-drawer>
+
 </template>
