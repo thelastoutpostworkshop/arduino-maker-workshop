@@ -66,18 +66,21 @@ const profileStatusInformation = computed(() => {
   switch (status) {
     case PROFILES_STATUS.ACTIVE:
       return {
+        title:'Build Profiles Active',
         color: 'success',
-        text: `The build profiles ${YAML_FILENAME} are active`,
+        text: `The build profiles ${YAML_FILENAME} are active, it will be used in the compilation/build process`,
         showAppend: true,
       };
-    case PROFILES_STATUS.INACTIVE:
-      return {
+      case PROFILES_STATUS.INACTIVE:
+        return {
+        title:'Build Profiles Inactive',
         color: 'warning',
         text: `The build profiles ${YAML_FILENAME} are inactive`,
         showAppend: true,
       };
-    case PROFILES_STATUS.NOT_AVAILABLE:
-      return {
+      case PROFILES_STATUS.NOT_AVAILABLE:
+        return {
+        title:'No Build Profile defined',
         color: 'error',
         text: `No build profiles (${YAML_FILENAME}) found`,
         showAppend: true,
@@ -280,7 +283,7 @@ onMounted(() => {
               </v-row>
               <v-row class="ml-2">
                 <v-col cols="12" v-if="profileStatusInformation">
-                  <v-alert variant="tonal" icon="mdi-application-array-outline" title="Build Profiles Information"
+                  <v-alert variant="tonal" icon="mdi-application-array-outline" :title="profileStatusInformation.title"
                     border="start" :border-color="profileStatusInformation.color">
                     {{ profileStatusInformation.text }}
 
@@ -288,7 +291,7 @@ onMounted(() => {
                     <template #text>
                       <div class="mt-3" v-if="store.sketchProject?.buildProfileStatus === PROFILES_STATUS.ACTIVE">
                         <v-select v-model="selectedBuildProfile" :items="buildProfileOptions"
-                          label="Compile with Profile" style="max-width: 300px" density="comfortable" />
+                          label="Compile/Build with Profile" style="max-width: 300px" density="comfortable" />
                       </div>
                     </template>
 
