@@ -749,7 +749,7 @@ export class ArduinoCLI {
 
 	public setBuildResult(result: boolean) {
 		const compileResult: CompileResult = { result: result };
-		const buildPath = this.cliArgs.getBuildPath();
+		const buildPath = this.getBuildPath();
 		if (fs.existsSync(buildPath)) {
 			const resultFile = path.join(buildPath, COMPILE_RESULT_FILE);
 			fs.writeFileSync(resultFile, JSON.stringify(compileResult, null, 2), 'utf-8');
@@ -765,7 +765,7 @@ export class ArduinoCLI {
 
 		try {
 			// Read includes.cache file and dynamically add paths
-			const includeDataPath = path.join(this.cliArgs.getBuildPath(), "includes.cache");
+			const includeDataPath = path.join(this.getBuildPath(), "includes.cache");
 			const includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
 			includeData.forEach((entry: any) => {
 				if (!entry.Sourcefile) {
@@ -788,7 +788,7 @@ export class ArduinoCLI {
 
 		try {
 			// Read build.options.json file and dynamically add paths
-			const includeDataPath = path.join(this.cliArgs.getBuildPath(), "build.options.json");
+			const includeDataPath = path.join(this.getBuildPath(), "build.options.json");
 			const includeData: BuildOptions = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
 			if (includeData.otherLibrariesFolders) {
 				includePathsForIntelissense.add(`${includeData.otherLibrariesFolders}/**`);
@@ -803,7 +803,7 @@ export class ArduinoCLI {
 
 		try {
 			// Read compile_commands.json file to extract the compilerPath
-			compileCommandJson = path.join(this.cliArgs.getBuildPath(), "compile_commands.json");
+			compileCommandJson = path.join(this.getBuildPath(), "compile_commands.json");
 			const compileInfo = JSON.parse(fs.readFileSync(compileCommandJson, 'utf8'));
 			for (const entry of compileInfo) {
 				if (entry.arguments && Array.isArray(entry.arguments) && entry.arguments.length > 0) {
