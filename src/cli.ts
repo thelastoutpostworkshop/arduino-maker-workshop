@@ -439,14 +439,14 @@ export class ArduinoCLI {
 		try {
 			let title:string;
 			if(arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
-				title = `Uploading from ${arduinoYaml.getProfileName()} on ${arduinoProject.getPort()}`;
+				title = `Uploading from profile ${arduinoYaml.getProfileName()} on ${arduinoProject.getPort()}`;
 			} else {
 				title = `Uploading to ${arduinoProject.getBoard()} on ${arduinoProject.getPort()}`;
 			}
 			await window.withProgress(
 				{
 					location: ProgressLocation.Notification,
-					title: `Uploading to ${arduinoProject.getBoard()} on ${arduinoProject.getPort()}`,
+					title: title,
 					cancellable: true,
 				},
 				async (progress, token) => {
