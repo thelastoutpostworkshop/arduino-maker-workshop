@@ -16,6 +16,7 @@ const getOption: string = 'get';
 const compileCommandArduino: string = 'compile';
 const compileCleanOption: string = '--clean';
 const dumpProfileOption: string = '--dump-profile';
+const profileOption:string = '--profile';
 const optimizeForDebugOption: string = '--optimize-for-debug';
 const buildPathArduino: string = '--build-path';
 const verboseOptionArduino: string = '-v';
