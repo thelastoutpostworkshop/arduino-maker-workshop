@@ -59,7 +59,7 @@ export class ArduinoCLI {
 		return this.cliStatus;
 	}
 
-	public getBuildPath():string {
+	public getBuildPath(): string {
 		return this.cliArgs.getBuildPath();
 	}
 
@@ -437,12 +437,16 @@ export class ArduinoCLI {
 			this.serialMonitorAPI.stopMonitoringPort(port);
 		}
 		try {
-			let title:string;
-			if(arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
-				title = `Uploading from profile ${arduinoYaml.getProfileName()} on ${arduinoProject.getPort()}`;
+			let title: string;
+			if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
+				title = `Uploading from profile ${arduinoYaml.getProfileName()}`;
 			} else {
-				title = `Uploading to ${arduinoProject.getBoard()} on ${arduinoProject.getPort()}`;
+				title = `Uploading to ${arduinoProject.getBoard()} }`;
 			}
+			if (arduinoProject.useProgrammer()) {
+				title += ` using programmer ${arduinoProject.getProgrammer()}`;
+			}
+			title += ` on ${arduinoProject.getPort()}`;
 			await window.withProgress(
 				{
 					location: ProgressLocation.Notification,
@@ -541,7 +545,7 @@ export class ArduinoCLI {
 	): Promise<string> {
 		try {
 			const args = getArguments();
-			if(args.length == 0) {
+			if (args.length == 0) {
 				window.showErrorMessage(errorMessagePrefix);
 			}
 			if (cache.caching == CacheState.YES) {
