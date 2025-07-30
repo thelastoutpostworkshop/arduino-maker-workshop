@@ -171,6 +171,11 @@ export async function activate(context: ExtensionContext) {
 }
 
 function checkYamlStatus() {
+	arduinoYaml.getYaml(); // This will check if the YAML file has errors
+	const errors = arduinoYaml.getLastError();
+	if(errors) {
+		arduinoExtensionChannel.appendLine(`The ${YAML_FILENAME} file has errors : ${errors}`);
+	}
 	const yamlStatus = arduinoYaml.status();
 	switch (yamlStatus) {
 		case PROFILES_STATUS.ACTIVE:
@@ -197,12 +202,12 @@ function watchSketchYamlFile(context: ExtensionContext) {
 	});
 
 	const createDisposable = sketchYamlWatcher.onDidCreate((uri) => {
-		arduinoExtensionChannel.appendLine(`sketch.yaml created: ${uri.fsPath}`);
+		// arduinoExtensionChannel.appendLine(`sketch.yaml created: ${uri.fsPath}`);
 		sendBuildProfiles();
 	});
 
 	const deleteDisposable = sketchYamlWatcher.onDidDelete((uri) => {
-		arduinoExtensionChannel.appendLine(`sketch.yaml deleted: ${uri.fsPath}`);
+		// arduinoExtensionChannel.appendLine(`sketch.yaml deleted: ${uri.fsPath}`);
 		sendBuildProfiles();
 	});
 

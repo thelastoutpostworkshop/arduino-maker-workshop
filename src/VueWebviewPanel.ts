@@ -3,8 +3,6 @@ import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectStatus, PROFILES_STATUS, SketchProjectFile, WebviewToExtensionMessage, YAML_FILENAME } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, compile, loadArduinoConfiguration, openExample, shouldDetectPorts, updateStateCompileUpload } from "./extension";
-import { ARDUINO_SKETCH_EXTENSION } from "./ArduinoProject";
-import { SketchProfileManager } from "./sketchProfileManager";
 
 const path = require('path');
 const os = require('os');

@@ -4,7 +4,7 @@ import * as yaml from 'yaml';
 import { arduinoExtensionChannel, arduinoProject } from './extension';
 import { BUILD_NAME_PROFILE, BuildProfile, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME } from './shared/messages';
 import { VSCODE_FOLDER } from './ArduinoProject';
-import { workspace } from 'vscode';
+import { window, workspace } from 'vscode';
 
 export class SketchProfileManager {
 
@@ -96,11 +96,17 @@ export class SketchProfileManager {
             try {
                 const content = fs.readFileSync(file, 'utf8');
                 const data = yaml.parse(content) as SketchYaml;
-                if (!this.verify(data)) {
+                if (!this.verify(data) && this.status() == PROFILES_STATUS.ACTIVE) {
+                    this.setProfileStatus(PROFILES_STATUS.INACTIVE); // Set inactive if the yaml is malformed.
+                    window.showErrorMessage(`The ${YAML_FILENAME} has errors and set inactive`);
                     return undefined;
                 }
                 return data;
             } catch (error) {
+                if (this.status() == PROFILES_STATUS.ACTIVE) {
+                    this.setProfileStatus(PROFILES_STATUS.INACTIVE); // Set inactive if any error reading the yaml file.
+                    window.showErrorMessage(`The ${YAML_FILENAME} has errors and set inactive`);
+                }
                 this.lastError = `Failed to read build profile: ${error}`;
                 console.error(this.lastError);
                 return undefined;
