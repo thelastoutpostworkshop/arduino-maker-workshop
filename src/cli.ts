@@ -353,7 +353,7 @@ export class ArduinoCLI {
 			} else {
 				useBuildProfile = arduinoYaml.status() == PROFILES_STATUS.ACTIVE;
 				if (useBuildProfile) {
-					profileMsg = `, using profile ${arduinoProject.getCompileProfile()}`;
+					profileMsg = `, using profile ${arduinoYaml.getProfileName()}`;
 				} else {
 					profileMsg = "";
 				}
@@ -437,6 +437,12 @@ export class ArduinoCLI {
 			this.serialMonitorAPI.stopMonitoringPort(port);
 		}
 		try {
+			let title:string;
+			if(arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
+				title = `Uploading from ${arduinoYaml.getProfileName()} on ${arduinoProject.getPort()}`;
+			} else {
+				title = `Uploading to ${arduinoProject.getBoard()} on ${arduinoProject.getPort()}`;
+			}
 			await window.withProgress(
 				{
 					location: ProgressLocation.Notification,

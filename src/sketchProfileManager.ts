@@ -221,20 +221,22 @@ export class SketchProfileManager {
         yamlData.profiles = reordered;
         this.writeYaml(yamlData);
     }
-
-    getBuildFolderProfileName(): string {
+    getProfileName(): string {
         let buildforProfile;
         const profileSelected = arduinoProject.getCompileProfile();
         if (profileSelected === DEFAULT_PROFILE) {
             buildforProfile = this.getDefaultProfileName();
             if (!buildforProfile) {
-                buildforProfile = UNKNOWN_PROFILE;
+                return UNKNOWN_PROFILE;
             }
+            return buildforProfile
         } else {
             buildforProfile = profileSelected;
+            return buildforProfile;
         }
-        buildforProfile = BUILD_NAME_PROFILE + buildforProfile;
-        return buildforProfile;
+    }
+    getBuildFolderProfileName(): string {
+        return BUILD_NAME_PROFILE + this.getProfileName();
     }
     getDefaultProfileName(): string | undefined {
         this.clearError();
