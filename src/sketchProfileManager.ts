@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
 import { arduinoExtensionChannel, arduinoProject } from './extension';
-import { BUILD_NAME_PROFILE, BuildProfile, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME } from './shared/messages';
+import { BUILD_NAME_PROFILE, BuildProfile, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME } from './shared/messages';
 import { VSCODE_FOLDER } from './ArduinoProject';
 import { window, workspace } from 'vscode';
 
@@ -223,12 +223,17 @@ export class SketchProfileManager {
     }
 
     getBuildFolderProfileName(): string {
-        let buildforProfile = this.getDefaultProfileName();
-        if (!buildforProfile) {
-            buildforProfile = BUILD_NAME_PROFILE + UNKNOWN_PROFILE;
+        let buildforProfile;
+        const profileSelected = arduinoProject.getCompileProfile();
+        if (profileSelected === DEFAULT_PROFILE) {
+            buildforProfile = this.getDefaultProfileName();
+            if (!buildforProfile) {
+                buildforProfile = UNKNOWN_PROFILE;
+            }
         } else {
-            buildforProfile = BUILD_NAME_PROFILE + buildforProfile;
+            buildforProfile = profileSelected;
         }
+        buildforProfile = BUILD_NAME_PROFILE + buildforProfile;
         return buildforProfile;
     }
     getDefaultProfileName(): string | undefined {
