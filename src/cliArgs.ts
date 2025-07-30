@@ -16,7 +16,7 @@ const getOption: string = 'get';
 const compileCommandArduino: string = 'compile';
 const compileCleanOption: string = '--clean';
 const dumpProfileOption: string = '--dump-profile';
-const profileOption:string = '--profile';
+const profileOption: string = '--profile';
 const optimizeForDebugOption: string = '--optimize-for-debug';
 const buildPathArduino: string = '--build-path';
 const verboseOptionArduino: string = '-v';
@@ -289,16 +289,16 @@ export class CLIArguments {
         const compileCommand = [
             `${compileCommandArduino}`
         ];
-        if (this.getVerboseOption()) {
-            compileCommand.push(verboseOptionArduino);
-        }
-        if (arduinoProject.optimizeForDebug()) {
-            compileCommand.push(`${optimizeForDebugOption}`);
-        }
-        compileCommand.push(noColorOptionArduino);
 
         if (buildProfile) {
             // Compile to create a build profile
+            if (this.getVerboseOption()) {
+                compileCommand.push(verboseOptionArduino);
+            }
+            if (arduinoProject.optimizeForDebug()) {
+                compileCommand.push(`${optimizeForDebugOption}`);
+            }
+            compileCommand.push(noColorOptionArduino);
             compileCommand.push(`${dumpProfileOption}`);
             compileCommand.push(fqbnOptionArduino);
             if (configurationRequired) {
@@ -314,6 +314,16 @@ export class CLIArguments {
 
         if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
             // Compile using a profile
+            const profileName = arduinoProject.getCompileProfile();
+            compileCommand.push(profileOption);
+            compileCommand.push(profileName);
+            if (this.getVerboseOption()) {
+                compileCommand.push(verboseOptionArduino);
+            }
+            if (arduinoProject.optimizeForDebug()) {
+                compileCommand.push(`${optimizeForDebugOption}`);
+            }
+            compileCommand.push(noColorOptionArduino);
             compileCommand.push(`${buildPathArduino}`);
             compileCommand.push(this.getBuildPath());
             compileCommand.push(arduinoProject.getProjectPath());
@@ -321,6 +331,13 @@ export class CLIArguments {
         }
 
         // Compile with project configuration
+        if (this.getVerboseOption()) {
+            compileCommand.push(verboseOptionArduino);
+        }
+        if (arduinoProject.optimizeForDebug()) {
+            compileCommand.push(`${optimizeForDebugOption}`);
+        }
+        compileCommand.push(noColorOptionArduino);
         compileCommand.push(fqbnOptionArduino);
         if (configurationRequired) {
             compileCommand.push(`${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`);
