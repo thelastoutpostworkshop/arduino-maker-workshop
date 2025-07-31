@@ -23,7 +23,6 @@ export interface CompileResult {
 // Build Options
 export interface BuildOptions {
   additionalFiles: string;
-  "compiler.optimization_flags": string;
   customBuildProperties: string;
   fqbn: string;
   hardwareFolders: string;

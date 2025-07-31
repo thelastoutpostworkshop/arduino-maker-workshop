@@ -112,10 +112,10 @@ export class SketchProfileManager {
         const monitorSettings = arduinoProject.getMonitorPortSettings();
         profile.port = monitorSettings.port ?? profile.port;
         profile.port_config = {
-            baudRate: monitorSettings.baudRate?.toString() ?? "115200",
-            dataBits: monitorSettings.dataBits?.toString() ?? "8",
+            baudrate: monitorSettings.baudRate?.toString() ?? "115200",
+            bits: monitorSettings.dataBits?.toString() ?? "8",
             parity: monitorSettings.parity ?? "none",
-            stopBits: monitorSettings.stopBits?.toString() ?? "1",
+            stop_bits: monitorSettings.stopBits?.toString() ?? "1",
         };
 
         // Save to YAML
