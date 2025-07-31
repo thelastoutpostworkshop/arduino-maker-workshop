@@ -183,13 +183,13 @@ const profilesList = computed(() => {
                     <v-expansion-panels multiple variant="inset">
                         <v-expansion-panel v-for="profile in profilesList" :key="profile.name">
                             <v-expansion-panel-title>
-                                <div class="d-flex align-center justify-space-between w-100">
+                                <div class="d-flex align-center">
                                     <span>Profile: {{ profile.name }}</span>
                                     <v-tooltip location="top">
                                         <template #activator="{ props }">
-                                            <v-btn icon color="red" variant="text" v-bind="props"
+                                            <v-btn icon variant="text" v-bind="props"
                                                 @click.stop="deleteProfile(profile.name)">
-                                                <v-icon>mdi-delete</v-icon>
+                                                <v-icon>mdi-trash-can</v-icon>
                                             </v-btn>
                                         </template>
                                         <span>Delete this profile</span>
