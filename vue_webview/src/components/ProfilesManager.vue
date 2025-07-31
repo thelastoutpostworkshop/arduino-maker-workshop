@@ -183,18 +183,16 @@ const profilesList = computed(() => {
                     <v-expansion-panels multiple variant="inset">
                         <v-expansion-panel v-for="profile in profilesList" :key="profile.name">
                             <v-expansion-panel-title>
-                                <div class="d-flex align-center">
-                                    <span>Profile: {{ profile.name }}</span>
-                                    <v-tooltip location="top">
-                                        <template #activator="{ props }">
-                                            <v-btn icon variant="text" v-bind="props" size="small"
-                                                @click.stop="deleteProfile(profile.name)">
-                                                <v-icon>mdi-trash-can</v-icon>
-                                            </v-btn>
-                                        </template>
-                                        <span>Delete this profile</span>
-                                    </v-tooltip>
-                                </div>
+                                <span>Profile: {{ profile.name }}</span>
+                                <v-tooltip location="top">
+                                    <template #activator="{ props }">
+                                        <v-btn icon variant="text" v-bind="props" size="small"
+                                            @click.stop="deleteProfile(profile.name)">
+                                            <v-icon>mdi-trash-can</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Delete this profile</span>
+                                </v-tooltip>
                             </v-expansion-panel-title>
                             <v-expansion-panel-text>
                                 <v-card rounded="lg" color="primary">
