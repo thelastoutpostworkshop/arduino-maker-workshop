@@ -75,11 +75,20 @@ export class SketchProfileManager {
             profile = { ...profileData };
         }
 
-        if(arduinoProject.useProgrammer()) {
+        // Add programmer if in use
+        if (arduinoProject.useProgrammer()) {
             profile.programmer = arduinoProject.getProgrammer() ?? profile.programmer;
-        }        
-        profile.port = arduinoProject.getMonitorPortSettings().port ?? profile.port;
-        profile.port_config = arduinoProject.getMonitorPortSettings().baudRate ?? profile.port_config;
+        }
+
+        // Port settings
+        const monitorSettings = arduinoProject.getMonitorPortSettings();
+        profile.port = monitorSettings.port ?? profile.port;
+        profile.port_config = {
+            baudRate: monitorSettings.baudRate?.toString() ?? "115200",
+            dataBits: monitorSettings.dataBits?.toString() ?? "8",
+            parity: monitorSettings.parity ?? "none",
+            stopBits: monitorSettings.stopBits?.toString() ?? "1",
+        };
 
         // Save to YAML
         yamlData.profiles[profileName] = profile;

@@ -5,7 +5,7 @@ export const YAML_FILENAME = 'sketch.yaml';
 export const YAML_FILENAME_INACTIVE = 'sketch.yaml.disabled';
 export const NO_DEFAULT_PROFILE = '<none>';
 export const DEFAULT_PROFILE = 'default_profile';
-export const UNKNOWN_PROFILE  ='unknown_profile';
+export const UNKNOWN_PROFILE = 'unknown_profile';
 export const BUILD_NAME_PROFILE = 'build_';
 
 // Message exchange with webciew
@@ -100,7 +100,7 @@ export interface ArduinoProjectConfiguration {
   useProgrammer: boolean;
   optimize_for_debug: boolean;
   monitorPortSettings: MonitorPortSettings
-  compile_profile:string
+  compile_profile: string
 };
 
 export enum ARDUINO_ERRORS {
@@ -441,7 +441,7 @@ export interface BuildProfile {
   platforms?: PlatformDependencyProfile[];
   libraries?: string[];
   port?: string;
-  port_config?: number;
+  port_config?: Record<string, string>;
   protocol?: string;
   buildProperties?: Record<string, string>; // Optional addition, not in spec but can be useful
 }
@@ -481,8 +481,8 @@ export const ARDUINO_MESSAGES = {
   CREATE_BUILD_PROFILE: 'createBuildProfile',
   GET_BUILD_PROFILES: 'getBuildProfiles',
   UPDATE_BUILD_PROFILES: 'updateBuildProfiles',
-  SET_DEFAULT_PROFILE:'setDefaultProfile',
-  SET_COMPILE_PROFILE:'setCompileProfile',
+  SET_DEFAULT_PROFILE: 'setDefaultProfile',
+  SET_COMPILE_PROFILE: 'setCompileProfile',
   SET_OPTIMIZE_FOR_DEBUG: 'setOptimizeForDebug',
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
   CORE_UNINSTALLED: 'coreUninstalled',
