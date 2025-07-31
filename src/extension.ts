@@ -2,7 +2,7 @@ import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusB
 import { ArduinoProject, UPLOAD_READY_STATUS } from './ArduinoProject';
 import { sendBuildProfiles, VueWebviewPanel } from './VueWebviewPanel';
 import { compileCommandCleanName, quickAccessCompileCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, PROFILES_STATUS, THEME_COLOR, WebviewToExtensionMessage, YAML_FILENAME } from "./shared/messages";
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, PROFILES_STATUS, THEME_COLOR, WebviewToExtensionMessage, YAML_FILENAME, YAML_FILENAME_INACTIVE } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
 import { SketchProfileManager } from "./sketchProfileManager";
 
@@ -173,7 +173,7 @@ export async function activate(context: ExtensionContext) {
 function checkYamlStatus() {
 	arduinoYaml.getYaml(); // This will check if the YAML file has errors
 	const errors = arduinoYaml.getLastError();
-	if(errors) {
+	if (errors) {
 		arduinoExtensionChannel.appendLine(`The ${YAML_FILENAME} file has errors : ${errors}`);
 	}
 	const yamlStatus = arduinoYaml.status();
@@ -194,7 +194,8 @@ function checkYamlStatus() {
 }
 
 function watchSketchYamlFile(context: ExtensionContext) {
-	const sketchYamlWatcher = workspace.createFileSystemWatcher('**/sketch.yaml');
+	const watcherPattern = `**/{${YAML_FILENAME},${YAML_FILENAME_INACTIVE}}`;
+	const sketchYamlWatcher = workspace.createFileSystemWatcher(watcherPattern);
 
 	const changeDisposable = sketchYamlWatcher.onDidChange((uri) => {
 		sendBuildProfiles();
