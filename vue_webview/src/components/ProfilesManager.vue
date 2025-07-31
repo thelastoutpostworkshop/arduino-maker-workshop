@@ -187,7 +187,7 @@ const profilesList = computed(() => {
                                     <span>Profile: {{ profile.name }}</span>
                                     <v-tooltip location="top">
                                         <template #activator="{ props }">
-                                            <v-btn icon variant="text" v-bind="props"
+                                            <v-btn icon variant="text" v-bind="props" size="small"
                                                 @click.stop="deleteProfile(profile.name)">
                                                 <v-icon>mdi-trash-can</v-icon>
                                             </v-btn>
