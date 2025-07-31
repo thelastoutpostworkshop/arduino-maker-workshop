@@ -1,6 +1,6 @@
 import { arduinoProject, arduinoYaml } from "./extension";
 import { window, workspace } from 'vscode';
-import { DEFAULT_PROFILE, PROFILES_STATUS, UNKNOWN_PROFILE } from "./shared/messages";
+import { DEFAULT_PROFILE, PROFILES_STATUS } from "./shared/messages";
 
 const path = require('path');
 
