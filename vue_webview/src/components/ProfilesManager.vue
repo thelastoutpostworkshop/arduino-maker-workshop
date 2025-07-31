@@ -17,14 +17,19 @@ const profileRules = [
     },
 ];
 
+function deleteProfile(name: string) {
+    store.sendMessage({
+        command: ARDUINO_MESSAGES.DELETE_BUILD_PROFILE,
+        errorMessage: '',
+        payload: name,
+    });
+}
 function createProfile() {
     store.sendMessage({
         command: ARDUINO_MESSAGES.CREATE_BUILD_PROFILE,
         errorMessage: '',
         payload: profileName.value.trim(),
     });
-
-    // profileName.value = `profile-${Date.now()}`; // generate next default name
 }
 const selectedDefaultProfile = ref<string | null>(null);
 
@@ -48,7 +53,7 @@ function updateDefaultProfile() {
         command: ARDUINO_MESSAGES.SET_DEFAULT_PROFILE,
         errorMessage: '',
         payload: profileName,
-    });   
+    });
 }
 
 const profileStatusInformation = computed(() => {
@@ -178,7 +183,18 @@ const profilesList = computed(() => {
                     <v-expansion-panels multiple variant="inset">
                         <v-expansion-panel v-for="profile in profilesList" :key="profile.name">
                             <v-expansion-panel-title>
-                                Profile: {{ profile.name }}
+                                <div class="d-flex align-center justify-space-between w-100">
+                                    <span>Profile: {{ profile.name }}</span>
+                                    <v-tooltip location="top">
+                                        <template #activator="{ props }">
+                                            <v-btn icon color="red" variant="text" v-bind="props"
+                                                @click.stop="deleteProfile(profile.name)">
+                                                <v-icon>mdi-delete</v-icon>
+                                            </v-btn>
+                                        </template>
+                                        <span>Delete this profile</span>
+                                    </v-tooltip>
+                                </div>
                             </v-expansion-panel-title>
                             <v-expansion-panel-text>
                                 <v-card rounded="lg" color="primary">

@@ -481,6 +481,7 @@ export const ARDUINO_MESSAGES = {
   CREATE_BUILD_PROFILE: 'createBuildProfile',
   GET_BUILD_PROFILES: 'getBuildProfiles',
   UPDATE_BUILD_PROFILES: 'updateBuildProfiles',
+  DELETE_BUILD_PROFILE:'deleteBuildProfile',
   SET_DEFAULT_PROFILE: 'setDefaultProfile',
   SET_COMPILE_PROFILE: 'setCompileProfile',
   SET_OPTIMIZE_FOR_DEBUG: 'setOptimizeForDebug',
