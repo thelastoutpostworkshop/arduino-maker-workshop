@@ -117,6 +117,9 @@ export class VueWebviewPanel {
                             }
                         })
                         break;
+                    case ARDUINO_MESSAGES.DELETE_BUILD_PROFILE:
+                        arduinoYaml.deleteProfile(message.payload);
+                        break;
                     case ARDUINO_MESSAGES.SET_COMPILE_PROFILE:
                         arduinoProject.setCompileProfile(message.payload);
                         break;
