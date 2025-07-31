@@ -54,6 +54,7 @@ export class SketchProfileManager {
 
         let profile: BuildProfile;
         this.clearError();
+
         if (typeof profileData === 'string') {
             try {
                 const parsed = yaml.parse(profileData) as SketchYaml;
@@ -71,12 +72,20 @@ export class SketchProfileManager {
                 return;
             }
         } else {
-            profile = profileData;
+            profile = { ...profileData };
         }
 
+        if(arduinoProject.useProgrammer()) {
+            profile.programmer = arduinoProject.getProgrammer() ?? profile.programmer;
+        }        
+        profile.port = arduinoProject.getMonitorPortSettings().port ?? profile.port;
+        profile.port_config = arduinoProject.getMonitorPortSettings().baudRate ?? profile.port_config;
+
+        // Save to YAML
         yamlData.profiles[profileName] = profile;
         this.writeYaml(yamlData);
     }
+
 
 
     getYaml(): SketchYaml | undefined {

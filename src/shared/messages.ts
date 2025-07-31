@@ -441,7 +441,7 @@ export interface BuildProfile {
   platforms?: PlatformDependencyProfile[];
   libraries?: string[];
   port?: string;
-  port_config?: Record<string, string>;
+  port_config?: number;
   protocol?: string;
   buildProperties?: Record<string, string>; // Optional addition, not in spec but can be useful
 }
