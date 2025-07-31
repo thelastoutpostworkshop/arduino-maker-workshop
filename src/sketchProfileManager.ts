@@ -33,6 +33,50 @@ export class SketchProfileManager {
         return this.lastError;
     }
 
+    deleteProfile(profileName: string): boolean {
+        this.clearError();
+
+        const yamlData = this.getYaml();
+        if (!yamlData || !yamlData.profiles) {
+            this.lastError = "No YAML data or profiles found.";
+            return false;
+        }
+
+        if (!yamlData.profiles[profileName]) {
+            this.lastError = `Profile "${profileName}" not found.`;
+            return false;
+        }
+
+        // Remove the profile
+        delete yamlData.profiles[profileName];
+
+        // If this profile was the default, remove the default
+        if (yamlData.default_profile === profileName) {
+            delete yamlData.default_profile;
+        }
+
+        // If all profiles are deleted, remove the YAML file completely
+        if (Object.keys(yamlData.profiles).length === 0) {
+            try {
+                const status = this.status();
+                if (status === PROFILES_STATUS.ACTIVE && fs.existsSync(this.yamlInActiveState)) {
+                    fs.unlinkSync(this.yamlInActiveState);
+                } else if (status === PROFILES_STATUS.INACTIVE && fs.existsSync(this.yamlInInactiveState)) {
+                    fs.unlinkSync(this.yamlInInactiveState);
+                }
+                return true;
+            } catch (err) {
+                this.lastError = `Failed to delete last profile and YAML file: ${err}`;
+                return false;
+            }
+        } else {
+            // Save updated YAML
+            this.writeYaml(yamlData);
+        }
+
+        return true;
+    }
+
     updateProfile(profileName: string, profileData: string | BuildProfile): void {
         const yamlData = this.getYaml() ?? { profiles: {} };
 
