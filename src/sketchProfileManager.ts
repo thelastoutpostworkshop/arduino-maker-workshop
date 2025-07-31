@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
 import { arduinoExtensionChannel, arduinoProject } from './extension';
-import { BUILD_NAME_PROFILE, BuildProfile, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME } from './shared/messages';
+import { BUILD_NAME_PROFILE, BuildProfile, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
 import { VSCODE_FOLDER } from './ArduinoProject';
 import { window, workspace } from 'vscode';
 
@@ -13,26 +13,27 @@ export class SketchProfileManager {
     private lastError: string = "";
 
     constructor() {
-        this.setupInactiveFolder();
+        // this.setupInactiveFolder();
         this.yamlInActiveState = path.join(arduinoProject.getProjectPath(), YAML_FILENAME);
+        this.yamlInInactiveState = path.join(arduinoProject.getProjectPath(), YAML_FILENAME_INACTIVE);
     }
     private clearError() {
         this.lastError = "";
     }
-    setupInactiveFolder() {
-        const config = workspace.getConfiguration('arduinoMakerWorkshop');
-        const inactiveFolder = config.get<string>('buildProfilesInactiveFolder', "Build Profiles Inactive");
-        this.yamlInInactiveState = path.join(arduinoProject.getProjectPath(), inactiveFolder, YAML_FILENAME);
-        this.verifyInactiveFolder();
-        arduinoExtensionChannel.appendLine(`Build profiles inactive folder is '${inactiveFolder}'`);
-    }
-    private verifyInactiveFolder() {
-        const inactiveDir = path.dirname(this.yamlInInactiveState);
+    // setupInactiveFolder() {
+    //     const config = workspace.getConfiguration('arduinoMakerWorkshop');
+    //     const inactiveFolder = config.get<string>('buildProfilesInactiveFolder', "Build Profiles Inactive");
+    //     this.yamlInInactiveState = path.join(arduinoProject.getProjectPath(), inactiveFolder, YAML_FILENAME);
+    //     this.verifyInactiveFolder();
+    //     arduinoExtensionChannel.appendLine(`Build profiles inactive folder is '${inactiveFolder}'`);
+    // }
+    // private verifyInactiveFolder() {
+    //     const inactiveDir = path.dirname(this.yamlInInactiveState);
 
-        if (!fs.existsSync(inactiveDir)) {
-            fs.mkdirSync(inactiveDir, { recursive: true });
-        }
-    }
+    //     if (!fs.existsSync(inactiveDir)) {
+    //         fs.mkdirSync(inactiveDir, { recursive: true });
+    //     }
+    // }
 
     status(): PROFILES_STATUS {
         if (fs.existsSync(this.yamlInActiveState)) {
@@ -128,7 +129,7 @@ export class SketchProfileManager {
 
         // Move from active → inactive
         if (newStatus === PROFILES_STATUS.INACTIVE) {
-            this.verifyInactiveFolder();
+            // this.verifyInactiveFolder();
             fs.renameSync(this.yamlInActiveState, this.yamlInInactiveState);
             return;
         }
