@@ -275,11 +275,13 @@ export class SketchProfileManager {
 
     verify(yaml: SketchYaml): boolean {
         this.clearError();
-        if (this.status() == PROFILES_STATUS.ACTIVE || this.status() == PROFILES_STATUS.INACTIVE) {
+
+        if (this.status() === PROFILES_STATUS.ACTIVE || this.status() === PROFILES_STATUS.INACTIVE) {
             if (!yaml.profiles || typeof yaml.profiles !== 'object') {
                 this.lastError = `Missing or invalid "profiles" section.`;
                 return false;
             }
+
             const profileKeys = Object.keys(yaml.profiles);
             if (profileKeys.length === 0) {
                 this.lastError = `No profiles defined in "profiles" section.`;
@@ -287,12 +289,36 @@ export class SketchProfileManager {
             }
 
             for (const [name, profile] of Object.entries(yaml.profiles)) {
+                // Validate fqbn
                 if (!profile.fqbn || typeof profile.fqbn !== 'string') {
                     this.lastError = `Profile "${name}" is missing a valid "fqbn".`;
                     return false;
                 }
+
+                // Validate port if present
+                if (profile.port && typeof profile.port !== 'string') {
+                    this.lastError = `Profile "${name}" has an invalid "port" (must be a string).`;
+                    return false;
+                }
+
+                // Validate port_config if present
+                if (profile.port_config) {
+                    if (typeof profile.port_config !== 'object' || Array.isArray(profile.port_config)) {
+                        this.lastError = `Profile "${name}" has an invalid "port_config" (must be an object/map).`;
+                        return false;
+                    }
+
+                    for (const [key, value] of Object.entries(profile.port_config)) {
+                        if (typeof key !== 'string' || typeof value !== 'string') {
+                            this.lastError = `Profile "${name}" has invalid entries in "port_config" (keys and values must be strings).`;
+                            return false;
+                        }
+                    }
+                }
             }
         }
+
         return true;
     }
+
 }
