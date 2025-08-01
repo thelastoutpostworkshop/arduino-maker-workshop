@@ -191,7 +191,7 @@ export interface UsedLibrary {
 
 export interface UploadResult {
 }
-// Boards interfacesà
+// Boards interfaces
 //
 export interface BoardConfiguration {
   fqbn: string;
