@@ -9,7 +9,6 @@ import { getAvailablePorts } from '@/utilities/utils';
 
 const router = useRouter()
 const store = useVsCodeStore();
-
 const portSelected = ref('');
 const sketchName = ref("");
 const useProgrammer = ref(store.projectInfo?.useProgrammer ?? false);
@@ -66,21 +65,21 @@ const profileStatusInformation = computed(() => {
   switch (status) {
     case PROFILES_STATUS.ACTIVE:
       return {
-        title:'Build Profiles Active',
+        title: 'Build Profiles Active',
         color: 'success',
         text: `The build profiles ${YAML_FILENAME} are active, it will be used in the compilation/build process`,
         showAppend: true,
       };
-      case PROFILES_STATUS.INACTIVE:
-        return {
-        title:'Build Profiles Inactive',
+    case PROFILES_STATUS.INACTIVE:
+      return {
+        title: 'Build Profiles Inactive',
         color: 'warning',
         text: `The build profiles ${YAML_FILENAME} are inactive`,
         showAppend: true,
       };
-      case PROFILES_STATUS.NOT_AVAILABLE:
-        return {
-        title:'No Build Profile defined',
+    case PROFILES_STATUS.NOT_AVAILABLE:
+      return {
+        title: 'No Build Profile defined',
         color: 'error',
         text: `No build profiles (${YAML_FILENAME}) found`,
         showAppend: true,
@@ -117,11 +116,6 @@ watch(optimize_for_debug, (newStatus) => {
     store.sendMessage({ command: ARDUINO_MESSAGES.SET_OPTIMIZE_FOR_DEBUG, errorMessage: "", payload: newStatus });
   }
 });
-// watch(useBuildProfile, (newStatus) => {
-//   if (newStatus != undefined) {
-//     store.sendMessage({ command: ARDUINO_MESSAGES.SET_USE_BUILD_PROFILE, errorMessage: "", payload: newStatus });
-//   }
-// });
 
 watch(
   [() => store.boardConnected, () => store.projectInfo],
@@ -167,12 +161,33 @@ const buildProfileOptions = computed(() => {
     : names;
 });
 
+watch(
+  [buildProfileOptions, () => store.projectInfo?.compile_profile],
+  ([options, compileProfile]) => {
+    if (!options.length) return;
+
+    // If no compile_profile is set or it's not in the list, select the first
+    if (!compileProfile || !options.includes(compileProfile)) {
+      selectedBuildProfile.value = options[0];
+
+      // Notify the extension of the new profile
+      store.sendMessage({
+        command: ARDUINO_MESSAGES.SET_COMPILE_PROFILE,
+        errorMessage: '',
+        payload: selectedBuildProfile.value,
+      });
+    } else {
+      selectedBuildProfile.value = compileProfile;
+    }
+  },
+  { immediate: true }
+);
 watch(selectedBuildProfile, (newProfile) => {
   if (newProfile) {
     store.sendMessage({
       command: ARDUINO_MESSAGES.SET_COMPILE_PROFILE,
       errorMessage: '',
-      payload:newProfile,
+      payload: newProfile,
     });
   }
 });

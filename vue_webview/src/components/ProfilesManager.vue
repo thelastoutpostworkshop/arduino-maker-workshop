@@ -9,6 +9,7 @@ const profileName = ref(`profile-${Date.now()}`);
 const isProfileValid = ref(false);
 const selectedLibraryVersion = ref<Record<string, Record<string, string>>>({});
 const selectedPlatformVersion = ref<Record<string, Record<string, string>>>({});
+const selectedDefaultProfile = ref<string | null>(null);
 
 // Vuetify validation rules
 const profileRules = [
@@ -35,7 +36,6 @@ function createProfile() {
         payload: profileName.value.trim(),
     });
 }
-const selectedDefaultProfile = ref<string | null>(null);
 
 const defaultProfileOptions = computed(() => {
     const profiles = profilesList.value.map((p) => p.name);
