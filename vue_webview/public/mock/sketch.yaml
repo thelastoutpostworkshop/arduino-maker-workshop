@@ -16,4 +16,17 @@ profiles:
     libraries:
       - GFX Library for Arduino (1.6.0)
       - JPEGDEC (1.8.1)
+  uno:
+    fqbn: arduino:avr:uno
+    platforms:
+      - platform: arduino:avr (1.8.6)
+    libraries:
+      - ArduinoJson (7.4.2)
+    programmer: esptool
+    port: COM7
+    port_config:
+      baudrate: "115200"
+      bits: "8"
+      parity: none
+      stop_bits: one
 default_profile: targetesp32v3.3.0

@@ -141,6 +141,37 @@ export class SketchProfileManager {
         return profile.port;
     }
 
+        /**
+     * Update the libraries array of a given profile and persist to YAML
+     * @param profileName The name of the profile to update
+     * @param newLibraries Array of library entries, e.g. ["GFX Library for Arduino (1.6.0)"]
+     * @returns true if successful, false if profile not found or error
+     */
+    updateProfileLibraries(profileName: string, newLibraries: string[]): boolean {
+        this.clearError();
+
+        const yamlData = this.getYaml();
+        if (!yamlData || !yamlData.profiles) {
+            this.lastError = "No YAML data or profiles found.";
+            return false;
+        }
+
+        const profile = yamlData.profiles[profileName];
+        if (!profile) {
+            this.lastError = `Profile "${profileName}" not found.`;
+            return false;
+        }
+
+        // Update libraries
+        profile.libraries = [...newLibraries];
+
+        // Save the updated YAML
+        yamlData.profiles[profileName] = profile;
+        this.writeYaml(yamlData);
+
+        return true;
+    }
+
     getProfileMonitorPortSettings(profileName: string): {
         port: string;
         baudRate: number;

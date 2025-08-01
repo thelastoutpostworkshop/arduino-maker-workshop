@@ -7,6 +7,7 @@ const store = useVsCodeStore();
 
 const profileName = ref(`profile-${Date.now()}`);
 const isProfileValid = ref(false);
+const selectedLibraryVersion = ref<Record<string, Record<string, string>>>({});
 
 // Vuetify validation rules
 const profileRules = [
@@ -36,6 +37,65 @@ const selectedDefaultProfile = ref<string | null>(null);
 const defaultProfileOptions = computed(() => {
     const profiles = profilesList.value.map((p) => p.name);
     return [NO_DEFAULT_PROFILE, ...profiles];
+});
+
+function parseLibraryEntry(entry: string): { name: string; version: string } {
+    const match = entry.match(/^(.*?)\s*\((.*?)\)$/);
+    if (!match) {
+        return { name: entry, version: '' };
+    }
+    return { name: match[1].trim(), version: match[2].trim() };
+}
+
+function getAvailableLibraryVersions(libraryName: string): string[] {
+    const lib = store.libraries?.libraries.find(l => l.name === libraryName);
+    return lib?.available_versions || [];
+}
+
+function updateLibraryVersion(profileName: string, libraryEntry: string, version: string) {
+    // Parse the original entry
+    const { name } = parseLibraryEntry(libraryEntry);
+
+    // Get the profile from store
+    const profile = store.sketchProject?.yaml?.profiles?.[profileName];
+    if (!profile || !profile.libraries) return;
+
+    // Create a new libraries array with the updated entry
+    const newLibraries = profile.libraries.map(lib => {
+        const { name: libName } = parseLibraryEntry(lib);
+        if (libName === name) {
+            return `${libName} (${version})`;
+        }
+        return lib;
+    });
+
+    store.sendMessage({
+        command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_LIBRARIES,
+        errorMessage: '',
+        payload: { profileName, libraries: newLibraries },
+    });
+}
+watchEffect(() => {
+    if (!store.libraries) {
+        return;
+    }
+    watchEffect(() => {
+        selectedLibraryVersion.value = {};
+
+        profilesList.value.forEach(profile => {
+            selectedLibraryVersion.value[profile.name] = {};
+
+            (profile.libraries || []).forEach(libEntry => {
+                const { name, version } = parseLibraryEntry(libEntry);
+                const availableVersions = getAvailableLibraryVersions(name);
+
+                selectedLibraryVersion.value[profile.name][name] =
+                    version && availableVersions.includes(version)
+                        ? version
+                        : availableVersions[availableVersions.length - 1] || 'latest';
+            });
+        });
+    });
 });
 
 watchEffect(() => {
@@ -91,6 +151,7 @@ function changeStatusBuildProfile() {
 }
 onMounted(() => {
     store.sendMessage({ command: ARDUINO_MESSAGES.GET_BUILD_PROFILES, errorMessage: '', payload: '' });
+    store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
     // selectedDefaultProfile.value = store.sketchProject?.yaml?.default_profile || '<none>';
 });
 
@@ -202,26 +263,18 @@ const profilesList = computed(() => {
                                         <div><strong>FQBN:</strong> {{ profile.fqbn }}</div>
                                         <div><strong>Programmer:</strong> {{ profile.programmer || '—' }}</div>
 
-                                        <div v-if="profile.platforms?.length" class="mt-4">
-                                            <strong>Platforms:</strong>
-                                            <v-list density="compact">
-                                                <v-list-item v-for="(platform, idx) in profile.platforms"
-                                                    :key="`platform-${idx}`">
-                                                    <v-list-item-title>
-                                                        {{ platform.platform }}
-                                                        <v-list-item-subtitle v-if="platform.platform_index_url">
-                                                            {{ platform.platform_index_url }}
-                                                        </v-list-item-subtitle>
-                                                    </v-list-item-title>
-                                                </v-list-item>
-                                            </v-list>
-                                        </div>
                                         <div v-if="profile.libraries?.length" class="mt-4">
                                             <strong>Libraries:</strong>
                                             <v-list density="compact">
-                                                <v-list-item v-for="(lib) in profile.libraries">
-                                                    <v-list-item-title>
-                                                        {{ lib }}
+                                                <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
+                                                    <v-list-item-title class="d-flex align-center">
+                                                        <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
+                                                            }}</span>
+                                                        <v-select v-if="store.libraries"
+                                                            :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
+                                                            v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
+                                                            density="compact" style="max-width: 150px"
+                                                            @update:model-value="val => updateLibraryVersion(profile.name, libEntry, val)" />
                                                     </v-list-item-title>
                                                 </v-list-item>
                                             </v-list>
