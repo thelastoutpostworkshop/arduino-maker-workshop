@@ -429,24 +429,34 @@ export class ArduinoCLI {
 			this.compileUploadChannel.show();
 			return;
 		}
+		const useBuildProfile = arduinoYaml.status() == PROFILES_STATUS.ACTIVE;
 		this.compileUploadChannel.appendLine("Upload starting...");
 		this.compileOrUploadRunning = true;
 
 		if (this.serialMonitorAPI) {
-			const port = arduinoProject.getPort();
-			this.serialMonitorAPI.stopMonitoringPort(port);
+			let port
+			if (useBuildProfile) {
+				port = arduinoYaml.getProfilePort(arduinoYaml.getProfileName());
+			} else {
+				port = arduinoProject.getPort();
+			}
+			if (port) {
+				this.serialMonitorAPI.stopMonitoringPort(port);
+			}
 		}
 		try {
 			let title: string;
-			if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
+			if (useBuildProfile) {
 				title = `Uploading from profile ${arduinoYaml.getProfileName()}`;
 			} else {
 				title = `Uploading to ${arduinoProject.getBoard()} }`;
 			}
-			if (arduinoProject.useProgrammer()) {
+			if (!useBuildProfile && arduinoProject.useProgrammer()) {
 				title += ` using programmer ${arduinoProject.getProgrammer()}`;
 			}
-			title += ` on ${arduinoProject.getPort()}`;
+			if (!useBuildProfile) {
+				title += ` on ${arduinoProject.getPort()}`;
+			}
 			await window.withProgress(
 				{
 					location: ProgressLocation.Notification,
@@ -470,13 +480,17 @@ export class ArduinoCLI {
 					);
 					uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 					if (this.serialMonitorAPI) {
-						let monitorPortSettings = arduinoProject.getMonitorPortSettings();
-						arduinoExtensionChannel.appendLine(`Starting serial monitor with settings: ${JSON.stringify(monitorPortSettings)}`);
-						this.serialMonitorAPI.startMonitoringPort(monitorPortSettings).then((port) => {
-							arduinoExtensionChannel.appendLine(`Serial monitor started on port ${port}`);
-						}).catch((err) => {
-							arduinoExtensionChannel.appendLine(`Error starting serial monitor: ${err.message}`);
-						});
+						if (useBuildProfile) {
+
+						} else {
+							let monitorPortSettings = arduinoProject.getMonitorPortSettings();
+							arduinoExtensionChannel.appendLine(`Starting serial monitor with settings: ${JSON.stringify(monitorPortSettings)}`);
+							this.serialMonitorAPI.startMonitoringPort(monitorPortSettings).then((port) => {
+								arduinoExtensionChannel.appendLine(`Serial monitor started on port ${port}`);
+							}).catch((err) => {
+								arduinoExtensionChannel.appendLine(`Error starting serial monitor: ${err.message}`);
+							});
+						}
 					}
 				}
 			);

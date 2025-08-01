@@ -123,7 +123,22 @@ export class SketchProfileManager {
         this.writeYaml(yamlData);
     }
 
+    getProfilePort(profileName: string): string | undefined {
+        this.clearError();
+        const yamlData = this.getYaml();
+        if (!yamlData || !yamlData.profiles) {
+            this.lastError = "No YAML data or profiles found.";
+            return undefined;
+        }
 
+        const profile = yamlData.profiles[profileName];
+        if (!profile) {
+            this.lastError = `Profile "${profileName}" not found.`;
+            return undefined;
+        }
+
+        return profile.port;
+    }
 
     getYaml(): SketchYaml | undefined {
         let file: string = "";
