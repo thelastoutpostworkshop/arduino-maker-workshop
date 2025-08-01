@@ -8,6 +8,7 @@ const store = useVsCodeStore();
 const profileName = ref(`profile-${Date.now()}`);
 const isProfileValid = ref(false);
 const selectedLibraryVersion = ref<Record<string, Record<string, string>>>({});
+const selectedPlatformVersion = ref<Record<string, Record<string, string>>>({});
 
 // Vuetify validation rules
 const profileRules = [
@@ -80,6 +81,66 @@ function updateLibraryVersion(profileName: string, libraryEntry: string, version
         payload: updates,
     });
 }
+
+function parsePlatformEntry(entry: string): { name: string; version: string } {
+    const match = entry.match(/^(.*?)\s*\((.*?)\)$/);
+    if (!match) {
+        return { name: entry, version: '' };
+    }
+    return { name: match[1].trim(), version: match[2].trim() };
+}
+
+function getAvailablePlatformVersions(platformName: string): string[] {
+    // store.platforms is assumed to contain the list of available platforms
+    const platform = store.platform?.platforms.find(p => {
+        return platformName === p.id;
+    });
+
+    if (!platform) return [];
+    return Object.keys(platform.releases);
+}
+
+function updatePlatformVersion(profileName: string, platformEntry: string, version: string) {
+    // const { name } = parsePlatformEntry(platformEntry);
+    // const profile = store.sketchProject?.yaml?.profiles?.[profileName];
+    // if (!profile || !profile.platforms) return;
+
+    // const newPlatforms = profile.platforms.map(p => {
+    //     const { name: platName } = parsePlatformEntry(p.platform);
+    //     if (platName === name) {
+    //         return {
+    //             ...p,
+    //             platform: `${platName} (${version})`
+    //         };
+    //     }
+    //     return p;
+    // });
+
+    // store.sendMessage({
+    //     command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILES,
+    //     errorMessage: '',
+    //     payload: { profileName, platforms: newPlatforms }
+    // });
+}
+
+watchEffect(() => {
+    if (!store.platform) return;
+    selectedPlatformVersion.value = {};
+
+    profilesList.value.forEach(profile => {
+        selectedPlatformVersion.value[profile.name] = {};
+
+        (profile.platforms || []).forEach(platEntry => {
+            const { name, version } = parsePlatformEntry(platEntry.platform);
+            const availableVersions = getAvailablePlatformVersions(name);
+
+            selectedPlatformVersion.value[profile.name][name] =
+                version && availableVersions.includes(version)
+                    ? version
+                    : availableVersions[availableVersions.length - 1] || 'latest';
+        });
+    });
+});
 // Convert SketchYaml.profiles object to an array for display
 const profilesList = computed(() => {
     if (!store.sketchProject?.yaml?.profiles) return [];
@@ -285,14 +346,22 @@ onMounted(() => {
                                         <div v-if="profile.platforms?.length" class="mt-4">
                                             <strong>Platforms:</strong>
                                             <v-list density="compact">
-                                                <v-list-item v-for="(platform, idx) in profile.platforms"
-                                                    :key="`platform-${idx}`">
-                                                    <v-list-item-title>
-                                                        {{ platform.platform }}
-                                                        <v-list-item-subtitle v-if="platform.platform_index_url">
-                                                            {{ platform.platform_index_url }}
-                                                        </v-list-item-subtitle>
+                                                <v-list-item v-for="platEntry in profile.platforms"
+                                                    :key="platEntry.platform">
+                                                    <v-list-item-title class="d-flex align-center">
+                                                        <span class="flex-grow-1">{{
+                                                            parsePlatformEntry(platEntry.platform).name
+                                                            }}</span>
+
+                                                        <v-select v-if="store.platform"
+                                                            :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
+                                                            v-model="selectedPlatformVersion[profile.name][parsePlatformEntry(platEntry.platform).name]"
+                                                            density="compact" style="max-width: 150px"
+                                                            @update:model-value="val => updatePlatformVersion(profile.name, platEntry.platform, val)" />
                                                     </v-list-item-title>
+                                                    <v-list-item-subtitle v-if="platEntry.platform_index_url">
+                                                        {{ platEntry.platform_index_url }}
+                                                    </v-list-item-subtitle>
                                                 </v-list-item>
                                             </v-list>
                                         </div>
@@ -302,7 +371,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                        }}</span>
+                                                            }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
