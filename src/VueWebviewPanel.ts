@@ -125,6 +125,9 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_LIBRARIES:
                         arduinoYaml.updateProfileLibraries(message.payload);
                         break;
+                    case ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_PLATFORMS:
+                        arduinoYaml.updateProfilePlatforms(message.payload);
+                        break;
                     case ARDUINO_MESSAGES.SET_COMPILE_PROFILE:
                         arduinoProject.setCompileProfile(message.payload);
                         break;
