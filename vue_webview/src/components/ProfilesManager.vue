@@ -282,14 +282,27 @@ onMounted(() => {
                                     <v-card-text>
                                         <div><strong>FQBN:</strong> {{ profile.fqbn }}</div>
                                         <div><strong>Programmer:</strong> {{ profile.programmer || '—' }}</div>
-
+                                        <div v-if="profile.platforms?.length" class="mt-4">
+                                            <strong>Platforms:</strong>
+                                            <v-list density="compact">
+                                                <v-list-item v-for="(platform, idx) in profile.platforms"
+                                                    :key="`platform-${idx}`">
+                                                    <v-list-item-title>
+                                                        {{ platform.platform }}
+                                                        <v-list-item-subtitle v-if="platform.platform_index_url">
+                                                            {{ platform.platform_index_url }}
+                                                        </v-list-item-subtitle>
+                                                    </v-list-item-title>
+                                                </v-list-item>
+                                            </v-list>
+                                        </div>
                                         <div v-if="profile.libraries?.length" class="mt-4">
                                             <strong>Libraries:</strong>
                                             <v-list density="compact">
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                            }}</span>
+                                                        }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
