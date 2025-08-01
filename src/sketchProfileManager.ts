@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
 import { arduinoProject } from './extension';
-import { BUILD_NAME_PROFILE, BuildProfile, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
+import { BUILD_NAME_PROFILE, BuildProfile, BuildProfileLibraries, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
 import { window } from 'vscode';
 import { DataBit, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
 
@@ -147,7 +147,7 @@ export class SketchProfileManager {
      * @param newLibraries Array of library entries, e.g. ["GFX Library for Arduino (1.6.0)"]
      * @returns true if successful, false if profile not found or error
      */
-    updateProfileLibraries(profileName: string, newLibraries: string[]): boolean {
+    updateProfileLibraries(librariesUpdate:BuildProfileLibraries): boolean {
         this.clearError();
 
         const yamlData = this.getYaml();
@@ -156,17 +156,17 @@ export class SketchProfileManager {
             return false;
         }
 
-        const profile = yamlData.profiles[profileName];
+        const profile = yamlData.profiles[librariesUpdate.profile_name];
         if (!profile) {
-            this.lastError = `Profile "${profileName}" not found.`;
+            this.lastError = `Profile "${librariesUpdate.profile_name}" not found.`;
             return false;
         }
 
         // Update libraries
-        profile.libraries = [...newLibraries];
+        profile.libraries = [...librariesUpdate.libraries];
 
         // Save the updated YAML
-        yamlData.profiles[profileName] = profile;
+        yamlData.profiles[librariesUpdate.profile_name] = profile;
         this.writeYaml(yamlData);
 
         return true;

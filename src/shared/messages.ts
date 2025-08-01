@@ -449,7 +449,10 @@ export interface PlatformDependencyProfile {
 }
 
 // Build profiles interfaces to send updated information on the build profile
-
+export interface BuildProfileLibraries {
+  profile_name: string;
+  libraries: string[];
+}
 // Messages exchanged between the extension and the webview
 export const ARDUINO_MESSAGES = {
   CLI_BOARD_OPTIONS: 'cli_getArduinoBoardOptions',
@@ -481,8 +484,8 @@ export const ARDUINO_MESSAGES = {
   CREATE_BUILD_PROFILE: 'createBuildProfile',
   GET_BUILD_PROFILES: 'getBuildProfiles',
   UPDATE_BUILD_PROFILES: 'updateBuildProfiles',
-  UPDATE_BUILD_PROFILE_LIBRARIES:'updateBuildProfileLibraries',
-  DELETE_BUILD_PROFILE:'deleteBuildProfile',
+  UPDATE_BUILD_PROFILE_LIBRARIES: 'updateBuildProfileLibraries',
+  DELETE_BUILD_PROFILE: 'deleteBuildProfile',
   SET_DEFAULT_PROFILE: 'setDefaultProfile',
   SET_COMPILE_PROFILE: 'setCompileProfile',
   SET_OPTIMIZE_FOR_DEBUG: 'setOptimizeForDebug',

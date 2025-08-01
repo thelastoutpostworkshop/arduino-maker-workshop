@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
+import { ARDUINO_MESSAGES, BuildProfileLibraries, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
 
 const store = useVsCodeStore();
 
@@ -68,11 +68,14 @@ function updateLibraryVersion(profileName: string, libraryEntry: string, version
         }
         return lib;
     });
-
+    const updates:BuildProfileLibraries = {
+        profile_name:profileName,
+        libraries:newLibraries
+    }
     store.sendMessage({
         command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_LIBRARIES,
         errorMessage: '',
-        payload: { profileName, libraries: newLibraries },
+        payload: updates,
     });
 }
 // Convert SketchYaml.profiles object to an array for display
