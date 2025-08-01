@@ -220,6 +220,7 @@ export class ArduinoProject {
     }
     public resetBoardConfiguration() {
         this.configJson.configuration = "";
+        this.setUseProgrammer(false);
         this.writeVSCodeArduinoConfiguration();
     }
     public getArduinoConfiguration(): ArduinoProjectConfiguration {
