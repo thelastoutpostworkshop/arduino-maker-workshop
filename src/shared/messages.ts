@@ -441,10 +441,9 @@ export interface BuildProfile {
   port?: string;
   port_config?: Record<string, string>;
   protocol?: string;
-  buildProperties?: Record<string, string>; // Optional addition, not in spec but can be useful
 }
 export interface PlatformDependencyProfile {
-  platform: string; // e.g. "esp32:esp32 (2.0.11)"
+  platform: string; 
   platform_index_url?: string;
 }
 
