@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
 import { arduinoProject } from './extension';
-import { BUILD_NAME_PROFILE, BuildProfile, BuildProfileLibraries, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
+import { BUILD_NAME_PROFILE, BuildProfile, BuildProfileLibraries, BuildProfilePlatformsUpdate, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
 import { window } from 'vscode';
 import { DataBit, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
 
@@ -141,13 +141,7 @@ export class SketchProfileManager {
         return profile.port;
     }
 
-        /**
-     * Update the libraries array of a given profile and persist to YAML
-     * @param profileName The name of the profile to update
-     * @param newLibraries Array of library entries, e.g. ["GFX Library for Arduino (1.6.0)"]
-     * @returns true if successful, false if profile not found or error
-     */
-    updateProfileLibraries(librariesUpdate:BuildProfileLibraries): boolean {
+    updateProfileLibraries(librariesUpdate: BuildProfileLibraries): boolean {
         this.clearError();
 
         const yamlData = this.getYaml();
@@ -167,6 +161,31 @@ export class SketchProfileManager {
 
         // Save the updated YAML
         yamlData.profiles[librariesUpdate.profile_name] = profile;
+        this.writeYaml(yamlData);
+
+        return true;
+    }
+
+    updateProfilePlatforms(platformsUpdate: BuildProfilePlatformsUpdate): boolean {
+        this.clearError();
+
+        const yamlData = this.getYaml();
+        if (!yamlData || !yamlData.profiles) {
+            this.lastError = "No YAML data or profiles found.";
+            return false;
+        }
+
+        const profile = yamlData.profiles[platformsUpdate.profile_name];
+        if (!profile) {
+            this.lastError = `Profile "${platformsUpdate.profile_name}" not found.`;
+            return false;
+        }
+
+        // Update platforms array
+        profile.platforms = [...platformsUpdate.platforms];
+
+        // Save the updated YAML
+        yamlData.profiles[platformsUpdate.profile_name] = profile;
         this.writeYaml(yamlData);
 
         return true;
