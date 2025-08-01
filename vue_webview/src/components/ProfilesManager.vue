@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, BuildProfileLibraries, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
+import { ARDUINO_MESSAGES, BuildProfileLibraries, BuildProfilePlatformsUpdate, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
 
 const store = useVsCodeStore();
 
@@ -101,28 +101,37 @@ function getAvailablePlatformVersions(platformName: string): string[] {
 }
 
 function updatePlatformVersion(profileName: string, platformEntry: string, version: string) {
-    // const { name } = parsePlatformEntry(platformEntry);
-    // const profile = store.sketchProject?.yaml?.profiles?.[profileName];
-    // if (!profile || !profile.platforms) return;
+    const { name } = parsePlatformEntry(platformEntry);
+    const profile = store.sketchProject?.yaml?.profiles?.[profileName];
+    if (!profile || !profile.platforms) return;
 
-    // const newPlatforms = profile.platforms.map(p => {
-    //     const { name: platName } = parsePlatformEntry(p.platform);
-    //     if (platName === name) {
-    //         return {
-    //             ...p,
-    //             platform: `${platName} (${version})`
-    //         };
-    //     }
-    //     return p;
-    // });
-
-    // store.sendMessage({
-    //     command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILES,
-    //     errorMessage: '',
-    //     payload: { profileName, platforms: newPlatforms }
-    // });
+    const newPlatforms = profile.platforms.map(p => {
+        const { name: platName } = parsePlatformEntry(p.platform);
+        if (platName === name) {
+            return {
+                ...p,
+                platform: `${platName} (${version})`
+            };
+        }
+        return p;
+    });
+    const updates: BuildProfilePlatformsUpdate = {
+        profile_name: profileName,
+        platforms: newPlatforms
+    }
+    store.sendMessage({
+        command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_PLATFORMS,
+        errorMessage: '',
+        payload: updates
+    });
 }
-
+const profilesList = computed(() => {
+    if (!store.sketchProject?.yaml?.profiles) return [];
+    return Object.entries(store.sketchProject.yaml.profiles).map(([name, data]) => ({
+        name,
+        ...data,
+    }));
+});
 watchEffect(() => {
     if (!store.platform) return;
     selectedPlatformVersion.value = {};
@@ -141,14 +150,7 @@ watchEffect(() => {
         });
     });
 });
-// Convert SketchYaml.profiles object to an array for display
-const profilesList = computed(() => {
-    if (!store.sketchProject?.yaml?.profiles) return [];
-    return Object.entries(store.sketchProject.yaml.profiles).map(([name, data]) => ({
-        name,
-        ...data,
-    }));
-});
+
 watchEffect(() => {
     if (!store.libraries) {
         return;
@@ -351,7 +353,7 @@ onMounted(() => {
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{
                                                             parsePlatformEntry(platEntry.platform).name
-                                                            }}</span>
+                                                        }}</span>
 
                                                         <v-select v-if="store.platform"
                                                             :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
@@ -371,7 +373,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                            }}</span>
+                                                        }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"

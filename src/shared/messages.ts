@@ -452,13 +452,9 @@ export interface BuildProfileLibraries {
   profile_name: string;
   libraries: string[];
 }
-export interface BuildProfilePlatforms {
-  platform: string;
-  platform_index_url?: string;
-}
 export interface BuildProfilePlatformsUpdate {
   profile_name: string;
-  platforms: BuildProfilePlatforms[];
+  platforms: PlatformDependencyProfile[];
 }
 // Messages exchanged between the extension and the webview
 export const ARDUINO_MESSAGES = {
