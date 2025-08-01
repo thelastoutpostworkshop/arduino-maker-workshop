@@ -51,7 +51,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         cliConfig: null as ArduinoConfig | null,
         boardUpdating: "",
         libraryUpdating: "",
-        profileUpdating:"",
+        profileUpdating: "",
         currentTheme: null as string | null,
         sketchProject: null as SketchProjectFile | null,
     }),
@@ -138,9 +138,9 @@ export const useVsCodeStore = defineStore('vsCode', {
                     case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
                         loadMockData('sketch.yaml', false, true).then((mockPayload) => {
                             const sketchProject: SketchProjectFile = {
-                                yaml:mockPayload,
+                                yaml: mockPayload,
                                 error: "",
-                                buildProfileStatus:PROFILES_STATUS.ACTIVE
+                                buildProfileStatus: PROFILES_STATUS.ACTIVE
                             }
                             message.payload = sketchProject;
                             this.handleMessage(message);
@@ -344,6 +344,9 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLATION_ERROR:
                     this.libraryUpdating = "";
+                    break;
+                case ARDUINO_MESSAGES.BUILD_PROFILE_CREATED:
+                    this.profileUpdating = "";
                     break;
                 case ARDUINO_MESSAGES.CORE_UNINSTALLED:
                 case ARDUINO_MESSAGES.CORE_VERSION_INSTALLED:
