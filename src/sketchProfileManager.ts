@@ -4,6 +4,7 @@ import * as yaml from 'yaml';
 import { arduinoProject } from './extension';
 import { BUILD_NAME_PROFILE, BuildProfile, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
 import { window } from 'vscode';
+import { DataBit, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
 
 export class SketchProfileManager {
 
@@ -139,6 +140,77 @@ export class SketchProfileManager {
 
         return profile.port;
     }
+
+    getProfileMonitorPortSettings(profileName: string): {
+        port: string;
+        baudRate: number;
+        lineEnding: LineEnding;
+        dataBits: DataBit;
+        parity: Parity;
+        stopBits: StopBits;
+    } | undefined {
+        this.clearError();
+
+        const yamlData = this.getYaml();
+        if (!yamlData || !yamlData.profiles) {
+            this.lastError = "No YAML data or profiles found.";
+            return undefined;
+        }
+
+        const profile = yamlData.profiles[profileName];
+        if (!profile) {
+            this.lastError = `Profile "${profileName}" not found.`;
+            return undefined;
+        }
+
+        if (!profile.port) {
+            this.lastError = `Profile "${profileName}" does not define a port.`;
+            return undefined;
+        }
+
+        // Convert port_config safely
+        const portConfig = profile.port_config ?? {};
+
+        // Map YAML string values to enum values
+        const stopBits: StopBits = ((): StopBits => {
+            switch (portConfig.stop_bits) {
+                case "1.5": return StopBits.Onepointfive;
+                case "2": return StopBits.Two;
+                default: return StopBits.One;
+            }
+        })();
+
+        const parity: Parity = ((): Parity => {
+            switch (portConfig.parity) {
+                case "odd": return Parity.Odd;
+                case "even": return Parity.Even;
+                case "mark": return Parity.Mark;
+                case "space": return Parity.Space;
+                default: return Parity.None;
+            }
+        })();
+
+        const lineEnding: LineEnding = ((): LineEnding => {
+            switch (portConfig.lineEnding) {
+                case "\r": return LineEnding.CR;
+                case "\n": return LineEnding.LF;
+                case "none": return LineEnding.None;
+                default: return LineEnding.CRLF;
+            }
+        })();
+
+        const dataBits: DataBit = (parseInt(portConfig.bits ?? "8") as DataBit);
+
+        return {
+            port: profile.port,
+            baudRate: parseInt(portConfig.baudrate ?? "115200"),
+            lineEnding,
+            dataBits,
+            parity,
+            stopBits,
+        };
+    }
+
 
     getYaml(): SketchYaml | undefined {
         let file: string = "";
