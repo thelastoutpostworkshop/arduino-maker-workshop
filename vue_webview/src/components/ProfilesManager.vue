@@ -312,7 +312,7 @@ onMounted(() => {
                                     <template #append>
                                         <v-tooltip location="top">
                                             <template #activator="{ props }">
-                                                <v-btn @click="changeStatusBuildProfile" v-bind="props">
+                                                <v-btn @click="changeStatusBuildProfile" v-bind="props" :disabled="store.profileUpdating !== ''">
                                                     {{ profileStatusInformation.button }}
                                                 </v-btn>
                                             </template>
@@ -324,7 +324,7 @@ onMounted(() => {
                         </v-row>
                     </v-card>
                     <div>You have {{ profilesList.length }} build profiles:</div>
-                    <v-expansion-panels multiple variant="inset">
+                    <v-expansion-panels multiple variant="popout">
                         <v-expansion-panel v-for="profile in profilesList" :key="profile.name">
                             <v-expansion-panel-title>
                                 <span>Profile: {{ profile.name }}</span>
