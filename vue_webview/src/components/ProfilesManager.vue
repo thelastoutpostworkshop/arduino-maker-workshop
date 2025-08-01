@@ -165,6 +165,8 @@ function changeStatusBuildProfile() {
 onMounted(() => {
     store.sendMessage({ command: ARDUINO_MESSAGES.GET_BUILD_PROFILES, errorMessage: '', payload: '' });
     store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
+    store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
+
     // selectedDefaultProfile.value = store.sketchProject?.yaml?.default_profile || '<none>';
 });
 
@@ -287,7 +289,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                        }}</span>
+                                                            }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
