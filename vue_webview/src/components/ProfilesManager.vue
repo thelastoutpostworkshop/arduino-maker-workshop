@@ -75,6 +75,14 @@ function updateLibraryVersion(profileName: string, libraryEntry: string, version
         payload: { profileName, libraries: newLibraries },
     });
 }
+// Convert SketchYaml.profiles object to an array for display
+const profilesList = computed(() => {
+    if (!store.sketchProject?.yaml?.profiles) return [];
+    return Object.entries(store.sketchProject.yaml.profiles).map(([name, data]) => ({
+        name,
+        ...data,
+    }));
+});
 watchEffect(() => {
     if (!store.libraries) {
         return;
@@ -155,14 +163,7 @@ onMounted(() => {
     // selectedDefaultProfile.value = store.sketchProject?.yaml?.default_profile || '<none>';
 });
 
-// Convert SketchYaml.profiles object to an array for display
-const profilesList = computed(() => {
-    if (!store.sketchProject?.yaml?.profiles) return [];
-    return Object.entries(store.sketchProject.yaml.profiles).map(([name, data]) => ({
-        name,
-        ...data,
-    }));
-});
+
 </script>
 
 <template>
@@ -269,7 +270,7 @@ const profilesList = computed(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                            }}</span>
+                                                        }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
