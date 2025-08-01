@@ -416,8 +416,7 @@ export enum THEME_COLOR {
   highContrast
 }
 
-// Build profiles
-//
+// Build profiles base on the official Yaml Sketch Project
 export enum PROFILES_STATUS {
   NOT_AVAILABLE = 'none',
   INACTIVE = 'inactive',
@@ -444,12 +443,14 @@ export interface BuildProfile {
   protocol?: string;
   buildProperties?: Record<string, string>; // Optional addition, not in spec but can be useful
 }
-
 export interface PlatformDependencyProfile {
   platform: string; // e.g. "esp32:esp32 (2.0.11)"
   platform_index_url?: string;
 }
 
+// Build profiles interfaces to send updated information on the build profile
+
+// Messages exchanged between the extension and the webview
 export const ARDUINO_MESSAGES = {
   CLI_BOARD_OPTIONS: 'cli_getArduinoBoardOptions',
   CLI_BOARD_SEARCH: 'cli_getArduinoBoardSearch',
