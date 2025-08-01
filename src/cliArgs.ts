@@ -261,6 +261,29 @@ export class CLIArguments {
         }
     }
     public getUploadArguments(): string[] {
+        if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
+            // Upload using a profile
+            const command = [
+                `${uploadCommandArduino}`
+            ];
+            const profileName = arduinoProject.getCompileProfile();
+            if (!profileName) {
+                window.showWarningMessage("You must select a profile");
+                return [];
+            }
+            if (profileName !== DEFAULT_PROFILE) {
+                command.push(profileOption);
+                command.push(profileName);
+            }
+            command.push(verboseOptionArduino);
+            command.push(noColorOptionArduino);
+            command.push(`${inputDirOptionArduino}`);
+            command.push(this.getBuildPath());
+            command.push(arduinoProject.getProjectPath());
+            return command;
+        }
+
+        // Upload with project configuration
         arduinoProject.readConfiguration();
         const command = [
             `${uploadCommandArduino}`,
