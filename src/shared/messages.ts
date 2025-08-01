@@ -443,7 +443,7 @@ export interface BuildProfile {
   protocol?: string;
 }
 export interface PlatformDependencyProfile {
-  platform: string; 
+  platform: string;
   platform_index_url?: string;
 }
 
@@ -481,6 +481,7 @@ export const ARDUINO_MESSAGES = {
   SET_USE_PROGRAMMER: 'setArduinoUseProgrammer',
   SET_STATUS_BUILD_PROFILE: 'setStatusBuildProfile',
   CREATE_BUILD_PROFILE: 'createBuildProfile',
+  BUILD_PROFILE_CREATED: 'buildProfileCreated',
   GET_BUILD_PROFILES: 'getBuildProfiles',
   UPDATE_BUILD_PROFILES: 'updateBuildProfiles',
   UPDATE_BUILD_PROFILE_LIBRARIES: 'updateBuildProfileLibraries',

@@ -26,6 +26,8 @@ function deleteProfile(name: string) {
     });
 }
 function createProfile() {
+    store.profileUpdating = `Creating profile ${profileName.value.trim()}`;
+
     store.sendMessage({
         command: ARDUINO_MESSAGES.CREATE_BUILD_PROFILE,
         errorMessage: '',
@@ -68,9 +70,9 @@ function updateLibraryVersion(profileName: string, libraryEntry: string, version
         }
         return lib;
     });
-    const updates:BuildProfileLibraries = {
-        profile_name:profileName,
-        libraries:newLibraries
+    const updates: BuildProfileLibraries = {
+        profile_name: profileName,
+        libraries: newLibraries
     }
     store.sendMessage({
         command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_LIBRARIES,
@@ -208,7 +210,7 @@ onMounted(() => {
                                     <v-text-field v-model="profileName" label="New Profile name" :rules="profileRules"
                                         hide-details="auto" density="comfortable" class="mr-4" clearable
                                         style="max-width: 300px;" />
-                                    <v-tooltip location="top">
+                                    <v-tooltip v-if="!store.profileUpdating" location="top">
                                         <template #activator="{ props }">
                                             <v-btn v-bind="props" @click="createProfile" :disabled="!isProfileValid">
                                                 Create a new profile
@@ -216,6 +218,18 @@ onMounted(() => {
                                         </template>
                                         <span>Create a new profile using the current configuration</span>
                                     </v-tooltip>
+                                    <div v-else>
+                                        <v-card>
+                                            <v-card-item :title="store.profileUpdating">
+                                                <template v-slot:subtitle>
+                                                    Please wait
+                                                </template>
+                                            </v-card-item>
+                                            <v-card-text class="py-0">
+                                                <v-progress-linear color="grey" indeterminate />
+                                            </v-card-text>
+                                        </v-card>
+                                    </div>
                                 </v-row>
                                 <v-row class="mb-4" align="center">
                                     <v-select v-model="selectedDefaultProfile" :items="defaultProfileOptions"

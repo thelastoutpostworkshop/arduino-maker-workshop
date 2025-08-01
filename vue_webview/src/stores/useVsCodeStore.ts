@@ -51,6 +51,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         cliConfig: null as ArduinoConfig | null,
         boardUpdating: "",
         libraryUpdating: "",
+        profileUpdating:"",
         currentTheme: null as string | null,
         sketchProject: null as SketchProjectFile | null,
     }),
