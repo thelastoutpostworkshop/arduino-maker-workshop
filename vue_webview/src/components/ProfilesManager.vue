@@ -11,7 +11,7 @@ const selectedLibraryVersion = ref<Record<string, Record<string, string>>>({});
 const selectedPlatformVersion = ref<Record<string, Record<string, string>>>({});
 const selectedDefaultProfile = ref<string | null>(null);
 
-// Vuetify validation rules
+// Profile name validation rules
 const profileRules = [
     (v: string) => !!v || 'Name is required.',
     (v: string) => {
@@ -91,7 +91,6 @@ function parsePlatformEntry(entry: string): { name: string; version: string } {
 }
 
 function getAvailablePlatformVersions(platformName: string): string[] {
-    // store.platforms is assumed to contain the list of available platforms
     const platform = store.platform?.platforms.find(p => {
         return platformName === p.id;
     });
@@ -132,6 +131,7 @@ const profilesList = computed(() => {
         ...data,
     }));
 });
+
 watchEffect(() => {
     if (!store.platform) return;
     selectedPlatformVersion.value = {};
