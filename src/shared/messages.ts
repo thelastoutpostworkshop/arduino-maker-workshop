@@ -490,6 +490,8 @@ export const ARDUINO_MESSAGES = {
   UPDATE_BUILD_PROFILES: 'updateBuildProfiles',
   UPDATE_BUILD_PROFILE_LIBRARIES: 'updateBuildProfileLibraries',
   UPDATE_BUILD_PROFILE_PLATFORMS: 'updateBuildProfilePlatforms',
+  UPDATE_BUILD_PROFILE_NOTES: 'updateBuildProfileNotes',
+  RENAME_BUILD_PROFILE_NAME: 'renameBuildProfileName',
   DELETE_BUILD_PROFILE: 'deleteBuildProfile',
   SET_DEFAULT_PROFILE: 'setDefaultProfile',
   SET_COMPILE_PROFILE: 'setCompileProfile',
