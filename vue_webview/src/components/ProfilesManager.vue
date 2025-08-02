@@ -10,7 +10,24 @@ const isProfileValid = ref(false);
 const selectedLibraryVersion = ref<Record<string, Record<string, string>>>({});
 const selectedPlatformVersion = ref<Record<string, Record<string, string>>>({});
 const selectedDefaultProfile = ref<string | null>(null);
+const editingProfile = ref<string | null>(null);
+const editingNotes = ref<string | null>(null);
 
+function startEditProfileName(profileName: string) {
+    editingProfile.value = profileName;
+}
+
+function startEditProfileNotes(profileName: string) {
+    editingNotes.value = profileName;
+}
+
+function stopEditProfileName() {
+    editingProfile.value = null;
+}
+
+function stopEditProfileNotes() {
+    editingNotes.value = null;
+}
 // Profile name validation rules
 const profileRules = [
     (v: string) => !!v || 'Name is required.',
@@ -373,15 +390,36 @@ onMounted(() => {
                             <v-expansion-panel-text>
                                 <v-card rounded="lg" color="primary">
                                     <v-card-title class="d-flex align-center">
-                                        <v-text-field v-model="profile.name" label="Profile Name" variant="outlined"
-                                            density="compact" class="flex-grow-1 mr-3"
-                                            @blur="renameProfile(profile.originalName, profile.name)" />
+                                        <!-- Profile name (readonly until editing) -->
+                                        <template v-if="editingProfile === profile.originalName">
+                                            <v-text-field v-model="profile.name" label="Profile Name" variant="outlined"
+                                                density="compact" class="flex-grow-1 mr-3"
+                                                @blur="() => { renameProfile(profile.originalName, profile.name); stopEditProfileName(); }" />
+                                        </template>
+                                        <template v-else>
+                                            <span class="flex-grow-1">{{ profile.name }}</span>
+                                            <v-btn icon size="small"
+                                                @click="startEditProfileName(profile.originalName)">
+                                                <v-icon>mdi-pencil</v-icon>
+                                            </v-btn>
+                                        </template>
                                     </v-card-title>
-                                    <v-card-subtitle>
-                                        <v-textarea v-model="profile.notes" label="Profile Notes" variant="outlined"
-                                            density="compact" rows="2" auto-grow class="ma-3"
-                                            @blur="updateProfileNotes(profile.name, profile.notes)" />
+
+                                    <v-card-subtitle class="d-flex align-center">
+                                        <!-- Profile notes (readonly until editing) -->
+                                        <template v-if="editingNotes === profile.name">
+                                            <v-textarea v-model="profile.notes" label="Profile Notes" variant="outlined"
+                                                density="compact" rows="2" auto-grow class="flex-grow-1 mr-3"
+                                                @blur="() => { updateProfileNotes(profile.name, profile.notes); stopEditProfileNotes(); }" />
+                                        </template>
+                                        <template v-else>
+                                            <span class="flex-grow-1">{{ profile.notes || 'No description' }}</span>
+                                            <v-btn icon size="small" @click="startEditProfileNotes(profile.name)">
+                                                <v-icon>mdi-pencil</v-icon>
+                                            </v-btn>
+                                        </template>
                                     </v-card-subtitle>
+
                                     <v-card-text>
                                         <div><strong>FQBN:</strong> {{ profile.fqbn }}</div>
                                         <div><strong>Programmer:</strong> {{ profile.programmer || '—' }}</div>
@@ -393,7 +431,7 @@ onMounted(() => {
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{
                                                             parsePlatformEntry(platEntry.platform).name
-                                                        }}</span>
+                                                            }}</span>
 
                                                         <v-select v-if="store.platform"
                                                             :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
@@ -413,7 +451,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                        }}</span>
+                                                            }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
