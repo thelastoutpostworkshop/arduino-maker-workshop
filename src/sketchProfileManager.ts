@@ -5,6 +5,7 @@ import { arduinoProject } from './extension';
 import { BUILD_NAME_PROFILE, BuildProfile, BuildProfileUpdate, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
 import { window } from 'vscode';
 import { DataBit, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
+import { sendBuildProfiles } from './VueWebviewPanel';
 
 export class SketchProfileManager {
 
@@ -472,6 +473,8 @@ export class SketchProfileManager {
         // Ensure new name doesn't exist
         if (yamlData.profiles[newProfileName.new_profile_name]) {
             this.lastError = `Profile "${newProfileName.new_profile_name}" already exists.`;
+            window.showErrorMessage(this.lastError);
+            sendBuildProfiles();
             return false;
         }
 
