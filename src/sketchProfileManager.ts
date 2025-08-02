@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
 import { arduinoProject } from './extension';
-import { BUILD_NAME_PROFILE, BuildProfile, BuildProfileLibrariesUpdate, BuildProfilePlatformsUpdate, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
+import { BUILD_NAME_PROFILE, BuildProfile, BuildProfileUpdate, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
 import { window } from 'vscode';
 import { DataBit, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
 
@@ -141,7 +141,7 @@ export class SketchProfileManager {
         return profile.port;
     }
 
-    updateProfileLibraries(librariesUpdate: BuildProfileLibrariesUpdate): boolean {
+    updateProfileLibraries(librariesUpdate: BuildProfileUpdate): boolean {
         this.clearError();
 
         const yamlData = this.getYaml();
@@ -157,16 +157,21 @@ export class SketchProfileManager {
         }
 
         // Update libraries
-        profile.libraries = [...librariesUpdate.libraries];
+        if (librariesUpdate.libraries) {
+            profile.libraries = [...librariesUpdate.libraries];
 
-        // Save the updated YAML
-        yamlData.profiles[librariesUpdate.profile_name] = profile;
-        this.writeYaml(yamlData);
+            // Save the updated YAML
+            yamlData.profiles[librariesUpdate.profile_name] = profile;
+            this.writeYaml(yamlData);
+            return true;
+        } else {
+            this.lastError = "No libaries update found";
+            return false;
+        }
 
-        return true;
     }
 
-    updateProfilePlatforms(platformsUpdate: BuildProfilePlatformsUpdate): boolean {
+    updateProfilePlatforms(platformsUpdate: BuildProfileUpdate): boolean {
         this.clearError();
 
         const yamlData = this.getYaml();
@@ -181,14 +186,19 @@ export class SketchProfileManager {
             return false;
         }
 
-        // Update platforms array
-        profile.platforms = [...platformsUpdate.platforms];
+        // Update platforms
+        if (platformsUpdate.platforms) {
+            profile.platforms = [...platformsUpdate.platforms];
 
-        // Save the updated YAML
-        yamlData.profiles[platformsUpdate.profile_name] = profile;
-        this.writeYaml(yamlData);
+            // Save the updated YAML
+            yamlData.profiles[platformsUpdate.profile_name] = profile;
+            this.writeYaml(yamlData);
 
-        return true;
+            return true;
+        } else {
+            this.lastError = "No platforms update found";
+            return false;
+        }
     }
 
     getProfileMonitorPortSettings(profileName: string): {
