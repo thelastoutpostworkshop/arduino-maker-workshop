@@ -197,22 +197,31 @@ function watchSketchYamlFile(context: ExtensionContext) {
 	const watcherPattern = `**/{${YAML_FILENAME},${YAML_FILENAME_INACTIVE}}`;
 	const sketchYamlWatcher = workspace.createFileSystemWatcher(watcherPattern);
 
+	let debounceTimer: NodeJS.Timeout | null = null;
+
+	function debouncedSendBuildProfiles() {
+		if (debounceTimer) clearTimeout(debounceTimer);
+		debounceTimer = setTimeout(() => {
+			sendBuildProfiles();
+			debounceTimer = null;
+		}, 200); // 200-500ms debounce is usually enough
+	}
+
 	const changeDisposable = sketchYamlWatcher.onDidChange((uri) => {
-		sendBuildProfiles();
 		arduinoExtensionChannel.appendLine(`sketch.yaml changed: ${uri.fsPath}`);
+		debouncedSendBuildProfiles();
 	});
 
 	const createDisposable = sketchYamlWatcher.onDidCreate((uri) => {
-		// arduinoExtensionChannel.appendLine(`sketch.yaml created: ${uri.fsPath}`);
-		sendBuildProfiles();
+		arduinoExtensionChannel.appendLine(`sketch.yaml created: ${uri.fsPath}`);
+		debouncedSendBuildProfiles();
 	});
 
 	const deleteDisposable = sketchYamlWatcher.onDidDelete((uri) => {
-		// arduinoExtensionChannel.appendLine(`sketch.yaml deleted: ${uri.fsPath}`);
-		sendBuildProfiles();
+		arduinoExtensionChannel.appendLine(`sketch.yaml deleted: ${uri.fsPath}`);
+		debouncedSendBuildProfiles();
 	});
 
-	// Push all disposables to the extension context
 	context.subscriptions.push(
 		sketchYamlWatcher,
 		changeDisposable,
