@@ -398,7 +398,7 @@ onMounted(() => {
                                         </template>
                                         <template v-else>
                                             <span class="flex-grow-1">{{ profile.name }}</span>
-                                            <v-btn icon size="small"
+                                            <v-btn icon size="x-small"
                                                 @click="startEditProfileName(profile.originalName)">
                                                 <v-icon>mdi-pencil</v-icon>
                                             </v-btn>
@@ -414,7 +414,7 @@ onMounted(() => {
                                         </template>
                                         <template v-else>
                                             <span class="flex-grow-1">{{ profile.notes || 'No description' }}</span>
-                                            <v-btn icon size="small" @click="startEditProfileNotes(profile.name)">
+                                            <v-btn icon size="x-small" @click="startEditProfileNotes(profile.name)">
                                                 <v-icon>mdi-pencil</v-icon>
                                             </v-btn>
                                         </template>
