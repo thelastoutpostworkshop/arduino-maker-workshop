@@ -13,6 +13,9 @@ const selectedDefaultProfile = ref<string | null>(null);
 const editingProfile = ref<string | null>(null);
 const editingNotes = ref<string | null>(null);
 
+const disabledButton = computed(() => {
+    return !isProfileValid.value || store.compileInProgress !== '';
+});
 function startEditProfileName(profileName: string) {
     editingProfile.value = profileName;
 }
@@ -325,7 +328,7 @@ onMounted(() => {
                                         style="max-width: 300px;" />
                                     <v-tooltip v-if="!store.profileUpdating" location="top">
                                         <template #activator="{ props }">
-                                            <v-btn v-bind="props" @click="createProfile" :disabled="!isProfileValid">
+                                            <v-btn v-bind="props" @click="createProfile" :disabled="disabledButton">
                                                 Create a new profile
                                             </v-btn>
                                         </template>
@@ -431,7 +434,7 @@ onMounted(() => {
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{
                                                             parsePlatformEntry(platEntry.platform).name
-                                                            }}</span>
+                                                        }}</span>
 
                                                         <v-select v-if="store.platform"
                                                             :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
@@ -451,7 +454,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                            }}</span>
+                                                        }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
@@ -481,7 +484,7 @@ onMounted(() => {
                                         style="max-width: 300px;" />
                                     <v-tooltip v-if="!store.profileUpdating" location="top">
                                         <template #activator="{ props }">
-                                            <v-btn v-bind="props" @click="createProfile" :disabled="!isProfileValid">
+                                            <v-btn v-bind="props" @click="createProfile" :disabled="disabledButton">
                                                 Create a new profile
                                             </v-btn>
                                         </template>

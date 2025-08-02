@@ -52,6 +52,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         boardUpdating: "",
         libraryUpdating: "",
         profileUpdating: "",
+        compileInProgress:"",
         currentTheme: null as string | null,
         sketchProject: null as SketchProjectFile | null,
     }),
@@ -253,6 +254,10 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                     this.projectStatus = message.payload;
+                    break;
+                case ARDUINO_MESSAGES.COMPILE_IN_PROGRESS:
+                    console.log(`COMPILE_IN_PROGRESS=${message.payload}`);
+                    this.compileInProgress = message.payload;
                     break;
                 case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                     try {

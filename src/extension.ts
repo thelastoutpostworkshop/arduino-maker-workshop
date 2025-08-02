@@ -335,15 +335,38 @@ export function loadArduinoConfiguration(): boolean {
 	return true;
 }
 
-export async function compile(clean: boolean = false, createBuildProfile = false): Promise<string> {
-	if (arduinoProject.isCompileReady()) {
-		return arduinoCLI.compile(clean, createBuildProfile);
-
-	} else {
+export function compile(
+	clean: boolean = false,
+	createBuildProfile = false
+): Promise<string> {
+	if (!arduinoProject.isCompileReady()) {
 		window.showErrorMessage('Select a board first before compiling');
-		return "";
+		return Promise.resolve("");
 	}
+	// Notify webview that compile started
+	VueWebviewPanel.sendMessage({
+		command: ARDUINO_MESSAGES.COMPILE_IN_PROGRESS,
+		errorMessage: "",
+		payload: "Compile in progress"
+	});
+
+	return arduinoCLI.compile(clean, createBuildProfile)
+		.then((output: string) => {
+			return output;
+		})
+		.catch((output) => {
+			return output;
+		})
+		.finally(() => {
+			// Always notify webview compile finished
+			VueWebviewPanel.sendMessage({
+				command: ARDUINO_MESSAGES.COMPILE_IN_PROGRESS,
+				errorMessage: "",
+				payload: ""
+			});
+		});
 }
+
 
 function vsCommandUpload(): Disposable {
 	return commands.registerCommand('quickAccessView.upload', async () => {
