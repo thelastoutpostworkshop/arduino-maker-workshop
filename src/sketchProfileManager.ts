@@ -448,7 +448,7 @@ export class SketchProfileManager {
         return undefined;
     }
 
-    renameProfile(oldName: string, newName: string): boolean {
+    renameProfile(newProfileName: BuildProfileUpdate): boolean {
         this.clearError();
 
         const yamlData = this.getYaml();
@@ -457,30 +457,39 @@ export class SketchProfileManager {
             return false;
         }
 
-        if (!yamlData.profiles[oldName]) {
-            this.lastError = `Profile "${oldName}" not found.`;
+        // Check if old profile exists
+        if (!yamlData.profiles[newProfileName.profile_name]) {
+            this.lastError = `Profile "${newProfileName.profile_name}" not found.`;
             return false;
         }
 
-        if (yamlData.profiles[newName]) {
-            this.lastError = `Profile "${newName}" already exists.`;
+        // Ensure new name is provided
+        if (!newProfileName.new_profile_name) {
+            this.lastError = "New name not provided.";
+            return false;
+        }
+
+        // Ensure new name doesn't exist
+        if (yamlData.profiles[newProfileName.new_profile_name]) {
+            this.lastError = `Profile "${newProfileName.new_profile_name}" already exists.`;
             return false;
         }
 
         // Rename the profile
-        yamlData.profiles[newName] = yamlData.profiles[oldName];
-        delete yamlData.profiles[oldName];
+        yamlData.profiles[newProfileName.new_profile_name] = yamlData.profiles[newProfileName.profile_name];
+        delete yamlData.profiles[newProfileName.profile_name];
 
         // Update default_profile if necessary
-        if (yamlData.default_profile === oldName) {
-            yamlData.default_profile = newName;
+        if (yamlData.default_profile === newProfileName.profile_name) {
+            yamlData.default_profile = newProfileName.new_profile_name;
         }
 
         this.writeYaml(yamlData);
         return true;
     }
 
-    updateProfileDescription(profileName: string, description: string): boolean {
+
+    updateProfileNotes(updateNotes: BuildProfileUpdate): boolean {
         this.clearError();
 
         const yamlData = this.getYaml();
@@ -489,19 +498,23 @@ export class SketchProfileManager {
             return false;
         }
 
-        const profile = yamlData.profiles[profileName];
+        const profile = yamlData.profiles[updateNotes.profile_name];
         if (!profile) {
-            this.lastError = `Profile "${profileName}" not found.`;
+            this.lastError = `Profile "${updateNotes.profile_name}" not found.`;
             return false;
         }
 
-        profile.notes = description;
-        yamlData.profiles[profileName] = profile;
+        if (updateNotes.notes) {
+            profile.notes = updateNotes.notes;
+            yamlData.profiles[updateNotes.profile_name] = profile;
 
-        this.writeYaml(yamlData);
-        return true;
+            this.writeYaml(yamlData);
+            return true;
+        } else {
+            this.lastError = 'No notes provided'
+            return false;
+        }
     }
-
 
     verify(yaml: SketchYaml): boolean {
         this.clearError();
