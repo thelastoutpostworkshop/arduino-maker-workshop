@@ -450,14 +450,15 @@ export interface PlatformDependencyProfile {
 // Build profiles interfaces to send updated information on the build profile
 export interface BuildProfileUpdate {
   profile_name: string;
-  new_profile_name?:string;
+  new_profile_name?: string;
   libraries?: string[];
   platforms?: PlatformDependencyProfile[];
-  notes?:string;
+  notes?: string;
 }
 
 // Messages exchanged between the extension and the webview
 export const ARDUINO_MESSAGES = {
+  // arduino-cli commands
   CLI_BOARD_OPTIONS: 'cli_getArduinoBoardOptions',
   CLI_BOARD_SEARCH: 'cli_getArduinoBoardSearch',
   CLI_BOARD_CONNECTED: 'cli_getBoardConnected',
@@ -475,14 +476,22 @@ export const ARDUINO_MESSAGES = {
   CLI_CONFIG_REMOVE_ADDITIONAL_URL: 'cli_congifRemoveAdditionnalUrl',
   CLI_CONFIG_ADD_ADDITIONAL_URL: 'cli_congifAddAdditionnalUrl',
   CLI_CONFIG_SET_ADDITIONAL_URL: 'cli_congifSetAdditionnalUrl',
+
+  // project related commands
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
   ARDUINO_PROJECT_INFO: 'getArduinoProjectInfo',
+
+  // configuration related commands
   SET_BOARD: 'setArduinoBoard',
   SET_BOARD_OPTIONS: 'setArduinoBoardOptions',
   SET_PORT: 'setArduinoPort',
   SET_MONITOR_PORT_SETTINGS: 'setMonitorPortSettings',
   SET_PROGRAMMER: 'setArduinoProgrammer',
   SET_USE_PROGRAMMER: 'setArduinoUseProgrammer',
+  SET_OPTIMIZE_FOR_DEBUG: 'setOptimizeForDebug',
+  SET_CONFIGURATION_REQUIRED: "SetConfigurationRequired",
+
+  // Build profiles related commands
   SET_STATUS_BUILD_PROFILE: 'setStatusBuildProfile',
   CREATE_BUILD_PROFILE: 'createBuildProfile',
   BUILD_PROFILE_CREATED: 'buildProfileCreated',
@@ -495,15 +504,17 @@ export const ARDUINO_MESSAGES = {
   DELETE_BUILD_PROFILE: 'deleteBuildProfile',
   SET_DEFAULT_PROFILE: 'setDefaultProfile',
   SET_COMPILE_PROFILE: 'setCompileProfile',
-  SET_OPTIMIZE_FOR_DEBUG: 'setOptimizeForDebug',
+  
+  // Feedback related commands
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
   CORE_UNINSTALLED: 'coreUninstalled',
   LIBRARY_VERSION_INSTALLED: 'libraryVersionInstalled',
   LIBRARY_UNINSTALLED: 'libraryVersionInstalled',
-  OPEN_LIBRARY: 'openExample',
   REQUEST_BOARD_CONNECTED: "requestBoardConnected",
   INSTALL_ZIP_LIBRARY: "installZipLibrary",
+  
+  // Misc commands
+  OPEN_LIBRARY: 'openExample',
   CHANGE_THEME_COLOR: "changeThemeColor",
-  SET_CONFIGURATION_REQUIRED: "SetConfigurationRequired",
   LOG_DEBUG: "logDebug"
 };
