@@ -438,6 +438,61 @@ export class SketchProfileManager {
         return undefined;
     }
 
+    renameProfile(oldName: string, newName: string): boolean {
+        this.clearError();
+
+        const yamlData = this.getYaml();
+        if (!yamlData || !yamlData.profiles) {
+            this.lastError = "No YAML data or profiles found.";
+            return false;
+        }
+
+        if (!yamlData.profiles[oldName]) {
+            this.lastError = `Profile "${oldName}" not found.`;
+            return false;
+        }
+
+        if (yamlData.profiles[newName]) {
+            this.lastError = `Profile "${newName}" already exists.`;
+            return false;
+        }
+
+        // Rename the profile
+        yamlData.profiles[newName] = yamlData.profiles[oldName];
+        delete yamlData.profiles[oldName];
+
+        // Update default_profile if necessary
+        if (yamlData.default_profile === oldName) {
+            yamlData.default_profile = newName;
+        }
+
+        this.writeYaml(yamlData);
+        return true;
+    }
+
+    updateProfileDescription(profileName: string, description: string): boolean {
+        this.clearError();
+
+        const yamlData = this.getYaml();
+        if (!yamlData || !yamlData.profiles) {
+            this.lastError = "No YAML data or profiles found.";
+            return false;
+        }
+
+        const profile = yamlData.profiles[profileName];
+        if (!profile) {
+            this.lastError = `Profile "${profileName}" not found.`;
+            return false;
+        }
+
+        profile.notes = description;
+        yamlData.profiles[profileName] = profile;
+
+        this.writeYaml(yamlData);
+        return true;
+    }
+
+
     verify(yaml: SketchYaml): boolean {
         this.clearError();
 
