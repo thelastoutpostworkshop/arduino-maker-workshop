@@ -312,7 +312,8 @@ onMounted(() => {
                                     <template #append>
                                         <v-tooltip location="top">
                                             <template #activator="{ props }">
-                                                <v-btn @click="changeStatusBuildProfile" v-bind="props" :disabled="store.profileUpdating !== ''">
+                                                <v-btn @click="changeStatusBuildProfile" v-bind="props"
+                                                    :disabled="store.profileUpdating !== ''">
                                                     {{ profileStatusInformation.button }}
                                                 </v-btn>
                                             </template>
@@ -353,7 +354,7 @@ onMounted(() => {
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{
                                                             parsePlatformEntry(platEntry.platform).name
-                                                        }}</span>
+                                                            }}</span>
 
                                                         <v-select v-if="store.platform"
                                                             :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
@@ -373,7 +374,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                        }}</span>
+                                                            }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
@@ -401,7 +402,7 @@ onMounted(() => {
                                     <v-text-field v-model="profileName" label="New Profile name" :rules="profileRules"
                                         hide-details="auto" density="comfortable" class="mr-4" clearable
                                         style="max-width: 300px;" />
-                                    <v-tooltip location="top">
+                                    <v-tooltip v-if="!store.profileUpdating" location="top">
                                         <template #activator="{ props }">
                                             <v-btn v-bind="props" @click="createProfile" :disabled="!isProfileValid">
                                                 Create a new profile
@@ -409,6 +410,18 @@ onMounted(() => {
                                         </template>
                                         <span>Create a new profile using the current configuration</span>
                                     </v-tooltip>
+                                    <div v-else>
+                                        <v-card>
+                                            <v-card-item :title="store.profileUpdating">
+                                                <template v-slot:subtitle>
+                                                    Please wait
+                                                </template>
+                                            </v-card-item>
+                                            <v-card-text class="py-0">
+                                                <v-progress-linear color="grey" indeterminate />
+                                            </v-card-text>
+                                        </v-card>
+                                    </div>
                                 </v-row>
                             </v-form>
                         </v-card-text>
