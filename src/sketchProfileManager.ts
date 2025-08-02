@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
 import { arduinoProject } from './extension';
-import { BUILD_NAME_PROFILE, BuildProfile, BuildProfileLibraries, BuildProfilePlatformsUpdate, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
+import { BUILD_NAME_PROFILE, BuildProfile, BuildProfileLibrariesUpdate, BuildProfilePlatformsUpdate, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
 import { window } from 'vscode';
 import { DataBit, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
 
@@ -141,7 +141,7 @@ export class SketchProfileManager {
         return profile.port;
     }
 
-    updateProfileLibraries(librariesUpdate: BuildProfileLibraries): boolean {
+    updateProfileLibraries(librariesUpdate: BuildProfileLibrariesUpdate): boolean {
         this.clearError();
 
         const yamlData = this.getYaml();

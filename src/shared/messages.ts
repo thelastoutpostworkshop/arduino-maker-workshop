@@ -448,7 +448,7 @@ export interface PlatformDependencyProfile {
 }
 
 // Build profiles interfaces to send updated information on the build profile
-export interface BuildProfileLibraries {
+export interface BuildProfileLibrariesUpdate {
   profile_name: string;
   libraries: string[];
 }

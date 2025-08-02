@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, BuildProfileLibraries, BuildProfilePlatformsUpdate, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
+import { ARDUINO_MESSAGES, BuildProfileLibrariesUpdate, BuildProfilePlatformsUpdate, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
 
 const store = useVsCodeStore();
 
@@ -71,7 +71,7 @@ function updateLibraryVersion(profileName: string, libraryEntry: string, version
         }
         return lib;
     });
-    const updates: BuildProfileLibraries = {
+    const updates: BuildProfileLibrariesUpdate = {
         profile_name: profileName,
         libraries: newLibraries
     }
