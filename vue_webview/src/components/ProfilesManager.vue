@@ -16,9 +16,9 @@ const showBoardConfiguration = ref<Record<string, boolean>>({});
 
 function updateConfiguration(config: Record<string, ConfigOptionValue>) {
     if (!store.boardOptions) return;
-    const configString = Object.entries(config)
-        .map(([key, opt]) => `${key}=${opt.value}`)
-        .join(',');
+    // const configString = Object.entries(config)
+    //     .map(([key, opt]) => `${key}=${opt.value}`)
+    //     .join(',');
 
     // store.sendMessage({
     //     command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS,

@@ -45,9 +45,9 @@ watch(
 
     <!-- Default form -->
     <div v-if="options?.length">
-        <div v-for="option in options" :key="option.option" class="mt-2">
+        <div v-for="option in options" :key="option.option" class="mb-2">
             <v-select v-model="boardOption[option.option]" :label="option.option_label" :items="option.values"
-                item-title="value_label" item-value="value" return-object />
+                item-title="value_label" item-value="value" density="compact" hide-details return-object />
         </div>
     </div>
     <div v-else>
