@@ -72,7 +72,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         },
         async mockMessage(message: WebviewToExtensionMessage) {
             if (import.meta.env.DEV) {
-                await sleep(10);  // Simulate delay
+                await sleep(1000);  // Simulate delay
                 switch (message.command) {
                     case ARDUINO_MESSAGES.CLI_CORE_SEARCH:
                         loadMockData('coresearch.json').then((mockPayload) => {

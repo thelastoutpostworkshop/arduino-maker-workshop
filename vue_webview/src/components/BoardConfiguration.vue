@@ -1,64 +1,33 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, ConfigOptionValue } from '@shared/messages';
-import { ref, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter()
 const store = useVsCodeStore();
 
-const boardOption = ref<Record<string, ConfigOptionValue>>({});
+function updateConfiguration(config: Record<string, ConfigOptionValue>) {
+    if (!store.boardOptions) return;
 
-watch(
-    () => store.boardOptions?.config_options,
-    (newConfig) => {
-        if (newConfig) {
-            newConfig.forEach((option) => {
-                option.values.forEach((value) => {
-                    if (value.selected) {
-                        boardOption.value[option.option] = value;
-                    }
-                });
-            });
-        }
-    },
-    { immediate: true }
-);
-
-watch(
-    boardOption,
-    () => {
-        let configuration: string = Object.entries(boardOption.value)
-            .map(([key, option]) => `${key}=${option.value}`)
-            .join(",");
-
-        // Update the store with the selected value
-        if (store.boardOptions?.config_options) {
-            store.boardOptions.config_options.forEach((option) => {
-                if (boardOption.value[option.option]) {
-                    option.values.forEach((value) => {
-                        value.selected = value.value === boardOption.value[option.option].value;
-                    });
-                }
-            });
-        }
-        store.sendMessage({ command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS, errorMessage: "", payload: configuration });
-    },
-    { deep: true }
-);
-
-onMounted(() => {
-    if (store.boardOptions?.config_options) {
-        store.boardOptions?.config_options.forEach((option) => {
-            option.values.forEach((value) => {
-                if (value.selected) {
-                    boardOption.value[option.option] = value;
-                }
-            });
+    // Update the store.boardOptions.config_options selected values
+    store.boardOptions.config_options.forEach(option => {
+        const selectedValue = config[option.option];
+        option.values.forEach(value => {
+            value.selected = selectedValue ? value.value === selectedValue.value : false;
         });
-    }
-});
+    });
 
+    // Optionally still notify the extension with the config string
+    const configString = Object.entries(config)
+        .map(([key, opt]) => `${key}=${opt.value}`)
+        .join(',');
+
+    store.sendMessage({
+        command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS,
+        errorMessage: '',
+        payload: configString
+    });
+}
 </script>
 
 <template>
@@ -77,27 +46,20 @@ onMounted(() => {
                 </v-text-field>
                 <v-card class="pa-4" color="primary" rounded="lg">
                     <template v-slot:loader>
-                        <v-progress-linear :active="!store.boardOptions" height="2" indeterminate></v-progress-linear>
+                        <v-progress-linear :active="!store.boardOptions?.config_options" height="2"
+                            indeterminate></v-progress-linear>
                     </template>
-                    <template #title>
-                        <h2 class="text-h6 font-weight-bold">Board Options</h2>
-                    </template>
-
-                    <template #subtitle v-if="store.boardOptions">
-                        <div class="text-subtitle-1" v-if="store.boardOptions?.config_options">
-                            Select your board options
-                        </div>
-                        <div class="text-subtitle-1" v-else>
-                            No options available for your board
-                        </div>
-                    </template>
-                    <div v-if="store.boardOptions?.config_options">
-                        <div v-for="(option) in store.boardOptions?.config_options" :key="option.option">
-                            <v-select v-model="boardOption[option.option]" :label="option.option_label"
-                                :items="option.values" item-title="value_label" item-value="value"
-                                return-object></v-select>
-                        </div>
-                    </div>
+                    <BoardConfigurationForm v-if="store.boardOptions?.config_options" :options="store.boardOptions?.config_options"
+                        :boardName="store.boardOptions?.name" @update="updateConfiguration">
+                        <template #title>
+                            <h2 class="text-h6 font-weight-bold">Board Options</h2>
+                        </template>
+                        <template #subtitle>
+                            <div class="text-subtitle-1">
+                                Select your board options
+                            </div>
+                        </template>
+                    </BoardConfigurationForm>
                 </v-card>
             </div>
             <div v-else>
