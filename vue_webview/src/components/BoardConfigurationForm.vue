@@ -50,9 +50,6 @@ watch(
                 item-title="value_label" item-value="value" density="compact" hide-details return-object />
         </div>
     </div>
-    <div v-else>
-        <slot name="empty">No options available for your board</slot>
-    </div>
 
     <!-- Slot for footer or extra content -->
     <slot name="footer" />

@@ -45,21 +45,24 @@ function updateConfiguration(config: Record<string, ConfigOptionValue>) {
                     </template>
                 </v-text-field>
                 <v-card class="pa-4" color="primary" rounded="lg">
-                    <template v-slot:loader>
-                        <v-progress-linear :active="!store.boardOptions?.config_options" height="2"
-                            indeterminate></v-progress-linear>
-                    </template>
-                    <BoardConfigurationForm v-if="store.boardOptions?.config_options" :options="store.boardOptions?.config_options"
-                        :boardName="store.boardOptions?.name" @update="updateConfiguration">
-                        <template #title>
-                            <h2 class="text-h6 font-weight-bold">Board Options</h2>
-                        </template>
-                        <template #subtitle>
-                            <div class="text-subtitle-1">
-                                Select your board options
-                            </div>
-                        </template>
-                    </BoardConfigurationForm>
+                    <span v-if="store.boardOptions?.config_options">
+                        <BoardConfigurationForm :options="store.boardOptions.config_options"
+                            :boardName="store.boardOptions?.name" @update="updateConfiguration">
+                            <template #title>
+                                <h2 class="text-h6 font-weight-bold">Board Options</h2>
+                            </template>
+                            <template #subtitle>
+                                <div class="text-subtitle-1">
+                                    Select your board options
+                                </div>
+                            </template>
+                        </BoardConfigurationForm>
+                    </span>
+                    <span v-else>
+                        <v-card-text>
+                            No options available for your board
+                        </v-card-text>
+                    </span>
                 </v-card>
             </div>
             <div v-else>
