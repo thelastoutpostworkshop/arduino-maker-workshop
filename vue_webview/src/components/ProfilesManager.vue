@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, BuildProfileUpdate, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
+import { ARDUINO_MESSAGES, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
 
 const store = useVsCodeStore();
 
@@ -12,6 +12,20 @@ const selectedPlatformVersion = ref<Record<string, Record<string, string>>>({});
 const selectedDefaultProfile = ref<string | null>(null);
 const editingProfile = ref<string | null>(null);
 const editingNotes = ref<string | null>(null);
+const showBoardConfiguration = ref<Record<string, boolean>>({});
+
+function updateConfiguration(config: Record<string, ConfigOptionValue>) {
+    if (!store.boardOptions) return;
+    const configString = Object.entries(config)
+        .map(([key, opt]) => `${key}=${opt.value}`)
+        .join(',');
+
+    // store.sendMessage({
+    //     command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS,
+    //     errorMessage: '',
+    //     payload: configString
+    // });
+}
 
 const disabledButton = computed(() => {
     return !isProfileValid.value || store.compileInProgress !== '';
@@ -146,13 +160,24 @@ function updatePlatformVersion(profileName: string, platformEntry: string, versi
 }
 const profilesList = computed(() => {
     if (!store.sketchProject?.yaml?.profiles) return [];
-    return Object.entries(store.sketchProject.yaml.profiles).map(([name, data]) => ({
-        originalName: name,  // keep original for renaming
-        name,
-        notes: data.notes || '',
-        ...data,
-    }));
+
+    const profiles = Object.entries(store.sketchProject.yaml.profiles).map(([name, data]) => {
+        // Initialize the toggle state for each profile if not already present
+        if (!(name in showBoardConfiguration.value)) {
+            showBoardConfiguration.value[name] = false;
+        }
+
+        return {
+            originalName: name, // keep original for renaming
+            name,
+            notes: data.notes || '',
+            ...data,
+        };
+    });
+
+    return profiles;
 });
+
 
 function renameProfile(oldName: string, newName: string) {
     if (!newName || oldName === newName) return;
@@ -424,8 +449,8 @@ onMounted(() => {
                                     </v-card-subtitle>
 
                                     <v-card-text>
-                                        <div><strong>FQBN:</strong> {{ profile.fqbn }}</div>
                                         <div><strong>Programmer:</strong> {{ profile.programmer || '—' }}</div>
+
                                         <div v-if="profile.platforms?.length" class="mt-4">
                                             <strong>Platforms:</strong>
                                             <v-list density="compact">
@@ -434,7 +459,7 @@ onMounted(() => {
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{
                                                             parsePlatformEntry(platEntry.platform).name
-                                                        }}</span>
+                                                            }}</span>
 
                                                         <v-select v-if="store.platform"
                                                             :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
@@ -454,7 +479,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                        }}</span>
+                                                            }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
@@ -464,7 +489,31 @@ onMounted(() => {
                                                 </v-list-item>
                                             </v-list>
                                         </div>
+                                        <v-expand-transition>
+                                            <div v-show="showBoardConfiguration[profile.name]" class="mt-5">
+                                                <BoardConfigurationForm v-if="store.boardOptions?.config_options"
+                                                    :options="store.boardOptions?.config_options"
+                                                    :boardName="store.boardOptions?.name" @update="updateConfiguration">
+                                                    <template #title>
+                                                        <h2 class="text-h6 font-weight-bold">Board Options</h2>
+                                                    </template>
+                                                    <template #subtitle>
+                                                        <div class="text-subtitle-1">
+                                                            Select your board options
+                                                        </div>
+                                                    </template>
+                                                </BoardConfigurationForm>
+                                            </div>
+                                        </v-expand-transition>
                                     </v-card-text>
+                                    <v-card-actions>
+                                        <span>Change board options</span>
+                                        <v-spacer></v-spacer>
+
+                                        <v-btn
+                                            :icon="showBoardConfiguration[profile.name] ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+                                            @click="showBoardConfiguration[profile.name] = !showBoardConfiguration[profile.name]"></v-btn>
+                                    </v-card-actions>
                                 </v-card>
                             </v-expansion-panel-text>
 
