@@ -498,7 +498,7 @@ onMounted(() => {
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{
                                                             parsePlatformEntry(platEntry.platform).name
-                                                        }}</span>
+                                                            }}</span>
 
                                                         <v-select v-if="store.platform"
                                                             :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
@@ -518,7 +518,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                        }}</span>
+                                                            }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
@@ -545,9 +545,12 @@ onMounted(() => {
                                                             </div>
                                                         </template>
                                                     </BoardConfigurationForm>
+                                                    <span v-else>
+                                                        No options available for your board
+                                                    </span>
                                                 </span>
                                                 <span v-else>
-                                                    Retrieving board configurations
+                                                    Retrieving board options
                                                     <v-progress-linear color="grey" indeterminate></v-progress-linear>
                                                 </span>
                                             </div>
