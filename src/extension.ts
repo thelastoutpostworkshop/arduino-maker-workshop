@@ -208,17 +208,17 @@ function watchSketchYamlFile(context: ExtensionContext) {
 	}
 
 	const changeDisposable = sketchYamlWatcher.onDidChange((uri) => {
-		arduinoExtensionChannel.appendLine(`sketch.yaml changed: ${uri.fsPath}`);
+		// arduinoExtensionChannel.appendLine(`sketch.yaml changed: ${uri.fsPath}`);
 		debouncedSendBuildProfiles();
 	});
 
 	const createDisposable = sketchYamlWatcher.onDidCreate((uri) => {
-		arduinoExtensionChannel.appendLine(`sketch.yaml created: ${uri.fsPath}`);
+		// arduinoExtensionChannel.appendLine(`sketch.yaml created: ${uri.fsPath}`);
 		debouncedSendBuildProfiles();
 	});
 
 	const deleteDisposable = sketchYamlWatcher.onDidDelete((uri) => {
-		arduinoExtensionChannel.appendLine(`sketch.yaml deleted: ${uri.fsPath}`);
+		// arduinoExtensionChannel.appendLine(`sketch.yaml deleted: ${uri.fsPath}`);
 		debouncedSendBuildProfiles();
 	});
 
