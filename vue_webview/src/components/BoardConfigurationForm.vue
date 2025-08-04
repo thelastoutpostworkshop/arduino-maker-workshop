@@ -4,11 +4,12 @@ import { ConfigOptionValue } from '@shared/messages';
 
 const props = defineProps<{
     options?: { option: string; option_label: string; values: ConfigOptionValue[] }[];
-    name?: string;
+    board_name?: string;
+    profile_name?:string;
 }>();
 
 const emit = defineEmits<{
-    (e: 'update', payload: { name?: string; options: Record<string, ConfigOptionValue> }): void;
+    (e: 'update', payload: { profile_name?: string; board_name?:string,options: Record<string, ConfigOptionValue> }): void;
 }>();
 
 const boardOption = ref<Record<string, ConfigOptionValue>>({});
@@ -31,7 +32,8 @@ watch(
     boardOption,
     () => {
         emit('update', {
-            name: props.name,
+            profile_name: props.profile_name,
+            board_name:props.board_name,
             options: boardOption.value,
         });
     },

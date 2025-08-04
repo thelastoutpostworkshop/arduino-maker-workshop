@@ -17,14 +17,15 @@ const showBoardConfiguration = ref<Record<string, boolean>>({});
 const disableShowBoardConfiguration = ref<Record<string, boolean>>({});
 const profileBoardOptions = ref<Record<string, BoardConfiguration>>({});
 
-function updateConfiguration({ name, options }: { name?: string; options: Record<string, ConfigOptionValue> }) {
+function updateConfiguration({ board_name, profile_name, options }: { profile_name?:string,board_name?: string; options: Record<string, ConfigOptionValue> }) {
     const configString = Object.entries(options)
         .map(([key, opt]) => `${key}=${opt.value}`)
         .join(',');
 
-    if (name) {
+    if (board_name && profile_name) {
         const updates: BuildProfileUpdate = {
-            profile_name: name,
+            profile_name: profile_name,
+            board_name:board_name,
             fqbn: configString
         }
         store.sendMessage({
@@ -503,7 +504,7 @@ onMounted(() => {
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{
                                                             parsePlatformEntry(platEntry.platform).name
-                                                            }}</span>
+                                                        }}</span>
 
                                                         <v-select v-if="store.platform"
                                                             :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
@@ -523,7 +524,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                            }}</span>
+                                                        }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
@@ -539,8 +540,8 @@ onMounted(() => {
                                                     <BoardConfigurationForm
                                                         v-if="profileBoardOptions[profile.name].config_options"
                                                         :options="profileBoardOptions[profile.name].config_options"
-                                                        :name="profile.name"
-                                                        @update="updateConfiguration">
+                                                        :board_name="profileBoardOptions[profile.name].name"
+                                                        :profile_name="profile.name" @update="updateConfiguration">
                                                         <template #title>
                                                             <h2 class="text-h6 font-weight-bold">Board Options</h2>
                                                         </template>

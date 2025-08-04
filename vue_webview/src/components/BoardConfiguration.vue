@@ -6,19 +6,19 @@ import { useRouter } from 'vue-router';
 const router = useRouter()
 const store = useVsCodeStore();
 
-function updateConfiguration(config: Record<string, ConfigOptionValue>) {
+function updateConfiguration({ options }: { profile_name?:string,board_name?: string; options: Record<string, ConfigOptionValue> }) {
     if (!store.boardOptions) return;
 
     // Update the store.boardOptions.config_options selected values
     store.boardOptions.config_options.forEach(option => {
-        const selectedValue = config[option.option];
+        const selectedValue = options[option.option];
         option.values.forEach(value => {
             value.selected = selectedValue ? value.value === selectedValue.value : false;
         });
     });
 
     // Optionally still notify the extension with the config string
-    const configString = Object.entries(config)
+    const configString = Object.entries(options)
         .map(([key, opt]) => `${key}=${opt.value}`)
         .join(',');
 
@@ -47,7 +47,7 @@ function updateConfiguration(config: Record<string, ConfigOptionValue>) {
                 <v-card class="pa-4" color="primary" rounded="lg">
                     <span v-if="store.boardOptions?.config_options">
                         <BoardConfigurationForm :options="store.boardOptions.config_options"
-                            :name="store.boardOptions?.name" @update="updateConfiguration">
+                            :board_name="store.boardOptions?.name" @update="updateConfiguration">
                             <template #title>
                                 <h2 class="text-h6 font-weight-bold">Board Options</h2>
                             </template>
