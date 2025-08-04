@@ -32,7 +32,7 @@ function updateConfiguration(config: Record<string, ConfigOptionValue>) {
 function setVisibilityBoardConfiguration(profile_name: string, fqbn: string) {
     showBoardConfiguration.value[profile_name] = !showBoardConfiguration.value[profile_name];
     if (showBoardConfiguration.value[profile_name]) {
-        // Disable all other profiles except the current one if it's open
+        // Disable all other profiles except the current one if it's open to avoid sending overlapping ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE
         Object.keys(showBoardConfiguration.value).forEach((name) => {
             disableShowBoardConfiguration.value[name] =
                 showBoardConfiguration.value[profile_name] && name !== profile_name;
