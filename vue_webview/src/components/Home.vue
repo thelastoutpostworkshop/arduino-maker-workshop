@@ -285,7 +285,7 @@ onMounted(() => {
                   </template>
 
                   <template v-if="profileStatusInformation.showAppend" #append>
-                    <v-tooltip location="top">
+                    <v-tooltip location="top" v-if="profileStatusInformation.button">
                       <template #activator="{ props }">
                         <v-btn @click="changeStatusBuildProfile" v-bind="props"
                           :disabled="store.profileUpdating !== ''">

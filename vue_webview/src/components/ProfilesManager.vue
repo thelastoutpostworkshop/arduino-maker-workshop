@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BoardConfiguration, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BoardConfiguration, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, YAML_FILENAME } from '@shared/messages';
 import { useRouter } from 'vue-router';
 
 const router = useRouter()
@@ -314,39 +314,6 @@ function updateDefaultProfile() {
     });
 }
 
-const profileStatusInformation = computed(() => {
-    const status = store.sketchProject?.buildProfileStatus;
-    switch (status) {
-        case PROFILES_STATUS.ACTIVE:
-            return {
-                color: 'success',
-                text: `The build profiles are active and will be used for compilation`,
-                button: 'Deactivate',
-                tooltip: 'Deactivate the build profiles'
-            };
-        case PROFILES_STATUS.INACTIVE:
-            return {
-                color: 'warning',
-                text: `The build profiles are inactive and will not be used for compilation`,
-                button: 'Activate',
-                tooltip: 'Activate the build profiles'
-            };
-        default:
-            return null;
-    }
-});
-
-function changeStatusBuildProfile() {
-    const status = store.sketchProject?.buildProfileStatus;
-    switch (status) {
-        case PROFILES_STATUS.ACTIVE:
-            store.sendMessage({ command: ARDUINO_MESSAGES.SET_STATUS_BUILD_PROFILE, errorMessage: '', payload: PROFILES_STATUS.INACTIVE });
-            break;
-        case PROFILES_STATUS.INACTIVE:
-            store.sendMessage({ command: ARDUINO_MESSAGES.SET_STATUS_BUILD_PROFILE, errorMessage: '', payload: PROFILES_STATUS.ACTIVE });
-            break;
-    }
-}
 onMounted(() => {
     store.sendMessage({ command: ARDUINO_MESSAGES.GET_BUILD_PROFILES, errorMessage: '', payload: '' });
     store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
@@ -432,27 +399,7 @@ onMounted(() => {
                                 </v-row>
                             </v-form>
                         </v-card-text>
-                        <v-row class="mb-2">
-                            <v-col cols="12" v-if="profileStatusInformation">
-                                <v-alert variant="tonal" icon="mdi-application-array-outline"
-                                    title="Build Profiles Information" border="start"
-                                    :border-color="profileStatusInformation.color">
-                                    {{ profileStatusInformation.text }}
-                                    <template #append>
-                                        <v-tooltip location="top">
-                                            <template #activator="{ props }">
-                                                <v-btn @click="changeStatusBuildProfile" v-bind="props"
-                                                    :disabled="store.profileUpdating !== ''">
-                                                    {{ profileStatusInformation.button }}
-                                                </v-btn>
-                                            </template>
-                                            <span>{{ profileStatusInformation.tooltip }}</span>
-                                        </v-tooltip>
-                                    </template>
-                                </v-alert>
-                            </v-col>
-                        </v-row>
-                    </v-card>
+                     </v-card>
                     <div>You have {{ profilesList.length }} build profiles:</div>
                     <v-expansion-panels multiple variant="popout">
                         <v-expansion-panel v-for="profile in profilesList" :key="profile.name">
