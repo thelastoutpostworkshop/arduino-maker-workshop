@@ -2,7 +2,6 @@
 import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
-import { en } from 'vuetify/locale';
 
 const store = useVsCodeStore();
 
