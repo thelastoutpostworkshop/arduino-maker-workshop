@@ -367,7 +367,7 @@ onMounted(() => {
                                     <v-tooltip v-if="!store.profileUpdating" location="top">
                                         <template #activator="{ props }">
                                             <div
-                                                v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo">
+                                            v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && !store.projectInfo?.board">
                                                 <v-btn @click="router.push({ name: 'board-selection' })">Select your
                                                     board to create a profile</v-btn>
                                             </div>
@@ -545,7 +545,7 @@ onMounted(() => {
                                     <v-tooltip v-if="!store.profileUpdating" location="top">
                                         <template #activator="{ props }">
                                             <div
-                                                v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo">
+                                                v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && !store.projectInfo?.board">
                                                 <v-btn @click="router.push({ name: 'board-selection' })">Select your
                                                     board to create a profile</v-btn>
                                             </div>
