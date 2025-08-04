@@ -40,6 +40,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         projectInfo: null as ArduinoProjectConfiguration | null,
         projectStatus: null as ArduinoProjectStatus | null,
         boardOptions: null as BoardConfiguration | null,
+        profileBoardOptions: null as BoardConfiguration | null,
         boards: null as PlatformsList | null,
         boardConnected: null as BoardConnected | null,
         platform: null as CorePlatforms | null,
@@ -52,7 +53,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         boardUpdating: "",
         libraryUpdating: "",
         profileUpdating: "",
-        compileInProgress:"",
+        compileInProgress: "",
         currentTheme: null as string | null,
         sketchProject: null as SketchProjectFile | null,
     }),
@@ -266,6 +267,16 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.compileInProgress = message.payload;
                     break;
                 case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE:
+                    this.profileBoardOptions = JSON.parse(message.payload);
+                    if (this.boardOptions?.config_options) {
+                        this.boardOptions?.config_options.forEach((configOption) => {
+                            configOption.values.forEach((value) => {
+                                if (value.selected === undefined) {
+                                    value.selected = false;
+                                }
+                            });
+                        });
+                    }
                     break;
                 case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                     try {
