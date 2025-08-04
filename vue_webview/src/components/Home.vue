@@ -43,12 +43,14 @@ const stopBits = [
 ];
 
 function getStoredMonitorPortSettings() {
-  monitorPortSettings.port = store.projectInfo?.monitorPortSettings.port ?? "";
-  monitorPortSettings.baudRate = store.projectInfo?.monitorPortSettings.baudRate ?? 115200;
-  monitorPortSettings.lineEnding = store.projectInfo?.monitorPortSettings.lineEnding ?? "\r\n";
-  monitorPortSettings.dataBits = store.projectInfo?.monitorPortSettings.dataBits ?? 8;
-  monitorPortSettings.parity = store.projectInfo?.monitorPortSettings.parity ?? "none";
-  monitorPortSettings.stopBits = store.projectInfo?.monitorPortSettings.stopBits ?? "one";
+  if (store.projectInfo?.monitorPortSettings) {
+    monitorPortSettings.port = store.projectInfo?.monitorPortSettings.port ?? "";
+    monitorPortSettings.baudRate = store.projectInfo?.monitorPortSettings.baudRate ?? 115200;
+    monitorPortSettings.lineEnding = store.projectInfo?.monitorPortSettings.lineEnding ?? "\r\n";
+    monitorPortSettings.dataBits = store.projectInfo?.monitorPortSettings.dataBits ?? 8;
+    monitorPortSettings.parity = store.projectInfo?.monitorPortSettings.parity ?? "none";
+    monitorPortSettings.stopBits = store.projectInfo?.monitorPortSettings.stopBits ?? "one";
+  }
 }
 
 function createNewSketch() {
