@@ -454,7 +454,6 @@ export interface BuildProfileUpdate {
   libraries?: string[];
   platforms?: PlatformDependencyProfile[];
   fqbn?:string,
-  board_name?:string,
   notes?: string;
 }
 

@@ -17,15 +17,14 @@ const showBoardConfiguration = ref<Record<string, boolean>>({});
 const disableShowBoardConfiguration = ref<Record<string, boolean>>({});
 const profileBoardOptions = ref<Record<string, BoardConfiguration>>({});
 
-function updateConfiguration({ board_name, profile_name, options }: { profile_name?:string,board_name?: string; options: Record<string, ConfigOptionValue> }) {
+function updateConfiguration({ profile_name, options }: { profile_name?:string, options: Record<string, ConfigOptionValue> }) {
     const configString = Object.entries(options)
         .map(([key, opt]) => `${key}=${opt.value}`)
         .join(',');
 
-    if (board_name && profile_name) {
+    if (profile_name) {
         const updates: BuildProfileUpdate = {
             profile_name: profile_name,
-            board_name:board_name,
             fqbn: configString
         }
         store.sendMessage({
