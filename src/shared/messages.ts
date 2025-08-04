@@ -460,6 +460,7 @@ export interface BuildProfileUpdate {
 export const ARDUINO_MESSAGES = {
   // arduino-cli commands
   CLI_BOARD_OPTIONS: 'cli_getArduinoBoardOptions',
+  CLI_BOARD_OPTIONS_PROFILE: 'cli_getProfileBoardOptions',
   CLI_BOARD_SEARCH: 'cli_getArduinoBoardSearch',
   CLI_BOARD_CONNECTED: 'cli_getBoardConnected',
   CLI_UPDATE_INDEX: 'cli_updateArduinoIndexCoresAndLibraries',

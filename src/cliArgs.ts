@@ -235,8 +235,17 @@ export class CLIArguments {
             `${boardCommandArduino}`,
             `${detailsFunctionArduino}`,
             `${fqbnOptionArduino}`,
-            // `${this.getBoard()}:${this.getBoardConfiguration()}`,
             `${boardConfigArg}`,
+            `${jsonOutputArduino}`
+        ];
+        return compileCommand;
+    }
+    public getProfileBoardConfigurationArguments(fqbn:string): string[] {
+        const compileCommand = [
+            `${boardCommandArduino}`,
+            `${detailsFunctionArduino}`,
+            `${fqbnOptionArduino}`,
+            `${fqbn}`,
             `${jsonOutputArduino}`
         ];
         return compileCommand;

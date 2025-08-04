@@ -560,6 +560,25 @@ export class ArduinoCLI {
 			throw error;
 		}
 	}
+	public async getProfileBoardConfiguration(fqbn:string): Promise<string> {
+		try {
+			const configBoardArgs = this.cliArgs.getProfileBoardConfigurationArguments(fqbn);
+
+			const result = await this.runArduinoCommand(
+				() => configBoardArgs,
+				"CLI: Failed to get board configuration", { caching: CacheState.NO, ttl: 0 }, true, false
+			);
+
+			if (!result) {
+				throw new Error("Command result empty");
+			}
+			return result;
+
+		} catch (error: any) {
+			window.showErrorMessage(`CLI: Error from get board configuration from the profile`);
+			throw error;
+		}
+	}
 	private async runArduinoCommand(
 		getArguments: () => string[],
 		errorMessagePrefix: string,

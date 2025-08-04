@@ -70,6 +70,12 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
+                    case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE:
+                        arduinoCLI.getProfileBoardConfiguration(message.payload).then((result) => {
+                            message.payload = result;
+                            VueWebviewPanel.sendMessage(message);
+                        })
+                        break;
                     case ARDUINO_MESSAGES.CLI_BOARD_SEARCH:
                         arduinoCLI.getBoardsListAll().then((result) => {
                             message.payload = result;
