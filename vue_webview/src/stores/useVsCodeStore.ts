@@ -74,7 +74,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         },
         async mockMessage(message: WebviewToExtensionMessage) {
             if (import.meta.env.DEV) {
-                await sleep(1000);  // Simulate delay
+                await sleep(5);  // Simulate delay
                 switch (message.command) {
                     case ARDUINO_MESSAGES.CLI_CORE_SEARCH:
                         loadMockData('coresearch.json').then((mockPayload) => {
@@ -149,7 +149,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                             const sketchProject: SketchProjectFile = {
                                 yaml: mockPayload,
                                 error: "",
-                                buildProfileStatus: PROFILES_STATUS.ACTIVE
+                                buildProfileStatus: PROFILES_STATUS.INACTIVE
                             }
                             message.payload = sketchProject;
                             this.handleMessage(message);

@@ -298,35 +298,36 @@ onMounted(() => {
 
                 </div>
               </v-row>
-              <v-row class="ml-2">
-                <v-col cols="12" v-if="profileStatusInformation">
-                  <v-alert variant="tonal" icon="mdi-application-array-outline" :title="profileStatusInformation.title"
-                    border="start" :border-color="profileStatusInformation.color">
-                    {{ profileStatusInformation.text }}
-
-                    <!-- Add dropdown if ACTIVE -->
-                    <template #text>
-                      <div class="mt-3" v-if="store.sketchProject?.buildProfileStatus === PROFILES_STATUS.ACTIVE">
-                        <v-select v-model="selectedBuildProfile" :items="buildProfileOptions"
-                          label="Compile/Build with Profile" style="max-width: 300px" density="comfortable" />
-                      </div>
-                    </template>
-
-                    <template v-if="profileStatusInformation.showAppend" #append>
-                      <v-tooltip location="top">
-                        <template #activator="{ props }">
-                          <v-btn v-bind="props" icon variant="text" @click="$router.push({ name: 'profiles-manager' })">
-                            <v-icon>mdi-arrow-right</v-icon>
-                          </v-btn>
-                        </template>
-                        <span>Open Profiles Manager</span>
-                      </v-tooltip>
-                    </template>
-                  </v-alert>
-                </v-col>
-              </v-row>
             </div>
           </v-card>
+          <v-row class="ml-2">
+            <v-col cols="12" v-if="profileStatusInformation">
+              <v-alert variant="tonal" icon="mdi-application-array-outline" :title="profileStatusInformation.title"
+                border="start" :border-color="profileStatusInformation.color">
+                {{ profileStatusInformation.text }}
+
+                <!-- Add dropdown if ACTIVE -->
+                <template #text>
+                  <div class="mt-3" v-if="store.sketchProject?.buildProfileStatus === PROFILES_STATUS.ACTIVE">
+                    <v-select v-model="selectedBuildProfile" :items="buildProfileOptions"
+                      label="Compile/Build with Profile" style="max-width: 300px" density="comfortable" />
+                  </div>
+                </template>
+
+                <template v-if="profileStatusInformation.showAppend" #append>
+                  <v-tooltip location="top">
+                    <template #activator="{ props }">
+                      <v-btn v-bind="props" icon variant="text" @click="$router.push({ name: 'profiles-manager' })">
+                        <v-icon>mdi-arrow-right</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Open Profiles Manager</span>
+                  </v-tooltip>
+                </template>
+              </v-alert>
+            </v-col>
+          </v-row>
+
           <v-card v-if="store.projectStatus?.status == ARDUINO_ERRORS.WRONG_FOLDER_NAME" class="pa-4"
             color="red-darken-3" prepend-icon="mdi-alert-circle-outline" rounded="lg">
             <template #title>
@@ -364,7 +365,20 @@ onMounted(() => {
           </div>
           <div v-else>
             <div v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && !store.projectInfo?.board">
-              <v-btn @click="router.push({ name: 'board-selection' })">Select a board first</v-btn>
+              <v-row class="ml-2">
+                <v-col cols="12">
+                  <v-alert type="info" variant="tonal">
+                    <v-alert-title>Working without build profiles</v-alert-title>
+                    <div>
+                      You can continue using the standard Arduino configuration without build profiles.
+                    </div>
+                    <div>
+                      The standard Arduino configuration is also helpful to create build profiles easily.
+                    </div>
+                    <v-btn class="mt-5" @click="router.push({ name: 'board-selection' })">Select your board</v-btn>
+                  </v-alert> 
+                </v-col>
+              </v-row>
             </div>
           </div>
           <v-card class="mt-5 pa-4"
