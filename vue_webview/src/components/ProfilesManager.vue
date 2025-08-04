@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, BoardConfiguration, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BoardConfiguration, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
+import { useRouter } from 'vue-router';
 
+const router = useRouter()
 const store = useVsCodeStore();
 store.profileBoardOptions = null;
 
@@ -17,7 +19,7 @@ const showBoardConfiguration = ref<Record<string, boolean>>({});
 const disableShowBoardConfiguration = ref<Record<string, boolean>>({});
 const profileBoardOptions = ref<Record<string, BoardConfiguration>>({});
 
-function updateConfiguration({ profile_name, options }: { profile_name?:string, options: Record<string, ConfigOptionValue> }) {
+function updateConfiguration({ profile_name, options }: { profile_name?: string, options: Record<string, ConfigOptionValue> }) {
     const configString = Object.entries(options)
         .map(([key, opt]) => `${key}=${opt.value}`)
         .join(',');
@@ -397,9 +399,16 @@ onMounted(() => {
                                         style="max-width: 300px;" />
                                     <v-tooltip v-if="!store.profileUpdating" location="top">
                                         <template #activator="{ props }">
-                                            <v-btn v-bind="props" @click="createProfile" :disabled="disabledButton">
-                                                Create a new profile
-                                            </v-btn>
+                                            <div
+                                                v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo">
+                                                <v-btn @click="router.push({ name: 'board-selection' })">Select your
+                                                    board to create a profile</v-btn>
+                                            </div>
+                                            <div v-else>
+                                                <v-btn v-bind="props" @click="createProfile" :disabled="disabledButton">
+                                                    Create a new profile
+                                                </v-btn>
+                                            </div>
                                         </template>
                                         <span>Create a new profile using the current configuration</span>
                                     </v-tooltip>
@@ -503,7 +512,7 @@ onMounted(() => {
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{
                                                             parsePlatformEntry(platEntry.platform).name
-                                                        }}</span>
+                                                            }}</span>
 
                                                         <v-select v-if="store.platform"
                                                             :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
@@ -523,7 +532,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                        }}</span>
+                                                            }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
@@ -588,9 +597,16 @@ onMounted(() => {
                                         style="max-width: 300px;" />
                                     <v-tooltip v-if="!store.profileUpdating" location="top">
                                         <template #activator="{ props }">
-                                            <v-btn v-bind="props" @click="createProfile" :disabled="disabledButton">
-                                                Create a new profile
-                                            </v-btn>
+                                            <div
+                                                v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo">
+                                                <v-btn @click="router.push({ name: 'board-selection' })">Select your
+                                                    board to create a profile</v-btn>
+                                            </div>
+                                            <div v-else>
+                                                <v-btn v-bind="props" @click="createProfile" :disabled="disabledButton">
+                                                    Create a new profile
+                                                </v-btn>
+                                            </div>
                                         </template>
                                         <span>Create a new profile using the current configuration</span>
                                     </v-tooltip>
