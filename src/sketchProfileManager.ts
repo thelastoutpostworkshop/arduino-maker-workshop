@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
-import { arduinoProject } from './extension';
+import { arduinoExtensionChannel, arduinoProject } from './extension';
 import { BUILD_NAME_PROFILE, BuildProfile, BuildProfileUpdate, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
 import { window } from 'vscode';
 import { DataBit, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
@@ -35,17 +35,22 @@ export class SketchProfileManager {
         return this.lastError;
     }
 
+    private setLastError(error: string) {
+        this.lastError = error;
+        arduinoExtensionChannel.appendLine(error);
+    }
+
     deleteProfile(profileName: string): boolean {
         this.clearError();
 
         const yamlData = this.getYaml();
         if (!yamlData || !yamlData.profiles) {
-            this.lastError = "No YAML data or profiles found.";
+            this.setLastError(`Cannot delete profile ${profileName} no YAML data or profiles found.`);
             return false;
         }
 
         if (!yamlData.profiles[profileName]) {
-            this.lastError = `Profile "${profileName}" not found.`;
+            this.setLastError(`Cannot delete profile, "${profileName}" not found.`);
             return false;
         }
 
@@ -68,7 +73,7 @@ export class SketchProfileManager {
                 }
                 return true;
             } catch (err) {
-                this.lastError = `Failed to delete last profile and YAML file: ${err}`;
+                this.setLastError(`Failed to delete last profile and YAML file: ${err}`);
                 return false;
             }
         } else {
@@ -92,13 +97,11 @@ export class SketchProfileManager {
                 profile = parsed?.profiles?.[firstProfileName];
 
                 if (!profile || typeof profile.fqbn !== 'string') {
-                    this.lastError = "Invalid or missing profile in YAML string.";
-                    console.error(this.lastError);
+                    this.setLastError(`Cannot update ${profileName}, Invalid or missing profile in YAML string.`);
                     return;
                 }
             } catch (err) {
-                this.lastError = `Failed to parse YAML string: ${err}`;
-                console.error(this.lastError);
+                this.setLastError(`Cannot update ${profileName}, failed to parse YAML string: ${err}`);
                 return;
             }
         } else {
@@ -129,13 +132,13 @@ export class SketchProfileManager {
         this.clearError();
         const yamlData = this.getYaml();
         if (!yamlData || !yamlData.profiles) {
-            this.lastError = "No YAML data or profiles found.";
+            this.setLastError(`Cannot get port of profile ${profileName}, no YAML data or profiles found.`);
             return undefined;
         }
 
         const profile = yamlData.profiles[profileName];
         if (!profile) {
-            this.lastError = `Profile "${profileName}" not found.`;
+            this.setLastError(`Cannot get port, profile "${profileName}" not found.`);
             return undefined;
         }
 
@@ -147,13 +150,13 @@ export class SketchProfileManager {
 
         const yamlData = this.getYaml();
         if (!yamlData || !yamlData.profiles) {
-            this.lastError = "No YAML data or profiles found.";
+            this.setLastError(`Cannot update libraries, no YAML data or profiles found`);
             return false;
         }
 
         const profile = yamlData.profiles[librariesUpdate.profile_name];
         if (!profile) {
-            this.lastError = `Profile "${librariesUpdate.profile_name}" not found.`;
+            this.setLastError(`Cannot update libraries, profile "${librariesUpdate.profile_name}" not found.`);
             return false;
         }
 
@@ -166,7 +169,7 @@ export class SketchProfileManager {
             this.writeYaml(yamlData);
             return true;
         } else {
-            this.lastError = "No libaries update found";
+            this.setLastError(`No libaries update found`);
             return false;
         }
 
@@ -177,13 +180,13 @@ export class SketchProfileManager {
 
         const yamlData = this.getYaml();
         if (!yamlData || !yamlData.profiles) {
-            this.lastError = "No YAML data or profiles found.";
+            this.setLastError(`Cannot update platforms, no YAML data or profiles found`);
             return false;
         }
 
         const profile = yamlData.profiles[platformsUpdate.profile_name];
         if (!profile) {
-            this.lastError = `Profile "${platformsUpdate.profile_name}" not found.`;
+            this.setLastError(`Cannot update platforms, profile "${platformsUpdate.profile_name}" not found.`);
             return false;
         }
 
@@ -197,7 +200,7 @@ export class SketchProfileManager {
 
             return true;
         } else {
-            this.lastError = "No platforms update found";
+            this.setLastError(`No platforms update found`);
             return false;
         }
     }
@@ -214,18 +217,18 @@ export class SketchProfileManager {
 
         const yamlData = this.getYaml();
         if (!yamlData || !yamlData.profiles) {
-            this.lastError = "No YAML data or profiles found.";
+            this.setLastError(`Cannot get monitor port settings, no YAML data or profiles found`);
             return undefined;
         }
 
         const profile = yamlData.profiles[profileName];
         if (!profile) {
-            this.lastError = `Profile "${profileName}" not found.`;
+            this.setLastError(`Cannot get monitor port settings, profile "${profileName}" not found.`);
             return undefined;
         }
 
         if (!profile.port) {
-            this.lastError = `Profile "${profileName}" does not define a port.`;
+            this.setLastError(`Cannot get monitor port settings, profile "${profileName}" does not define a port.`);
             return undefined;
         }
 
@@ -291,13 +294,13 @@ export class SketchProfileManager {
 
         const yamlData = this.getYaml();
         if (!yamlData || !yamlData.profiles) {
-            this.lastError = "No YAML data or profiles found.";
+            this.setLastError(`Cannot update profile FQBN, no YAML data or profiles found`);
             return false;
         }
 
         const profile = yamlData.profiles[updateFqbn.profile_name];
         if (!profile) {
-            this.lastError = `Profile "${updateFqbn.profile_name}" not found.`;
+            this.setLastError(`Cannot update profile FQBN, profile "${updateFqbn.profile_name}" not found.`);
             return false;
         }
 
@@ -309,7 +312,7 @@ export class SketchProfileManager {
             this.writeYaml(yamlData);
             return true;
         } else {
-            this.lastError = "No fqbn provided";
+            this.setLastError("Cannot update profile FQBN, no fqbn provided");
             return false;
         }
     }
@@ -343,8 +346,7 @@ export class SketchProfileManager {
                     this.setProfileStatus(PROFILES_STATUS.INACTIVE); // Set inactive if any error reading the yaml file.
                     window.showErrorMessage(`The ${YAML_FILENAME} has errors and is now inactive`);
                 }
-                this.lastError = `Failed to read build profile: ${error}`;
-                console.error(this.lastError);
+                this.setLastError(`Failed to read build profile: ${error}`);
                 return undefined;
             }
         }
@@ -424,7 +426,7 @@ export class SketchProfileManager {
         this.clearError();
 
         if (!yamlData || !yamlData.profiles) {
-            this.lastError = "No build profiles available.";
+            this.setLastError("Cannot set default profile, no build profiles available.");
             return;
         }
 
@@ -436,7 +438,7 @@ export class SketchProfileManager {
         }
 
         if (!yamlData.profiles[profileName]) {
-            this.lastError = `Profile "${profileName}" not found.`;
+            this.setLastError(`Cannot set default profile, profile "${profileName}" not found.`);
             return;
         }
 
@@ -478,7 +480,7 @@ export class SketchProfileManager {
         this.clearError();
         const yamlData = this.getYaml();
         if (!yamlData || !yamlData.profiles) {
-            this.lastError = "No YAML data or profiles found.";
+            this.setLastError("Cannot get default profile, no build profiles available.");
             return undefined;
         }
 
@@ -495,26 +497,25 @@ export class SketchProfileManager {
 
         const yamlData = this.getYaml();
         if (!yamlData || !yamlData.profiles) {
-            this.lastError = "No YAML data or profiles found.";
+            this.setLastError("Cannot rename profile, no build profiles available.");
             return false;
         }
 
         // Check if old profile exists
         if (!yamlData.profiles[newProfileName.profile_name]) {
-            this.lastError = `Profile "${newProfileName.profile_name}" not found.`;
+            this.setLastError(`Cannot rename profile, profile "${newProfileName.profile_name}" not found.`);
             return false;
         }
 
         // Ensure new name is provided
         if (!newProfileName.new_profile_name) {
-            this.lastError = "New name not provided.";
+            this.setLastError("Cannot rename profile, new name not provided.");
             return false;
         }
 
         // Ensure new name doesn't exist
         if (yamlData.profiles[newProfileName.new_profile_name]) {
-            this.lastError = `Profile "${newProfileName.new_profile_name}" already exists.`;
-            window.showErrorMessage(this.lastError);
+            this.setLastError(`Cannot rename profile, profile "${newProfileName.new_profile_name}" already exists.`);
             sendBuildProfiles();
             return false;
         }
@@ -538,13 +539,13 @@ export class SketchProfileManager {
 
         const yamlData = this.getYaml();
         if (!yamlData || !yamlData.profiles) {
-            this.lastError = "No YAML data or profiles found.";
+            this.setLastError("Cannot update notes, no build profiles available.");
             return false;
         }
 
         const profile = yamlData.profiles[updateNotes.profile_name];
         if (!profile) {
-            this.lastError = `Profile "${updateNotes.profile_name}" not found.`;
+            this.setLastError(`Cannot update notes, profile "${updateNotes.profile_name}" not found.`);
             return false;
         }
 
@@ -555,7 +556,7 @@ export class SketchProfileManager {
             this.writeYaml(yamlData);
             return true;
         } else {
-            this.lastError = 'No notes provided'
+            this.setLastError('Cannot update notes, no notes provided')
             return false;
         }
     }
@@ -565,39 +566,39 @@ export class SketchProfileManager {
 
         if (this.status() === PROFILES_STATUS.ACTIVE || this.status() === PROFILES_STATUS.INACTIVE) {
             if (!yaml.profiles || typeof yaml.profiles !== 'object') {
-                this.lastError = `Missing or invalid "profiles" section.`;
+                this.setLastError(`YAML verification: missing or invalid "profiles" section.`);
                 return false;
             }
 
             const profileKeys = Object.keys(yaml.profiles);
             if (profileKeys.length === 0) {
-                this.lastError = `No profiles defined in "profiles" section.`;
+                this.setLastError(`YAML verification: No profiles defined in "profiles" section.`);
                 return false;
             }
 
             for (const [name, profile] of Object.entries(yaml.profiles)) {
                 // Validate fqbn
                 if (!profile.fqbn || typeof profile.fqbn !== 'string') {
-                    this.lastError = `Profile "${name}" is missing a valid "fqbn".`;
+                    this.setLastError(`YAML verification: profile "${name}" is missing a valid "fqbn".`);
                     return false;
                 }
 
                 // Validate port if present
                 if (profile.port && typeof profile.port !== 'string') {
-                    this.lastError = `Profile "${name}" has an invalid "port" (must be a string).`;
+                    this.setLastError(`YAML verification: profile "${name}" has an invalid "port" (must be a string).`);
                     return false;
                 }
 
                 // Validate port_config if present
                 if (profile.port_config) {
                     if (typeof profile.port_config !== 'object' || Array.isArray(profile.port_config)) {
-                        this.lastError = `Profile "${name}" has an invalid "port_config" (must be an object/map).`;
+                        this.setLastError(`YAML verification: profile "${name}" has an invalid "port_config" (must be an object/map).`);
                         return false;
                     }
 
                     for (const [key, value] of Object.entries(profile.port_config)) {
                         if (typeof key !== 'string' || typeof value !== 'string') {
-                            this.lastError = `Profile "${name}" has invalid entries in "port_config" (keys and values must be strings).`;
+                            this.setLastError(`YAML verification: profile "${name}" has invalid entries in "port_config" (keys and values must be strings).`);
                             return false;
                         }
                     }
