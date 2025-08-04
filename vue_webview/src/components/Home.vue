@@ -246,28 +246,42 @@ onMounted(() => {
           </v-alert>
           <v-row class="mb-2">
             <v-col cols="12" v-if="profileStatusInformation">
-              <v-alert variant="tonal" icon="mdi-application-array-outline" :title="profileStatusInformation.title"
-                border="start" :border-color="profileStatusInformation.color">
-                {{ profileStatusInformation.text }}
-
-                <template #text>
-                  <div class="mt-3" v-if="store.sketchProject?.buildProfileStatus === PROFILES_STATUS.ACTIVE">
-                    <v-select v-model="selectedBuildProfile" :items="buildProfileOptions"
-                      label="Compile/Build with Profile" style="max-width: 300px" density="comfortable" />
+              <v-card color="primary" prepend-icon="mdi-cog" rounded="lg" class="pa-4">
+                <template #title>
+                  <h2 class="text-h6 font-weight-bold">Sketch Project File</h2>
+                </template>
+                <template #subtitle>
+                  <div class="text-subtitle-1">
+                    Provides support for reproducible builds through the use of build profile
+                  </div>
+                  <div class="text-subtitle-2">
+                    A profile is a complete description of all the resources needed to build a sketch. The sketch
                   </div>
                 </template>
+                <v-alert variant="tonal" icon="mdi-application-array-outline" :title="profileStatusInformation.title"
+                  border="start" :border-color="profileStatusInformation.color">
+                  {{ profileStatusInformation.text }}
 
-                <template v-if="profileStatusInformation.showAppend" #append>
-                  <v-tooltip location="top">
-                    <template #activator="{ props }">
-                      <v-btn v-bind="props" icon variant="text" @click="$router.push({ name: 'profiles-manager' })">
-                        <v-icon>mdi-arrow-right</v-icon>
-                      </v-btn>
-                    </template>
-                    <span>Open Profiles Manager</span>
-                  </v-tooltip>
-                </template>
-              </v-alert>
+                  <template #text>
+                    <div class="mt-3" v-if="store.sketchProject?.buildProfileStatus === PROFILES_STATUS.ACTIVE">
+                      <v-select v-model="selectedBuildProfile" :items="buildProfileOptions"
+                        label="Compile/Build with Profile" style="max-width: 300px" density="comfortable" />
+                    </div>
+                  </template>
+
+                  <template v-if="profileStatusInformation.showAppend" #append>
+                    <v-tooltip location="top">
+                      <template #activator="{ props }">
+                        <v-btn v-bind="props" icon variant="text" @click="$router.push({ name: 'profiles-manager' })">
+                          <v-icon>mdi-arrow-right</v-icon>
+                        </v-btn>
+                      </template>
+                      <span>Open Profiles Manager</span>
+                    </v-tooltip>
+                  </template>
+                </v-alert>
+
+              </v-card>
             </v-col>
           </v-row>
 
