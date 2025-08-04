@@ -19,14 +19,20 @@ const profileBoardOptions = ref<Record<string, BoardConfiguration>>({});
 
 function updateConfiguration({ name, options }: { name?: string; options: Record<string, ConfigOptionValue> }) {
     const configString = Object.entries(options)
-    .map(([key, opt]) => `${key}=${opt.value}`)
-    .join(',');
-    
-    // store.sendMessage({
-    //     command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS,
-    //     errorMessage: '',
-    //     payload: configString
-    // });
+        .map(([key, opt]) => `${key}=${opt.value}`)
+        .join(',');
+
+    if (name) {
+        const updates: BuildProfileUpdate = {
+            profile_name: name,
+            fqbn: configString
+        }
+        store.sendMessage({
+            command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_FQBN,
+            errorMessage: '',
+            payload: updates
+        });
+    }
 }
 
 function setVisibilityBoardConfiguration(profile_name: string, fqbn: string) {
@@ -533,7 +539,7 @@ onMounted(() => {
                                                     <BoardConfigurationForm
                                                         v-if="profileBoardOptions[profile.name].config_options"
                                                         :options="profileBoardOptions[profile.name].config_options"
-                                                        :name="profileBoardOptions[profile.name].name"
+                                                        :name="profile.name"
                                                         @update="updateConfiguration">
                                                         <template #title>
                                                             <h2 class="text-h6 font-weight-bold">Board Options</h2>
