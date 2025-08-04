@@ -244,26 +244,23 @@ watchEffect(() => {
 });
 
 watchEffect(() => {
-    if (!store.libraries) {
-        return;
-    }
-    watchEffect(() => {
-        selectedLibraryVersion.value = {};
+  if (!store.libraries) return;
 
-        profilesList.value.forEach(profile => {
-            selectedLibraryVersion.value[profile.name] = {};
+  selectedLibraryVersion.value = {};
 
-            (profile.libraries || []).forEach(libEntry => {
-                const { name, version } = parseLibraryEntry(libEntry);
-                const availableVersions = getAvailableLibraryVersions(name);
+  profilesList.value.forEach(profile => {
+    selectedLibraryVersion.value[profile.name] = {};
 
-                selectedLibraryVersion.value[profile.name][name] =
-                    version && availableVersions.includes(version)
-                        ? version
-                        : availableVersions[availableVersions.length - 1] || 'latest';
-            });
-        });
+    (profile.libraries || []).forEach(libEntry => {
+      const { name, version } = parseLibraryEntry(libEntry);
+      const availableVersions = getAvailableLibraryVersions(name);
+
+      selectedLibraryVersion.value[profile.name][name] =
+        version && availableVersions.includes(version)
+          ? version
+          : availableVersions[availableVersions.length - 1] || 'latest';
     });
+  });
 });
 
 watchEffect(() => {
