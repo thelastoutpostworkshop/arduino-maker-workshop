@@ -4,11 +4,11 @@ import { ConfigOptionValue } from '@shared/messages';
 
 const props = defineProps<{
     options?: { option: string; option_label: string; values: ConfigOptionValue[] }[];
-    boardName?: string;
+    name?: string;
 }>();
 
 const emit = defineEmits<{
-    (e: 'update', value: Record<string, ConfigOptionValue>): void;
+    (e: 'update', payload: { name?: string; options: Record<string, ConfigOptionValue> }): void;
 }>();
 
 const boardOption = ref<Record<string, ConfigOptionValue>>({});
@@ -30,8 +30,10 @@ onMounted(() => {
 watch(
     boardOption,
     () => {
-        // Emit the selected option objects instead of string
-        emit('update', boardOption.value);
+        emit('update', {
+            name: props.name,
+            options: boardOption.value,
+        });
     },
     { deep: true }
 );

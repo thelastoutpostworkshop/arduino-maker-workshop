@@ -47,7 +47,7 @@ function updateConfiguration(config: Record<string, ConfigOptionValue>) {
                 <v-card class="pa-4" color="primary" rounded="lg">
                     <span v-if="store.boardOptions?.config_options">
                         <BoardConfigurationForm :options="store.boardOptions.config_options"
-                            :boardName="store.boardOptions?.name" @update="updateConfiguration">
+                            :name="store.boardOptions?.name" @update="updateConfiguration">
                             <template #title>
                                 <h2 class="text-h6 font-weight-bold">Board Options</h2>
                             </template>

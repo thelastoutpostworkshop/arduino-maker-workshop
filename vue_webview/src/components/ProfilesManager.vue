@@ -17,12 +17,11 @@ const showBoardConfiguration = ref<Record<string, boolean>>({});
 const disableShowBoardConfiguration = ref<Record<string, boolean>>({});
 const profileBoardOptions = ref<Record<string, BoardConfiguration>>({});
 
-function updateConfiguration(config: Record<string, ConfigOptionValue>) {
-    if (!store.boardOptions) return;
-    // const configString = Object.entries(config)
-    //     .map(([key, opt]) => `${key}=${opt.value}`)
-    //     .join(',');
-
+function updateConfiguration({ name, options }: { name?: string; options: Record<string, ConfigOptionValue> }) {
+    const configString = Object.entries(options)
+    .map(([key, opt]) => `${key}=${opt.value}`)
+    .join(',');
+    
     // store.sendMessage({
     //     command: ARDUINO_MESSAGES.SET_BOARD_OPTIONS,
     //     errorMessage: '',
@@ -534,7 +533,7 @@ onMounted(() => {
                                                     <BoardConfigurationForm
                                                         v-if="profileBoardOptions[profile.name].config_options"
                                                         :options="profileBoardOptions[profile.name].config_options"
-                                                        :boardName="profileBoardOptions[profile.name].name"
+                                                        :name="profileBoardOptions[profile.name].name"
                                                         @update="updateConfiguration">
                                                         <template #title>
                                                             <h2 class="text-h6 font-weight-bold">Board Options</h2>
