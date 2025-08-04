@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectConfiguration, ArduinoProjectStatus, CompileResult } from './shared/messages';
-import { arduinoCLI, arduinoExtensionChannel } from './extension';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectConfiguration, ArduinoProjectStatus, CompileResult, PROFILES_STATUS } from './shared/messages';
+import { arduinoCLI, arduinoExtensionChannel, arduinoYaml } from './extension';
 import { LineEnding, MonitorPortSettings, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
 import { VueWebviewPanel } from './VueWebviewPanel';
 
@@ -48,21 +48,23 @@ export class ArduinoProject {
         };
     }
     public isUploadReady(): UPLOAD_READY_STATUS {
-        if (this.configJson.port.trim().length !== 0) {
-            const resultFile = path.join(arduinoCLI.getBuildPath(), COMPILE_RESULT_FILE);
-            try {
-                const content = fs.readFileSync(resultFile, 'utf-8');
-                const result: CompileResult = JSON.parse(content);
-                if (result.result) {
-                    return UPLOAD_READY_STATUS.READY
-                } else {
-                    return UPLOAD_READY_STATUS.LAST_COMPILE_FAILED
-                }
-            } catch (error) {
-                return UPLOAD_READY_STATUS.LAST_COMPILE_FAILED;
-            }
+        if (arduinoYaml.status() !== PROFILES_STATUS.ACTIVE && this.configJson.port.trim().length == 0) {
+            return UPLOAD_READY_STATUS.NO_PORT;
         }
-        return UPLOAD_READY_STATUS.NO_PORT;
+
+        const resultFile = path.join(arduinoCLI.getBuildPath(), COMPILE_RESULT_FILE);
+        try {
+            const content = fs.readFileSync(resultFile, 'utf-8');
+            const result: CompileResult = JSON.parse(content);
+            if (result.result) {
+                return UPLOAD_READY_STATUS.READY
+            } else {
+                return UPLOAD_READY_STATUS.LAST_COMPILE_FAILED
+            }
+        } catch (error) {
+            return UPLOAD_READY_STATUS.LAST_COMPILE_FAILED;
+        }
+
     }
     public isCompileReady(): boolean {
         if (this.configJson.board.trim().length > 0) {
