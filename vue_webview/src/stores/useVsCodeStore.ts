@@ -115,7 +115,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         });
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
-                        loadMockData('arduino_configuration_initial.json', false).then((mockPayload) => {
+                        loadMockData('arduino_configuration.json', false).then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
@@ -149,7 +149,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                             const sketchProject: SketchProjectFile = {
                                 yaml: mockPayload,
                                 error: "",
-                                buildProfileStatus: PROFILES_STATUS.INACTIVE
+                                buildProfileStatus: PROFILES_STATUS.ACTIVE
                             }
                             message.payload = sketchProject;
                             this.handleMessage(message);

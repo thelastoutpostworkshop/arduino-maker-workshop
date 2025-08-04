@@ -246,7 +246,7 @@ onMounted(() => {
           </v-alert>
           <v-row class="mb-2">
             <v-col cols="12" v-if="profileStatusInformation">
-              <v-card color="primary" prepend-icon="mdi-cog" rounded="lg" class="pa-4">
+              <v-card color="primary" prepend-icon="mdi-application-array-outline" rounded="lg" class="pa-4">
                 <template #title>
                   <h2 class="text-h6 font-weight-bold">Sketch Project File</h2>
                 </template>
@@ -258,7 +258,7 @@ onMounted(() => {
                     A profile is a complete description of all the resources needed to build a sketch. The sketch
                   </div>
                 </template>
-                <v-alert variant="tonal" icon="mdi-application-array-outline" :title="profileStatusInformation.title"
+                <v-alert variant="tonal" :title="profileStatusInformation.title"
                   border="start" :border-color="profileStatusInformation.color">
                   {{ profileStatusInformation.text }}
 
