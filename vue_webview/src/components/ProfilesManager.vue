@@ -10,7 +10,7 @@ const isProfileValid = ref(false);
 const selectedLibraryVersion = ref<Record<string, Record<string, string>>>({});
 const selectedPlatformVersion = ref<Record<string, Record<string, string>>>({});
 const selectedDefaultProfile = ref<string | null>(null);
-const editingProfile = ref<string | null>(null);
+const editingProfileName = ref<string | null>(null);
 const editingNotes = ref<string | null>(null);
 const showBoardConfiguration = ref<Record<string, boolean>>({});
 const disableShowBoardConfiguration = ref<Record<string, boolean>>({});
@@ -60,7 +60,7 @@ const disabledButton = computed(() => {
     return !isProfileValid.value || store.compileInProgress !== '';
 });
 function startEditProfileName(profileName: string) {
-    editingProfile.value = profileName;
+    editingProfileName.value = profileName;
 }
 
 function startEditProfileNotes(profileName: string) {
@@ -68,7 +68,7 @@ function startEditProfileNotes(profileName: string) {
 }
 
 function stopEditProfileName() {
-    editingProfile.value = null;
+    editingProfileName.value = null;
 }
 
 function stopEditProfileNotes() {
@@ -445,7 +445,7 @@ onMounted(() => {
                                 <v-card rounded="lg" color="primary">
                                     <v-card-title class="d-flex align-center">
                                         <!-- Profile name (readonly until editing) -->
-                                        <template v-if="editingProfile === profile.originalName">
+                                        <template v-if="editingProfileName === profile.originalName">
                                             <v-text-field v-model="profile.name" label="Profile Name" variant="outlined"
                                                 density="compact" class="flex-grow-1 mr-3"
                                                 @blur="() => { renameProfile(profile.originalName, profile.name); stopEditProfileName(); }" />
