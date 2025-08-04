@@ -106,6 +106,12 @@ export const useVsCodeStore = defineStore('vsCode', {
                             this.handleMessage(message);
                         });
                         break;
+                    case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE:
+                        loadMockData('profile_board_options.json').then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
+                        break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                         loadMockData('arduino_configuration.json', false).then((mockPayload) => {
                             message.payload = mockPayload;
@@ -258,6 +264,8 @@ export const useVsCodeStore = defineStore('vsCode', {
                 case ARDUINO_MESSAGES.COMPILE_IN_PROGRESS:
                     console.log(`COMPILE_IN_PROGRESS=${message.payload}`);
                     this.compileInProgress = message.payload;
+                    break;
+                case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE:
                     break;
                 case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                     try {
