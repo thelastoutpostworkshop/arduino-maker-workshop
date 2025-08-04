@@ -272,6 +272,20 @@ export class SketchProfileManager {
         };
     }
 
+    private getBoardNameFromFqbn(fqbn: string): string | undefined {
+        if (!fqbn || typeof fqbn !== "string") return undefined;
+
+        const lastColonIndex = fqbn.lastIndexOf(":");
+        if (lastColonIndex === -1) {
+            // No colon found, return the whole string
+            return fqbn;
+        }
+
+        // Return everything before the last colon
+        return fqbn.substring(0, lastColonIndex);
+    }
+
+
     updateProfileFqbn(updateFqbn: BuildProfileUpdate): boolean {
         this.clearError();
 
@@ -288,7 +302,8 @@ export class SketchProfileManager {
         }
 
         if (updateFqbn.fqbn) {
-            profile.fqbn = updateFqbn.fqbn;
+            const board_name = this.getBoardNameFromFqbn(profile.fqbn);
+            profile.fqbn = board_name + ":" + updateFqbn.fqbn;
             yamlData.profiles[updateFqbn.profile_name] = profile;
 
             this.writeYaml(yamlData);
