@@ -41,6 +41,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         projectStatus: null as ArduinoProjectStatus | null,
         boardOptions: null as BoardConfiguration | null,
         profileBoardOptions: null as BoardConfiguration | null,
+        profileBoardOptionsName : "",
         boards: null as PlatformsList | null,
         boardConnected: null as BoardConnected | null,
         platform: null as CorePlatforms | null,

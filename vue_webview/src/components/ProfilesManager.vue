@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
+import { ARDUINO_MESSAGES, BoardConfiguration, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
 
 const store = useVsCodeStore();
+store.profileBoardOptions = null;
 
 const profileName = ref(`profile-${Date.now()}`);
 const isProfileValid = ref(false);
@@ -14,6 +15,7 @@ const editingProfileName = ref<string | null>(null);
 const editingNotes = ref<string | null>(null);
 const showBoardConfiguration = ref<Record<string, boolean>>({});
 const disableShowBoardConfiguration = ref<Record<string, boolean>>({});
+const profileBoardOptions = ref<Record<string, BoardConfiguration>>({});
 
 function updateConfiguration(config: Record<string, ConfigOptionValue>) {
     if (!store.boardOptions) return;
@@ -36,6 +38,8 @@ function setVisibilityBoardConfiguration(profile_name: string, fqbn: string) {
             disableShowBoardConfiguration.value[name] =
                 showBoardConfiguration.value[profile_name] && name !== profile_name;
         });
+        store.profileBoardOptionsName = profile_name;
+
         store.sendMessage({
             command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE,
             errorMessage: "",
@@ -51,11 +55,20 @@ function enableAllBoardConfigurations() {
 }
 
 watchEffect(() => {
-    if (!store.profileBoardOptions) return;
-    console.log("profileBoardOptions" + store.profileBoardOptions);
+    const opts = store.profileBoardOptions;
+    if (!opts) return;
+    // Assume store also has lastProfileName or you pass it when sending the message
+    const profileName = store.profileBoardOptionsName;
+    if (profileName) {
+        profileBoardOptions.value[profileName] = opts;
+        console.log("received board options=" + profileName)
+    }
+
+    // Clear to avoid overwriting on next change
     store.profileBoardOptions = null;
     enableAllBoardConfigurations();
 });
+
 const disabledButton = computed(() => {
     return !isProfileValid.value || store.compileInProgress !== '';
 });
@@ -485,7 +498,7 @@ onMounted(() => {
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{
                                                             parsePlatformEntry(platEntry.platform).name
-                                                            }}</span>
+                                                        }}</span>
 
                                                         <v-select v-if="store.platform"
                                                             :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
@@ -505,7 +518,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                            }}</span>
+                                                        }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
@@ -517,10 +530,11 @@ onMounted(() => {
                                         </div>
                                         <v-expand-transition>
                                             <div v-show="showBoardConfiguration[profile.name]" class="mt-5">
-                                                <span v-if="store.boardOptions?.config_options">
-                                                    <BoardConfigurationForm v-if="store.boardOptions?.config_options"
-                                                        :options="store.boardOptions?.config_options"
-                                                        :boardName="store.boardOptions?.name"
+                                                <span v-if="profileBoardOptions[profile.name]">
+                                                    <BoardConfigurationForm
+                                                        v-if="profileBoardOptions[profile.name].config_options"
+                                                        :options="profileBoardOptions[profile.name].config_options"
+                                                        :boardName="profileBoardOptions[profile.name].name"
                                                         @update="updateConfiguration">
                                                         <template #title>
                                                             <h2 class="text-h6 font-weight-bold">Board Options</h2>
@@ -531,10 +545,10 @@ onMounted(() => {
                                                             </div>
                                                         </template>
                                                     </BoardConfigurationForm>
-
                                                 </span>
                                                 <span v-else>
-                                                    No options available for your board
+                                                    Retrieving board configurations
+                                                    <v-progress-linear color="grey" indeterminate></v-progress-linear>
                                                 </span>
                                             </div>
                                         </v-expand-transition>
