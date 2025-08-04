@@ -13,6 +13,7 @@ const selectedDefaultProfile = ref<string | null>(null);
 const editingProfile = ref<string | null>(null);
 const editingNotes = ref<string | null>(null);
 const showBoardConfiguration = ref<Record<string, boolean>>({});
+const disableShowBoardConfiguration = ref<Record<string, boolean>>({});
 
 function updateConfiguration(config: Record<string, ConfigOptionValue>) {
     if (!store.boardOptions) return;
@@ -27,13 +28,18 @@ function updateConfiguration(config: Record<string, ConfigOptionValue>) {
     // });
 }
 
-function setVisibilityBoardConfiguration(profile_name:string,fqbn:string) {
+function setVisibilityBoardConfiguration(profile_name: string, fqbn: string) {
     showBoardConfiguration.value[profile_name] = !showBoardConfiguration.value[profile_name];
-    if(showBoardConfiguration.value[profile_name]) {
+    if (showBoardConfiguration.value[profile_name]) {
+        // Disable all other profiles except the current one if it's open
+        Object.keys(showBoardConfiguration.value).forEach((name) => {
+            disableShowBoardConfiguration.value[name] =
+                showBoardConfiguration.value[profile_name] && name !== profile_name;
+        });
         store.sendMessage({
-            command:ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE,
-            errorMessage:"",
-            payload:fqbn
+            command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE,
+            errorMessage: "",
+            payload: fqbn
         })
     }
 }
@@ -469,7 +475,7 @@ onMounted(() => {
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{
                                                             parsePlatformEntry(platEntry.platform).name
-                                                            }}</span>
+                                                        }}</span>
 
                                                         <v-select v-if="store.platform"
                                                             :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
@@ -489,7 +495,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                            }}</span>
+                                                        }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
@@ -527,9 +533,9 @@ onMounted(() => {
                                         <span>Change board options</span>
                                         <v-spacer></v-spacer>
 
-                                        <v-btn
+                                        <v-btn :disabled="disableShowBoardConfiguration[profile.name]"
                                             :icon="showBoardConfiguration[profile.name] ? 'mdi-chevron-up' : 'mdi-chevron-down'"
-                                            @click="setVisibilityBoardConfiguration(profile.name,profile.fqbn)"></v-btn>
+                                            @click="setVisibilityBoardConfiguration(profile.name, profile.fqbn)"></v-btn>
                                     </v-card-actions>
                                 </v-card>
                             </v-expansion-panel-text>
