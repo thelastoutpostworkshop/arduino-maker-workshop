@@ -2,6 +2,7 @@
 import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
+import { en } from 'vuetify/locale';
 
 const store = useVsCodeStore();
 
@@ -43,6 +44,19 @@ function setVisibilityBoardConfiguration(profile_name: string, fqbn: string) {
         })
     }
 }
+
+function enableAllBoardConfigurations() {
+    Object.keys(showBoardConfiguration.value).forEach((name) => {
+        disableShowBoardConfiguration.value[name] = false;
+    });
+}
+
+watchEffect(() => {
+    if (!store.profileBoardOptions) return;
+    console.log("profileBoardOptions" + store.profileBoardOptions);
+    store.profileBoardOptions = null;
+    enableAllBoardConfigurations();
+});
 const disabledButton = computed(() => {
     return !isProfileValid.value || store.compileInProgress !== '';
 });
@@ -244,23 +258,23 @@ watchEffect(() => {
 });
 
 watchEffect(() => {
-  if (!store.libraries) return;
+    if (!store.libraries) return;
 
-  selectedLibraryVersion.value = {};
+    selectedLibraryVersion.value = {};
 
-  profilesList.value.forEach(profile => {
-    selectedLibraryVersion.value[profile.name] = {};
+    profilesList.value.forEach(profile => {
+        selectedLibraryVersion.value[profile.name] = {};
 
-    (profile.libraries || []).forEach(libEntry => {
-      const { name, version } = parseLibraryEntry(libEntry);
-      const availableVersions = getAvailableLibraryVersions(name);
+        (profile.libraries || []).forEach(libEntry => {
+            const { name, version } = parseLibraryEntry(libEntry);
+            const availableVersions = getAvailableLibraryVersions(name);
 
-      selectedLibraryVersion.value[profile.name][name] =
-        version && availableVersions.includes(version)
-          ? version
-          : availableVersions[availableVersions.length - 1] || 'latest';
+            selectedLibraryVersion.value[profile.name][name] =
+                version && availableVersions.includes(version)
+                    ? version
+                    : availableVersions[availableVersions.length - 1] || 'latest';
+        });
     });
-  });
 });
 
 watchEffect(() => {
@@ -472,7 +486,7 @@ onMounted(() => {
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{
                                                             parsePlatformEntry(platEntry.platform).name
-                                                        }}</span>
+                                                            }}</span>
 
                                                         <v-select v-if="store.platform"
                                                             :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
@@ -492,7 +506,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                        }}</span>
+                                                            }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
