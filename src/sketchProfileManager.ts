@@ -272,6 +272,32 @@ export class SketchProfileManager {
         };
     }
 
+    updateProfileFqbn(updateFqbn: BuildProfileUpdate): boolean {
+        this.clearError();
+
+        const yamlData = this.getYaml();
+        if (!yamlData || !yamlData.profiles) {
+            this.lastError = "No YAML data or profiles found.";
+            return false;
+        }
+
+        const profile = yamlData.profiles[updateFqbn.profile_name];
+        if (!profile) {
+            this.lastError = `Profile "${updateFqbn.profile_name}" not found.`;
+            return false;
+        }
+
+        if (updateFqbn.fqbn) {
+            profile.fqbn = updateFqbn.fqbn;
+            yamlData.profiles[updateFqbn.profile_name] = profile;
+
+            this.writeYaml(yamlData);
+            return true;
+        } else {
+            this.lastError = "No fqbn provided";
+            return false;
+        }
+    }
 
     getYaml(): SketchYaml | undefined {
         let file: string = "";

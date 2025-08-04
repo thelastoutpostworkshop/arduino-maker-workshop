@@ -453,6 +453,7 @@ export interface BuildProfileUpdate {
   new_profile_name?: string;
   libraries?: string[];
   platforms?: PlatformDependencyProfile[];
+  fqbn?:string,
   notes?: string;
 }
 
@@ -501,6 +502,7 @@ export const ARDUINO_MESSAGES = {
   UPDATE_BUILD_PROFILE_LIBRARIES: 'updateBuildProfileLibraries',
   UPDATE_BUILD_PROFILE_PLATFORMS: 'updateBuildProfilePlatforms',
   UPDATE_BUILD_PROFILE_NOTES: 'updateBuildProfileNotes',
+  UPDATE_BUILD_PROFILE_FQBN: 'updateBuildProfileFQBN',
   RENAME_BUILD_PROFILE_NAME: 'renameBuildProfileName',
   DELETE_BUILD_PROFILE: 'deleteBuildProfile',
   SET_DEFAULT_PROFILE: 'setDefaultProfile',
