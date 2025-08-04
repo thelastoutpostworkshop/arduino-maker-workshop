@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_MESSAGES, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
+import { ARDUINO_MESSAGES, BuildProfile, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
 
 const store = useVsCodeStore();
 
@@ -27,6 +27,16 @@ function updateConfiguration(config: Record<string, ConfigOptionValue>) {
     // });
 }
 
+function setVisibilityBoardConfiguration(profile_name:string,fqbn:string) {
+    showBoardConfiguration.value[profile_name] = !showBoardConfiguration.value[profile_name];
+    if(showBoardConfiguration.value[profile_name]) {
+        store.sendMessage({
+            command:ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE,
+            errorMessage:"",
+            payload:fqbn
+        })
+    }
+}
 const disabledButton = computed(() => {
     return !isProfileValid.value || store.compileInProgress !== '';
 });
@@ -459,7 +469,7 @@ onMounted(() => {
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{
                                                             parsePlatformEntry(platEntry.platform).name
-                                                        }}</span>
+                                                            }}</span>
 
                                                         <v-select v-if="store.platform"
                                                             :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
@@ -479,7 +489,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                        }}</span>
+                                                            }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
@@ -519,7 +529,7 @@ onMounted(() => {
 
                                         <v-btn
                                             :icon="showBoardConfiguration[profile.name] ? 'mdi-chevron-up' : 'mdi-chevron-down'"
-                                            @click="showBoardConfiguration[profile.name] = !showBoardConfiguration[profile.name]"></v-btn>
+                                            @click="setVisibilityBoardConfiguration(profile.name,profile.fqbn)"></v-btn>
                                     </v-card-actions>
                                 </v-card>
                             </v-expansion-panel-text>
