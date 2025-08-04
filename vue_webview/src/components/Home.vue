@@ -23,6 +23,17 @@ const portsAvailable = computed(() => getAvailablePorts(store));
 // This is a macOS-specific thing. The upload port is on /dev/cu.* and the serial port is on /dev/tty.*
 const serialPortsAvailable = computed(() => getAvailablePorts(store).map((p: any) => p.replace("/dev/cu.", "/dev/tty.")));
 
+function changeStatusBuildProfile() {
+  const status = store.sketchProject?.buildProfileStatus;
+  switch (status) {
+    case PROFILES_STATUS.ACTIVE:
+      store.sendMessage({ command: ARDUINO_MESSAGES.SET_STATUS_BUILD_PROFILE, errorMessage: '', payload: PROFILES_STATUS.INACTIVE });
+      break;
+    case PROFILES_STATUS.INACTIVE:
+      store.sendMessage({ command: ARDUINO_MESSAGES.SET_STATUS_BUILD_PROFILE, errorMessage: '', payload: PROFILES_STATUS.ACTIVE });
+      break;
+  }
+}
 const lineEndings = [
   { title: "CR", value: "\r" },
   { title: "CRLF", value: "\r\n" },
@@ -70,6 +81,8 @@ const profileStatusInformation = computed(() => {
         title: 'Build Profiles Active',
         color: 'success',
         text: `The build profiles ${YAML_FILENAME} are active, it will be used in the compilation/build process`,
+        button: 'Deactivate',
+        tooltip: 'Deactivate the build profiles',
         showAppend: true,
       };
     case PROFILES_STATUS.INACTIVE:
@@ -77,6 +90,8 @@ const profileStatusInformation = computed(() => {
         title: 'Build Profiles Inactive',
         color: 'warning',
         text: `The build profiles ${YAML_FILENAME} are inactive`,
+        button: 'Activate',
+        tooltip: 'Activate the build profiles',
         showAppend: true,
       };
     case PROFILES_STATUS.NOT_AVAILABLE:
@@ -258,8 +273,8 @@ onMounted(() => {
                     A profile is a complete description of all the resources needed to build a sketch. The sketch
                   </div>
                 </template>
-                <v-alert variant="tonal" :title="profileStatusInformation.title"
-                  border="start" :border-color="profileStatusInformation.color">
+                <v-alert variant="tonal" :title="profileStatusInformation.title" border="start"
+                  :border-color="profileStatusInformation.color">
                   {{ profileStatusInformation.text }}
 
                   <template #text>
@@ -270,6 +285,15 @@ onMounted(() => {
                   </template>
 
                   <template v-if="profileStatusInformation.showAppend" #append>
+                    <v-tooltip location="top">
+                      <template #activator="{ props }">
+                        <v-btn @click="changeStatusBuildProfile" v-bind="props"
+                          :disabled="store.profileUpdating !== ''">
+                          {{ profileStatusInformation.button }}
+                        </v-btn>
+                      </template>
+                      <span>{{ profileStatusInformation.tooltip }}</span>
+                    </v-tooltip>
                     <v-tooltip location="top">
                       <template #activator="{ props }">
                         <v-btn v-bind="props" icon variant="text" @click="$router.push({ name: 'profiles-manager' })">
