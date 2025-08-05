@@ -422,11 +422,11 @@ onMounted(() => {
             v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board" color="primary"
             prepend-icon="mdi-serial-port" rounded="lg">
             <template #title>
-              <h2 class="text-h6 font-weight-bold">Serial Monitor Settings</h2>
+              <h2 class="text-h6 font-weight-bold">Serial Monitor Extension Settings</h2>
             </template>
             <template #subtitle>
               <div class="text-wrap">
-                Settings to use when opening the serial monitor after an upload
+                Settings to use when opening the serial monitor extension after an upload
               </div>
             </template>
             <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.port"
