@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectConfiguration, ArduinoProjectStatus, CompileResult, PROFILES_STATUS } from './shared/messages';
-import { arduinoCLI, arduinoExtensionChannel, arduinoYaml } from './extension';
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml } from './extension';
 import { LineEnding, MonitorPortSettings, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
 import { VueWebviewPanel } from './VueWebviewPanel';
 
@@ -67,6 +67,9 @@ export class ArduinoProject {
 
     }
     public isCompileReady(): boolean {
+        if(arduinoYaml.status() === PROFILES_STATUS.ACTIVE && arduinoProject.getCompileProfile()) {
+            return true;
+        }
         if (this.configJson.board.trim().length > 0) {
             if (this.configJson.configurationRequired) {
                 return this.configJson.configuration.trim().length > 0;

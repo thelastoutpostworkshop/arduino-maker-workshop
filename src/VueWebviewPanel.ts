@@ -74,6 +74,10 @@ export class VueWebviewPanel {
                         arduinoCLI.getProfileBoardConfiguration(message.payload).then((result) => {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
+                        }).catch(() => {
+                            message.payload = "";
+                            message.errorMessage = "Board not installed"
+                            VueWebviewPanel.sendMessage(message);
                         })
                         break;
                     case ARDUINO_MESSAGES.CLI_BOARD_SEARCH:
