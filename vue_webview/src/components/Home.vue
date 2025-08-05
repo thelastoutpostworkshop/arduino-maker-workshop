@@ -198,7 +198,8 @@ watch(
   { immediate: true }
 );
 watch(selectedBuildProfile, (newProfile) => {
-  if (newProfile) {
+  if (!newProfile) return;
+  if (newProfile !== store.projectInfo?.compile_profile) {
     store.sendMessage({
       command: ARDUINO_MESSAGES.SET_COMPILE_PROFILE,
       errorMessage: '',
