@@ -27,6 +27,18 @@ function getProgrammerOptions(profileName: string) {
     return [{ name: NO_PROGRAMMER, id: NO_PROGRAMMER }, ...opts];
 }
 
+function updateProfileProgrammer(profileName: string, programmer: string) {
+    const update: BuildProfileUpdate = {
+        profile_name: profileName,
+        programmer
+    };
+    store.sendMessage({
+        command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_PROGRAMMER,
+        errorMessage: '',
+        payload: update
+    });
+}
+
 function updateConfiguration({ profile_name, options }: { profile_name?: string, options: Record<string, ConfigOptionValue> }) {
     const configString = Object.entries(options)
         .map(([key, opt]) => `${key}=${opt.value}`)
@@ -482,8 +494,6 @@ onMounted(() => {
                                     </v-card-subtitle>
 
                                     <v-card-text>
-                                        <div><strong>Programmer:</strong> {{ profile.programmer || '—' }}</div>
-
                                         <div v-if="profile.platforms?.length" class="mt-4">
                                             <strong>Platforms:</strong>
                                             <v-list density="compact" variant="tonal">
@@ -535,7 +545,8 @@ onMounted(() => {
                                                     </span>
                                                     <v-select v-model="selectedProgrammer[profile.name]"
                                                         :items="getProgrammerOptions(profile.name)" item-title="name"
-                                                        item-value="id"></v-select>
+                                                        item-value="id"
+                                                        @update:model-value="val => updateProfileProgrammer(profile.name, val)"></v-select>
                                                     <BoardConfigurationForm
                                                         v-if="profileBoardOptions[profile.name].config_options"
                                                         :options="profileBoardOptions[profile.name].config_options"
