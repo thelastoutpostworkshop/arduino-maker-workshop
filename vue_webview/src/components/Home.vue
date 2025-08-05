@@ -15,9 +15,7 @@ const useProgrammer = ref(store.projectInfo?.useProgrammer ?? false);
 const programmer = ref("");
 const optimize_for_debug = ref(false);
 const monitorPortSettings = reactive({ port: "", baudRate: 115200, lineEnding: "\r\n", dataBits: 8, parity: "none", stopBits: "one" });
-const selectedBuildProfile = ref<string | null>(
-  store.projectInfo?.compile_profile ?? null
-);
+const selectedBuildProfile = ref("");
 const portsAvailable = computed(() => getAvailablePorts(store));
 
 // This is a macOS-specific thing. The upload port is on /dev/cu.* and the serial port is on /dev/tty.*
