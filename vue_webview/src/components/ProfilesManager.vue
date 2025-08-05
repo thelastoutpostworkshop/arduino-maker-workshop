@@ -19,6 +19,7 @@ const showBoardConfiguration = ref<Record<string, boolean>>({});
 const disableShowBoardConfiguration = ref<Record<string, boolean>>({});
 const profileBoardOptions = ref<Record<string, BoardConfiguration>>({});
 const profileBoardOptionsError = ref<Record<string, boolean>>({});
+const profileBoardOptionsRetrieving = ref<Record<string, boolean>>({});
 
 function updateConfiguration({ profile_name, options }: { profile_name?: string, options: Record<string, ConfigOptionValue> }) {
     const configString = Object.entries(options)
@@ -48,7 +49,7 @@ function setVisibilityBoardConfiguration(profile_name: string, fqbn: string) {
         });
         store.profileBoardOptionsName = profile_name;
         store.profileBoardOptionsError = ""
-        store.profileBoardOptionsRetrieving = true;
+        profileBoardOptionsRetrieving.value[profile_name] = true;
 
         store.sendMessage({
             command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE,
@@ -71,6 +72,8 @@ watchEffect(() => {
     const profileName = store.profileBoardOptionsName;
     if (profileName) {
         profileBoardOptions.value[profileName] = opts;
+        profileBoardOptionsRetrieving.value[profileName] = false;
+
     }
 
     // Clear to avoid overwriting on next change
@@ -83,6 +86,7 @@ watchEffect(() => {
     const profileName = store.profileBoardOptionsName;
     if (profileName) {
         if (error) {
+            profileBoardOptionsRetrieving.value[profileName] = false;
             profileBoardOptionsError.value[profileName] = true;
         } else {
             profileBoardOptionsError.value[profileName] = false;
@@ -242,7 +246,6 @@ const profilesList = computed(() => {
 
     return profiles;
 });
-
 
 function renameProfile(oldName: string, newName: string) {
     if (!newName || oldName === newName) return;
@@ -530,7 +533,7 @@ onMounted(() => {
                                                         No options available for your board
                                                     </span>
                                                 </span>
-                                                <span v-if="store.profileBoardOptionsRetrieving">
+                                                <span v-if="profileBoardOptionsRetrieving[profile.name]">
                                                     Retrieving board options
                                                     <v-progress-linear color="grey" indeterminate></v-progress-linear>
                                                 </span>

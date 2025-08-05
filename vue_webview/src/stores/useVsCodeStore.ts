@@ -43,7 +43,6 @@ export const useVsCodeStore = defineStore('vsCode', {
         profileBoardOptions: null as BoardConfiguration | null,
         profileBoardOptionsError:"" as string,
         profileBoardOptionsName: "" as string,
-        profileBoardOptionsRetrieving:false,
         boards: null as PlatformsList | null,
         boardConnected: null as BoardConnected | null,
         platform: null as CorePlatforms | null,
@@ -76,7 +75,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         },
         async mockMessage(message: WebviewToExtensionMessage) {
             if (import.meta.env.DEV) {
-                await sleep(5);  // Simulate delay
+                await sleep(1000);  // Simulate delay
                 switch (message.command) {
                     case ARDUINO_MESSAGES.CLI_CORE_SEARCH:
                         loadMockData('coresearch.json').then((mockPayload) => {
@@ -273,7 +272,6 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.compileInProgress = message.payload;
                     break;
                 case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE:
-                    this.profileBoardOptionsRetrieving = false;
                     if (!message.errorMessage) {
                         this.profileBoardOptions = JSON.parse(message.payload);
                         if (this.boardOptions?.config_options) {
