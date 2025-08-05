@@ -22,7 +22,7 @@ profiles:
       - platform: arduino:avr (1.8.6)
     libraries:
       - ArduinoJson (7.4.2)
-    programmer: Arduino as ISP
+    programmer: dfdfdf
     port: COM7
     port_config:
       baudrate: "115200"

@@ -94,6 +94,14 @@ watchEffect(() => {
         profileBoardOptions.value[profileName] = opts;
         profileBoardOptionsRetrieving.value[profileName] = false;
 
+        profilesList.value.forEach(profile => {
+
+            if (profile.programmer) {
+                selectedProgrammer.value[profile.name] = profile.programmer;
+            } else {
+                selectedProgrammer.value[profile.name] = NO_PROGRAMMER;
+            }
+        });
     }
 
     // Clear to avoid overwriting on next change
@@ -302,12 +310,6 @@ watchEffect(() => {
 
     profilesList.value.forEach(profile => {
         selectedPlatformVersion.value[profile.name] = {};
-
-        if (profile.programmer) {
-            selectedProgrammer.value[profile.name] = profile.programmer;
-        } else {
-            selectedProgrammer.value[profile.name] = NO_PROGRAMMER;
-        }
 
         (profile.platforms || []).forEach(platEntry => {
             const { name, version } = parsePlatformEntry(platEntry.platform);
