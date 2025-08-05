@@ -263,13 +263,13 @@ onMounted(() => {
             <v-col cols="12" v-if="profileStatusInformation">
               <v-card color="primary" prepend-icon="mdi-application-array-outline" rounded="lg" class="pa-4">
                 <template #title>
-                  <h2 class="text-h6 font-weight-bold">Sketch Project File</h2>
+                  <span class="text-h6 font-weight-bold">Sketch Project File</span>
                 </template>
                 <template #subtitle>
-                  <div class="text-subtitle-1">
+                  <div text-wrap>
                     Provides support for reproducible builds through the use of build profile
                   </div>
-                  <div class="text-subtitle-2">
+                  <div text-wrap>
                     A profile is a complete description of all the resources needed to build a sketch. The sketch
                   </div>
                 </template>
@@ -312,14 +312,14 @@ onMounted(() => {
           <v-card v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board"
             class="pa-4" color="primary" prepend-icon="mdi-cog" rounded="lg">
             <template #title>
-              <h2 class="text-h6 font-weight-bold">Sketch Configuration</h2>
+              <span class="text-h6 font-weight-bold">Sketch Configuration</span>
             </template>
 
             <template #subtitle>
-              <div class="text-subtitle-1">
+              <div text-wrap>
                 This is your current Arduino standard configuration (without build profiles)
               </div>
-              <div class="text-subtitle-1">
+              <div text-wrap>
                 It is helpful to create build profiles easily
               </div>
             </template>
@@ -425,7 +425,11 @@ onMounted(() => {
             <template #title>
               <h2 class="text-h6 font-weight-bold">Serial Monitor Settings</h2>
             </template>
-
+            <template #subtitle>
+              <div class="text-wrap">
+                Settings to use when opening the serial monitor after an upload
+              </div>
+            </template>
             <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.port"
               :items="serialPortsAvailable" density="compact" label="Serial Port">
               <template v-slot:loader>
