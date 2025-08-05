@@ -126,6 +126,10 @@ export class VueWebviewPanel {
                                 message.command = ARDUINO_MESSAGES.BUILD_PROFILE_CREATED;
                                 VueWebviewPanel.sendMessage(message);
                                 window.showInformationMessage(`Profile ${message.payload} created`);
+                            } else {
+                                message.command = ARDUINO_MESSAGES.BUILD_PROFILE_CREATED;
+                                VueWebviewPanel.sendMessage(message);
+                                window.showErrorMessage(`Profile ${message.payload} not created`);
                             }
                         })
                         break;
