@@ -437,7 +437,7 @@ onMounted(() => {
                                 </v-tooltip>
                             </v-expansion-panel-title>
                             <v-expansion-panel-text>
-                                <v-card rounded="lg" color="primary">
+                                <v-card rounded="lg" variant="tonal">
                                     <v-card-title class="d-flex align-center">
                                         <!-- Profile name (readonly until editing) -->
                                         <template v-if="editingProfileName === profile.originalName">
@@ -469,12 +469,12 @@ onMounted(() => {
                                         </template>
                                     </v-card-subtitle>
 
-                                    <v-card-text>
+                                    <v-card-text >
                                         <div><strong>Programmer:</strong> {{ profile.programmer || '—' }}</div>
 
                                         <div v-if="profile.platforms?.length" class="mt-4">
                                             <strong>Platforms:</strong>
-                                            <v-list density="compact">
+                                            <v-list density="compact" variant="tonal">
                                                 <v-list-item v-for="platEntry in profile.platforms"
                                                     :key="platEntry.platform">
                                                     <v-list-item-title class="d-flex align-center">
@@ -496,12 +496,12 @@ onMounted(() => {
                                         </div>
                                         <div v-if="profile.libraries?.length" class="mt-4">
                                             <strong>Libraries:</strong>
-                                            <v-list density="compact">
+                                            <v-list density="compact" variant="tonal">
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
                                                             }}</span>
-                                                        <v-select v-if="store.libraries"
+                                                        <v-select v-if="store.libraries" 
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
                                                             density="compact" style="max-width: 150px"
