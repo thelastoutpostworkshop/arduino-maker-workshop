@@ -240,7 +240,7 @@ export class CLIArguments {
         ];
         return compileCommand;
     }
-    public getProfileBoardConfigurationArguments(fqbn:string): string[] {
+    public getProfileBoardConfigurationArguments(fqbn: string): string[] {
         const compileCommand = [
             `${boardCommandArduino}`,
             `${detailsFunctionArduino}`,
@@ -364,6 +364,9 @@ export class CLIArguments {
             compileCommand.push(`${buildPathArduino}`);
             compileCommand.push(this.getBuildPath());
             compileCommand.push(arduinoProject.getProjectPath());
+            if (clean) {
+                compileCommand.push(`${compileCleanOption}`);
+            }
             return compileCommand;
         }
 
