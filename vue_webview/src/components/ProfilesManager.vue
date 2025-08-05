@@ -12,6 +12,7 @@ const profileName = ref(`profile-${Date.now()}`);
 const isProfileValid = ref(false);
 const selectedLibraryVersion = ref<Record<string, Record<string, string>>>({});
 const selectedPlatformVersion = ref<Record<string, Record<string, string>>>({});
+const selectedProgrammer = ref<Record<string, string>>({});
 const selectedDefaultProfile = ref<string | null>(null);
 const editingProfileName = ref<string | null>(null);
 const editingNotes = ref<string | null>(null);
@@ -285,6 +286,10 @@ watchEffect(() => {
     profilesList.value.forEach(profile => {
         selectedPlatformVersion.value[profile.name] = {};
 
+        if(profile.programmer) {
+            selectedProgrammer.value[profile.name] = profile.programmer;
+        }
+
         (profile.platforms || []).forEach(platEntry => {
             const { name, version } = parsePlatformEntry(platEntry.platform);
             const availableVersions = getAvailablePlatformVersions(name);
@@ -521,7 +526,7 @@ onMounted(() => {
                                                     <div>
                                                         Programmer:{{ profileBoardOptions[profile.name].programmers }}
                                                     </div>
-                                                    <v-select :items="profileBoardOptions[profile.name].programmers"
+                                                    <v-select  v-model="selectedProgrammer[profile.name]" :items="profileBoardOptions[profile.name].programmers"
                                                         item-title="name" item-value="id"></v-select>
                                                     <BoardConfigurationForm
                                                         v-if="profileBoardOptions[profile.name].config_options"
