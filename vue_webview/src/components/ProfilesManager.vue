@@ -18,6 +18,7 @@ const editingNotes = ref<string | null>(null);
 const showBoardConfiguration = ref<Record<string, boolean>>({});
 const disableShowBoardConfiguration = ref<Record<string, boolean>>({});
 const profileBoardOptions = ref<Record<string, BoardConfiguration>>({});
+const profileBoardOptionsError = ref<Record<string, boolean>>({});
 
 function updateConfiguration({ profile_name, options }: { profile_name?: string, options: Record<string, ConfigOptionValue> }) {
     const configString = Object.entries(options)
@@ -46,6 +47,8 @@ function setVisibilityBoardConfiguration(profile_name: string, fqbn: string) {
                 showBoardConfiguration.value[profile_name] && name !== profile_name;
         });
         store.profileBoardOptionsName = profile_name;
+        store.profileBoardOptionsError = ""
+        store.profileBoardOptionsRetrieving = true;
 
         store.sendMessage({
             command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE,
@@ -64,15 +67,28 @@ function enableAllBoardConfigurations() {
 watchEffect(() => {
     const opts = store.profileBoardOptions;
     if (!opts) return;
-    // Assume store also has lastProfileName or you pass it when sending the message
+    // Assume store also has lastProfileName 
     const profileName = store.profileBoardOptionsName;
     if (profileName) {
         profileBoardOptions.value[profileName] = opts;
-        console.log("received board options=" + profileName)
     }
 
     // Clear to avoid overwriting on next change
     store.profileBoardOptions = null;
+    enableAllBoardConfigurations();
+});
+watchEffect(() => {
+    const error = store.profileBoardOptionsError;
+    // Assume store also has lastProfileName 
+    const profileName = store.profileBoardOptionsName;
+    if (profileName) {
+        if (error) {
+            profileBoardOptionsError.value[profileName] = true;
+        } else {
+            profileBoardOptionsError.value[profileName] = false;
+        }
+    }
+    store.profileBoardOptionsError = "";
     enableAllBoardConfigurations();
 });
 
@@ -367,7 +383,7 @@ onMounted(() => {
                                     <v-tooltip v-if="!store.profileUpdating" location="top">
                                         <template #activator="{ props }">
                                             <div
-                                            v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && !store.projectInfo?.board">
+                                                v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && !store.projectInfo?.board">
                                                 <v-btn @click="router.push({ name: 'board-selection' })">Select your
                                                     board first</v-btn>
                                             </div>
@@ -399,7 +415,7 @@ onMounted(() => {
                                 </v-row>
                             </v-form>
                         </v-card-text>
-                     </v-card>
+                    </v-card>
                     <div>You have {{ profilesList.length }} build profiles:</div>
                     <v-expansion-panels multiple variant="popout">
                         <v-expansion-panel v-for="profile in profilesList" :key="profile.name">
@@ -459,7 +475,7 @@ onMounted(() => {
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{
                                                             parsePlatformEntry(platEntry.platform).name
-                                                            }}</span>
+                                                        }}</span>
 
                                                         <v-select v-if="store.platform"
                                                             :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
@@ -479,7 +495,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                            }}</span>
+                                                        }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
@@ -491,6 +507,10 @@ onMounted(() => {
                                         </div>
                                         <v-expand-transition>
                                             <div v-show="showBoardConfiguration[profile.name]" class="mt-5">
+                                                <v-alert v-if="profileBoardOptionsError[profile.name]" type="error"
+                                                    border="start" icon="mdi-alert" class="mb-3">
+                                                    Install the board to change options
+                                                </v-alert>
                                                 <span v-if="profileBoardOptions[profile.name]">
                                                     <BoardConfigurationForm
                                                         v-if="profileBoardOptions[profile.name].config_options"
@@ -510,7 +530,7 @@ onMounted(() => {
                                                         No options available for your board
                                                     </span>
                                                 </span>
-                                                <span v-else>
+                                                <span v-if="store.profileBoardOptionsRetrieving">
                                                     Retrieving board options
                                                     <v-progress-linear color="grey" indeterminate></v-progress-linear>
                                                 </span>

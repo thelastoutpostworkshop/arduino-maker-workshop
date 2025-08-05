@@ -41,7 +41,9 @@ export const useVsCodeStore = defineStore('vsCode', {
         projectStatus: null as ArduinoProjectStatus | null,
         boardOptions: null as BoardConfiguration | null,
         profileBoardOptions: null as BoardConfiguration | null,
-        profileBoardOptionsName : "",
+        profileBoardOptionsError:"" as string,
+        profileBoardOptionsName: "" as string,
+        profileBoardOptionsRetrieving:false,
         boards: null as PlatformsList | null,
         boardConnected: null as BoardConnected | null,
         platform: null as CorePlatforms | null,
@@ -109,10 +111,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE:
-                        loadMockData('profile_board_options.json').then((mockPayload) => {
-                            message.payload = mockPayload;
-                            this.handleMessage(message);
-                        });
+                        // loadMockData('profile_board_options.json').then((mockPayload) => {
+                        //     message.payload = mockPayload;
+                        //     this.handleMessage(message);
+                        // });
+                        message.payload = ""
+                        message.errorMessage = "Board not installed";
+                        this.handleMessage(message);
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                         loadMockData('arduino_configuration.json', false).then((mockPayload) => {
@@ -268,15 +273,21 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.compileInProgress = message.payload;
                     break;
                 case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE:
-                    this.profileBoardOptions = JSON.parse(message.payload);
-                    if (this.boardOptions?.config_options) {
-                        this.boardOptions?.config_options.forEach((configOption) => {
-                            configOption.values.forEach((value) => {
-                                if (value.selected === undefined) {
-                                    value.selected = false;
-                                }
+                    this.profileBoardOptionsRetrieving = false;
+                    if (!message.errorMessage) {
+                        this.profileBoardOptions = JSON.parse(message.payload);
+                        if (this.boardOptions?.config_options) {
+                            this.boardOptions?.config_options.forEach((configOption) => {
+                                configOption.values.forEach((value) => {
+                                    if (value.selected === undefined) {
+                                        value.selected = false;
+                                    }
+                                });
                             });
-                        });
+                        }
+                    } else {
+                        this.profileBoardOptions = null;
+                        this.profileBoardOptionsError = "Install the board to change the board options"
                     }
                     break;
                 case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
