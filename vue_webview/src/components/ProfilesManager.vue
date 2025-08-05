@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BoardConfiguration, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, YAML_FILENAME } from '@shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BoardConfiguration, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, NO_PROGRAMMER, YAML_FILENAME } from '@shared/messages';
 import { useRouter } from 'vue-router';
 
 const router = useRouter()
@@ -21,6 +21,11 @@ const disableShowBoardConfiguration = ref<Record<string, boolean>>({});
 const profileBoardOptions = ref<Record<string, BoardConfiguration>>({});
 const profileBoardOptionsError = ref<Record<string, boolean>>({});
 const profileBoardOptionsRetrieving = ref<Record<string, boolean>>({});
+
+function getProgrammerOptions(profileName: string) {
+    const opts = profileBoardOptions.value[profileName]?.programmers || [];
+    return [{ name: NO_PROGRAMMER, id: NO_PROGRAMMER }, ...opts];
+}
 
 function updateConfiguration({ profile_name, options }: { profile_name?: string, options: Record<string, ConfigOptionValue> }) {
     const configString = Object.entries(options)
@@ -286,8 +291,10 @@ watchEffect(() => {
     profilesList.value.forEach(profile => {
         selectedPlatformVersion.value[profile.name] = {};
 
-        if(profile.programmer) {
+        if (profile.programmer) {
             selectedProgrammer.value[profile.name] = profile.programmer;
+        } else {
+            selectedProgrammer.value[profile.name] = NO_PROGRAMMER;
         }
 
         (profile.platforms || []).forEach(platEntry => {
@@ -526,8 +533,9 @@ onMounted(() => {
                                                     <div>
                                                         Programmer:{{ profileBoardOptions[profile.name].programmers }}
                                                     </div>
-                                                    <v-select  v-model="selectedProgrammer[profile.name]" :items="profileBoardOptions[profile.name].programmers"
-                                                        item-title="name" item-value="id"></v-select>
+                                                    <v-select v-model="selectedProgrammer[profile.name]"
+                                                        :items="getProgrammerOptions(profile.name)" item-title="name"
+                                                        item-value="id"></v-select>
                                                     <BoardConfigurationForm
                                                         v-if="profileBoardOptions[profile.name].config_options"
                                                         :options="profileBoardOptions[profile.name].config_options"

@@ -4,6 +4,7 @@ export const ArduinoExtensionChannelName = 'Arduino Extension';
 export const YAML_FILENAME = 'sketch.yaml';
 export const YAML_FILENAME_INACTIVE = 'sketch.yaml.disabled';
 export const NO_DEFAULT_PROFILE = '<none>';
+export const NO_PROGRAMMER = '<none>';
 export const DEFAULT_PROFILE = 'default_profile';
 export const UNKNOWN_PROFILE = 'unknown_profile';
 export const BUILD_NAME_PROFILE = 'build_';
