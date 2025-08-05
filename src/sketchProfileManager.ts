@@ -396,23 +396,6 @@ export class SketchProfileManager {
         }
     }
 
-    create(): void {
-        const yamlData: SketchYaml = {
-            profiles: {
-                profile_1: {
-                    fqbn: arduinoProject.getBoardConfiguration(),
-                    platforms: [
-                        {
-                            platform: arduinoProject.getBoard()
-                        }
-                    ]
-                },
-            },
-        };
-
-        this.writeYaml(yamlData);
-    }
-
     listProfiles(): string[] {
         const yamlData = this.getYaml();
         return yamlData ? Object.keys(yamlData.profiles) : [];
