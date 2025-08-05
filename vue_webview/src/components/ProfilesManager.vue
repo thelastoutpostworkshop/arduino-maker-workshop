@@ -517,6 +517,10 @@ onMounted(() => {
                                                     Install the board to change options
                                                 </v-alert>
                                                 <span v-if="profileBoardOptions[profile.name]">
+                                                    <div>
+                                                        Programmer:{{ profileBoardOptions[profile.name].programmers }}
+                                                    </div>
+                                                    <v-select :items="profileBoardOptions[profile.name].programmers" item-title="name" item-value="id"></v-select>
                                                     <BoardConfigurationForm
                                                         v-if="profileBoardOptions[profile.name].config_options"
                                                         :options="profileBoardOptions[profile.name].config_options"
