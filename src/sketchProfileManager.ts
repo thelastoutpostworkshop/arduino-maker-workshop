@@ -290,6 +290,34 @@ export class SketchProfileManager {
         return fqbn.substring(0, lastColonIndex);
     }
 
+    updateProfileProgrammer(programmerUpdate: BuildProfileUpdate): boolean {
+        this.clearError();
+
+        const yamlData = this.getYaml();
+        if (!yamlData || !yamlData.profiles) {
+            this.setLastError(`Cannot update programmer, no YAML data or profiles found`);
+            return false;
+        }
+
+        const profile = yamlData.profiles[programmerUpdate.profile_name];
+        if (!profile) {
+            this.setLastError(`Cannot update programmer, profile "${programmerUpdate.profile_name}" not found.`);
+            return false;
+        }
+
+        // Update programmer
+        if (programmerUpdate.programmer !== undefined) {
+            profile.programmer = programmerUpdate.programmer;
+            yamlData.profiles[programmerUpdate.profile_name] = profile;
+
+            // Save the updated YAML
+            this.writeYaml(yamlData);
+            return true;
+        } else {
+            this.setLastError(`No programmer value provided`);
+            return false;
+        }
+    }
 
     updateProfileFqbn(updateFqbn: BuildProfileUpdate): boolean {
         this.clearError();
