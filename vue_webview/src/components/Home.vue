@@ -266,10 +266,10 @@ onMounted(() => {
                   <span class="text-h6 font-weight-bold">Sketch Project File</span>
                 </template>
                 <template #subtitle>
-                  <div text-wrap>
+                  <div class="text-wrap">
                     Provides support for reproducible builds through the use of build profile
                   </div>
-                  <div text-wrap>
+                  <div text-class="text-wrap">
                     A profile is a complete description of all the resources needed to build a sketch. The sketch
                   </div>
                 </template>
@@ -316,10 +316,10 @@ onMounted(() => {
             </template>
 
             <template #subtitle>
-              <div text-wrap>
+              <div class="text-wrap">
                 This is your current Arduino standard configuration (without build profiles)
               </div>
-              <div text-wrap>
+              <div text-class="text-wrap">
                 It is helpful to create build profiles easily
               </div>
             </template>
