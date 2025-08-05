@@ -3,8 +3,8 @@
   "configuration": "UploadSpeed=921600,USBMode=hwcdc,CDCOnBoot=default,MSCOnBoot=default,DFUOnBoot=default,UploadMode=default,CPUFreq=240,FlashMode=qio,FlashSize=4M,PartitionScheme=default,DebugLevel=none,PSRAM=disabled,LoopCore=1,EventsCore=1,EraseFlash=none,JTAGAdapter=default,ZigbeeMode=default",
   "output": "build",
   "board": "esp32:esp32:esp32s3",
-  "programmer": "",
-  "useProgrammer": false,
+  "programmer": "Arduino as ISP",
+  "useProgrammer": true,
   "configurationRequired": true,
   "monitorPortSettings": {
     "port": "COM5",

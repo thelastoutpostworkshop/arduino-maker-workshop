@@ -108,9 +108,11 @@ export class SketchProfileManager {
             profile = { ...profileData };
         }
 
-        // Add programmer if in use
+        // Add programmer 
         if (arduinoProject.useProgrammer()) {
-            profile.programmer = arduinoProject.getProgrammer() ?? profile.programmer;
+            profile.programmer = arduinoProject.getProgrammer() ?? "";
+        } else {
+            profile.programmer = "";
         }
 
         // Port settings
