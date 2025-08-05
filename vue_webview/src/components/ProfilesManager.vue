@@ -469,7 +469,7 @@ onMounted(() => {
                                         </template>
                                     </v-card-subtitle>
 
-                                    <v-card-text >
+                                    <v-card-text>
                                         <div><strong>Programmer:</strong> {{ profile.programmer || '—' }}</div>
 
                                         <div v-if="profile.platforms?.length" class="mt-4">
@@ -477,20 +477,20 @@ onMounted(() => {
                                             <v-list density="compact" variant="tonal">
                                                 <v-list-item v-for="platEntry in profile.platforms"
                                                     :key="platEntry.platform">
-                                                    <v-list-item-title class="d-flex align-center">
-                                                        <span class="flex-grow-1">{{
-                                                            parsePlatformEntry(platEntry.platform).name
-                                                            }}</span>
+                                                    <v-list-item-title>
+                                                        {{ parsePlatformEntry(platEntry.platform).name }}
 
-                                                        <v-select v-if="store.platform"
-                                                            :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
-                                                            v-model="selectedPlatformVersion[profile.name][parsePlatformEntry(platEntry.platform).name]"
-                                                            density="compact" style="max-width: 150px"
-                                                            @update:model-value="val => updatePlatformVersion(profile.name, platEntry.platform, val)" />
                                                     </v-list-item-title>
                                                     <v-list-item-subtitle v-if="platEntry.platform_index_url">
                                                         {{ platEntry.platform_index_url }}
                                                     </v-list-item-subtitle>
+                                                    <template v-slot:append>
+                                                        <v-select v-if="store.platform"
+                                                            :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
+                                                            v-model="selectedPlatformVersion[profile.name][parsePlatformEntry(platEntry.platform).name]"
+                                                            density="compact"
+                                                            @update:model-value="val => updatePlatformVersion(profile.name, platEntry.platform, val)" />
+                                                    </template>
                                                 </v-list-item>
                                             </v-list>
                                         </div>
@@ -498,15 +498,16 @@ onMounted(() => {
                                             <strong>Libraries:</strong>
                                             <v-list density="compact" variant="tonal">
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
-                                                    <v-list-item-title class="d-flex align-center">
-                                                        <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                            }}</span>
-                                                        <v-select v-if="store.libraries" 
+                                                    <v-list-item-title>
+                                                        {{ parseLibraryEntry(libEntry).name }}
+                                                    </v-list-item-title>
+                                                    <template v-slot:append>
+                                                        <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
-                                                            density="compact" style="max-width: 150px"
+                                                            density="compact"
                                                             @update:model-value="val => updateLibraryVersion(profile.name, libEntry, val)" />
-                                                    </v-list-item-title>
+                                                    </template>
                                                 </v-list-item>
                                             </v-list>
                                         </div>
@@ -520,7 +521,8 @@ onMounted(() => {
                                                     <div>
                                                         Programmer:{{ profileBoardOptions[profile.name].programmers }}
                                                     </div>
-                                                    <v-select :items="profileBoardOptions[profile.name].programmers" item-title="name" item-value="id"></v-select>
+                                                    <v-select :items="profileBoardOptions[profile.name].programmers"
+                                                        item-title="name" item-value="id"></v-select>
                                                     <BoardConfigurationForm
                                                         v-if="profileBoardOptions[profile.name].config_options"
                                                         :options="profileBoardOptions[profile.name].config_options"
