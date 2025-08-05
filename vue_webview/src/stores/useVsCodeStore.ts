@@ -110,7 +110,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE:
-                        loadMockData('profile_board_options_avr.json').then((mockPayload) => {
+                        loadMockData('profile_board_options.json').then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });

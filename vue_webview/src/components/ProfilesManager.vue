@@ -530,9 +530,9 @@ onMounted(() => {
                                                     Install the board to change options
                                                 </v-alert>
                                                 <span v-if="profileBoardOptions[profile.name]">
-                                                    <div>
-                                                        Programmer:{{ profileBoardOptions[profile.name].programmers }}
-                                                    </div>
+                                                    <span>
+                                                        <strong> Programmer</strong>
+                                                    </span>
                                                     <v-select v-model="selectedProgrammer[profile.name]"
                                                         :items="getProgrammerOptions(profile.name)" item-title="name"
                                                         item-value="id"></v-select>
@@ -550,9 +550,6 @@ onMounted(() => {
                                                             </div>
                                                         </template>
                                                     </BoardConfigurationForm>
-                                                    <span v-else>
-                                                        No options available for your board
-                                                    </span>
                                                 </span>
                                                 <span v-if="profileBoardOptionsRetrieving[profile.name]">
                                                     Retrieving board options
