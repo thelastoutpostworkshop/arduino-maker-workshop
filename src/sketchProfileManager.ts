@@ -84,7 +84,7 @@ export class SketchProfileManager {
         return true;
     }
 
-    updateProfile(profileName: string, profileData: string | BuildProfile): void {
+    createProfile(profileName: string, profileData: string | BuildProfile): void {
         const yamlData = this.getYaml() ?? { profiles: {} };
 
         let profile: BuildProfile;

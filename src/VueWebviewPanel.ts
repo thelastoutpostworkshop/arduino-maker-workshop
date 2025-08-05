@@ -122,7 +122,7 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.CREATE_BUILD_PROFILE:
                         compile(false, true).then((profile) => {
                             if (profile) {
-                                arduinoYaml.updateProfile(message.payload, profile);
+                                arduinoYaml.createProfile(message.payload, profile);
                                 message.command = ARDUINO_MESSAGES.BUILD_PROFILE_CREATED;
                                 VueWebviewPanel.sendMessage(message);
                                 window.showInformationMessage(`Profile ${message.payload} created`);
