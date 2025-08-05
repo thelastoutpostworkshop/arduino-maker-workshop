@@ -42,20 +42,22 @@ function updateConfiguration({ profile_name, options }: { profile_name?: string,
 function setVisibilityBoardConfiguration(profile_name: string, fqbn: string) {
     showBoardConfiguration.value[profile_name] = !showBoardConfiguration.value[profile_name];
     if (showBoardConfiguration.value[profile_name]) {
-        // Disable all other profiles except the current one if it's open to avoid sending overlapping ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE
-        Object.keys(showBoardConfiguration.value).forEach((name) => {
-            disableShowBoardConfiguration.value[name] =
-                showBoardConfiguration.value[profile_name] && name !== profile_name;
-        });
-        store.profileBoardOptionsName = profile_name;
-        store.profileBoardOptionsError = ""
-        profileBoardOptionsRetrieving.value[profile_name] = true;
+        if (!profileBoardOptions.value[profile_name]) {
+            // Disable all other profiles except the current one if it's open to avoid sending overlapping ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE
+            Object.keys(showBoardConfiguration.value).forEach((name) => {
+                disableShowBoardConfiguration.value[name] =
+                    showBoardConfiguration.value[profile_name] && name !== profile_name;
+            });
+            store.profileBoardOptionsName = profile_name;
+            store.profileBoardOptionsError = ""
+            profileBoardOptionsRetrieving.value[profile_name] = true;
 
-        store.sendMessage({
-            command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE,
-            errorMessage: "",
-            payload: fqbn
-        })
+            store.sendMessage({
+                command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE,
+                errorMessage: "",
+                payload: fqbn
+            })
+        }
     }
 }
 
@@ -478,7 +480,7 @@ onMounted(() => {
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{
                                                             parsePlatformEntry(platEntry.platform).name
-                                                        }}</span>
+                                                            }}</span>
 
                                                         <v-select v-if="store.platform"
                                                             :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
@@ -498,7 +500,7 @@ onMounted(() => {
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title class="d-flex align-center">
                                                         <span class="flex-grow-1">{{ parseLibraryEntry(libEntry).name
-                                                        }}</span>
+                                                            }}</span>
                                                         <v-select v-if="store.libraries"
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"

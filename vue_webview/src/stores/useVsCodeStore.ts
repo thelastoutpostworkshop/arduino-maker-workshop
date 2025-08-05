@@ -110,13 +110,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE:
-                        // loadMockData('profile_board_options.json').then((mockPayload) => {
-                        //     message.payload = mockPayload;
-                        //     this.handleMessage(message);
-                        // });
-                        message.payload = ""
-                        message.errorMessage = "Board not installed";
-                        this.handleMessage(message);
+                        loadMockData('profile_board_options.json').then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
+                        // message.payload = ""
+                        // message.errorMessage = "Board not installed";
+                        // this.handleMessage(message);
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                         loadMockData('arduino_configuration.json', false).then((mockPayload) => {
