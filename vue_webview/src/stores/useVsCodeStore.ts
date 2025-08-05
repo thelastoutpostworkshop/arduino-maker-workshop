@@ -149,7 +149,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                             const sketchProject: SketchProjectFile = {
                                 yaml: mockPayload,
                                 error: "",
-                                buildProfileStatus: PROFILES_STATUS.INACTIVE
+                                buildProfileStatus: PROFILES_STATUS.ACTIVE
                             }
                             message.payload = sketchProject;
                             this.handleMessage(message);
