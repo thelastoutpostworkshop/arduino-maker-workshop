@@ -32,24 +32,6 @@ function changeStatusBuildProfile() {
       break;
   }
 }
-const lineEndings = [
-  { title: "CR", value: "\r" },
-  { title: "CRLF", value: "\r\n" },
-  { title: "LF", value: "\n" },
-  { title: "None", value: "none" },
-];
-const parity = [
-  { title: "None", value: "none" },
-  { title: "Odd", value: "odd" },
-  { title: "Even", value: "even" },
-  { title: "Mark", value: "mark" },
-  { title: "Space", value: "space" }
-];
-const stopBits = [
-  { title: "One", value: "one" },
-  { title: "Onepointfive", value: "onepointfive" },
-  { title: "Two", value: "two" }
-];
 
 function getStoredMonitorPortSettings() {
   if (store.projectInfo?.monitorPortSettings) {
@@ -425,6 +407,8 @@ onMounted(() => {
           <v-card class="mt-5 pa-4"
             v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board" color="primary"
             prepend-icon="mdi-serial-port" rounded="lg">
+            <SerialMonitorSettings v-model:monitorPortSettings="monitorPortSettings" :serialPortsAvailable="serialPortsAvailable" @refreshPorts="refreshPorts" />
+
             <template #title>
               <h2 class="text-h6 font-weight-bold">Serial Monitor Extension Settings</h2>
             </template>
@@ -433,52 +417,7 @@ onMounted(() => {
                 Settings to use when opening the serial monitor extension after an upload
               </div>
             </template>
-            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.port"
-              :items="serialPortsAvailable" density="compact" label="Serial Port">
-              <template v-slot:loader>
-                <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
-                  indeterminate></v-progress-linear>
-              </template>
-              <template v-if="store.boardConnected?.detected_ports" v-slot:append>
-                <v-btn @click="refreshPorts" icon="mdi-refresh" variant="text"></v-btn>
-              </template>
-            </v-select>
-            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.baudRate" :items="[
-              300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 74880, 115200, 230400, 250000
-            ]" density="compact" label="Baud Rate">
-              <template v-slot:loader>
-                <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
-                  indeterminate></v-progress-linear>
-              </template>
-            </v-select>
-            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.lineEnding"
-              :items="lineEndings" item-title="title" item-value="value" density="compact" label="Line Ending">
-              <template v-slot:loader>
-                <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
-                  indeterminate></v-progress-linear>
-              </template>
-            </v-select>
-            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.dataBits"
-              :items="[5, 6, 7, 8]" density="compact" label="Data Bits">
-              <template v-slot:loader>
-                <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
-                  indeterminate></v-progress-linear>
-              </template>
-            </v-select>
-            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.stopBits"
-              :items="stopBits" item-title="title" item-value="value" density="compact" label="Stop Bits">
-              <template v-slot:loader>
-                <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
-                  indeterminate></v-progress-linear>
-              </template>
-            </v-select>
-            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="monitorPortSettings.parity"
-              :items="parity" item-title="title" item-value="value" density="compact" label="Parity">
-              <template v-slot:loader>
-                <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
-                  indeterminate></v-progress-linear>
-              </template>
-            </v-select>
+
           </v-card>
         </v-col>
       </v-row>

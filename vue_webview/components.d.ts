@@ -18,6 +18,7 @@ declare module 'vue' {
     ProfilesManager: typeof import('./src/components/ProfilesManager.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SerialMonitorSettings: typeof import('./src/components/SerialMonitorSettings.vue')['default']
     Theme: typeof import('./src/components/Theme.vue')['default']
     Toolbox: typeof import('./src/components/Toolbox.vue')['default']
   }
