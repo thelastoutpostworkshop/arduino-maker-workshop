@@ -28,15 +28,15 @@ const portsAvailable = computed(() => getAvailablePorts(store));
 
 function updatePortSettings(settings: PortSettings) {
     console.log(settings);
-//   store.sendMessage({
-//     command: ARDUINO_MESSAGES.SET_MONITOR_PORT_SETTINGS,
-//     errorMessage: "",
-//     payload: JSON.stringify(settings),
-//   });;
+    //   store.sendMessage({
+    //     command: ARDUINO_MESSAGES.SET_MONITOR_PORT_SETTINGS,
+    //     errorMessage: "",
+    //     payload: JSON.stringify(settings),
+    //   });;
 }
 function refreshPorts() {
-  store.boardConnected = null;
-  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
+    store.boardConnected = null;
+    store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
 }
 function getProgrammerOptions(profileName: string) {
     const opts = profileBoardOptions.value[profileName]?.programmers || [];
@@ -558,11 +558,15 @@ onMounted(() => {
                                                 </v-list-item>
                                             </v-list>
                                         </span>
-                                        <span>
-                                            <SerialMonitorSettings v-model:monitorPortSettings="profileMonitorSettings[profile.name]"
-                                                :serialPortsAvailable="portsAvailable"
-                                                @update="updatePortSettings" @refreshPorts="refreshPorts" />
-                                        </span>
+                                        <div class="mt-2">
+                                            <span>
+                                                <strong>Port Settings:</strong>
+                                            </span>
+                                            <SerialMonitorSettings
+                                                v-model:monitorPortSettings="profileMonitorSettings[profile.name]"
+                                                :serialPortsAvailable="portsAvailable" @update="updatePortSettings"
+                                                @refreshPorts="refreshPorts" />
+                                        </div>
                                         <v-expand-transition>
                                             <span v-show="showBoardConfiguration[profile.name]" class="mt-5">
                                                 <v-alert v-if="profileBoardOptionsError[profile.name]" type="error"
