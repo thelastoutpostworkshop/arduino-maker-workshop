@@ -272,9 +272,20 @@ onMounted(() => {
                     A profile is a complete description of all the resources needed to build a sketch. The sketch
                   </div>
                 </template>
-                <v-alert variant="tonal" :title="profileStatusInformation.title" border="start"
-                  :border-color="profileStatusInformation.color">
+                <v-alert variant="tonal" border="start" :border-color="profileStatusInformation.color">
                   {{ profileStatusInformation.text }}
+
+                  <template #title>
+                    {{ profileStatusInformation.title }}
+                    <v-tooltip location="top">
+                      <template #activator="{ props }">
+                        <v-btn v-bind="props" icon variant="text" @click="$router.push({ name: 'profiles-manager' })">
+                          <v-icon>mdi-arrow-right</v-icon>
+                        </v-btn>
+                      </template>
+                      <span>Open Profiles Manager</span>
+                    </v-tooltip>
+                  </template>
 
                   <template #text>
                     <div class="mt-3" v-if="store.sketchProject?.buildProfileStatus === PROFILES_STATUS.ACTIVE">
@@ -293,14 +304,7 @@ onMounted(() => {
                       </template>
                       <span>{{ profileStatusInformation.tooltip }}</span>
                     </v-tooltip>
-                    <v-tooltip location="top">
-                      <template #activator="{ props }">
-                        <v-btn v-bind="props" icon variant="text" @click="$router.push({ name: 'profiles-manager' })">
-                          <v-icon>mdi-arrow-right</v-icon>
-                        </v-btn>
-                      </template>
-                      <span>Open Profiles Manager</span>
-                    </v-tooltip>
+
                   </template>
                 </v-alert>
 
