@@ -465,7 +465,6 @@ onMounted(() => {
                             <v-expansion-panel-text>
                                 <v-card rounded="lg" variant="tonal">
                                     <v-card-title class="d-flex align-center">
-                                        <!-- Profile name (readonly until editing) -->
                                         <template v-if="editingProfileName === profile.originalName">
                                             <v-text-field v-model="profile.name" label="Profile Name" variant="outlined"
                                                 density="compact" class="flex-grow-1 mr-3"
@@ -481,7 +480,6 @@ onMounted(() => {
                                     </v-card-title>
 
                                     <v-card-subtitle class="d-flex align-center">
-                                        <!-- Profile notes (readonly until editing) -->
                                         <template v-if="editingNotes === profile.name">
                                             <v-textarea v-model="profile.notes" label="Profile Notes" variant="outlined"
                                                 density="compact" rows="2" auto-grow class="flex-grow-1 mr-3"
@@ -496,7 +494,7 @@ onMounted(() => {
                                     </v-card-subtitle>
 
                                     <v-card-text>
-                                        <div v-if="profile.platforms?.length" class="mt-4">
+                                        <span v-if="profile.platforms?.length" class="mt-4">
                                             <strong>Platforms:</strong>
                                             <v-list density="compact" variant="tonal">
                                                 <v-list-item v-for="platEntry in profile.platforms"
@@ -517,8 +515,8 @@ onMounted(() => {
                                                     </template>
                                                 </v-list-item>
                                             </v-list>
-                                        </div>
-                                        <div v-if="profile.libraries?.length" class="mt-4">
+                                        </span>
+                                        <span v-if="profile.libraries?.length" class="mt-4">
                                             <strong>Libraries:</strong>
                                             <v-list density="compact" variant="tonal">
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
@@ -534,9 +532,9 @@ onMounted(() => {
                                                     </template>
                                                 </v-list-item>
                                             </v-list>
-                                        </div>
+                                        </span>
                                         <v-expand-transition>
-                                            <div v-show="showBoardConfiguration[profile.name]" class="mt-5">
+                                            <span v-show="showBoardConfiguration[profile.name]" class="mt-5">
                                                 <v-alert v-if="profileBoardOptionsError[profile.name]" type="error"
                                                     border="start" icon="mdi-alert" class="mb-3">
                                                     Install the board to change options
@@ -568,7 +566,7 @@ onMounted(() => {
                                                     Retrieving board options
                                                     <v-progress-linear color="grey" indeterminate></v-progress-linear>
                                                 </span>
-                                            </div>
+                                            </span>
                                         </v-expand-transition>
                                     </v-card-text>
                                     <v-card-actions>
