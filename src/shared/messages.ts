@@ -466,6 +466,7 @@ export interface BuildProfileUpdate {
   fqbn?: string;
   programmer?: string;
   notes?: string;
+  port_settings?:PortSettings;
 }
 
 // Messages exchanged between the extension and the webview
@@ -515,6 +516,7 @@ export const ARDUINO_MESSAGES = {
   UPDATE_BUILD_PROFILE_NOTES: 'updateBuildProfileNotes',
   UPDATE_BUILD_PROFILE_FQBN: 'updateBuildProfileFQBN',
   UPDATE_BUILD_PROFILE_PROGRAMMER: 'updateBuildProfileProgrammer',
+  UPDATE_BUILD_PROFILE_PORT_SETTINGS: 'updateBuildProfilePortSettings',
   RENAME_BUILD_PROFILE_NAME: 'renameBuildProfileName',
   DELETE_BUILD_PROFILE: 'deleteBuildProfile',
   SET_DEFAULT_PROFILE: 'setDefaultProfile',

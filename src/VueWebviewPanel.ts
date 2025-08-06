@@ -1,7 +1,7 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionContext } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectStatus, PROFILES_STATUS, SketchProjectFile, WebviewToExtensionMessage, YAML_FILENAME } from './shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, SketchProjectFile, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, compile, loadArduinoConfiguration, openExample, shouldDetectPorts, updateStateCompileUpload } from "./extension";
 
 const path = require('path');
@@ -153,6 +153,9 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_PROGRAMMER:
                         arduinoYaml.updateProfileProgrammer(message.payload);
+                        break;
+                    case ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_PORT_SETTINGS:
+                        arduinoYaml.updateProfilePortSettings(message.payload);
                         break;
                     case ARDUINO_MESSAGES.SET_COMPILE_PROFILE:
                         arduinoProject.setCompileProfile(message.payload);

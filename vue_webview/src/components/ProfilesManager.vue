@@ -26,13 +26,23 @@ const profileMonitorSettings = ref<Record<string, PortSettings>>({});
 const portsAvailable = computed(() => getAvailablePorts(store));
 
 function updatePortSettings({ settings, profile_name }: { settings: PortSettings; profile_name: string }) {
-    console.log(profile_name);
-    console.log(settings);
-    //   store.sendMessage({
-    //     command: ARDUINO_MESSAGES.SET_MONITOR_PORT_SETTINGS,
-    //     errorMessage: "",
-    //     payload: JSON.stringify(settings),
-    //   });;
+    const safeSettings: PortSettings = {
+        port: settings.port,
+        baudRate: settings.baudRate,
+        lineEnding: settings.lineEnding,
+        dataBits: settings.dataBits,
+        parity: settings.parity,
+        stopBits: settings.stopBits
+    }
+    const updates: BuildProfileUpdate = {
+        profile_name: profile_name,
+        port_settings: safeSettings
+    }
+    store.sendMessage({
+        command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_PORT_SETTINGS,
+        errorMessage: "",
+        payload: updates,
+    });;
 }
 function refreshPorts() {
     store.boardConnected = null;
@@ -564,9 +574,8 @@ onMounted(() => {
                                             </span>
                                             <SerialMonitorSettings
                                                 v-model:monitorPortSettings="profileMonitorSettings[profile.name]"
-                                                :profile_name="profile.name"
-                                                :serialPortsAvailable="portsAvailable" @update="updatePortSettings"
-                                                @refreshPorts="refreshPorts" />
+                                                :profile_name="profile.name" :serialPortsAvailable="portsAvailable"
+                                                @update="updatePortSettings" @refreshPorts="refreshPorts" />
                                         </div>
                                         <v-expand-transition>
                                             <span v-show="showBoardConfiguration[profile.name]" class="mt-5">

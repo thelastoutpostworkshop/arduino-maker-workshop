@@ -277,6 +277,44 @@ export class SketchProfileManager {
         };
     }
 
+    updateProfilePortSettings(portSettings: BuildProfileUpdate): boolean {
+        this.clearError();
+
+        const yamlData = this.getYaml();
+        if (!yamlData || !yamlData.profiles) {
+            this.setLastError(`Cannot update port settings, no YAML data or profiles found.`);
+            return false;
+        }
+
+        const profile = yamlData.profiles[portSettings.profile_name];
+        if (!profile) {
+            this.setLastError(`Cannot update port settings, profile "${portSettings.profile_name}" not found.`);
+            return false;
+        }
+
+        if (portSettings.port_settings) {
+            // Update port and port_config
+            profile.port = portSettings.port_settings.port;
+            profile.port_config = {
+                baudrate: portSettings.port_settings.baudRate.toString(),
+                lineEnding: portSettings.port_settings.lineEnding,
+                bits: portSettings.port_settings.dataBits.toString(),
+                parity: portSettings.port_settings.parity,
+                stop_bits: portSettings.port_settings.stopBits
+            };
+
+            // Save updated profile
+            yamlData.profiles[portSettings.profile_name] = profile;
+            this.writeYaml(yamlData);
+            return true;
+        } else {
+            this.setLastError(`No port settinfs value provided`);
+            return false;
+        }
+
+    }
+
+
     private getBoardNameFromFqbn(fqbn: string): string | undefined {
         if (!fqbn || typeof fqbn !== "string") return undefined;
 
