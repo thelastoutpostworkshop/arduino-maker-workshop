@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { computed, watch, onMounted, ref } from 'vue';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, DEFAULT_PROFILE, PortSettings, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
 import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
 import arduinoImage from '@/assets/extension_icon.png';
 import { getAvailablePorts } from '@/utilities/utils';
-import { PortSettings } from './SerialMonitorSettings.vue';
 
 const router = useRouter()
 const store = useVsCodeStore();

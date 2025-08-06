@@ -1,15 +1,7 @@
 <script setup lang="ts">
 import { watch } from "vue";
 import { useVsCodeStore } from "@/stores/useVsCodeStore";
-
-export interface PortSettings {
-    port: string;
-    baudRate: number;
-    lineEnding: string;
-    dataBits: number;
-    parity: string;
-    stopBits: string;
-}
+import { PortSettings } from "@shared/messages";
 
 const props = defineProps<{
     monitorPortSettings: PortSettings;

@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BoardConfiguration, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, NO_PROGRAMMER, YAML_FILENAME } from '@shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BoardConfiguration, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, NO_PROGRAMMER, PortSettings, YAML_FILENAME } from '@shared/messages';
 import { useRouter } from 'vue-router';
-import { PortSettings } from './SerialMonitorSettings.vue';
 import { getAvailablePorts } from '@/utilities/utils';
 
 const router = useRouter()

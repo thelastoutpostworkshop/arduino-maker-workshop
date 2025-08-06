@@ -89,6 +89,15 @@ export interface Updater {
   enable_notification: boolean;
 }
 
+export interface PortSettings {
+  port: string;
+  baudRate: number;
+  lineEnding: string;
+  dataBits: number;
+  parity: string;
+  stopBits: string;
+}
+
 // Arduino Project Configuration
 export interface ArduinoProjectConfiguration {
   port: string;
@@ -454,8 +463,8 @@ export interface BuildProfileUpdate {
   new_profile_name?: string;
   libraries?: string[];
   platforms?: PlatformDependencyProfile[];
-  fqbn?:string;
-  programmer?:string;
+  fqbn?: string;
+  programmer?: string;
   notes?: string;
 }
 
@@ -505,12 +514,12 @@ export const ARDUINO_MESSAGES = {
   UPDATE_BUILD_PROFILE_PLATFORMS: 'updateBuildProfilePlatforms',
   UPDATE_BUILD_PROFILE_NOTES: 'updateBuildProfileNotes',
   UPDATE_BUILD_PROFILE_FQBN: 'updateBuildProfileFQBN',
-  UPDATE_BUILD_PROFILE_PROGRAMMER:'updateBuildProfileProgrammer',
+  UPDATE_BUILD_PROFILE_PROGRAMMER: 'updateBuildProfileProgrammer',
   RENAME_BUILD_PROFILE_NAME: 'renameBuildProfileName',
   DELETE_BUILD_PROFILE: 'deleteBuildProfile',
   SET_DEFAULT_PROFILE: 'setDefaultProfile',
   SET_COMPILE_PROFILE: 'setCompileProfile',
-  
+
   // Feedback related commands
   CORE_VERSION_INSTALLED: 'coreVersionInstalled',
   CORE_UNINSTALLED: 'coreUninstalled',
@@ -519,7 +528,7 @@ export const ARDUINO_MESSAGES = {
   REQUEST_BOARD_CONNECTED: "requestBoardConnected",
   INSTALL_ZIP_LIBRARY: "installZipLibrary",
   COMPILE_IN_PROGRESS: 'compileInProgress',
-  
+
   // Misc commands
   OPEN_LIBRARY: 'openExample',
   CHANGE_THEME_COLOR: "changeThemeColor",
