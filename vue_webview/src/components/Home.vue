@@ -170,8 +170,11 @@ watch(
   ([options, compileProfile]) => {
     if (!options.length) return;
 
-    // If no compile_profile is set or it's not in the list, select the first
-    if (!compileProfile || !options.includes(compileProfile)) {
+    // Exit early if compileProfile is not yet set (undefined/null)
+    if (compileProfile === undefined || compileProfile === null) return;
+
+    // If the compileProfile is not in the list, fallback to first option
+    if (!options.includes(compileProfile)) {
       selectedBuildProfile.value = options[0];
 
       // Notify the extension of the new profile
@@ -186,6 +189,7 @@ watch(
   },
   { immediate: true }
 );
+
 watch(selectedBuildProfile, (newProfile) => {
   if (!newProfile) return;
   if (newProfile !== store.projectInfo?.compile_profile) {
