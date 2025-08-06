@@ -507,7 +507,7 @@ onMounted(() => {
                                                         {{ platEntry.platform_index_url }}
                                                     </v-list-item-subtitle>
                                                     <template v-slot:append>
-                                                        <v-select v-if="store.platform"
+                                                        <v-select v-if="store.platform" hide-details
                                                             :items="getAvailablePlatformVersions(parsePlatformEntry(platEntry.platform).name)"
                                                             v-model="selectedPlatformVersion[profile.name][parsePlatformEntry(platEntry.platform).name]"
                                                             density="compact"
@@ -520,11 +520,11 @@ onMounted(() => {
                                             <strong>Libraries:</strong>
                                             <v-list density="compact" variant="tonal">
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
-                                                    <v-list-item-title>
+                                                    <v-list-item-title >
                                                         {{ parseLibraryEntry(libEntry).name }}
                                                     </v-list-item-title>
                                                     <template v-slot:append>
-                                                        <v-select v-if="store.libraries"
+                                                        <v-select v-if="store.libraries" hide-details
                                                             :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
                                                             density="compact"
@@ -539,11 +539,12 @@ onMounted(() => {
                                                     border="start" icon="mdi-alert" class="mb-3">
                                                     Install the board to change options
                                                 </v-alert>
+                                                <v-divider thickness="2" class="mb-3 mt-3" color="success"></v-divider>
                                                 <span v-if="profileBoardOptions[profile.name]">
                                                     <span>
                                                         <strong> Programmer</strong>
                                                     </span>
-                                                    <v-select v-model="selectedProgrammer[profile.name]"
+                                                    <v-select v-model="selectedProgrammer[profile.name]" 
                                                         :items="getProgrammerOptions(profile.name)" item-title="name"
                                                         item-value="id"
                                                         @update:model-value="val => updateProfileProgrammer(profile.name, val)"></v-select>
@@ -571,7 +572,6 @@ onMounted(() => {
                                     </v-card-text>
                                     <v-card-actions>
                                         <span>Change board options</span>
-                                        <v-spacer></v-spacer>
 
                                         <v-btn :disabled="disableShowBoardConfiguration[profile.name]"
                                             :icon="showBoardConfiguration[profile.name] ? 'mdi-chevron-up' : 'mdi-chevron-down'"
