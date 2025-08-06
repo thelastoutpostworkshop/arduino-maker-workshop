@@ -45,7 +45,8 @@
       "arduino": [
         {
           "id": "quickAccessView",
-          "name": ""
+          "name": "",
+          "icon": "resources/arduino.svg"
         }
       ]
     },
