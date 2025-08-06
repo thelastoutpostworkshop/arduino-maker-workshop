@@ -15,5 +15,5 @@
     "stopBits": "one"
   },
   "optimize_for_debug": true,
-  "compile_profile": "default_profile"
+  "compile_profile": "uno"
 }
