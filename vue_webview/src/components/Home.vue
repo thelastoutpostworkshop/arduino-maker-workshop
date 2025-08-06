@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
 import arduinoImage from '@/assets/extension_icon.png';
 import { getAvailablePorts } from '@/utilities/utils';
+import { PortSettings } from './SerialMonitorSettings.vue';
 
 const router = useRouter()
 const store = useVsCodeStore();
@@ -21,6 +22,13 @@ const portsAvailable = computed(() => getAvailablePorts(store));
 // This is a macOS-specific thing. The upload port is on /dev/cu.* and the serial port is on /dev/tty.*
 const serialPortsAvailable = computed(() => getAvailablePorts(store).map((p: any) => p.replace("/dev/cu.", "/dev/tty.")));
 
+function updatePortSettings(settings: PortSettings) {
+  store.sendMessage({
+    command: ARDUINO_MESSAGES.SET_MONITOR_PORT_SETTINGS,
+    errorMessage: "",
+    payload: JSON.stringify(settings),
+  });;
+}
 function changeStatusBuildProfile() {
   const status = store.sketchProject?.buildProfileStatus;
   switch (status) {
@@ -407,7 +415,8 @@ onMounted(() => {
           <v-card class="mt-5 pa-4"
             v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board" color="primary"
             prepend-icon="mdi-serial-port" rounded="lg">
-            <SerialMonitorSettings v-model:monitorPortSettings="monitorPortSettings" :serialPortsAvailable="serialPortsAvailable" @refreshPorts="refreshPorts" />
+            <SerialMonitorSettings v-model:monitorPortSettings="monitorPortSettings"
+              :serialPortsAvailable="serialPortsAvailable" @update="updatePortSettings" @refreshPorts="refreshPorts" />
 
             <template #title>
               <h2 class="text-h6 font-weight-bold">Serial Monitor Extension Settings</h2>
