@@ -26,7 +26,8 @@ const profileBoardOptionsRetrieving = ref<Record<string, boolean>>({});
 const profileMonitorSettings = ref<Record<string, PortSettings>>({});
 const portsAvailable = computed(() => getAvailablePorts(store));
 
-function updatePortSettings(settings: PortSettings) {
+function updatePortSettings({ settings, profile_name }: { settings: PortSettings; profile_name: string }) {
+    console.log(profile_name);
     console.log(settings);
     //   store.sendMessage({
     //     command: ARDUINO_MESSAGES.SET_MONITOR_PORT_SETTINGS,
@@ -564,6 +565,7 @@ onMounted(() => {
                                             </span>
                                             <SerialMonitorSettings
                                                 v-model:monitorPortSettings="profileMonitorSettings[profile.name]"
+                                                :profile_name="profile.name"
                                                 :serialPortsAvailable="portsAvailable" @update="updatePortSettings"
                                                 @refreshPorts="refreshPorts" />
                                         </div>

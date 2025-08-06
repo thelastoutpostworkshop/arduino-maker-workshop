@@ -415,7 +415,7 @@ onMounted(() => {
           <v-card class="mt-5 pa-4"
             v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS && store.projectInfo?.board" color="primary"
             prepend-icon="mdi-serial-port" rounded="lg">
-            <SerialMonitorSettings v-model:monitorPortSettings="monitorPortSettings"
+            <SerialMonitorSettings v-model:monitorPortSettings="monitorPortSettings" profile_name=""
               :serialPortsAvailable="serialPortsAvailable" @update="updatePortSettings" @refreshPorts="refreshPorts" />
 
             <template #title>

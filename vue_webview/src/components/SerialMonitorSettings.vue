@@ -13,11 +13,12 @@ export interface PortSettings {
 
 const props = defineProps<{
     monitorPortSettings: PortSettings;
-    serialPortsAvailable: any
+    serialPortsAvailable: any;
+    profile_name:string;
 }>();
 
 const emit = defineEmits<{
-    (e: "update", value: typeof props.monitorPortSettings): void;
+    (e: "update", option: {settings:PortSettings,profile_name:string}): void;
     (e: "refreshPorts"): void;
 }>();
 
@@ -47,7 +48,10 @@ watch(
     () => props.monitorPortSettings,
     (newVal) => {
         // Notify parent to save settings
-        emit("update", newVal);
+        emit("update", {
+            settings: props.monitorPortSettings,
+            profile_name:props.profile_name,
+        });
     },
     { deep: true }
 );
