@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { computed, watch, onMounted, ref, reactive } from 'vue';
+import { computed, watch, onMounted, ref } from 'vue';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, DEFAULT_PROFILE, PROFILES_STATUS, YAML_FILENAME } from '@shared/messages';
 import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
@@ -14,7 +14,7 @@ const sketchName = ref("");
 const useProgrammer = ref(store.projectInfo?.useProgrammer ?? false);
 const programmer = ref("");
 const optimize_for_debug = ref(false);
-const monitorPortSettings = reactive({ port: "", baudRate: 115200, lineEnding: "\r\n", dataBits: 8, parity: "none", stopBits: "one" });
+const monitorPortSettings = ref({ port: "", baudRate: 115200, lineEnding: "\r\n", dataBits: 8, parity: "none", stopBits: "one" });
 const selectedBuildProfile = ref("");
 const portsAvailable = computed(() => getAvailablePorts(store));
 
@@ -35,12 +35,12 @@ function changeStatusBuildProfile() {
 
 function getStoredMonitorPortSettings() {
   if (store.projectInfo?.monitorPortSettings) {
-    monitorPortSettings.port = store.projectInfo?.monitorPortSettings.port ?? "";
-    monitorPortSettings.baudRate = store.projectInfo?.monitorPortSettings.baudRate ?? 115200;
-    monitorPortSettings.lineEnding = store.projectInfo?.monitorPortSettings.lineEnding ?? "\r\n";
-    monitorPortSettings.dataBits = store.projectInfo?.monitorPortSettings.dataBits ?? 8;
-    monitorPortSettings.parity = store.projectInfo?.monitorPortSettings.parity ?? "none";
-    monitorPortSettings.stopBits = store.projectInfo?.monitorPortSettings.stopBits ?? "one";
+    monitorPortSettings.value.port = store.projectInfo?.monitorPortSettings.port ?? "";
+    monitorPortSettings.value.baudRate = store.projectInfo?.monitorPortSettings.baudRate ?? 115200;
+    monitorPortSettings.value.lineEnding = store.projectInfo?.monitorPortSettings.lineEnding ?? "\r\n";
+    monitorPortSettings.value.dataBits = store.projectInfo?.monitorPortSettings.dataBits ?? 8;
+    monitorPortSettings.value.parity = store.projectInfo?.monitorPortSettings.parity ?? "none";
+    monitorPortSettings.value.stopBits = store.projectInfo?.monitorPortSettings.stopBits ?? "one";
   }
 }
 

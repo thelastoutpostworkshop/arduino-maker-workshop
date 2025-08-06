@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, watch } from "vue";
+import { watch } from "vue";
 import { useVsCodeStore } from "@/stores/useVsCodeStore";
 import { ARDUINO_MESSAGES } from "@shared/messages";
 
