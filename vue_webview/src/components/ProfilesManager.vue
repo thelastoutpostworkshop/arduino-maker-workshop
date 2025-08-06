@@ -3,6 +3,8 @@ import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BoardConfiguration, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, NO_PROGRAMMER, YAML_FILENAME } from '@shared/messages';
 import { useRouter } from 'vue-router';
+import { PortSettings } from './SerialMonitorSettings.vue';
+import { getAvailablePorts } from '@/utilities/utils';
 
 const router = useRouter()
 const store = useVsCodeStore();
@@ -21,7 +23,21 @@ const disableShowBoardConfiguration = ref<Record<string, boolean>>({});
 const profileBoardOptions = ref<Record<string, BoardConfiguration>>({});
 const profileBoardOptionsError = ref<Record<string, boolean>>({});
 const profileBoardOptionsRetrieving = ref<Record<string, boolean>>({});
+const profileMonitorSettings = ref<Record<string, PortSettings>>({});
+const portsAvailable = computed(() => getAvailablePorts(store));
 
+function updatePortSettings(settings: PortSettings) {
+    console.log(settings);
+//   store.sendMessage({
+//     command: ARDUINO_MESSAGES.SET_MONITOR_PORT_SETTINGS,
+//     errorMessage: "",
+//     payload: JSON.stringify(settings),
+//   });;
+}
+function refreshPorts() {
+  store.boardConnected = null;
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
+}
 function getProgrammerOptions(profileName: string) {
     const opts = profileBoardOptions.value[profileName]?.programmers || [];
     return [{ name: NO_PROGRAMMER, id: NO_PROGRAMMER }, ...opts];
@@ -263,7 +279,16 @@ const profilesList = computed(() => {
         if (!(name in showBoardConfiguration.value)) {
             showBoardConfiguration.value[name] = false;
         }
-
+        if (!profileMonitorSettings.value[name]) {
+            profileMonitorSettings.value[name] = {
+                port: data.port || "",
+                baudRate: parseInt(data.port_config?.baudrate ?? "115200"),
+                lineEnding: data.port_config?.lineEnding ?? "\r\n",
+                dataBits: parseInt(data.port_config?.bits ?? "8"),
+                parity: data.port_config?.parity ?? "none",
+                stopBits: data.port_config?.stop_bits ?? "one",
+            };
+        }
         return {
             originalName: name, // keep original for renaming
             name,
@@ -520,7 +545,7 @@ onMounted(() => {
                                             <strong>Libraries:</strong>
                                             <v-list density="compact" variant="tonal">
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
-                                                    <v-list-item-title >
+                                                    <v-list-item-title>
                                                         {{ parseLibraryEntry(libEntry).name }}
                                                     </v-list-item-title>
                                                     <template v-slot:append>
@@ -533,6 +558,11 @@ onMounted(() => {
                                                 </v-list-item>
                                             </v-list>
                                         </span>
+                                        <span>
+                                            <SerialMonitorSettings v-model:monitorPortSettings="profileMonitorSettings[profile.name]"
+                                                :serialPortsAvailable="portsAvailable"
+                                                @update="updatePortSettings" @refreshPorts="refreshPorts" />
+                                        </span>
                                         <v-expand-transition>
                                             <span v-show="showBoardConfiguration[profile.name]" class="mt-5">
                                                 <v-alert v-if="profileBoardOptionsError[profile.name]" type="error"
@@ -544,7 +574,7 @@ onMounted(() => {
                                                     <span>
                                                         <strong> Programmer</strong>
                                                     </span>
-                                                    <v-select v-model="selectedProgrammer[profile.name]" 
+                                                    <v-select v-model="selectedProgrammer[profile.name]"
                                                         :items="getProgrammerOptions(profile.name)" item-title="name"
                                                         item-value="id"
                                                         @update:model-value="val => updateProfileProgrammer(profile.name, val)"></v-select>
