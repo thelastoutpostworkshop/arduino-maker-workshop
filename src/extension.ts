@@ -494,12 +494,14 @@ function vsCommandCompile(clean: boolean = false): Disposable {
 }
 function vsCommandActivateBuildProfiles(): Disposable {
 	return commands.registerCommand(profileActivateCommandName, async () => {
-		console.log("activate build profiles")
+		arduinoYaml.setProfileStatus(PROFILES_STATUS.ACTIVE);
+		window.showInformationMessage("Build Profiles activated");
 	});
 }
 function vsCommandDeactivateBuildProfiles(): Disposable {
 	return commands.registerCommand(profileDeactivateCommandName, async () => {
-		console.log("deactivate build profiles")
+		arduinoYaml.setProfileStatus(PROFILES_STATUS.INACTIVE);
+		window.showInformationMessage("Build Profiles dactivated");
 	});
 }
 
