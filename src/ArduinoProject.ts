@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectConfiguration, ArduinoProjectStatus, CompileResult, PROFILES_STATUS } from './shared/messages';
-import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml } from './extension';
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, updateStateCompileUpload } from './extension';
 import { LineEnding, MonitorPortSettings, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
 import { VueWebviewPanel } from './VueWebviewPanel';
 
@@ -262,6 +262,7 @@ export class ArduinoProject {
             errorMessage: "",
             payload: this.configJson
         })
+        updateStateCompileUpload();
     }
     public getCompileProfile(): string {
         return this.configJson.compile_profile || '';
