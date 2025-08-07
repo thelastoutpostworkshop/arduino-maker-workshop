@@ -63,6 +63,7 @@ export async function activate(context: ExtensionContext) {
 			context.subscriptions.push(uploadStatusBarItem);
 
 			profileStatusBarItem.text = "$(symbol-array) Profiles";
+			profileStatusBarItem.tooltip = "Select a profile"
 			profileStatusBarItem.command = profileCommandName;
 			context.subscriptions.push(profileStatusBarItem);
 
@@ -311,7 +312,7 @@ export function updateStateCompileUpload() {
 			quickAccessProvider.enableItem(quickAccessUploadCommandName);
 			compileStatusBarItem.show();
 			uploadStatusBarItem.show();
-			if(arduinoYaml.getLastError()) {
+			if (arduinoYaml.getLastError()) {
 				profileStatusBarItem.hide();
 			} else {
 				profileStatusBarItem.show();
@@ -423,9 +424,36 @@ function vsCommandUpload(): Disposable {
 
 function vsCommandProfile(): Disposable {
 	return commands.registerCommand('quickAccessView.profile', async () => {
-		console.log("test");
+		const profiles = arduinoYaml.listProfiles(); // assuming this returns string[] or an array of profile names
+
+		if (!profiles || profiles.length === 0) {
+			window.showWarningMessage('No compile profiles available.');
+			return;
+		}
+
+		const selected = await window.showQuickPick(profiles, {
+			title: 'Select a Compile Profile',
+			placeHolder: 'Choose a build profile to use for compilation',
+		});
+
+		if (!selected) {
+			return; // user cancelled
+		}
+
+		arduinoYaml.setProfileStatus(PROFILES_STATUS.ACTIVE);
+		arduinoProject.setCompileProfile(selected); // Assuming this sets it internally
+		VueWebviewPanel.sendMessage({
+			command: ARDUINO_MESSAGES.SET_COMPILE_PROFILE,
+			errorMessage: '',
+			payload: selected,
+		});
+
+		profileStatusBarItem.text = `$(symbol-array) ${selected}`;
+		updateStateCompileUpload();
+		window.showInformationMessage(`Profile set to ${selected}`);
 	});
 }
+
 function vsCommandCompileClean(): Disposable {
 	return commands.registerCommand('compile.clean', async () => {
 		compile(true);
