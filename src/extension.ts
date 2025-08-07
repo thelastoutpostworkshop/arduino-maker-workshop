@@ -315,7 +315,8 @@ export function updateStateCompileUpload() {
 			if (arduinoYaml.getLastError()) {
 				profileStatusBarItem.hide();
 			} else {
-				profileStatusBarItem.show();
+				if (arduinoYaml.status() != PROFILES_STATUS.NOT_AVAILABLE)
+					profileStatusBarItem.show();
 			}
 
 		} else {

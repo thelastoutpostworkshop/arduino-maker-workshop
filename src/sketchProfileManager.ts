@@ -426,6 +426,9 @@ export class SketchProfileManager {
             return;
         }
 
+        if (currentStatus === newStatus) {
+            return;
+        }
         // Move from inactive → active
         if (newStatus === PROFILES_STATUS.ACTIVE) {
             fs.renameSync(this.yamlInInactiveState, this.yamlInActiveState);
