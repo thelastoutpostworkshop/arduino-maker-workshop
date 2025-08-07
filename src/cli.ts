@@ -344,18 +344,22 @@ export class ArduinoCLI {
 
 		let useBuildProfile: boolean;
 		let profileMsg = "";
+		let successMsg = "";
 		await workspace.saveAll();
 
 		try {
 			if (createBuildProfile) {
 				useBuildProfile = true;
 				profileMsg = ", creating a build profile";
+				successMsg = "Build profile compilation success!"
 			} else {
 				useBuildProfile = arduinoYaml.status() == PROFILES_STATUS.ACTIVE;
 				if (useBuildProfile) {
 					profileMsg = `, using profile ${arduinoYaml.getProfileName()}`;
+					successMsg = `Profile  ${arduinoYaml.getProfileName()} compilation success!`
 				} else {
 					profileMsg = "";
+					successMsg = "Compilation success!"
 				}
 			}
 
@@ -395,7 +399,7 @@ export class ArduinoCLI {
 						true,
 						true,
 						this.compileUploadChannel,
-						"Compilation success!"
+						successMsg
 					);
 
 					this.compileUploadChannel.appendLine("Compilation completed successfully.");
@@ -560,7 +564,7 @@ export class ArduinoCLI {
 			throw error;
 		}
 	}
-	public async getProfileBoardConfiguration(fqbn:string): Promise<string> {
+	public async getProfileBoardConfiguration(fqbn: string): Promise<string> {
 		try {
 			const configBoardArgs = this.cliArgs.getProfileBoardConfigurationArguments(fqbn);
 
