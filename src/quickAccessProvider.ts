@@ -1,5 +1,5 @@
 import { TreeDataProvider, EventEmitter, Event, TreeItem, TreeItemCollapsibleState, ThemeIcon, ThemeColor } from "vscode";
-import { compileCommandName, uploadCommandName } from "./extension";
+import { compileCommandName, profileActivateCommandName, profileDeactivateCommandName, uploadCommandName } from "./extension";
 
 export const quickAccessCompileCommandName = 'Compile';
 export const compileCommandCleanName = 'Compile (clean)';
@@ -34,8 +34,8 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
       new QuickAccessItem(quickAccessCompileCommandName, compileCommandName, 'Compile the current sketch', 'check', this.disabledItemsState[quickAccessCompileCommandName]),
       new QuickAccessItem(compileCommandCleanName, 'compile.clean', 'Compile (rebuild clean) the current sketch', 'check', this.disabledItemsState[compileCommandCleanName]),
       new QuickAccessItem(quickAccessUploadCommandName, uploadCommandName, 'Upload to the board', 'cloud-upload', this.disabledItemsState[quickAccessUploadCommandName]),
-      new QuickAccessItem("Activate Build Profiles", "activateBuildProfile", '', 'symbol-array', this.disabledItemsState[quickAccessUploadCommandName]),
-      new QuickAccessItem("Deactivate Build Profiles", "deactivateBuildProfile", '', 'symbol-array', this.disabledItemsState[quickAccessUploadCommandName]),
+      new QuickAccessItem("Activate Build Profiles", profileActivateCommandName, '', 'symbol-array', this.disabledItemsState[quickAccessUploadCommandName]),
+      new QuickAccessItem("Deactivate Build Profiles", profileDeactivateCommandName, '', 'symbol-array', this.disabledItemsState[quickAccessUploadCommandName]),
     ];
     return items;
   }

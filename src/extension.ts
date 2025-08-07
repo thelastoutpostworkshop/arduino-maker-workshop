@@ -12,6 +12,8 @@ const watchedExtensions = ['.cpp', '.h', '.ino']; // List of extensions to watch
 export const compileCommandName: string = 'quickAccessView.compile';
 export const uploadCommandName: string = 'quickAccessView.upload';
 export const profileCommandName: string = 'quickAccessView.profile';
+export const profileActivateCommandName: string = 'activateBuildProfile';
+export const profileDeactivateCommandName: string = 'deactivateBuildProfile';
 
 export const compileStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
 export const compileStatusBarNotExecuting: string = "$(check) Compile";
@@ -479,12 +481,12 @@ function vsCommandCompile(clean: boolean = false): Disposable {
 	});
 }
 function vsCommandActivateBuildProfiles(): Disposable {
-	return commands.registerCommand('activateBuildProfile', async () => {
+	return commands.registerCommand(profileActivateCommandName, async () => {
 		console.log("activate build profiles")
 	});
 }
 function vsCommandDeactivateBuildProfiles(): Disposable {
-	return commands.registerCommand('deactivateBuildProfile', async () => {
+	return commands.registerCommand(profileDeactivateCommandName, async () => {
 		console.log("deactivate build profiles")
 	});
 }
