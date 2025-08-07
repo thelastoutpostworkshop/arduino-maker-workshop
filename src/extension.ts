@@ -309,8 +309,15 @@ export function updateStateCompileUpload() {
 				quickAccessProvider.enableItem(profileDeactivateCommandName)
 				quickAccessProvider.disableItem(profileActivateCommandName)
 			} else {
-				compileStatusBarItem.tooltip = `Compile the current sketch`;
-				uploadStatusBarItem.tooltip = "Upload to the board";
+				if (arduinoYaml.status() === PROFILES_STATUS.INACTIVE) {
+					quickAccessProvider.disableItem(profileDeactivateCommandName)
+					quickAccessProvider.enableItem(profileActivateCommandName)
+				} else {
+					quickAccessProvider.disableItem(profileDeactivateCommandName)
+					quickAccessProvider.disableItem(profileActivateCommandName)
+					compileStatusBarItem.tooltip = `Compile the current sketch`;
+					uploadStatusBarItem.tooltip = "Upload to the board";
+				}
 			}
 
 			quickAccessProvider.enableItem(quickAccessCompileCommandName);
@@ -323,11 +330,11 @@ export function updateStateCompileUpload() {
 			} else {
 				if (arduinoYaml.status() === PROFILES_STATUS.ACTIVE) {
 					updateProfileStatusBarText()
-					profileStatusBarItem.show(); 
+					profileStatusBarItem.show();
 				} else {
-					profileStatusBarItem.hide(); 
+					profileStatusBarItem.hide();
 				}
-			} 
+			}
 
 		} else {
 			quickAccessProvider.disableItem(quickAccessCompileCommandName);
