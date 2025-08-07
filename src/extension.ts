@@ -315,9 +315,13 @@ export function updateStateCompileUpload() {
 			if (arduinoYaml.getLastError()) {
 				profileStatusBarItem.hide();
 			} else {
-				if (arduinoYaml.status() != PROFILES_STATUS.NOT_AVAILABLE)
-					profileStatusBarItem.show();
-			}
+				if (arduinoYaml.status() != PROFILES_STATUS.NOT_AVAILABLE) {
+					updateProfileStatusBarTooltip()
+					profileStatusBarItem.show(); 
+				} else {
+					profileStatusBarItem.hide(); 
+				}
+			} 
 
 		} else {
 			quickAccessProvider.disableItem(quickAccessCompileCommandName);
@@ -423,6 +427,14 @@ function vsCommandUpload(): Disposable {
 	});
 }
 
+function updateProfileStatusBarTooltip() {
+	const profile = arduinoProject.getCompileProfile();
+	if (profile) {
+		profileStatusBarItem.text = `$(symbol-array) ${profile}`;
+	} else {
+		profileStatusBarItem.text = `$(symbol-array) <none>`;
+	}
+}
 function vsCommandProfile(): Disposable {
 	return commands.registerCommand('quickAccessView.profile', async () => {
 		const profiles = arduinoYaml.listProfiles(); // assuming this returns string[] or an array of profile names
@@ -449,7 +461,6 @@ function vsCommandProfile(): Disposable {
 			payload: selected,
 		});
 
-		profileStatusBarItem.text = `$(symbol-array) ${selected}`;
 		updateStateCompileUpload();
 		window.showInformationMessage(`Profile set to ${selected}`);
 	});
