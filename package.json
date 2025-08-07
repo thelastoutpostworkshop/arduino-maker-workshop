@@ -73,6 +73,11 @@
         "command": "quickAccessView.upload",
         "title": "Upload",
         "category": "Arduino"
+      },
+      {
+        "command": "quickAccessView.profile",
+        "title": "Profile",
+        "category": "Arduino"
       }
     ],
     "configuration": {

@@ -11,6 +11,7 @@ const os = require('os');
 const watchedExtensions = ['.cpp', '.h', '.ino']; // List of extensions to watch for invalidating the build
 export const compileCommandName: string = 'quickAccessView.compile';
 export const uploadCommandName: string = 'quickAccessView.upload';
+export const profileCommandName: string = 'quickAccessView.profile';
 
 export const compileStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
 export const compileStatusBarNotExecuting: string = "$(check) Compile";
@@ -18,6 +19,7 @@ export const compileStatusBarExecuting: string = "$(sync~spin) Compiling";
 export const uploadStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
 export const uploadStatusBarNotExecuting: string = "$(cloud-upload) Upload";
 export const uploadStatusBarExecuting: string = "$(sync~spin) Uploading";
+export const profileStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
 
 export const arduinoExtensionChannel = window.createOutputChannel(ArduinoExtensionChannelName);
 arduinoExtensionChannel.appendLine(`Arduino Extension started on ${os.platform}`);
@@ -50,6 +52,7 @@ export async function activate(context: ExtensionContext) {
 			context.subscriptions.push(vsCommandCompile());
 			context.subscriptions.push(vsCommandCompileClean());
 			context.subscriptions.push(vsCommandUpload());
+			context.subscriptions.push(vsCommandProfile());
 
 			compileStatusBarItem.text = compileStatusBarNotExecuting;
 			compileStatusBarItem.command = compileCommandName;
@@ -58,6 +61,10 @@ export async function activate(context: ExtensionContext) {
 			uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 			uploadStatusBarItem.command = uploadCommandName;
 			context.subscriptions.push(uploadStatusBarItem);
+
+			profileStatusBarItem.text = "$(code-oss) Profile";
+			profileStatusBarItem.command = profileCommandName;
+			context.subscriptions.push(profileStatusBarItem);
 
 			context.subscriptions.push(
 				commands.registerCommand('extension.openVueWebview', () => {
@@ -304,15 +311,20 @@ export function updateStateCompileUpload() {
 			quickAccessProvider.enableItem(quickAccessUploadCommandName);
 			compileStatusBarItem.show();
 			uploadStatusBarItem.show();
+			profileStatusBarItem.show();
+
 		} else {
 			quickAccessProvider.disableItem(quickAccessCompileCommandName);
 			quickAccessProvider.disableItem(compileCommandCleanName);
 			quickAccessProvider.disableItem(quickAccessUploadCommandName);
 			compileStatusBarItem.hide();
 			uploadStatusBarItem.hide();
+			profileStatusBarItem.hide();
 		}
 	} else {
+		uploadStatusBarItem.hide();
 		compileStatusBarItem.hide();
+		profileStatusBarItem.hide();
 		quickAccessProvider.disableItem(quickAccessCompileCommandName);
 		quickAccessProvider.disableItem(compileCommandCleanName);
 		quickAccessProvider.disableItem(quickAccessUploadCommandName);
@@ -405,6 +417,11 @@ function vsCommandUpload(): Disposable {
 	});
 }
 
+function vsCommandProfile(): Disposable {
+	return commands.registerCommand('quickAccessView.profile', async () => {
+		console.log("test");
+	});
+}
 function vsCommandCompileClean(): Disposable {
 	return commands.registerCommand('compile.clean', async () => {
 		compile(true);
