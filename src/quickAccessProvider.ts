@@ -34,8 +34,8 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
       new QuickAccessItem(quickAccessCompileCommandName, compileCommandName, 'Compile the current sketch', 'check', this.disabledItemsState[quickAccessCompileCommandName]),
       new QuickAccessItem(compileCommandCleanName, 'compile.clean', 'Compile (rebuild clean) the current sketch', 'check', this.disabledItemsState[compileCommandCleanName]),
       new QuickAccessItem(quickAccessUploadCommandName, uploadCommandName, 'Upload to the board', 'cloud-upload', this.disabledItemsState[quickAccessUploadCommandName]),
-      new QuickAccessItem("Activate Build Profiles", profileActivateCommandName, '', 'symbol-array', this.disabledItemsState[profileActivateCommandName]),
-      new QuickAccessItem("Deactivate Build Profiles", profileDeactivateCommandName, '', 'symbol-array', this.disabledItemsState[profileDeactivateCommandName]),
+      new QuickAccessItem("Activate Build Profiles", profileActivateCommandName, 'Select to activate build profiles', 'symbol-array', this.disabledItemsState[profileActivateCommandName]),
+      new QuickAccessItem("Deactivate Build Profiles", profileDeactivateCommandName, 'Select to deactivate build profiles', 'symbol-array', this.disabledItemsState[profileDeactivateCommandName]),
     ];
     return items;
   }
