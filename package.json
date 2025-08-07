@@ -78,6 +78,16 @@
         "command": "quickAccessView.profile",
         "title": "Profile",
         "category": "Arduino"
+      },
+      {
+        "command": "activateBuildProfile",
+        "title": "Activate Build Profile",
+        "category": "Arduino"
+      },
+      {
+        "command": "deactivateBuildProfile",
+        "title": "Deactivate Build Profile",
+        "category": "Arduino"
       }
     ],
     "configuration": {

@@ -53,6 +53,8 @@ export async function activate(context: ExtensionContext) {
 			context.subscriptions.push(vsCommandCompileClean());
 			context.subscriptions.push(vsCommandUpload());
 			context.subscriptions.push(vsCommandProfile());
+			context.subscriptions.push(vsCommandActivateBuildProfiles());
+			context.subscriptions.push(vsCommandDeactivateBuildProfiles());
 
 			compileStatusBarItem.text = compileStatusBarNotExecuting;
 			compileStatusBarItem.command = compileCommandName;
@@ -474,6 +476,16 @@ function vsCommandCompileClean(): Disposable {
 function vsCommandCompile(clean: boolean = false): Disposable {
 	return commands.registerCommand('quickAccessView.compile', async () => {
 		compile(false);
+	});
+}
+function vsCommandActivateBuildProfiles(): Disposable {
+	return commands.registerCommand('activateBuildProfile', async () => {
+		console.log("activate build profiles")
+	});
+}
+function vsCommandDeactivateBuildProfiles(): Disposable {
+	return commands.registerCommand('deactivateBuildProfile', async () => {
+		console.log("deactivate build profiles")
 	});
 }
 
