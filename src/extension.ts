@@ -306,6 +306,8 @@ export function updateStateCompileUpload() {
 			if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
 				compileStatusBarItem.tooltip = `Compile profile ${arduinoProject.getCompileProfile()}`;
 				uploadStatusBarItem.tooltip = `Upload  ${arduinoProject.getCompileProfile()} to the board`;
+				quickAccessProvider.enableItem(profileDeactivateCommandName)
+				quickAccessProvider.disableItem(profileActivateCommandName)
 			} else {
 				compileStatusBarItem.tooltip = `Compile the current sketch`;
 				uploadStatusBarItem.tooltip = "Upload to the board";
