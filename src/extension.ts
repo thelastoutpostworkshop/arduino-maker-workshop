@@ -62,7 +62,7 @@ export async function activate(context: ExtensionContext) {
 			uploadStatusBarItem.command = uploadCommandName;
 			context.subscriptions.push(uploadStatusBarItem);
 
-			profileStatusBarItem.text = "$(code-oss) Profile";
+			profileStatusBarItem.text = "$(symbol-array) Profiles";
 			profileStatusBarItem.command = profileCommandName;
 			context.subscriptions.push(profileStatusBarItem);
 
