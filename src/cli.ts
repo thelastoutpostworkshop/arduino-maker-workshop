@@ -450,10 +450,13 @@ export class ArduinoCLI {
 		}
 		try {
 			let title: string;
+			let errorMsg:string;
 			if (useBuildProfile) {
 				title = `Uploading from profile ${arduinoYaml.getProfileName()}`;
+				errorMsg = `Uploading failed from profile ${arduinoYaml.getProfileName()}`
 			} else {
 				title = `Uploading to ${arduinoProject.getBoard()} }`;
+				errorMsg = "Failed to upload"
 			}
 			if (!useBuildProfile && arduinoProject.useProgrammer()) {
 				title += ` using programmer ${arduinoProject.getProgrammer()}`;
@@ -480,7 +483,7 @@ export class ArduinoCLI {
 
 					await arduinoCLI.runArduinoCommand(
 						() => this.cliArgs.getUploadArguments(),
-						"CLI: Failed to upload", { caching: CacheState.NO, ttl: 0 }, false, true, this.compileUploadChannel
+						errorMsg, { caching: CacheState.NO, ttl: 0 }, false, true, this.compileUploadChannel
 					);
 					uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 					if (this.serialMonitorAPI) {
