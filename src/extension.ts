@@ -53,12 +53,10 @@ export async function activate(context: ExtensionContext) {
 
 			compileStatusBarItem.text = compileStatusBarNotExecuting;
 			compileStatusBarItem.command = compileCommandName;
-			compileStatusBarItem.tooltip = "Compile the current sketch";
 			context.subscriptions.push(compileStatusBarItem);
 
 			uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 			uploadStatusBarItem.command = uploadCommandName;
-			uploadStatusBarItem.tooltip = "Upload to the board";
 			context.subscriptions.push(uploadStatusBarItem);
 
 			context.subscriptions.push(
@@ -293,6 +291,14 @@ export function updateStateCompileUpload() {
 	arduinoProject.readConfiguration();
 	if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS) {
 		if (arduinoProject.isCompileReady()) {
+			if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
+				compileStatusBarItem.tooltip = `Compile profile ${arduinoProject.getCompileProfile()}`;
+				uploadStatusBarItem.tooltip = `Upload  ${arduinoProject.getCompileProfile()} to the board`;
+			} else {
+				compileStatusBarItem.tooltip = `Compile the current sketch`;
+				uploadStatusBarItem.tooltip = "Upload to the board";
+			}
+
 			quickAccessProvider.enableItem(quickAccessCompileCommandName);
 			quickAccessProvider.enableItem(compileCommandCleanName);
 			quickAccessProvider.enableItem(quickAccessUploadCommandName);

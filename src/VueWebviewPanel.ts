@@ -417,7 +417,6 @@ export function sendBuildProfiles() {
         message.payload = sketchProject;
         VueWebviewPanel.sendMessage(message);
     } else {
-
         if (yaml) {
             sketchProject = {
                 yaml: yaml,
@@ -436,4 +435,5 @@ export function sendBuildProfiles() {
         }
 
     }
+    updateStateCompileUpload();
 }
