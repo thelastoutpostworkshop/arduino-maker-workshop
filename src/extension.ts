@@ -352,6 +352,8 @@ export function updateStateCompileUpload() {
 		quickAccessProvider.disableItem(quickAccessCompileCommandName);
 		quickAccessProvider.disableItem(compileCommandCleanName);
 		quickAccessProvider.disableItem(quickAccessUploadCommandName);
+		quickAccessProvider.disableItem(profileDeactivateCommandName)
+		quickAccessProvider.disableItem(profileActivateCommandName)
 	}
 }
 
