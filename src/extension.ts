@@ -311,7 +311,11 @@ export function updateStateCompileUpload() {
 			quickAccessProvider.enableItem(quickAccessUploadCommandName);
 			compileStatusBarItem.show();
 			uploadStatusBarItem.show();
-			profileStatusBarItem.show();
+			if(arduinoYaml.getLastError()) {
+				profileStatusBarItem.hide();
+			} else {
+				profileStatusBarItem.show();
+			}
 
 		} else {
 			quickAccessProvider.disableItem(quickAccessCompileCommandName);
