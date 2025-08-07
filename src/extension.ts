@@ -316,7 +316,7 @@ export function updateStateCompileUpload() {
 				profileStatusBarItem.hide();
 			} else {
 				if (arduinoYaml.status() != PROFILES_STATUS.NOT_AVAILABLE) {
-					updateProfileStatusBarTooltip()
+					updateProfileStatusBarText()
 					profileStatusBarItem.show(); 
 				} else {
 					profileStatusBarItem.hide(); 
@@ -427,7 +427,7 @@ function vsCommandUpload(): Disposable {
 	});
 }
 
-function updateProfileStatusBarTooltip() {
+function updateProfileStatusBarText() {
 	const profile = arduinoProject.getCompileProfile();
 	if (profile) {
 		profileStatusBarItem.text = `$(symbol-array) ${profile}`;
