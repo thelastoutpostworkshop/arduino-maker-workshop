@@ -546,6 +546,45 @@ export class SketchProfileManager {
         return undefined;
     }
 
+    duplicateProfile(duplicate: BuildProfileUpdate): boolean {
+        this.clearError();
+
+        const yamlData = this.getYaml();
+        if (!yamlData || !yamlData.profiles) {
+            this.setLastError(`Cannot duplicate "${duplicate.profile_name}", no YAML data or profiles found.`);
+            return false;
+        }
+
+        const src = yamlData.profiles[duplicate.profile_name];
+        if (!src) {
+            this.setLastError(`Cannot duplicate, source profile "${duplicate.profile_name}" not found.`);
+            return false;
+        }
+
+        const target = (duplicate.new_profile_name || "").trim();
+        if (!target) {
+            this.setLastError("Cannot duplicate, new profile name is empty.");
+            return false;
+        }
+
+        // UI should already ensure uniqueness, but we still guard here.
+        if (yamlData.profiles[target]) {
+            this.setLastError(`Cannot duplicate, target profile "${target}" already exists.`);
+            return false;
+        }
+
+        // Deep clone & insert
+        const cloned: BuildProfile = JSON.parse(JSON.stringify(src));
+        yamlData.profiles[target] = cloned;
+
+        // Do NOT change default_profile automatically
+        this.writeYaml(yamlData);
+
+        sendBuildProfiles();
+
+        return true;
+    }
+
     renameProfile(newProfileName: BuildProfileUpdate): boolean {
         this.clearError();
 

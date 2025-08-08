@@ -25,6 +25,31 @@ const profileBoardOptionsRetrieving = ref<Record<string, boolean>>({});
 const profileMonitorSettings = ref<Record<string, PortSettings>>({});
 const portsAvailable = computed(() => getAvailablePorts(store));
 
+function uniqueCopyName(base: string): string {
+    const profiles = Object.keys(store.sketchProject?.yaml?.profiles || {});
+    // e.g. "MyProfile (copy)" or "MyProfile (copy 2)"
+    const baseCopy = `${base} (copy)`;
+    if (!profiles.includes(baseCopy)) return baseCopy;
+    let i = 2;
+    while (profiles.includes(`${base} (copy ${i})`)) i++;
+    return `${base} (copy ${i})`;
+}
+
+function duplicateProfile(profile_name: string) {
+    const newName = uniqueCopyName(profile_name);
+    const update: BuildProfileUpdate = {
+        profile_name: profile_name,
+        new_profile_name:newName
+    }
+    store.sendMessage({
+        command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_DUPLICATE,
+        errorMessage: "",
+        payload: update,
+    });;
+    return;
+}
+
+
 function updatePortSettings({ settings, profile_name }: { settings: PortSettings; profile_name: string }) {
     const safeSettings: PortSettings = {
         port: settings.port,
@@ -487,6 +512,16 @@ onMounted(() => {
                         <v-expansion-panel v-for="profile in profilesList" :key="profile.name">
                             <v-expansion-panel-title>
                                 <span>Profile: {{ profile.name }}</span>
+                                <v-tooltip location="top">
+                                    <template #activator="{ props }">
+                                        <v-btn icon variant="text" v-bind="props" size="small" class="mr-4"
+                                            @click.stop="duplicateProfile(profile.name)">
+                                            <v-icon>mdi-content-copy</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <span>Duplicate this profile</span>
+                                </v-tooltip>
+                                <v-spacer></v-spacer>
                                 <v-tooltip location="top">
                                     <template #activator="{ props }">
                                         <v-btn icon variant="text" v-bind="props" size="small"

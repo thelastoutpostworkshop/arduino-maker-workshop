@@ -517,6 +517,7 @@ export const ARDUINO_MESSAGES = {
   UPDATE_BUILD_PROFILE_FQBN: 'updateBuildProfileFQBN',
   UPDATE_BUILD_PROFILE_PROGRAMMER: 'updateBuildProfileProgrammer',
   UPDATE_BUILD_PROFILE_PORT_SETTINGS: 'updateBuildProfilePortSettings',
+  UPDATE_BUILD_PROFILE_DUPLICATE: 'updateBuildProfileDuplicate',
   RENAME_BUILD_PROFILE_NAME: 'renameBuildProfileName',
   DELETE_BUILD_PROFILE: 'deleteBuildProfile',
   SET_DEFAULT_PROFILE: 'setDefaultProfile',

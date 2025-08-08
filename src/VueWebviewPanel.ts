@@ -129,6 +129,9 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_LIBRARIES:
                         arduinoYaml.updateProfileLibraries(message.payload);
                         break;
+                    case ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_DUPLICATE:
+                        arduinoYaml.duplicateProfile(message.payload);
+                        break;
                     case ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_PLATFORMS:
                         arduinoYaml.updateProfilePlatforms(message.payload);
                         break;
