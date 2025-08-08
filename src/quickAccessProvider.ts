@@ -19,6 +19,23 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
     intellisenseCommandName: true,
   };
 
+  // Track visibility separately from disabled state
+  private hiddenItemsState: { [key: string]: boolean } = {
+    // default: both visible; adjust as you wish
+    [profileActivateCommandName]: false,
+    [profileDeactivateCommandName]: false,
+  };
+
+  // Show/hide API
+  hideItem(label: string) {
+    this.hiddenItemsState[label] = true;
+    this.refresh();
+  }
+  showItem(label: string) {
+    this.hiddenItemsState[label] = false;
+    this.refresh();
+  }
+
   getTreeItem(element: QuickAccessItem): TreeItem {
     return element;
   }
@@ -27,19 +44,24 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
     return Promise.resolve(this.getQuickAccessItems());
   }
 
-  // Modify the getQuickAccessItems to use the disabledItemsState object
   private getQuickAccessItems(): QuickAccessItem[] {
-    const items = [
+    const items: QuickAccessItem[] = [
       new QuickAccessItem(homeCommandName, 'extension.openVueWebview', 'Open Arduino Maker Workshop', 'home', this.disabledItemsState[homeCommandName]),
       new QuickAccessItem(quickAccessCompileCommandName, compileCommandName, 'Compile the current sketch', 'check', this.disabledItemsState[quickAccessCompileCommandName]),
       new QuickAccessItem(compileCommandCleanName, 'compile.clean', 'Compile (rebuild clean) the current sketch', 'check', this.disabledItemsState[compileCommandCleanName]),
       new QuickAccessItem(quickAccessUploadCommandName, uploadCommandName, 'Upload to the board', 'cloud-upload', this.disabledItemsState[quickAccessUploadCommandName]),
-      new QuickAccessItem("Activate Build Profiles", profileActivateCommandName, 'Select to activate build profiles', 'symbol-array', this.disabledItemsState[profileActivateCommandName]),
-      new QuickAccessItem("Deactivate Build Profiles", profileDeactivateCommandName, 'Select to deactivate build profiles', 'symbol-array', this.disabledItemsState[profileDeactivateCommandName]),
+      // Profiles (conditionally push)
     ];
+
+    if (!this.hiddenItemsState[profileActivateCommandName]) {
+      items.push(new QuickAccessItem("Activate Build Profiles", profileActivateCommandName, 'Select to activate build profiles', 'symbol-array', this.disabledItemsState[profileActivateCommandName]));
+    }
+    if (!this.hiddenItemsState[profileDeactivateCommandName]) {
+      items.push(new QuickAccessItem("Deactivate Build Profiles", profileDeactivateCommandName, 'Select to deactivate build profiles', 'symbol-array', this.disabledItemsState[profileDeactivateCommandName]));
+    }
+
     return items;
   }
-
   // Method to refresh the view
   refresh(): void {
     this._onDidChangeTreeData.fire();

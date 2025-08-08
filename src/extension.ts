@@ -306,15 +306,15 @@ export function updateStateCompileUpload() {
 		if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
 			compileStatusBarItem.tooltip = `Compile profile ${arduinoProject.getCompileProfile()}`;
 			uploadStatusBarItem.tooltip = `Upload  ${arduinoProject.getCompileProfile()} to the board`;
-			quickAccessProvider.enableItem(profileDeactivateCommandName)
-			quickAccessProvider.disableItem(profileActivateCommandName)
+			quickAccessProvider.showItem(profileDeactivateCommandName)
+			quickAccessProvider.hideItem(profileActivateCommandName)
 		} else {
 			if (arduinoYaml.status() === PROFILES_STATUS.INACTIVE) {
-				quickAccessProvider.disableItem(profileDeactivateCommandName)
-				quickAccessProvider.enableItem(profileActivateCommandName)
+				quickAccessProvider.hideItem(profileDeactivateCommandName)
+				quickAccessProvider.showItem(profileActivateCommandName)
 			} else {
-				quickAccessProvider.disableItem(profileDeactivateCommandName)
-				quickAccessProvider.disableItem(profileActivateCommandName)
+				quickAccessProvider.hideItem(profileDeactivateCommandName)
+				quickAccessProvider.hideItem(profileActivateCommandName)
 				compileStatusBarItem.tooltip = `Compile the current sketch`;
 				uploadStatusBarItem.tooltip = "Upload to the board";
 			}
@@ -352,8 +352,8 @@ export function updateStateCompileUpload() {
 		quickAccessProvider.disableItem(quickAccessCompileCommandName);
 		quickAccessProvider.disableItem(compileCommandCleanName);
 		quickAccessProvider.disableItem(quickAccessUploadCommandName);
-		quickAccessProvider.disableItem(profileDeactivateCommandName)
-		quickAccessProvider.disableItem(profileActivateCommandName)
+		quickAccessProvider.hideItem(profileDeactivateCommandName)
+		quickAccessProvider.hideItem(profileActivateCommandName)
 	}
 }
 
