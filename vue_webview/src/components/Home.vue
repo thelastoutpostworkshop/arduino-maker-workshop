@@ -172,20 +172,7 @@ watch(
 
     // Exit early if compileProfile is not yet set (undefined/null)
     if (compileProfile === undefined || compileProfile === null) return;
-
-    // If the compileProfile is not in the list, fallback to first option
-    if (!options.includes(compileProfile)) {
-      selectedBuildProfile.value = options[0];
-
-      // Notify the extension of the new profile
-      store.sendMessage({
-        command: ARDUINO_MESSAGES.SET_COMPILE_PROFILE,
-        errorMessage: '',
-        payload: selectedBuildProfile.value,
-      });
-    } else {
-      selectedBuildProfile.value = compileProfile;
-    }
+    selectedBuildProfile.value = compileProfile;
   },
   { immediate: true }
 );

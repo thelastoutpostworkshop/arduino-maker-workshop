@@ -444,12 +444,27 @@ function vsCommandUpload(): Disposable {
 }
 
 function updateProfileStatusBarText() {
-	const profile = arduinoProject.getCompileProfile();
-	if (profile) {
-		profileStatusBarItem.text = `$(symbol-array) ${profile}`;
-	} else {
-		profileStatusBarItem.text = `$(symbol-array) <none>`;
+	const profiles = arduinoYaml.listProfiles() || [];
+	let profile = arduinoProject.getCompileProfile();
+
+	// If the current profile is missing or invalid, default to first in list
+	if (!profile || profiles.indexOf(profile) === -1) {
+		if (profiles.length > 0) {
+			profile = profiles[0];
+			arduinoProject.setCompileProfile(profile);
+
+			// Also notify the webview if needed
+			VueWebviewPanel.sendMessage({
+				command: ARDUINO_MESSAGES.SET_COMPILE_PROFILE,
+				errorMessage: '',
+				payload: profile,
+			});
+		} else {
+			profile = "<none>";
+		}
 	}
+
+	profileStatusBarItem.text = `$(symbol-array) ${profile}`;
 }
 function vsCommandProfile(): Disposable {
 	return commands.registerCommand('quickAccessView.profile', async () => {
