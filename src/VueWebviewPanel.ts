@@ -1,7 +1,7 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionContext } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, SketchProjectFile, WebviewToExtensionMessage } from './shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, PROFILES_STATUS, SketchProjectFile, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, compile, loadArduinoConfiguration, openExample, shouldDetectPorts, updateStateCompileUpload } from "./extension";
 
 const path = require('path');
@@ -120,18 +120,7 @@ export class VueWebviewPanel {
                         arduinoProject.setUseProgrammer(message.payload);
                         break;
                     case ARDUINO_MESSAGES.CREATE_BUILD_PROFILE:
-                        compile(false, true).then((profile) => {
-                            if (profile) {
-                                arduinoYaml.createProfile(message.payload, profile);
-                                message.command = ARDUINO_MESSAGES.BUILD_PROFILE_CREATED;
-                                VueWebviewPanel.sendMessage(message);
-                                window.showInformationMessage(`Profile ${message.payload} created`);
-                            } else {
-                                message.command = ARDUINO_MESSAGES.BUILD_PROFILE_CREATED;
-                                VueWebviewPanel.sendMessage(message);
-                                window.showErrorMessage(`Profile ${message.payload} not created`);
-                            }
-                        })
+                        this.createBuildProfile(message);
                         break;
                     case ARDUINO_MESSAGES.DELETE_BUILD_PROFILE:
                         arduinoYaml.deleteProfile(message.payload);
@@ -287,6 +276,31 @@ export class VueWebviewPanel {
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
         this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
         arduinoExtensionChannel.appendLine("Arduino Web view ready");
+    }
+
+    private createBuildProfile(message: WebviewToExtensionMessage) {
+        let restoreActiveBuildProfile: boolean = false
+        if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
+            // When creating build profiles, the yaml file must be inactive
+            restoreActiveBuildProfile = true;
+            arduinoYaml.setProfileStatus(PROFILES_STATUS.INACTIVE)
+        }
+        compile(false, true).then((profile) => {
+            if (profile) {
+                arduinoYaml.createProfile(message.payload, profile);
+                message.command = ARDUINO_MESSAGES.BUILD_PROFILE_CREATED;
+                VueWebviewPanel.sendMessage(message);
+                window.showInformationMessage(`Profile ${message.payload} created`);
+            } else {
+                message.command = ARDUINO_MESSAGES.BUILD_PROFILE_CREATED;
+                VueWebviewPanel.sendMessage(message);
+                window.showErrorMessage(`Profile ${message.payload} not created`);
+            }
+        }).finally(() => {
+            if (restoreActiveBuildProfile) {
+                arduinoYaml.setProfileStatus(PROFILES_STATUS.ACTIVE)
+            }
+        });
     }
 
     private setBoard(message: WebviewToExtensionMessage) {
