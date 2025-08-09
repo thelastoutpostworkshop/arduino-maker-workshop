@@ -1,8 +1,8 @@
 import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind, ConfigurationTarget } from "vscode";
 import { ArduinoProject, UPLOAD_READY_STATUS } from './ArduinoProject';
 import { sendBuildProfiles, VueWebviewPanel } from './VueWebviewPanel';
-import { compileCommandCleanName, quickAccessCompileCommandName, QuickAccessProvider, quickAccessUploadCommandName } from './quickAccessProvider';
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, PROFILES_STATUS, THEME_COLOR, WebviewToExtensionMessage, YAML_FILENAME, YAML_FILENAME_INACTIVE } from "./shared/messages";
+import { primaryCompileCleanTitle, primaryCompileTitle, QuickAccessProvider, primaryUploadTitle } from './quickAccessProvider';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, PROFILES_STATUS, THEME_COLOR, YAML_FILENAME, YAML_FILENAME_INACTIVE } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
 import { SketchProfileManager } from "./sketchProfileManager";
 
@@ -301,26 +301,37 @@ export function updateStateCompileUpload() {
 	if (arduinoProject.isFolderArduinoProject() === ARDUINO_ERRORS.NO_ERRORS) {
 
 		if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
-			compileStatusBarItem.tooltip = `Compile profile ${arduinoProject.getCompileProfile()}`;
+			quickAccessProvider.setTooltip(primaryCompileTitle, `Compile profile ${arduinoProject.getCompileProfile()}`);
+			quickAccessProvider.setTooltip(primaryCompileCleanTitle, `Compile (clean) profile ${arduinoProject.getCompileProfile()}`);
+			quickAccessProvider.setTooltip(primaryUploadTitle, `Upload ${arduinoProject.getCompileProfile()} to the board`);
 			uploadStatusBarItem.tooltip = `Upload ${arduinoProject.getCompileProfile()} to the board`;
+			compileStatusBarItem.tooltip = `Compile profile ${arduinoProject.getCompileProfile()}`;
 			quickAccessProvider.showItem(profileDeactivateCommandName)
 			quickAccessProvider.hideItem(profileActivateCommandName)
 		} else {
 			if (arduinoYaml.status() === PROFILES_STATUS.INACTIVE) {
 				quickAccessProvider.hideItem(profileDeactivateCommandName)
 				quickAccessProvider.showItem(profileActivateCommandName)
+				quickAccessProvider.setTooltip(primaryCompileTitle, `Compile the current sketch`);
+				quickAccessProvider.setTooltip(primaryCompileCleanTitle, `Compile (clean) the current sketch`);
+				quickAccessProvider.setTooltip(primaryUploadTitle, `Upload to the board`);
+				compileStatusBarItem.tooltip = `Compile the current sketch`;
+				uploadStatusBarItem.tooltip = "Upload to the board";
 			} else {
 				quickAccessProvider.hideItem(profileDeactivateCommandName)
 				quickAccessProvider.hideItem(profileActivateCommandName)
+				quickAccessProvider.setTooltip(primaryCompileTitle, `Compile the current sketch`);
+				quickAccessProvider.setTooltip(primaryCompileCleanTitle, `Compile (clean) the current sketch`);
+				quickAccessProvider.setTooltip(primaryUploadTitle, `Upload to the board`);
 				compileStatusBarItem.tooltip = `Compile the current sketch`;
 				uploadStatusBarItem.tooltip = "Upload to the board";
 			}
 		}
 
 		if (arduinoProject.isCompileReady()) {
-			quickAccessProvider.enableItem(quickAccessCompileCommandName);
-			quickAccessProvider.enableItem(compileCommandCleanName);
-			quickAccessProvider.enableItem(quickAccessUploadCommandName);
+			quickAccessProvider.enableItem(primaryCompileTitle);
+			quickAccessProvider.enableItem(primaryCompileCleanTitle);
+			quickAccessProvider.enableItem(primaryUploadTitle);
 			compileStatusBarItem.show();
 			uploadStatusBarItem.show();
 			if (arduinoYaml.getLastError()) {
@@ -335,9 +346,9 @@ export function updateStateCompileUpload() {
 			}
 
 		} else {
-			quickAccessProvider.disableItem(quickAccessCompileCommandName);
-			quickAccessProvider.disableItem(compileCommandCleanName);
-			quickAccessProvider.disableItem(quickAccessUploadCommandName);
+			quickAccessProvider.disableItem(primaryCompileTitle);
+			quickAccessProvider.disableItem(primaryCompileCleanTitle);
+			quickAccessProvider.disableItem(primaryUploadTitle);
 			compileStatusBarItem.hide();
 			uploadStatusBarItem.hide();
 			profileStatusBarItem.hide();
@@ -346,9 +357,9 @@ export function updateStateCompileUpload() {
 		uploadStatusBarItem.hide();
 		compileStatusBarItem.hide();
 		profileStatusBarItem.hide();
-		quickAccessProvider.disableItem(quickAccessCompileCommandName);
-		quickAccessProvider.disableItem(compileCommandCleanName);
-		quickAccessProvider.disableItem(quickAccessUploadCommandName);
+		quickAccessProvider.disableItem(primaryCompileTitle);
+		quickAccessProvider.disableItem(primaryCompileCleanTitle);
+		quickAccessProvider.disableItem(primaryUploadTitle);
 		quickAccessProvider.hideItem(profileDeactivateCommandName)
 		quickAccessProvider.hideItem(profileActivateCommandName)
 	}

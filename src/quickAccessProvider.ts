@@ -1,10 +1,10 @@
 import { TreeDataProvider, EventEmitter, Event, TreeItem, TreeItemCollapsibleState, ThemeIcon, ThemeColor } from "vscode";
 import { compileCommandName, profileActivateCommandName, profileDeactivateCommandName, uploadCommandName } from "./extension";
 
-export const quickAccessCompileCommandName = 'Compile';
-export const compileCommandCleanName = 'Compile (clean)';
-export const quickAccessUploadCommandName = 'Upload';
-export const homeCommandName = 'Maker Workshop Home';
+export const primaryCompileTitle = 'Compile';
+export const primaryCompileCleanTitle = 'Compile (clean)';
+export const primaryUploadTitle = 'Upload';
+export const primaryHomeTitle = 'Maker Workshop Home';
 
 export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
   private _onDidChangeTreeData: EventEmitter<QuickAccessItem | undefined | null | void> = new EventEmitter<QuickAccessItem | undefined | null | void>();
@@ -18,6 +18,28 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
     homeCommandName: false,
     intellisenseCommandName: true,
   };
+
+  // Per-item tooltip overrides (keyed by label for consistency with your other maps)
+  private tooltipState: { [key: string]: string } = {
+    [primaryHomeTitle]: 'Open Arduino Maker Workshop',
+    [primaryCompileTitle]: 'Compile the current sketch',
+    [primaryCompileCleanTitle]: 'Compile (rebuild clean) the current sketch',
+    [primaryUploadTitle]: 'Upload to the board',
+    // You can prefill others or leave them undefined
+  };
+
+  /** Set/override a tooltip for an item (by label) */
+  setTooltip(label: string, tooltip: string) {
+    this.tooltipState[label] = tooltip;
+    this.refresh();
+  }
+
+  /** Remove a custom tooltip so the default is used again */
+  resetTooltip(label: string) {
+    delete this.tooltipState[label];
+    this.refresh();
+  }
+
 
   // Track visibility separately from disabled state
   private hiddenItemsState: { [key: string]: boolean } = {
@@ -45,23 +67,65 @@ export class QuickAccessProvider implements TreeDataProvider<QuickAccessItem> {
   }
 
   private getQuickAccessItems(): QuickAccessItem[] {
+    const t = this.tooltipState; // shorthand
+
     const items: QuickAccessItem[] = [
-      new QuickAccessItem(homeCommandName, 'extension.openVueWebview', 'Open Arduino Maker Workshop', 'home', this.disabledItemsState[homeCommandName]),
-      new QuickAccessItem(quickAccessCompileCommandName, compileCommandName, 'Compile the current sketch', 'check', this.disabledItemsState[quickAccessCompileCommandName]),
-      new QuickAccessItem(compileCommandCleanName, 'compile.clean', 'Compile (rebuild clean) the current sketch', 'check', this.disabledItemsState[compileCommandCleanName]),
-      new QuickAccessItem(quickAccessUploadCommandName, uploadCommandName, 'Upload to the board', 'cloud-upload', this.disabledItemsState[quickAccessUploadCommandName]),
-      // Profiles (conditionally push)
+      new QuickAccessItem(
+        primaryHomeTitle,
+        'extension.openVueWebview',
+        t[primaryHomeTitle] ?? 'Open Arduino Maker Workshop',
+        'home',
+        this.disabledItemsState[primaryHomeTitle]
+      ),
+      new QuickAccessItem(
+        primaryCompileTitle,
+        compileCommandName,
+        t[primaryCompileTitle] ?? 'Compile the current sketch',
+        'check',
+        this.disabledItemsState[primaryCompileTitle]
+      ),
+      new QuickAccessItem(
+        primaryCompileCleanTitle,
+        'compile.clean',
+        t[primaryCompileCleanTitle] ?? 'Compile (rebuild clean) the current sketch',
+        'check',
+        this.disabledItemsState[primaryCompileCleanTitle]
+      ),
+      new QuickAccessItem(
+        primaryUploadTitle,
+        uploadCommandName,
+        t[primaryUploadTitle] ?? 'Upload to the board',
+        'cloud-upload',
+        this.disabledItemsState[primaryUploadTitle]
+      ),
     ];
 
     if (!this.hiddenItemsState[profileActivateCommandName]) {
-      items.push(new QuickAccessItem("Activate Build Profiles", profileActivateCommandName, 'Select to activate build profiles', 'symbol-array', this.disabledItemsState[profileActivateCommandName]));
+      items.push(
+        new QuickAccessItem(
+          "Activate Build Profiles",
+          profileActivateCommandName,
+          this.tooltipState["Activate Build Profiles"] ?? 'Select to activate build profiles',
+          'symbol-array',
+          this.disabledItemsState[profileActivateCommandName]
+        )
+      );
     }
     if (!this.hiddenItemsState[profileDeactivateCommandName]) {
-      items.push(new QuickAccessItem("Deactivate Build Profiles", profileDeactivateCommandName, 'Select to deactivate build profiles', 'symbol-array', this.disabledItemsState[profileDeactivateCommandName]));
+      items.push(
+        new QuickAccessItem(
+          "Deactivate Build Profiles",
+          profileDeactivateCommandName,
+          this.tooltipState["Deactivate Build Profiles"] ?? 'Select to deactivate build profiles',
+          'symbol-array',
+          this.disabledItemsState[profileDeactivateCommandName]
+        )
+      );
     }
 
     return items;
   }
+
   // Method to refresh the view
   refresh(): void {
     this._onDidChangeTreeData.fire();
@@ -99,10 +163,10 @@ class QuickAccessItem extends TreeItem {
       // Update the label to show it's disabled and apply the grey color
       this.label = `${this.label}`;
       this.tooltip = `${this.tooltip} - disabled`;
-      if (this.label === quickAccessCompileCommandName || this.label === compileCommandCleanName) {
+      if (this.label === primaryCompileTitle || this.label === primaryCompileCleanTitle) {
         this.tooltip = `${this.tooltip} - select a board first in Home`;
       }
-      if (this.label === quickAccessUploadCommandName) {
+      if (this.label === primaryUploadTitle) {
         this.tooltip = `${this.tooltip} - Last compile must be successful, cannot upload`;
       }
 
