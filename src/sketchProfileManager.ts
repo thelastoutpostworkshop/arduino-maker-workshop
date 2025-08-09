@@ -594,37 +594,42 @@ export class SketchProfileManager {
             return false;
         }
 
-        // Check if old profile exists
-        if (!yamlData.profiles[newProfileName.profile_name]) {
-            this.setLastError(`Cannot rename profile, profile "${newProfileName.profile_name}" not found.`);
+        const oldName = newProfileName.profile_name;
+        const newName = newProfileName.new_profile_name?.trim();
+        if (!oldName || !yamlData.profiles[oldName]) {
+            this.setLastError(`Cannot rename profile, profile "${oldName}" not found.`);
             return false;
         }
-
-        // Ensure new name is provided
-        if (!newProfileName.new_profile_name) {
+        if (!newName) {
             this.setLastError("Cannot rename profile, new name not provided.");
             return false;
         }
-
-        // Ensure new name doesn't exist
-        if (yamlData.profiles[newProfileName.new_profile_name]) {
-            this.setLastError(`Cannot rename profile, profile "${newProfileName.new_profile_name}" already exists.`);
+        if (yamlData.profiles[newName]) {
+            this.setLastError(`Cannot rename profile, profile "${newName}" already exists.`);
             sendBuildProfiles();
             return false;
         }
 
-        // Rename the profile
-        yamlData.profiles[newProfileName.new_profile_name] = yamlData.profiles[newProfileName.profile_name];
-        delete yamlData.profiles[newProfileName.profile_name];
+        // Rebuild profiles preserving order; replace key inline
+        const reordered: Record<string, BuildProfile> = {};
+        for (const [key, value] of Object.entries(yamlData.profiles)) {
+            if (key === oldName) {
+                reordered[newName] = value;     // keep position
+            } else {
+                reordered[key] = value;
+            }
+        }
+        yamlData.profiles = reordered;
 
         // Update default_profile if necessary
-        if (yamlData.default_profile === newProfileName.profile_name) {
-            yamlData.default_profile = newProfileName.new_profile_name;
+        if (yamlData.default_profile === oldName) {
+            yamlData.default_profile = newName;
         }
 
         this.writeYaml(yamlData);
         return true;
     }
+
 
 
     updateProfileNotes(updateNotes: BuildProfileUpdate): boolean {
