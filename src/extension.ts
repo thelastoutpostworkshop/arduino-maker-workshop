@@ -305,7 +305,7 @@ export function updateStateCompileUpload() {
 
 		if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
 			compileStatusBarItem.tooltip = `Compile profile ${arduinoProject.getCompileProfile()}`;
-			uploadStatusBarItem.tooltip = `Upload  ${arduinoProject.getCompileProfile()} to the board`;
+			uploadStatusBarItem.tooltip = `Upload ${arduinoProject.getCompileProfile()} to the board`;
 			quickAccessProvider.showItem(profileDeactivateCommandName)
 			quickAccessProvider.hideItem(profileActivateCommandName)
 		} else {
