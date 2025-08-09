@@ -480,7 +480,7 @@ onMounted(() => {
                         <v-card-text class="pt-4">
                             <v-form v-model="isProfileValid">
                                 <v-row class="mb-4" align="center">
-                                    <v-text-field v-model="profileName" label="New Profile name"
+                                    <v-text-field v-model="profileName" label="New Profile name" clearable
                                         :rules="profileNameRule" hide-details="auto" density="comfortable" class="mr-4"
                                         style="max-width: 300px;" />
                                     <v-tooltip v-if="!store.profileUpdating" location="top">
@@ -683,7 +683,7 @@ onMounted(() => {
                             <v-form v-model="isProfileValid">
                                 <v-row class="mb-4" align="center">
                                     <v-text-field v-model="profileName" label="New Profile name"
-                                        :rules="profileNameRule" hide-details="auto" density="comfortable" class="mr-4"
+                                        :rules="profileNameRule" hide-details="auto" density="comfortable" class="mr-4" 
                                         clearable style="max-width: 300px;" />
                                     <v-tooltip v-if="!store.profileUpdating" location="top">
                                         <template #activator="{ props }">
