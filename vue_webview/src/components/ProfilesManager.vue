@@ -28,18 +28,18 @@ const portsAvailable = computed(() => getAvailablePorts(store));
 function uniqueCopyName(base: string): string {
     const profiles = Object.keys(store.sketchProject?.yaml?.profiles || {});
     // e.g. "MyProfile (copy)" or "MyProfile (copy 2)"
-    const baseCopy = `${base} (copy)`;
+    const baseCopy = `${base}-copy`;
     if (!profiles.includes(baseCopy)) return baseCopy;
     let i = 2;
-    while (profiles.includes(`${base} (copy ${i})`)) i++;
-    return `${base} (copy ${i})`;
+    while (profiles.includes(`${base}-copy-${i}`)) i++;
+    return `${base} (copy-${i})`;
 }
 
 function duplicateProfile(profile_name: string) {
     const newName = uniqueCopyName(profile_name);
     const update: BuildProfileUpdate = {
         profile_name: profile_name,
-        new_profile_name:newName
+        new_profile_name: newName
     }
     store.sendMessage({
         command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_DUPLICATE,
@@ -193,14 +193,26 @@ function stopEditProfileName() {
 function stopEditProfileNotes() {
     editingNotes.value = null;
 }
-// Profile name validation rules
-const profileRules = [
-    (v: string) => !!v || 'Name is required.',
-    (v: string) => {
+
+// Optional helper for reuse
+const isValidProfileName = (s: unknown) => /^[A-Za-z0-9_.-]+$/.test(String(s ?? ''));
+
+const profileNameRule = [
+    (v: string | null) => {
+        const val = String(v ?? '');
+        if (!val.trim()) return 'Name is required.';
+        if (!isValidProfileName(val)) {
+            return 'Allowed: letters, numbers, underscore (_), dot (.), dash (-)';
+        }
+        return true;
+    },
+    (v: string | null) => {
+        const val = String(v ?? '');
         const profiles = store.sketchProject?.yaml?.profiles || {};
-        return !(v in profiles) || `Profile "${v}" already exists.`;
+        return !(val in profiles) || `Profile "${val}" already exists.`;
     },
 ];
+
 
 function deleteProfile(name: string) {
     store.sendMessage({
@@ -468,8 +480,8 @@ onMounted(() => {
                         <v-card-text class="pt-4">
                             <v-form v-model="isProfileValid">
                                 <v-row class="mb-4" align="center">
-                                    <v-text-field v-model="profileName" label="New Profile name" :rules="profileRules"
-                                        hide-details="auto" density="comfortable" class="mr-4" clearable
+                                    <v-text-field v-model="profileName" label="New Profile name"
+                                        :rules="profileNameRule" hide-details="auto" density="comfortable" class="mr-4"
                                         style="max-width: 300px;" />
                                     <v-tooltip v-if="!store.profileUpdating" location="top">
                                         <template #activator="{ props }">
@@ -670,9 +682,9 @@ onMounted(() => {
                         <v-card-text class="pt-4">
                             <v-form v-model="isProfileValid">
                                 <v-row class="mb-4" align="center">
-                                    <v-text-field v-model="profileName" label="New Profile name" :rules="profileRules"
-                                        hide-details="auto" density="comfortable" class="mr-4" clearable
-                                        style="max-width: 300px;" />
+                                    <v-text-field v-model="profileName" label="New Profile name"
+                                        :rules="profileNameRule" hide-details="auto" density="comfortable" class="mr-4"
+                                        clearable style="max-width: 300px;" />
                                     <v-tooltip v-if="!store.profileUpdating" location="top">
                                         <template #activator="{ props }">
                                             <div
