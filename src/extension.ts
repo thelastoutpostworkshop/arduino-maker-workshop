@@ -163,9 +163,6 @@ export async function activate(context: ExtensionContext) {
 					if (event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.userDirectory')) {
 						changeUserDirectory();
 					}
-					// if (event.affectsConfiguration('arduinoMakerWorkshop.buildProfilesInactiveFolder')) {
-					// 	arduinoYaml.setupInactiveFolder();
-					// }
 				}, 500); // Debounce delay (500ms here)
 			});
 

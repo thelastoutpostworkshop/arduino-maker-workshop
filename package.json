@@ -121,11 +121,6 @@
           "type": "boolean",
           "default": true,
           "description": "Enable verbose output during Arduino CLI compile."
-        },
-        "arduinoMakerWorkshop.buildProfilesInactiveFolder": {
-          "type": "string",
-          "default": "Build Profiles Inactive",
-          "description": "Folder where to move the Build Profiles (sketch.yaml) to make it inactive"
         }
       }
     },
