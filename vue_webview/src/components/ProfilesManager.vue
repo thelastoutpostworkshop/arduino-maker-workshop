@@ -30,8 +30,10 @@ const portsAvailable = computed(() => getAvailablePorts(store));
 const forms = ref<Record<number, InstanceType<typeof VForm> | null>>({})
 
 async function validateAndRename(originalName: string, newName: string, index: number) {
-    console.log("Form index=" + index);
-    console.log(forms.value[index])
+    if (originalName === newName) {
+        editProfileName.value[originalName] = false
+        return;
+    }
     const form = forms.value[index]
     if (!form) return
     const res = await form.validate()
@@ -212,7 +214,12 @@ const profileNameRule = (newname: string) => {
     }
     return true;
 }
-const profileNameExistRule = (newname: string) => {
+const profileNameExistRule = (newname: string, originalName?: string) => {
+    if (originalName) {
+        if (originalName == newname) {
+            return true;
+        }
+    }
     const profiles = store.sketchProject?.yaml?.profiles || {};
     return !(newname in profiles) || `Profile "${newname}" already exists.`;
 }
@@ -561,17 +568,11 @@ onMounted(() => {
                                                 validate-on="input" class="w-100">
                                                 <v-text-field v-model="newProfileName[profile.name]"
                                                     label="Profile Name" variant="outlined" density="compact"
-                                                    class="flex-grow-1 mr-3"
-                                                    :rules="[profileNameRule(newProfileName[profile.name]), profileNameExistRule(newProfileName[profile.name])]"
+                                                    class="flex-grow-1"
+                                                    :rules="[profileNameRule(newProfileName[profile.name]), profileNameExistRule(newProfileName[profile.name],profile.name)]"
                                                     @blur="validateAndRename(profile.name, newProfileName[profile.name], index)">
 
                                                 </v-text-field>
-                                                <!-- <v-btn
-                                                    @click="validateAndRename(profile.name, newProfileName[profile.name], index)"
-                                                    icon size="x-small">
-                                                    <v-icon>mdi-pencil</v-icon>
-                                                </v-btn> -->
-
                                             </v-form>
                                         </template>
                                         <template v-else>
@@ -586,7 +587,7 @@ onMounted(() => {
                                     <v-card-subtitle class="d-flex align-center">
                                         <template v-if="editingNotes === profile.name">
                                             <v-textarea v-model="profile.notes" label="Profile Notes" variant="outlined"
-                                                density="compact" rows="2" auto-grow class="flex-grow-1 mr-3"
+                                                density="compact" rows="2" auto-grow class="flex-grow-1 mr-3 mt-3"
                                                 @blur="() => { updateProfileNotes(profile.name, profile.notes); stopEditProfileNotes(); }" />
                                         </template>
                                         <template v-else>
