@@ -570,6 +570,7 @@ onMounted(() => {
                                                 <v-text-field v-model="newProfileName[profile.name]"
                                                     label="Profile Name" variant="outlined" density="compact"
                                                     class="flex-grow-1"
+                                                    clearable
                                                     :rules="[profileNameRule(newProfileName[profile.name]), profileNameExistRule(newProfileName[profile.name], profile.name)]"
                                                     @blur="validateAndRename(profile.name, newProfileName[profile.name], index)">
 
@@ -588,11 +589,11 @@ onMounted(() => {
                                     <v-card-subtitle class="d-flex align-center">
                                         <template v-if="editingNotes === profile.name">
                                             <v-textarea v-model="profile.notes" label="Profile Notes" variant="outlined"
-                                                density="compact" rows="2" auto-grow class="flex-grow-1 mr-3 mt-3"
+                                                density="compact" rows="2" auto-grow class="flex-grow-1 mr-3 mt-3" clearable
                                                 @blur="() => { updateProfileNotes(profile.name, profile.notes); stopEditProfileNotes(); }" />
                                         </template>
                                         <template v-else>
-                                            <span class="flex-grow-1">{{ profile.notes || 'No description' }}</span>
+                                            <pre class="flex-grow-1">{{ profile.notes || 'No description' }}</pre>
                                             <v-btn icon size="x-small" @click="startEditProfileNotes(profile.name)">
                                                 <v-icon>mdi-pencil</v-icon>
                                             </v-btn>

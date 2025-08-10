@@ -1,6 +1,5 @@
 profiles:
   esp32-s3:
-    notes: testing the limit of the AVR platform, may be unstable
     fqbn: esp32:esp32:esp32:UploadSpeed=921600,CPUFreq=240,FlashFreq=80,FlashMode=qio,FlashSize=4M,PartitionScheme=default,DebugLevel=none,PSRAM=disabled,LoopCore=1,EventsCore=1,EraseFlash=none,JTAGAdapter=default,ZigbeeMode=default
     platforms:
       - platform: esp32:esp32 (3.3.0)
@@ -13,6 +12,9 @@ profiles:
       bits: "8"
       parity: none
       stop_bits: one
+    notes: |-
+      Core Debug Level 
+      verbose For testing
   targetesp32v3.2.1:
     fqbn: esp32:esp32:esp32:UploadSpeed=921600,CPUFreq=240,FlashFreq=80,FlashMode=qio,FlashSize=4M,PartitionScheme=default,DebugLevel=none,PSRAM=disabled,LoopCore=1,EventsCore=1,EraseFlash=none,JTAGAdapter=default,ZigbeeMode=default
     platforms:
