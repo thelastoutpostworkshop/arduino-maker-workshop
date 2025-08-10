@@ -1,0 +1,18 @@
+{
+  "port": "",
+  "configuration": "",
+  "output": "build",
+  "board": "",
+  "programmer": "",
+  "useProgrammer": false,
+  "optimize_for_debug": false,
+  "configurationRequired": false,
+  "monitorPortSettings": {
+    "port": "",
+    "baudRate": 115200,
+    "lineEnding": "\r\n",
+    "dataBits": 8,
+    "parity": "none",
+    "stopBits": "one"
+  }
+}

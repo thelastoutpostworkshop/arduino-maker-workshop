@@ -392,9 +392,9 @@ onMounted(() => {
               <v-row>
                 <v-col cols="12">
                   <v-alert type="info" variant="tonal">
-                    <v-alert-title>Standard Arduino Configuration</v-alert-title>
+                    <v-alert-title>Sketch Configuration</v-alert-title>
                     <div>
-                      The standard Arduino configuration is also helpful to create build profiles easily.
+                      The standard Arduino Sketch configuration is also helpful to create build profiles easily.
                     </div>
                     <v-btn class="mt-5" @click="router.push({ name: 'board-selection' })">Select your board</v-btn>
                   </v-alert>
