@@ -4,6 +4,8 @@ import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BoardConfiguration, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, NO_PROGRAMMER, PortSettings, YAML_FILENAME } from '@shared/messages';
 import { useRouter } from 'vue-router';
 import { getAvailablePorts } from '@/utilities/utils';
+import { VForm } from 'vuetify/components';
+type VFormInstance = InstanceType<typeof VForm>
 
 const router = useRouter()
 const store = useVsCodeStore();
@@ -15,7 +17,8 @@ const selectedLibraryVersion = ref<Record<string, Record<string, string>>>({});
 const selectedPlatformVersion = ref<Record<string, Record<string, string>>>({});
 const selectedProgrammer = ref<Record<string, string>>({});
 const selectedDefaultProfile = ref<string | null>(null);
-const editingProfileName = ref<string | null>(null);
+const newProfileName = ref<Record<string, string>>({});
+const editProfileName = ref<Record<string, boolean>>({});
 const editingNotes = ref<string | null>(null);
 const showBoardConfiguration = ref<Record<string, boolean>>({});
 const disableShowBoardConfiguration = ref<Record<string, boolean>>({});
@@ -24,7 +27,19 @@ const profileBoardOptionsError = ref<Record<string, boolean>>({});
 const profileBoardOptionsRetrieving = ref<Record<string, boolean>>({});
 const profileMonitorSettings = ref<Record<string, PortSettings>>({});
 const portsAvailable = computed(() => getAvailablePorts(store));
+const forms = ref<Record<number, InstanceType<typeof VForm> | null>>({})
 
+async function validateAndRename(originalName: string, newName: string, index: number) {
+    console.log("Form index=" + index);
+    console.log(forms.value[index])
+    const form = forms.value[index]
+    if (!form) return
+    const res = await form.validate()
+    if (res.valid) {
+        renameProfile(originalName, newName)
+        editProfileName.value[originalName] = false
+    }
+}
 function uniqueCopyName(base: string): string {
     const profiles = Object.keys(store.sketchProject?.yaml?.profiles || {});
     // e.g. "MyProfile (copy)" or "MyProfile (copy 2)"
@@ -178,16 +193,9 @@ watchEffect(() => {
 const disabledButton = computed(() => {
     return !isProfileValid.value || store.compileInProgress !== '';
 });
-function startEditProfileName(profileName: string) {
-    editingProfileName.value = profileName;
-}
 
 function startEditProfileNotes(profileName: string) {
     editingNotes.value = profileName;
-}
-
-function stopEditProfileName() {
-    editingProfileName.value = null;
 }
 
 function stopEditProfileNotes() {
@@ -197,22 +205,17 @@ function stopEditProfileNotes() {
 // Optional helper for reuse
 const isValidProfileName = (s: unknown) => /^[A-Za-z0-9_.-]+$/.test(String(s ?? ''));
 
-const profileNameRule = [
-    (v: string | null) => {
-        const val = String(v ?? '');
-        if (!val.trim()) return 'Name is required.';
-        if (!isValidProfileName(val)) {
-            return 'Allowed: letters, numbers, underscore (_), dot (.), dash (-)';
-        }
-        return true;
-    },
-    (v: string | null) => {
-        const val = String(v ?? '');
-        const profiles = store.sketchProject?.yaml?.profiles || {};
-        return !(val in profiles) || `Profile "${val}" already exists.`;
-    },
-];
-
+const profileNameRule = (newname: string) => {
+    if (!newname) return 'Name is required.';
+    if (!isValidProfileName(newname)) {
+        return 'Allowed: letters, numbers, underscore (_), dot (.), dash (-)';
+    }
+    return true;
+}
+const profileNameExistRule = (newname: string) => {
+    const profiles = store.sketchProject?.yaml?.profiles || {};
+    return !(newname in profiles) || `Profile "${newname}" already exists.`;
+}
 
 function deleteProfile(name: string) {
     store.sendMessage({
@@ -325,6 +328,10 @@ const profilesList = computed(() => {
         // Initialize the toggle state for each profile if not already present
         if (!(name in showBoardConfiguration.value)) {
             showBoardConfiguration.value[name] = false;
+        }
+        if (!(name in newProfileName.value)) {
+            newProfileName.value[name] = name;
+            editProfileName.value[name] = false
         }
         if (!profileMonitorSettings.value[name]) {
             profileMonitorSettings.value[name] = {
@@ -481,7 +488,8 @@ onMounted(() => {
                             <v-form v-model="isProfileValid">
                                 <v-row class="mb-4" align="center">
                                     <v-text-field v-model="profileName" label="New Profile name" clearable
-                                        :rules="profileNameRule" hide-details="auto" density="comfortable" class="mr-4"
+                                        :rules="[profileNameRule(profileName), profileNameExistRule(profileName)]"
+                                        hide-details="auto" density="comfortable" class="mr-4"
                                         style="max-width: 300px;" />
                                     <v-tooltip v-if="!store.profileUpdating" location="top">
                                         <template #activator="{ props }">
@@ -521,7 +529,7 @@ onMounted(() => {
                     </v-card>
                     <div>You have {{ profilesList.length }} build profiles:</div>
                     <v-expansion-panels multiple variant="popout">
-                        <v-expansion-panel v-for="profile in profilesList" :key="profile.name">
+                        <v-expansion-panel v-for="(profile, index) in profilesList" :key="profile.name">
                             <v-expansion-panel-title>
                                 <span>Profile: {{ profile.name }}</span>
                                 <v-tooltip location="top">
@@ -547,15 +555,29 @@ onMounted(() => {
                             <v-expansion-panel-text>
                                 <v-card rounded="lg" variant="tonal">
                                     <v-card-title class="d-flex align-center">
-                                        <template v-if="editingProfileName === profile.originalName">
-                                            <v-text-field v-model="profile.name" label="Profile Name" variant="outlined"
-                                                density="compact" class="flex-grow-1 mr-3"
-                                                @blur="() => { renameProfile(profile.originalName, profile.name); stopEditProfileName(); }" />
+                                        <template v-if="editProfileName[profile.name]">
+                                            <v-form
+                                                :ref="(el) => (forms[index] = (el as unknown as VFormInstance) ?? null)"
+                                                validate-on="input" class="w-100">
+                                                <v-text-field v-model="newProfileName[profile.name]"
+                                                    label="Profile Name" variant="outlined" density="compact"
+                                                    class="flex-grow-1 mr-3"
+                                                    :rules="[profileNameRule(newProfileName[profile.name]), profileNameExistRule(newProfileName[profile.name])]"
+                                                    @blur="validateAndRename(profile.name, newProfileName[profile.name], index)">
+
+                                                </v-text-field>
+                                                <!-- <v-btn
+                                                    @click="validateAndRename(profile.name, newProfileName[profile.name], index)"
+                                                    icon size="x-small">
+                                                    <v-icon>mdi-pencil</v-icon>
+                                                </v-btn> -->
+
+                                            </v-form>
                                         </template>
                                         <template v-else>
                                             <span class="flex-grow-1">{{ profile.name }}</span>
                                             <v-btn icon size="x-small"
-                                                @click="startEditProfileName(profile.originalName)">
+                                                @click="editProfileName[profile.name] = !editProfileName[profile.name]">
                                                 <v-icon>mdi-pencil</v-icon>
                                             </v-btn>
                                         </template>
@@ -683,8 +705,9 @@ onMounted(() => {
                             <v-form v-model="isProfileValid">
                                 <v-row class="mb-4" align="center">
                                     <v-text-field v-model="profileName" label="New Profile name"
-                                        :rules="profileNameRule" hide-details="auto" density="comfortable" class="mr-4" 
-                                        clearable style="max-width: 300px;" />
+                                        :rules="[profileNameRule(profileName), profileNameExistRule(profileName)]"
+                                        hide-details="auto" density="comfortable" class="mr-4" clearable
+                                        style="max-width: 300px;" />
                                     <v-tooltip v-if="!store.profileUpdating" location="top">
                                         <template #activator="{ props }">
                                             <div
