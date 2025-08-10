@@ -565,11 +565,12 @@ onMounted(() => {
                                         <template v-if="editProfileName[profile.name]">
                                             <v-form
                                                 :ref="(el) => (forms[index] = (el as unknown as VFormInstance) ?? null)"
-                                                validate-on="input" class="w-100">
+                                                validate-on="input" class="w-100"
+                                                @submit.prevent="validateAndRename(profile.name, newProfileName[profile.name], index)">
                                                 <v-text-field v-model="newProfileName[profile.name]"
                                                     label="Profile Name" variant="outlined" density="compact"
                                                     class="flex-grow-1"
-                                                    :rules="[profileNameRule(newProfileName[profile.name]), profileNameExistRule(newProfileName[profile.name],profile.name)]"
+                                                    :rules="[profileNameRule(newProfileName[profile.name]), profileNameExistRule(newProfileName[profile.name], profile.name)]"
                                                     @blur="validateAndRename(profile.name, newProfileName[profile.name], index)">
 
                                                 </v-text-field>
