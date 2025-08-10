@@ -1,0 +1,50 @@
+profiles:
+  targetesp32v3.3.0:
+    notes: testing the limit of the AVR platform, may be unstable
+    fqbn: esp32:esp32:esp32:UploadSpeed=921600,CPUFreq=240,FlashFreq=80,FlashMode=qio,FlashSize=4M,PartitionScheme=default,DebugLevel=none,PSRAM=disabled,LoopCore=1,EventsCore=1,EraseFlash=none,JTAGAdapter=default,ZigbeeMode=default
+    platforms:
+      - platform: esp32:esp32 (3.3.0)
+        platform_index_url: https://espressif.github.io/arduino-esp32/package_esp32_index.json
+    libraries:
+      - GFX Library for Arduino (1.6.0)
+      - JPEGDEC (1.8.1)
+    port_config:
+      baudrate: "115200"
+      bits: "8"
+      parity: none
+      stop_bits: one
+  targetesp32v3.2.1:
+    fqbn: esp32:esp32:esp32:UploadSpeed=921600,CPUFreq=240,FlashFreq=80,FlashMode=qio,FlashSize=4M,PartitionScheme=default,DebugLevel=none,PSRAM=disabled,LoopCore=1,EventsCore=1,EraseFlash=none,JTAGAdapter=default,ZigbeeMode=default
+    platforms:
+      - platform: esp32:esp32 (3.2.1)
+        platform_index_url: https://espressif.github.io/arduino-esp32/package_esp32_index.json
+    libraries:
+      - GFX Library for Arduino (1.6.0)
+      - JPEGDEC (1.8.1)
+  uno:
+    fqbn: arduino:avr:uno
+    platforms:
+      - platform: arduino:avr (1.8.6)
+    libraries:
+      - ArduinoJson (7.4.2)
+    programmer: dfdfdf
+    port: COM7
+    port_config:
+      baudrate: "115200"
+      bits: "8"
+      parity: none
+      stop_bits: one
+  uno-copy:
+    fqbn: arduino:avr:uno
+    platforms:
+      - platform: arduino:avr (1.8.6)
+    libraries:
+      - ArduinoJson (7.4.2)
+    programmer: dfdfdf
+    port: COM7
+    port_config:
+      baudrate: "115200"
+      bits: "8"
+      parity: none
+      stop_bits: one
+default_profile: targetesp32v3.3.0

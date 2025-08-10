@@ -161,6 +161,20 @@ export const useVsCodeStore = defineStore('vsCode', {
                         // message.payload="";
                         // this.handleMessage(message);
                         break;
+                    case ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_DUPLICATE:
+                        loadMockData('sketch-updated.yaml', false, true).then((mockPayload) => {
+                            const sketchProject: SketchProjectFile = {
+                                yaml: mockPayload,
+                                error: "",
+                                buildProfileStatus: PROFILES_STATUS.ACTIVE
+                            }
+                            message.payload = sketchProject;
+                            message.command = ARDUINO_MESSAGES.GET_BUILD_PROFILES
+                            this.handleMessage(message);
+                        });
+                        // message.payload="";
+                        // this.handleMessage(message);
+                        break;
                     case ARDUINO_MESSAGES.CLI_UNINSTALL_CORE:
                         message.command = ARDUINO_MESSAGES.CORE_UNINSTALLED;
                         this.handleMessage(message);
