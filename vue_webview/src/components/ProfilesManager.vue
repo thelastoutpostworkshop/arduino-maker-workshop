@@ -73,6 +73,25 @@ function addLibraryToProfile(profileName: string) {
     addLibrarySelection.value[profileName] = ''
 }
 
+function removeLibraryFromProfile(profileName: string, libEntry: string) {
+    const profile = store.sketchProject?.yaml?.profiles?.[profileName]
+    if (!profile?.libraries) return
+
+    const updated = profile.libraries.filter(l => l !== libEntry)
+
+    const updates: BuildProfileUpdate = {
+        profile_name: profileName,
+        libraries: updated
+    }
+
+    store.sendMessage({
+        command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_LIBRARIES,
+        errorMessage: '',
+        payload: updates
+    })
+}
+
+
 async function validateAndRename(originalName: string, newName: string, index: number) {
     if (originalName === newName) {
         editProfileName.value[originalName] = false
@@ -711,6 +730,15 @@ onMounted(() => {
                                                             v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
                                                             density="compact"
                                                             @update:model-value="val => updateLibraryVersion(profile.name, libEntry, val)" />
+                                                        <v-tooltip location="top">
+                                                            <template #activator="{ props }">
+                                                                <v-btn icon variant="text" size="small" v-bind="props"
+                                                                    @click="removeLibraryFromProfile(profile.name, libEntry)">
+                                                                    <v-icon>mdi-trash-can</v-icon>
+                                                                </v-btn>
+                                                            </template>
+                                                            <span>Remove this library</span>
+                                                        </v-tooltip>
                                                     </template>
                                                 </v-list-item>
                                             </v-list>
