@@ -623,8 +623,8 @@ onMounted(() => {
                                                 </v-list-item>
                                             </v-list>
                                         </span>
+                                        <strong>Libraries:</strong>
                                         <span v-if="profile.libraries?.length" class="mt-4">
-                                            <strong>Libraries:</strong>
                                             <v-list density="compact" variant="tonal">
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
                                                     <v-list-item-title>
@@ -639,6 +639,9 @@ onMounted(() => {
                                                     </template>
                                                 </v-list-item>
                                             </v-list>
+                                        </span>
+                                        <span v-else>
+                                            No libraries
                                         </span>
                                         <div class="mt-2">
                                             <span>
