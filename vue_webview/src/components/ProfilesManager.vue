@@ -19,6 +19,7 @@ const selectedProgrammer = ref<Record<string, string>>({});
 const selectedDefaultProfile = ref<string | null>(null);
 const newProfileName = ref<Record<string, string>>({});
 const editProfileName = ref<Record<string, boolean>>({});
+const addLibrariesFlag = ref<Record<string, boolean>>({});
 const editingNotes = ref<string | null>(null);
 const showBoardConfiguration = ref<Record<string, boolean>>({});
 const disableShowBoardConfiguration = ref<Record<string, boolean>>({});
@@ -28,6 +29,49 @@ const profileBoardOptionsRetrieving = ref<Record<string, boolean>>({});
 const profileMonitorSettings = ref<Record<string, PortSettings>>({});
 const portsAvailable = computed(() => getAvailablePorts(store));
 const forms = ref<Record<number, InstanceType<typeof VForm> | null>>({})
+
+// state for the inline "add library" UI
+const addLibrarySelection = ref<Record<string, string>>({})
+const libraryNames = computed(() =>
+    store.libraries?.libraries?.map(l => l.name) ?? []
+)
+
+function libraryAlreadyInProfile(profileName: string, libName: string) {
+    const libs = store.sketchProject?.yaml?.profiles?.[profileName]?.libraries ?? []
+    return libs.some(entry => parseLibraryEntry(entry).name === libName)
+}
+
+function addLibraryToProfile(profileName: string) {
+    const libName = addLibrarySelection.value[profileName]
+    if (!libName) return
+
+    if (libraryAlreadyInProfile(profileName, libName)) {
+        // optionally toast/snackbar here; we'll just no-op
+        return
+    }
+
+    const versions = getAvailableLibraryVersions(libName)
+    // default to latest known version, or 'latest' if none listed
+    const version = versions[versions.length - 1] || 'latest'
+    const newEntry = `${libName} (${version})`
+
+    const profile = store.sketchProject?.yaml?.profiles?.[profileName]
+    const updated = [...(profile?.libraries ?? []), newEntry]
+
+    const updates: BuildProfileUpdate = {
+        profile_name: profileName,
+        libraries: updated
+    }
+
+    store.sendMessage({
+        command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_LIBRARIES,
+        errorMessage: '',
+        payload: updates,
+    })
+
+    // keep the picker open, but clear the selection
+    addLibrarySelection.value[profileName] = ''
+}
 
 async function validateAndRename(originalName: string, newName: string, index: number) {
     if (originalName === newName) {
@@ -416,6 +460,7 @@ watchEffect(() => {
 
     profilesList.value.forEach(profile => {
         selectedLibraryVersion.value[profile.name] = {};
+        addLibrariesFlag.value[profile.name] = false;
 
         (profile.libraries || []).forEach(libEntry => {
             const { name, version } = parseLibraryEntry(libEntry);
@@ -569,8 +614,7 @@ onMounted(() => {
                                                 @submit.prevent="validateAndRename(profile.name, newProfileName[profile.name], index)">
                                                 <v-text-field v-model="newProfileName[profile.name]"
                                                     label="Profile Name" variant="outlined" density="compact"
-                                                    class="flex-grow-1"
-                                                    clearable
+                                                    class="flex-grow-1" clearable
                                                     :rules="[profileNameRule(newProfileName[profile.name]), profileNameExistRule(newProfileName[profile.name], profile.name)]"
                                                     @blur="validateAndRename(profile.name, newProfileName[profile.name], index)">
 
@@ -589,7 +633,8 @@ onMounted(() => {
                                     <v-card-subtitle class="d-flex align-center">
                                         <template v-if="editingNotes === profile.name">
                                             <v-textarea v-model="profile.notes" label="Profile Notes" variant="outlined"
-                                                density="compact" rows="2" auto-grow class="flex-grow-1 mr-3 mt-3" clearable
+                                                density="compact" rows="2" auto-grow class="flex-grow-1 mr-3 mt-3"
+                                                clearable
                                                 @blur="() => { updateProfileNotes(profile.name, profile.notes); stopEditProfileNotes(); }" />
                                         </template>
                                         <template v-else>
@@ -624,6 +669,36 @@ onMounted(() => {
                                             </v-list>
                                         </span>
                                         <strong>Libraries:</strong>
+                                        <v-tooltip v-if="store.libraries" location="top">
+                                            <template #activator="{ props }">
+                                                <v-btn icon variant="text" v-bind="props" size="small"
+                                                    @click="addLibrariesFlag[profile.name] = true">
+                                                    <v-icon>mdi-plus-box</v-icon>
+                                                </v-btn>
+                                            </template>
+                                            <span>Add libraries</span>
+                                        </v-tooltip>
+                                        <div v-if="addLibrariesFlag[profile.name]" class="mt-2">
+                                            <v-row class="align-center" no-gutters>
+                                                <v-col cols="12" md="8">
+                                                    <v-autocomplete v-model="addLibrarySelection[profile.name]"
+                                                        :items="libraryNames" label="Search libraries" hide-details
+                                                        clearable density="compact" variant="outlined"
+                                                        :disabled="!store.libraries" />
+                                                </v-col>
+                                                <v-col cols="12" md="4" class="pl-md-3 mt-2 mt-md-0">
+                                                    <v-btn :disabled="!addLibrarySelection[profile.name]"
+                                                        @click="addLibraryToProfile(profile.name)">
+                                                        Add
+                                                    </v-btn>
+                                                    <v-btn variant="text" class="ml-2"
+                                                        @click="() => { addLibrariesFlag[profile.name] = false; addLibrarySelection[profile.name] = '' }">
+                                                        Cancel
+                                                    </v-btn>
+                                                </v-col>
+                                            </v-row>
+                                        </div>
+
                                         <span v-if="profile.libraries?.length" class="mt-4">
                                             <v-list density="compact" variant="tonal">
                                                 <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
@@ -640,9 +715,9 @@ onMounted(() => {
                                                 </v-list-item>
                                             </v-list>
                                         </span>
-                                        <span v-else>
+                                        <div class="ml-3" v-else>
                                             No libraries
-                                        </span>
+                                        </div>
                                         <div class="mt-2">
                                             <span>
                                                 <strong>Port Settings:</strong>
