@@ -21,6 +21,7 @@ const buildPathArduino: string = '--build-path';
 const verboseOptionArduino: string = '-v';
 const noColorOptionArduino: string = '--no-color';
 const fqbnOptionArduino: string = '--fqbn';
+const jopsOptionArduino: string = '--jobs';
 const uploadCommandArduino: string = 'upload';
 const portOptionArduino: string = '-p';
 const inputDirOptionArduino: string = '--input-dir';
@@ -331,6 +332,8 @@ export class CLIArguments {
             }
             compileCommand.push(noColorOptionArduino);
             compileCommand.push(`${dumpProfileOption}`);
+            compileCommand.push(`${jopsOptionArduino}`);
+            compileCommand.push("0");
             compileCommand.push(fqbnOptionArduino);
             if (configurationRequired) {
                 compileCommand.push(`${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`);
@@ -361,6 +364,8 @@ export class CLIArguments {
                 compileCommand.push(`${optimizeForDebugOption}`);
             }
             compileCommand.push(noColorOptionArduino);
+            compileCommand.push(`${jopsOptionArduino}`);
+            compileCommand.push("0");
             compileCommand.push(`${buildPathArduino}`);
             compileCommand.push(this.getBuildPath());
             compileCommand.push(arduinoProject.getProjectPath());
@@ -378,6 +383,8 @@ export class CLIArguments {
             compileCommand.push(`${optimizeForDebugOption}`);
         }
         compileCommand.push(noColorOptionArduino);
+        compileCommand.push(`${jopsOptionArduino}`);
+        compileCommand.push("0");
         compileCommand.push(fqbnOptionArduino);
         if (configurationRequired) {
             compileCommand.push(`${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`);

@@ -2,6 +2,10 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
+**Version 1.0.0**
+- Introducing Build Profiles
+- Arduino CLI v1.3.0
+
 **Version 0.7.5**
 - Fix programmer issue ([issue #60](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/60))
 
