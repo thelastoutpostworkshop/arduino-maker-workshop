@@ -636,8 +636,20 @@ onMounted(() => {
                                                     class="flex-grow-1" clearable
                                                     :rules="[profileNameRule(newProfileName[profile.name]), profileNameExistRule(newProfileName[profile.name], profile.name)]"
                                                     @blur="validateAndRename(profile.name, newProfileName[profile.name], index)">
+                                                    <template #append-inner>
+                                                        <v-tooltip location="top">
+                                                            <template #activator="{ props }">
+                                                                <v-btn icon size="x-small" v-bind="props"
+                                                                    @click.stop="editProfileName[profile.name] = false; newProfileName[profile.name] = profile.name">
+                                                                    <v-icon>mdi-undo</v-icon>
+                                                                </v-btn>
+                                                            </template>
+                                                            <span>Undo edit</span>
+                                                        </v-tooltip>
+                                                    </template>
 
                                                 </v-text-field>
+
                                             </v-form>
                                         </template>
                                         <template v-else>

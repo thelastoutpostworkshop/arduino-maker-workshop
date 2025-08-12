@@ -3,7 +3,7 @@
   "displayName": "Arduino Maker Workshop",
   "publisher": "TheLastOutpostWorkshop",
   "description": "The ultimate tool for makers to bring Arduino projects to life!",
-  "version": "0.9.3",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.93.0"
   },
