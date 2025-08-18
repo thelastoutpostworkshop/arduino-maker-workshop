@@ -554,6 +554,15 @@ onMounted(() => {
                     <v-card class="mb-5 pl-5">
                         <v-card-title>
                             <span>Tools</span>
+                            <v-tooltip location="top">
+                                <template #activator="{ props }">
+                                    <v-btn icon variant="text" v-bind="props" :href="'https://youtu.be/i0gzop0k6yY'"
+                                        target="_blank" class="ml-2">
+                                        <v-icon>mdi-open-in-new</v-icon>
+                                    </v-btn>
+                                </template>
+                                <span>See the tutorial</span>
+                            </v-tooltip>
                         </v-card-title>
                         <v-card-text class="pt-4">
                             <v-form v-model="isProfileValid">
