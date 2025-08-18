@@ -7,7 +7,7 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 
 ## Tutorials
 - [Get Started](https://youtu.be/rduTUUVkzqM)
-- Profiles Manager
+- [Profiles Manager](https://youtu.be/i0gzop0k6yY)
 
 ## Settings
 - You can set the user directory, equivalent of the Arduino IDE's 'sketchbook' directory. Library Manager installations are made to the libraries subdirectory of the user directory
