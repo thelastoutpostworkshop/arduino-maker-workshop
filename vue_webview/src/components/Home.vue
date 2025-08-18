@@ -277,14 +277,23 @@ onMounted(() => {
                   <template v-if="profileStatusInformation.showAppend" #append>
                     <v-tooltip location="top" v-if="profileStatusInformation.button">
                       <template #activator="{ props }">
-                        <v-btn @click="changeStatusBuildProfile" v-bind="props"
+                        <v-btn @click="changeStatusBuildProfile" v-bind="props" 
                           :disabled="store.profileUpdating !== ''">
                           {{ profileStatusInformation.button }}
                         </v-btn>
                       </template>
                       <span>{{ profileStatusInformation.tooltip }}</span>
                     </v-tooltip>
-
+                    <!-- Tutorial Icon -->
+                    <v-tooltip location="top">
+                      <template #activator="{ props }">
+                        <v-btn icon variant="text" v-bind="props" :href="'https://youtu.be/i0gzop0k6yY'"
+                          target="_blank" class="ml-2">
+                          <v-icon>mdi-open-in-new</v-icon>
+                        </v-btn>
+                      </template>
+                      <span>See the tutorial</span>
+                    </v-tooltip>
                   </template>
                 </v-alert>
 
@@ -394,7 +403,8 @@ onMounted(() => {
                   <v-alert type="info" variant="tonal">
                     <v-alert-title>Sketch Configuration</v-alert-title>
                     <div>
-                      The standard Arduino Sketch configuration is also helpful to create build profiles easily for beginners.
+                      The standard Arduino Sketch configuration is also helpful to create build profiles easily for
+                      beginners.
                     </div>
                     <v-btn class="mt-5" @click="router.push({ name: 'board-selection' })">Select your board</v-btn>
                   </v-alert>
