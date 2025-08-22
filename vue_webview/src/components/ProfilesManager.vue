@@ -30,6 +30,9 @@ const profileMonitorSettings = ref<Record<string, PortSettings>>({});
 const portsAvailable = computed(() => getAvailablePorts(store));
 const forms = ref<Record<number, InstanceType<typeof VForm> | null>>({})
 
+// Make sure payloads are structured-cloneable (no Proxies)
+const toPlain = <T>(v: T): T => JSON.parse(JSON.stringify(v));
+
 // state for the inline "add library" UI
 const addLibrarySelection = ref<Record<string, string>>({})
 const libraryNames = computed(() =>
@@ -42,53 +45,50 @@ function libraryAlreadyInProfile(profileName: string, libName: string) {
 }
 
 function addLibraryToProfile(profileName: string) {
-    const libName = addLibrarySelection.value[profileName]
-    if (!libName) return
+    const libName = addLibrarySelection.value[profileName];
+    if (!libName) return;
+    if (libraryAlreadyInProfile(profileName, libName)) return;
 
-    if (libraryAlreadyInProfile(profileName, libName)) {
-        // optionally toast/snackbar here; we'll just no-op
-        return
-    }
+    const versions = getAvailableLibraryVersions(libName);
+    const version = versions[versions.length - 1] || 'latest';
+    const newEntry = `${libName} (${version})`;
 
-    const versions = getAvailableLibraryVersions(libName)
-    // default to latest known version, or 'latest' if none listed
-    const version = versions[versions.length - 1] || 'latest'
-    const newEntry = `${libName} (${version})`
-
-    const profile = store.sketchProject?.yaml?.profiles?.[profileName]
-    const updated = [...(profile?.libraries ?? []), newEntry]
+    const profile = store.sketchProject?.yaml?.profiles?.[profileName];
+    const updatedRaw = [...(profile?.libraries ?? []), newEntry];
+    const updated = toPlain(updatedRaw);  // <-- make it cloneable
 
     const updates: BuildProfileUpdate = {
         profile_name: profileName,
-        libraries: updated
-    }
+        libraries: updated,
+    };
 
     store.sendMessage({
         command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_LIBRARIES,
         errorMessage: '',
         payload: updates,
-    })
+    });
 
-    // keep the picker open, but clear the selection
-    addLibrarySelection.value[profileName] = ''
+    addLibrarySelection.value[profileName] = '';
 }
 
-function removeLibraryFromProfile(profileName: string, libEntry: string) {
-    const profile = store.sketchProject?.yaml?.profiles?.[profileName]
-    if (!profile?.libraries) return
 
-    const updated = profile.libraries.filter(l => l !== libEntry)
+function removeLibraryFromProfile(profileName: string, libEntry: string | { dir: string }) {
+    const profile = store.sketchProject?.yaml?.profiles?.[profileName];
+    if (!profile?.libraries) return;
+
+    const updatedRaw = profile.libraries.filter(l => !sameLibEntry(l, libEntry));
+    const updated = toPlain(updatedRaw);  // <-- make it cloneable
 
     const updates: BuildProfileUpdate = {
         profile_name: profileName,
-        libraries: updated
-    }
+        libraries: updated,
+    };
 
     store.sendMessage({
         command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_LIBRARIES,
         errorMessage: '',
-        payload: updates
-    })
+        payload: updates,
+    });
 }
 
 
@@ -309,39 +309,65 @@ const defaultProfileOptions = computed(() => {
     return [NO_DEFAULT_PROFILE, ...profiles];
 });
 
-function parseLibraryEntry(entry: string): { name: string; version: string } {
-    const match = entry.match(/^(.*?)\s*\((.*?)\)$/);
-    if (!match) {
-        return { name: entry, version: '' };
+function parseLibraryEntry(
+    entry: string | { dir: string }
+): { name: string; version: string; isLocal: boolean; path?: string } {
+    // Local object form: { dir: "C:\\...\\mylib" }
+    if (entry && typeof entry === 'object' && 'dir' in entry && typeof entry.dir === 'string') {
+        const path = entry.dir.trim();
+        const base = path.split(/[\\/]/).pop() || path;
+        return { name: base, version: '', isLocal: true, path };
     }
-    return { name: match[1].trim(), version: match[2].trim() };
+
+    // String form
+    const s = String(entry ?? '').trim();
+
+    // Local string form: "dir: C:\...\mylib"
+    if (/^dir:\s*/i.test(s)) {
+        const path = s.replace(/^dir:\s*/i, '').trim();
+        const base = path.split(/[\\/]/).pop() || path;
+        return { name: base, version: '', isLocal: true, path };
+    }
+
+    // Registry: "Name (1.2.3)" or just "Name"
+    const match = s.match(/^(.*?)\s*\((.*?)\)$/);
+    if (!match) return { name: s, version: '', isLocal: false };
+    return { name: match[1].trim(), version: match[2].trim(), isLocal: false };
 }
+
+function sameLibEntry(a: string | { dir: string }, b: string | { dir: string }): boolean {
+    if (typeof a === 'object' && a && 'dir' in a && typeof a.dir === 'string') {
+        return typeof b === 'object' && b && 'dir' in b && a.dir === (b as any).dir;
+    }
+    if (typeof b === 'object' && b && 'dir' in b) return false;
+    return String(a) === String(b);
+}
+
 
 function getAvailableLibraryVersions(libraryName: string): string[] {
     const lib = store.libraries?.libraries.find(l => l.name === libraryName);
     return lib?.available_versions || [];
 }
 
-function updateLibraryVersion(profileName: string, libraryEntry: string, version: string) {
-    // Parse the original entry
-    const { name } = parseLibraryEntry(libraryEntry);
+function updateLibraryVersion(profileName: string, libraryEntry: string | { dir: string }, version: string) {
+    const parsed = parseLibraryEntry(libraryEntry);
+    if (parsed.isLocal) return;
 
-    // Get the profile from store
     const profile = store.sketchProject?.yaml?.profiles?.[profileName];
-    if (!profile || !profile.libraries) return;
+    if (!profile?.libraries) return;
 
-    // Create a new libraries array with the updated entry
-    const newLibraries = profile.libraries.map(lib => {
-        const { name: libName } = parseLibraryEntry(lib);
-        if (libName === name) {
-            return `${libName} (${version})`;
-        }
+    const updatedRaw = profile.libraries.map(lib => {
+        const p = parseLibraryEntry(lib);
+        if (!p.isLocal && p.name === parsed.name) return `${p.name} (${version})`;
         return lib;
     });
+    const updated = toPlain(updatedRaw);  // <-- make it cloneable
+
     const updates: BuildProfileUpdate = {
         profile_name: profileName,
-        libraries: newLibraries
-    }
+        libraries: updated,
+    };
+
     store.sendMessage({
         command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_LIBRARIES,
         errorMessage: '',
@@ -474,24 +500,20 @@ watchEffect(() => {
 
 watchEffect(() => {
     if (!store.libraries) return;
-
     selectedLibraryVersion.value = {};
 
     profilesList.value.forEach(profile => {
         selectedLibraryVersion.value[profile.name] = {};
-        addLibrariesFlag.value[profile.name] = false;
-
         (profile.libraries || []).forEach(libEntry => {
-            const { name, version } = parseLibraryEntry(libEntry);
-            const availableVersions = getAvailableLibraryVersions(name);
-
-            selectedLibraryVersion.value[profile.name][name] =
-                version && availableVersions.includes(version)
-                    ? version
-                    : availableVersions[availableVersions.length - 1] || 'latest';
+            const p = parseLibraryEntry(libEntry);
+            if (p.isLocal) return; // no version select
+            const av = getAvailableLibraryVersions(p.name);
+            selectedLibraryVersion.value[profile.name][p.name] =
+                p.version && av.includes(p.version) ? p.version : av[av.length - 1] || 'latest';
         });
     });
 });
+
 
 watchEffect(() => {
     const defaultProfile = store.sketchProject?.yaml?.default_profile;
@@ -741,16 +763,31 @@ onMounted(() => {
 
                                         <span v-if="profile.libraries?.length" class="mt-4">
                                             <v-list density="compact" variant="tonal">
-                                                <v-list-item v-for="(libEntry) in profile.libraries" :key="libEntry">
+                                                <v-list-item v-for="libEntry in profile.libraries"
+                                                    :key="typeof libEntry === 'string' ? libEntry : libEntry.dir">
                                                     <v-list-item-title>
-                                                        {{ parseLibraryEntry(libEntry).name }}
+                                                        <template v-if="parseLibraryEntry(libEntry).isLocal">
+                                                            <span class="mr-2">{{ parseLibraryEntry(libEntry).name
+                                                                }}</span>
+                                                            <v-chip size="x-small" class="mr-2">local</v-chip>
+                                                            <span class="text-caption text-medium-emphasis">
+                                                                {{ parseLibraryEntry(libEntry).path }}
+                                                            </span>
+                                                        </template>
+                                                        <template v-else>
+                                                            {{ parseLibraryEntry(libEntry).name }}
+                                                        </template>
                                                     </v-list-item-title>
-                                                    <template v-slot:append>
-                                                        <v-select v-if="store.libraries" hide-details
-                                                            :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
-                                                            v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
-                                                            density="compact"
-                                                            @update:model-value="val => updateLibraryVersion(profile.name, libEntry, val)" />
+
+                                                    <template #append>
+                                                        <template v-if="!parseLibraryEntry(libEntry).isLocal">
+                                                            <v-select v-if="store.libraries" hide-details
+                                                                :items="getAvailableLibraryVersions(parseLibraryEntry(libEntry).name)"
+                                                                v-model="selectedLibraryVersion[profile.name][parseLibraryEntry(libEntry).name]"
+                                                                density="compact"
+                                                                @update:model-value="val => updateLibraryVersion(profile.name, libEntry, val)" />
+                                                        </template>
+
                                                         <v-tooltip location="top">
                                                             <template #activator="{ props }">
                                                                 <v-btn icon variant="text" size="small" v-bind="props"
@@ -763,7 +800,9 @@ onMounted(() => {
                                                     </template>
                                                 </v-list-item>
                                             </v-list>
+
                                         </span>
+
                                         <div class="ml-3" v-else>
                                             No libraries
                                         </div>

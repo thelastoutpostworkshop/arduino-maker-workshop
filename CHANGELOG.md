@@ -2,6 +2,10 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
+**Version 1.0.3**
+- Introducing Build Profiles, [tutorial](https://youtu.be/i0gzop0k6yY)
+- Added support for local libraries in sketch.yaml — entries with dir: paths are now fully recognized and processed.
+
 **Version 1.0.2**
 - Introducing Build Profiles, [tutorial](https://youtu.be/i0gzop0k6yY)
 - Arduino CLI v1.3.0

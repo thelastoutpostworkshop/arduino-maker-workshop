@@ -442,12 +442,14 @@ export interface SketchYaml {
   default_profile?: string;
 }
 
+export type ProfileLibraryEntry = string | { dir: string };
+
 export interface BuildProfile {
   notes?: string;
   fqbn: string;
   programmer?: string;
   platforms?: PlatformDependencyProfile[];
-  libraries?: string[];
+  libraries?: ProfileLibraryEntry[];          
   port?: string;
   port_config?: Record<string, string>;
   protocol?: string;
@@ -461,12 +463,12 @@ export interface PlatformDependencyProfile {
 export interface BuildProfileUpdate {
   profile_name: string;
   new_profile_name?: string;
-  libraries?: string[];
-  platforms?: PlatformDependencyProfile[];
   fqbn?: string;
-  programmer?: string;
+  platforms?: PlatformDependencyProfile[];
+  libraries?: ProfileLibraryEntry[];          
   notes?: string;
-  port_settings?:PortSettings;
+  port_settings?: PortSettings;
+  programmer?: string;
 }
 
 // Messages exchanged between the extension and the webview
