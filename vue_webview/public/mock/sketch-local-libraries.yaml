@@ -1,0 +1,19 @@
+profiles:
+  avi-player:
+    fqbn: esp32:esp32:esp32s3:UploadSpeed=921600,USBMode=hwcdc,CDCOnBoot=cdc,MSCOnBoot=default,DFUOnBoot=default,UploadMode=default,CPUFreq=240,FlashMode=qio,FlashSize=4M,PartitionScheme=default,DebugLevel=none,PSRAM=opi,LoopCore=1,EventsCore=1,EraseFlash=none,JTAGAdapter=default,ZigbeeMode=default
+    platforms:
+      - platform: esp32:esp32 (3.2.1)
+        platform_index_url: https://espressif.github.io/arduino-esp32/package_esp32_index.json
+    libraries:
+      - Dev Device Pins (0.0.6)
+      - GFX Library for Arduino (1.6.1)
+      - TAMC_GT911 (1.0.2)
+      - dir: C:\Users\Charles\Documents\Arduino\libraries\avilib-master
+      - dir: C:\Users\Charles\Documents\Arduino\libraries\libhelix
+    programmer: ""
+    port: COM7
+    port_config:
+      baudrate: "115200"
+      bits: "8"
+      parity: none
+      stop_bits: one
