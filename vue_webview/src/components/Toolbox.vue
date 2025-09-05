@@ -2,7 +2,7 @@
 import arduinoIcon from '@/assets/extension_icon.png';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { onMounted, computed } from 'vue';
-import { ARDUINO_MESSAGES } from '@shared/messages';
+import { ARDUINO_MESSAGES,ARDUINO_ERRORS } from '@shared/messages';
 
 const store = useVsCodeStore();
 
@@ -35,7 +35,7 @@ const boardToUpdate = computed(() => {
 
         <v-tooltip location="right">
             <template #activator="{ props }">
-                <v-list-item v-bind="props" prepend-icon="mdi-format-list-checks" :to="{ name: 'board-selection' }"
+                <v-list-item :disabled="store.projectStatus?.status != ARDUINO_ERRORS.NO_ERRORS" v-bind="props" prepend-icon="mdi-format-list-checks" :to="{ name: 'board-selection' }"
                     router>
                     Board Selection
                 </v-list-item>
@@ -45,7 +45,7 @@ const boardToUpdate = computed(() => {
 
         <v-tooltip location="right">
             <template #activator="{ props }">
-                <v-list-item v-bind="props" prepend-icon="mdi-cog" :to="{ name: 'board-configuration' }" router>
+                <v-list-item :disabled="store.projectStatus?.status != ARDUINO_ERRORS.NO_ERRORS" v-bind="props" prepend-icon="mdi-cog" :to="{ name: 'board-configuration' }" router>
                     Board Configuration
                 </v-list-item>
             </template>
@@ -80,7 +80,7 @@ const boardToUpdate = computed(() => {
 
         <v-tooltip location="right">
             <template #activator="{ props }">
-                <v-list-item v-bind="props" prepend-icon="mdi-application-array-outline"
+                <v-list-item :disabled="store.projectStatus?.status != ARDUINO_ERRORS.NO_ERRORS" v-bind="props" prepend-icon="mdi-application-array-outline"
                     :to="{ name: 'profiles-manager' }" router>
                     Profiles Manager
                 </v-list-item>
