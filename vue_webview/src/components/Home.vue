@@ -238,7 +238,7 @@ onMounted(() => {
             A problem occured initializing the Arduino config file, see the "{{ ArduinoExtensionChannelName }}" output
             window for more information
           </v-alert>
-          <v-row class="mb-2">
+          <v-row class="mb-2" v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS">
             <v-col cols="12" v-if="profileStatusInformation">
               <v-card color="primary" prepend-icon="mdi-application-array-outline" rounded="lg" class="pa-4">
                 <template #title>
