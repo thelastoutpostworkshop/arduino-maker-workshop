@@ -4,6 +4,7 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 
 **Version 1.0.4**
 - Toolbar items are deactivated when vscode open a folder that do not contain a sketch to avoid confusion
+- Fixed profile selection not appearing in the status bar when profiles are active
 
 **Version 1.0.3**
 - Introducing Build Profiles, [tutorial](https://youtu.be/i0gzop0k6yY)
