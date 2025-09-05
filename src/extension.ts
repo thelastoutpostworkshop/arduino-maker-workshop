@@ -308,6 +308,8 @@ export function updateStateCompileUpload() {
 			compileStatusBarItem.tooltip = `Compile profile ${arduinoProject.getCompileProfile()}`;
 			quickAccessProvider.showItem(profileDeactivateCommandName)
 			quickAccessProvider.hideItem(profileActivateCommandName)
+			updateProfileStatusBarText();
+
 		} else {
 			if (arduinoYaml.status() === PROFILES_STATUS.INACTIVE) {
 				quickAccessProvider.hideItem(profileDeactivateCommandName)
