@@ -363,7 +363,9 @@ export class VueWebviewPanel {
                     retainContextWhenHidden: true,
                     localResourceRoots: [
                         Uri.joinPath(context.extensionUri, "build"),
-                        Uri.joinPath(context.extensionUri, "vue_webview/dist")
+                        Uri.joinPath(context.extensionUri, "vue_webview/dist"),
+                        Uri.joinPath(context.extensionUri, "resources")
+
                     ],
                 }
             );
