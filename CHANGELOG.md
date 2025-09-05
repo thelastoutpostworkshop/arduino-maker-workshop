@@ -2,6 +2,9 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
+**Version 1.0.4**
+- Toolbar items are deactivated when vscode open a folder that do not contain a sketch to avoid confusion
+
 **Version 1.0.3**
 - Introducing Build Profiles, [tutorial](https://youtu.be/i0gzop0k6yY)
 - Added support for local libraries in sketch.yaml — entries with dir: paths are now fully recognized and processed.
