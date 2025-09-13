@@ -241,7 +241,6 @@ export class ArduinoProject {
         return this.configJson.programmer || '';
     }
     public setProgrammer(programmer: string): void {
-        // this.configJson.programmer = programmer.toLowerCase(); 
         this.configJson.programmer = programmer; 
         this.writeVSCodeArduinoConfiguration();
     }

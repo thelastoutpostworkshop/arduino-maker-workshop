@@ -12,7 +12,8 @@ const store = useVsCodeStore();
 const portSelected = ref('');
 const sketchName = ref("");
 const useProgrammer = ref(store.projectInfo?.useProgrammer ?? false);
-const programmer = ref("");
+type ProgrammerOption = { id: string; name: string; platform?: string };
+const programmer = ref<ProgrammerOption | null>(null);
 const optimize_for_debug = ref(false);
 const monitorPortSettings = ref({ port: "", baudRate: 115200, lineEnding: "\r\n", dataBits: 8, parity: "none", stopBits: "one" });
 const selectedBuildProfile = ref("");
@@ -99,20 +100,31 @@ watch(() => store.projectStatus?.status, (newStatus) => {
   }
 }, { deep: true });
 
-watch(() => store.boardOptions?.programmers, (newStatus) => {
-  if (newStatus && newStatus?.length > 0) {
-    programmer.value = newStatus[0].name
+watch(() => store.boardOptions?.programmers, (list) => {
+  if (list && list.length > 0) {
+    const savedId = store.projectInfo?.programmer;
+    const match = savedId ? list.find((p: any) => p.id === savedId) : null;
+    programmer.value = match ?? list[0];
   }
 }, { deep: true });
 
 watch(programmer, (newStatus) => {
-  if (newStatus) {
-    store.sendMessage({ command: ARDUINO_MESSAGES.SET_PROGRAMMER, errorMessage: "", payload: newStatus });
+  if (newStatus && (newStatus as ProgrammerOption).id) {
+    store.sendMessage({ command: ARDUINO_MESSAGES.SET_PROGRAMMER, errorMessage: "", payload: (newStatus as ProgrammerOption).id });
   }
 });
 watch(useProgrammer, (newStatus) => {
   if (newStatus != undefined) {
     store.sendMessage({ command: ARDUINO_MESSAGES.SET_USE_PROGRAMMER, errorMessage: "", payload: newStatus });
+  }
+});
+watch(() => store.projectInfo?.programmer, (newId) => {
+  const list: any[] | undefined = store.boardOptions?.programmers as any;
+  if (newId && list && list.length > 0) {
+    const match = list.find((p: any) => p.id === newId);
+    if (match) {
+      programmer.value = match;
+    }
   }
 });
 watch(optimize_for_debug, (newStatus) => {
@@ -145,7 +157,6 @@ watch(
     }
     if (projectInfo) {
       useProgrammer.value = projectInfo.useProgrammer;
-      programmer.value = projectInfo.programmer;
       optimize_for_debug.value = projectInfo.optimize_for_debug;
       selectedBuildProfile.value = projectInfo.compile_profile;
 
@@ -344,7 +355,7 @@ onMounted(() => {
                 </span>
                 <span class="pl-5">
                   <v-select width="250" v-model="programmer" :disabled="!useProgrammer"
-                    :items="store.boardOptions.programmers" item-title="name" item-value="id">
+                    :items="store.boardOptions.programmers" item-title="name" item-value="id" return-object>
 
                   </v-select>
                 </span>
