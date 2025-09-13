@@ -119,13 +119,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                         // this.handleMessage(message);
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
-                        loadMockData('arduino_configuration_initial.json', false).then((mockPayload) => {
+                        loadMockData('arduino_configuration.json', false).then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
-                        loadMockData('project_status_no_sketch.json', false).then((mockPayload) => {
+                        loadMockData('project_status.json', false).then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
