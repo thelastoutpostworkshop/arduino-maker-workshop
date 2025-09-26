@@ -2,6 +2,8 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
+**Version 1.0.6**
+
 **Version 1.0.5**
 - Fix programmer issue, use id instead of value  ([issue #65](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/65))
 

@@ -541,28 +541,33 @@ export class ArduinoCLI {
 	}
 
 	public async getBoardConfiguration(): Promise<string> {
+		console.log("getBoardConfiguration");
 		try {
 			if (!loadArduinoConfiguration()) {
+				console.log("Unable to load Project Configuration");
 				window.showErrorMessage(`Unable to load Project Configuration`);
 				throw new Error("Unable to load Project Configuration");
 			}
 			if (!arduinoProject.getBoard()) {
+				console.log("Unable to get Board Configuration");
 				window.showErrorMessage(`Unable to get Board Configuration`);
 				throw new Error("Unable to get Board Configuration");
 			}
 			const configBoardArgs = this.cliArgs.getBoardConfigurationArguments();
-
+			
 			const result = await this.runArduinoCommand(
 				() => configBoardArgs,
 				"CLI: Failed to get board configuration", { caching: CacheState.NO, ttl: 0 }, true, false
 			);
-
+			
 			if (!result) {
+				console.log("Command result empty");
 				throw new Error("Command result empty");
 			}
 			return result;
-
+			
 		} catch (error: any) {
+			console.log(`error ${error}`);
 			window.showErrorMessage(`CLI: Error from get board configuration, you may have to installed the board using the board manager`);
 			throw error;
 		}
