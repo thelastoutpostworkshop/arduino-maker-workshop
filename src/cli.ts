@@ -536,6 +536,7 @@ export class ArduinoCLI {
 				() => this.cliArgs.getInstallZipLibrary(destinationPath),
 				"CLI: Failed to get arduino configuration information", { caching: CacheState.NO, ttl: 0 }
 			);
+			window.showInformationMessage("Library is now installed (zip)")
 		} catch (error) {
 			window.showErrorMessage(`Failed to install zip library: ${error}`);
 		}
