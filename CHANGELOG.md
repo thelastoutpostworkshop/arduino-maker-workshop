@@ -6,6 +6,7 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 - Reduced Arduino CLI cache durations so board metadata refreshes hourly and library info every 30 minutes, balancing freshness with CLI call volume ([issue #68](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/68))
 - Trim additional board URLs before saving and simplify the add/edit dialog validation
 - Optimized packaging by excluding unused node_modules while preserving USB runtime support
+- Notify when a zip library installation is completed
 
 **Version 1.0.5**
 - Fix programmer issue, use id instead of value  ([issue #65](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/65))
