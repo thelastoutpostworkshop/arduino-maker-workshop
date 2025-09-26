@@ -14,7 +14,8 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
-const DEFAULT_CACHE_TTL = 720 // 12 hours
+const BOARD_CACHE_TTL = 60 // 1 hour
+const LIBRARY_INDEX_TTL = 30 // 30 minutes
 
 enum CacheState {
 	YES,
@@ -261,7 +262,7 @@ export class ArduinoCLI {
 	public async searchLibraryInstalled(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getLibraryInstalledArguments(),
-			"CLI: Failed to get library installed", { caching: CacheState.YES, ttl: DEFAULT_CACHE_TTL }
+			"CLI: Failed to get library installed", { caching: CacheState.YES, ttl: LIBRARY_INDEX_TTL }
 		);
 	}
 
@@ -269,7 +270,7 @@ export class ArduinoCLI {
 	public async searchLibrary(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getLibrarySearchArguments(),
-			"CLI: Failed to get library available", { caching: CacheState.YES, ttl: DEFAULT_CACHE_TTL }
+			"CLI: Failed to get library available", { caching: CacheState.YES, ttl: LIBRARY_INDEX_TTL }
 		);
 	}
 	// #endregion
@@ -305,7 +306,7 @@ export class ArduinoCLI {
 	public async searchCore(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getCoreSearchArguments(),
-			"CLI: Failed to get boards available", { caching: CacheState.YES, ttl: DEFAULT_CACHE_TTL }
+			"CLI: Failed to get boards available", { caching: CacheState.YES, ttl: BOARD_CACHE_TTL }
 		);
 	}
 
@@ -313,7 +314,7 @@ export class ArduinoCLI {
 	public async getCoreUpdate(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getCoreUpdateArguments(),
-			"CLI: Failed to get board update information", { caching: CacheState.YES, ttl: DEFAULT_CACHE_TTL }
+			"CLI: Failed to get board update information", { caching: CacheState.YES, ttl: BOARD_CACHE_TTL }
 		);
 	}
 
@@ -321,7 +322,7 @@ export class ArduinoCLI {
 	public async getBoardsListAll(): Promise<string> {
 		return this.runArduinoCommand(
 			() => this.cliArgs.getBoardsListArguments(),
-			"CLI: Failed to get boards list ", { caching: CacheState.YES, ttl: DEFAULT_CACHE_TTL }
+			"CLI: Failed to get boards list ", { caching: CacheState.YES, ttl: BOARD_CACHE_TTL }
 		);
 	}
 
