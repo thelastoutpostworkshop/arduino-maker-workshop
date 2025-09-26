@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { isValidUrl, isValidUrlRule } from '@/utilities/utils';
+import { isValidUrlRule } from '@/utilities/utils';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, Platform } from '@shared/messages';
-import { onMounted, computed, ref } from 'vue';
+import { onMounted, computed, ref, watch } from 'vue';
 
 enum FilterBoards {
   installed,
@@ -21,6 +21,14 @@ const additionalURL = ref('');
 const editMode = ref(false);
 const editItemOriginalURL = ref({});
 const postSaveURL = ref(false); // New dialog for the user message
+const sanitizedAdditionalURL = computed(() => additionalURL.value.trim());
+const additionalUrlRules = [(value: string) => isValidUrlRule((value ?? '').trim())];
+
+watch(dialogURL, (isOpen) => {
+  if (!isOpen) {
+    additionalURL.value = '';
+  }
+});
 
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
@@ -155,13 +163,25 @@ const platformName = (platform_id: string): string => {
 };
 
 function saveURL() {
+  const trimmedUrl = sanitizedAdditionalURL.value;
+  additionalURL.value = trimmedUrl;
+
+  const ruleResult = isValidUrlRule(trimmedUrl);
+  if (ruleResult !== true) {
+    return;
+  }
+
   if (store.cliConfig?.config?.board_manager) {
+    const originalUrl = typeof editItemOriginalURL.value === 'string'
+      ? editItemOriginalURL.value.trim()
+      : '';
     if (!editMode.value) {
-      store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_ADD_ADDITIONAL_URL, errorMessage: "", payload: additionalURL.value });
+      store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_ADD_ADDITIONAL_URL, errorMessage: "", payload: trimmedUrl });
     } else {
-      store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_SET_ADDITIONAL_URL, errorMessage: "", payload: `${editItemOriginalURL.value} ${additionalURL.value}` });
+      store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_SET_ADDITIONAL_URL, errorMessage: "", payload: `${originalUrl} ${trimmedUrl}` });
     }
   }
+
   dialogURL.value = false;
   editMode.value = false;
   additionalURL.value = '';
@@ -193,7 +213,7 @@ function openAddURLDialog() {
   dialogURL.value = true;
 }
 const isURLInvalid = computed(() => {
-  return !isValidUrl(additionalURL.value)
+  return isValidUrlRule(sanitizedAdditionalURL.value) !== true;
 });
 </script>
 
@@ -327,8 +347,12 @@ const isURLInvalid = computed(() => {
                     </v-card-title>
 
                     <v-card-text>
-                      <v-text-field v-model="additionalURL" label="URL" :rules="[isValidUrlRule]"
-                        clearable></v-text-field>
+                      <v-text-field
+                        v-model="additionalURL"
+                        label="URL"
+                        :rules="additionalUrlRules"
+                        clearable
+                      ></v-text-field>
                     </v-card-text>
 
                     <v-card-actions>
@@ -336,7 +360,12 @@ const isURLInvalid = computed(() => {
                       <v-btn @click="dialogURL = false" color="blue-darken-1" variant="text">
                         Cancel
                       </v-btn>
-                      <v-btn @click="saveURL()" color="blue-darken-1" variant="text" :disabled="isURLInvalid">
+                      <v-btn
+                        @click="saveURL()"
+                        color="blue-darken-1"
+                        variant="text"
+                        :disabled="isURLInvalid"
+                      >
                         Save
                       </v-btn>
                     </v-card-actions>
