@@ -1,5 +1,6 @@
 .vscode/**
 .vscode-test/**
+.github/**
 .readme/**
 src/**
 .gitignore
@@ -12,3 +13,11 @@ vsc-extension-quickstart.md
 **/.vscode-test.*
 vue_webview/**
 !vue_webview/dist/**
+# Limit packaged node_modules to usb runtime support
+node_modules/**
+!node_modules/usb/dist/**/*.js
+!node_modules/usb/prebuilds/**
+!node_modules/usb/LICENSE
+!node_modules/usb/package.json
+!node_modules/node-gyp-build/**
+node_modules/node-gyp-build/**/*.md
