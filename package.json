@@ -136,7 +136,7 @@
     "ms-vscode.cpptools"
   ],
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run compile && npm run build:vue",
     "compile": "vite build",
     "watch": "vite build --watch",
     "package": "vite build --mode production",
