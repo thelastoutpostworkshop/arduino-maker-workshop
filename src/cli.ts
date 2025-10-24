@@ -33,7 +33,6 @@ export class ArduinoCLI {
 	public compileOrUploadRunning: boolean = false;
 	private serialMonitorAPI: SerialMonitorApi | undefined = undefined;
 	private arduinoCLIChannel: OutputChannel;
-	private compileUploadChannel: OutputChannel;
 	private cliArgs = new CLIArguments();
 	private _lastCLIError: string = "";
 	private cliStatus: ArduinoCLIStatus = { VersionString: "", Date: "" };
@@ -43,7 +42,6 @@ export class ArduinoCLI {
 
 	constructor(private context: ExtensionContext) {
 		this.arduinoCLIChannel = window.createOutputChannel('Arduino CLI');
-		this.compileUploadChannel = window.createOutputChannel('Arduino Compile & Upload');
 		const cacheDirectory = path.join(context.globalStorageUri.fsPath, 'arduino-cli-cache');
 		this.cliCache = new CliCache(cacheDirectory);
 		arduinoExtensionChannel.appendLine(`arduino-cli cache created: ${cacheDirectory}`)
@@ -338,11 +336,10 @@ export class ArduinoCLI {
 
 	public async compile(clean: boolean = false, createBuildProfile = false): Promise<string> {
 		if (this.compileOrUploadRunning) {
-			this.compileUploadChannel.show();
+			await compileOutputView?.prepare('Arduino CLI Output', false);
 			return "";
 		}
 		this.compileOrUploadRunning = true;
-		this.compileUploadChannel.appendLine("Compile project starting...");
 
 		let useBuildProfile: boolean;
 		let profileMsg = "";
@@ -392,7 +389,6 @@ export class ArduinoCLI {
 
 					token.onCancellationRequested(() => {
 						this.cancelExecution();
-						this.compileUploadChannel.appendLine("Compilation cancelled by user.");
 						compileStatusBarItem.text = compileStatusBarNotExecuting;
 						this.setBuildResult(false);
 						compileOutputView?.appendInfo("Compilation cancelled by user.\n");
@@ -406,12 +402,11 @@ export class ArduinoCLI {
 						{ caching: CacheState.NO, ttl: 0 },
 						true,
 						compileOutputView ? false : true,
-						this.compileUploadChannel,
+						this.arduinoCLIChannel,
 						successMsg,
 						compileOutputView
 					);
 
-					this.compileUploadChannel.appendLine("Compilation completed successfully.");
 					this.setBuildResult(true);
 					compileOutputView?.setStatus('success', successMsg || 'Compilation completed successfully.');
 
@@ -426,7 +421,6 @@ export class ArduinoCLI {
 
 			return output || "";
 		} catch (error) {
-			this.compileUploadChannel.appendLine(`Compilation failed`);
 			this.setBuildResult(false);
 			compileOutputView?.setStatus('failure', 'Compilation failed.');
 		} finally {
@@ -441,11 +435,10 @@ export class ArduinoCLI {
 
 	public async upload() {
 		if (this.compileOrUploadRunning) {
-			this.compileUploadChannel.show();
+			await compileOutputView?.prepare('Arduino CLI Output', false);
 			return;
 		}
 		const useBuildProfile = arduinoYaml.status() == PROFILES_STATUS.ACTIVE;
-		this.compileUploadChannel.appendLine("Upload starting...");
 		this.compileOrUploadRunning = true;
 		const uploadTitleBase = useBuildProfile
 			? `Uploading from profile ${arduinoYaml.getProfileName()}`
@@ -492,7 +485,6 @@ export class ArduinoCLI {
 					// If the token signals cancellation
 					token.onCancellationRequested(() => {
 						this.cancelExecution(); // Ensure the compilation process stops
-						this.compileUploadChannel.appendLine("Upload cancelled by user.");
 						uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 						// this.setBuildResult(false);
 						throw new Error("Upload cancelled by user."); // Stop further execution
@@ -504,7 +496,7 @@ export class ArduinoCLI {
 						{ caching: CacheState.NO, ttl: 0 },
 						false,
 						compileOutputView ? false : true,
-						this.compileUploadChannel,
+						this.arduinoCLIChannel,
 						"Upload completed successfully.",
 						compileOutputView
 					);
