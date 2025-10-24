@@ -16,6 +16,9 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 	private pendingMessages: PendingMessage[] = [];
 	private isReady = false;
 	private currentTitle = 'Arduino CLI Output';
+	private bufferedHtml = '';
+	private lastCommandText = '';
+	private lastStatusPayload: { state: StatusState, text: string } | undefined;
 
 	constructor(private readonly context: vscode.ExtensionContext) {
 		this.ansi.use_classes = false;
@@ -70,6 +73,7 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 		const normalized = chunk.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 		const colorized = this.applyInlineHighlighting(normalized);
 		const html = this.ansi.ansi_to_html(colorized).replace(/\n/g, '<br/>');
+		this.bufferedHtml += html;
 		this.postMessage({ command: 'append', payload: html });
 	}
 
@@ -83,11 +87,13 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 	}
 
 	public setStatus(state: StatusState, text: string = ''): void {
+		this.lastStatusPayload = { state, text };
 		this.postMessage({ command: 'status', payload: { state, text } });
 	}
 
 	public showCommand(command: string, args: string[]): void {
 		const cmdLine = `${command} ${args.join(' ')}`.trim();
+		this.lastCommandText = cmdLine;
 		this.postMessage({
 			command: 'showCommand',
 			payload: cmdLine,
@@ -97,6 +103,9 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 	public clear(): void {
 		this.pendingMessages = this.pendingMessages.filter((msg) => !['append', 'status', 'showCommand'].includes(msg.command));
 		this.postMessage({ command: 'clear' });
+		this.bufferedHtml = '';
+		this.lastCommandText = '';
+		this.lastStatusPayload = undefined;
 	}
 
 	public dispose(): void {
@@ -117,12 +126,18 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 		if (!this.view || !this.isReady) {
 			return;
 		}
-		while (this.pendingMessages.length > 0) {
-			const message = this.pendingMessages.shift();
-			if (message) {
-				this.view.webview.postMessage(message);
-			}
+		this.view.webview.postMessage({ command: 'clear' });
+		this.view.webview.postMessage({ command: 'setTitle', payload: this.currentTitle });
+		if (this.lastCommandText) {
+			this.view.webview.postMessage({ command: 'showCommand', payload: this.lastCommandText });
 		}
+		if (this.bufferedHtml) {
+			this.view.webview.postMessage({ command: 'append', payload: this.bufferedHtml });
+		}
+		if (this.lastStatusPayload) {
+			this.view.webview.postMessage({ command: 'status', payload: this.lastStatusPayload });
+		}
+		this.pendingMessages = [];
 	}
 
 	private getHtml(): string {
