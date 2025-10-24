@@ -256,7 +256,6 @@ export class CLIArguments {
             `${compileCommandArduino}`,
             `${verboseOptionArduino}`,
             `${preprocessCompileOptionArduino}`,
-            `${noColorOptionArduino}`,
             `${fqbnOptionArduino}`,
             `${arduinoProject.getBoard()}:${arduinoProject.getBoardConfiguration()}`,
             arduinoProject.getProjectPath()
@@ -330,7 +329,6 @@ export class CLIArguments {
             if (arduinoProject.optimizeForDebug()) {
                 compileCommand.push(`${optimizeForDebugOption}`);
             }
-            compileCommand.push(noColorOptionArduino);
             compileCommand.push(`${dumpProfileOption}`);
             compileCommand.push(`${jopsOptionArduino}`);
             compileCommand.push("0");
@@ -363,7 +361,6 @@ export class CLIArguments {
             if (arduinoProject.optimizeForDebug()) {
                 compileCommand.push(`${optimizeForDebugOption}`);
             }
-            compileCommand.push(noColorOptionArduino);
             compileCommand.push(`${jopsOptionArduino}`);
             compileCommand.push("0");
             compileCommand.push(`${buildPathArduino}`);
@@ -382,7 +379,6 @@ export class CLIArguments {
         if (arduinoProject.optimizeForDebug()) {
             compileCommand.push(`${optimizeForDebugOption}`);
         }
-        compileCommand.push(noColorOptionArduino);
         compileCommand.push(`${jopsOptionArduino}`);
         compileCommand.push("0");
         compileCommand.push(fqbnOptionArduino);

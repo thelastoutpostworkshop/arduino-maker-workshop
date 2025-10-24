@@ -1,11 +1,12 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext, ProgressLocation } from "vscode";
-import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, compileOutputView, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
 import { ArduinoCLIStatus, BuildOptions, CompileResult, PROFILES_STATUS } from "./shared/messages";
 import { getSerialMonitorApi, MonitorPortSettings, SerialMonitorApi, Version } from "@microsoft/vscode-serial-monitor-api";
 import { COMPILE_RESULT_FILE, VSCODE_FOLDER } from "./ArduinoProject";
 import { CLIArguments } from "./cliArgs";
 import { ArduinoConfiguration } from "./config";
 import { CliCache } from "./cliCache";
+import type { CliOutputView } from "./cliOutputView";
 
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
 
@@ -376,6 +377,10 @@ export class ArduinoCLI {
 				compileTitle = "Compiling project to create a build profile..."
 			}
 
+			await compileOutputView?.prepare(compileTitle);
+			compileOutputView?.setStatus('info', 'Starting compilation...');
+			compileOutputView?.appendInfo('Compile project starting...\n');
+
 			const output = await window.withProgress(
 				{
 					location: ProgressLocation.Notification,
@@ -390,6 +395,8 @@ export class ArduinoCLI {
 						this.compileUploadChannel.appendLine("Compilation cancelled by user.");
 						compileStatusBarItem.text = compileStatusBarNotExecuting;
 						this.setBuildResult(false);
+						compileOutputView?.appendInfo("Compilation cancelled by user.\n");
+						compileOutputView?.setStatus('canceled', 'Compilation cancelled by user.');
 						throw new Error("Compilation cancelled by user.");
 					});
 
@@ -398,13 +405,15 @@ export class ArduinoCLI {
 						"CLI: Failed to compile project",
 						{ caching: CacheState.NO, ttl: 0 },
 						true,
-						true,
+						compileOutputView ? false : true,
 						this.compileUploadChannel,
-						successMsg
+						successMsg,
+						compileOutputView
 					);
 
 					this.compileUploadChannel.appendLine("Compilation completed successfully.");
 					this.setBuildResult(true);
+					compileOutputView?.setStatus('success', successMsg || 'Compilation completed successfully.');
 
 					if (!createBuildProfile) {
 						this.createIntellisenseFile(output);
@@ -419,6 +428,7 @@ export class ArduinoCLI {
 		} catch (error) {
 			this.compileUploadChannel.appendLine(`Compilation failed`);
 			this.setBuildResult(false);
+			compileOutputView?.setStatus('failure', 'Compilation failed.');
 		} finally {
 			compileStatusBarItem.text = compileStatusBarNotExecuting;
 			this.compileOrUploadRunning = false;
@@ -596,23 +606,30 @@ export class ArduinoCLI {
 		returnOutput: boolean = true,
 		showOutput: boolean = false,
 		channel: OutputChannel = this.arduinoCLIChannel,
-		successMSG: string = ""
+		successMSG: string = "",
+		coloredOutputView?: CliOutputView
 	): Promise<string> {
 		try {
 			const args = getArguments();
 			if (args.length == 0) {
 				window.showErrorMessage(errorMessagePrefix);
 			}
+			if (coloredOutputView) {
+				const cliExecutable = this.arduinoCLIPath || 'arduino-cli';
+				coloredOutputView.showCommand(cliExecutable, args);
+				coloredOutputView.setStatus('info', 'Running Arduino CLI...');
+			}
 			if (cache.caching == CacheState.YES) {
 				const cacheKey = this.cliCache.getCacheKeyFromArguments(args);
 				const cachedData = this.cliCache.get(cacheKey);
 				if (cachedData) {
 					this.arduinoCLIChannel.appendLine(`Cache hit:${cacheKey}`);
+					coloredOutputView?.append(`Cache hit: ${cacheKey}\n`);
 					return cachedData;
 				} else {
 					this.arduinoCLIChannel.appendLine(`Cache miss, running command...`);
 
-					const result = await this.executeArduinoCommand(`${this.arduinoCLIPath}`, args, returnOutput, showOutput, channel, successMSG);
+					const result = await this.executeArduinoCommand(`${this.arduinoCLIPath}`, args, returnOutput, showOutput, channel, successMSG, coloredOutputView);
 					if (!result && returnOutput) {
 						const errorMsg = `${errorMessagePrefix}: No result`;
 						window.showErrorMessage(errorMsg);
@@ -624,7 +641,7 @@ export class ArduinoCLI {
 			} else {
 				this.arduinoCLIChannel.appendLine(`No caching, running command...`);
 
-				const result = await this.executeArduinoCommand(`${this.arduinoCLIPath}`, args, returnOutput, showOutput, channel, successMSG);
+				const result = await this.executeArduinoCommand(`${this.arduinoCLIPath}`, args, returnOutput, showOutput, channel, successMSG, coloredOutputView);
 				if (!result && returnOutput) {
 					const errorMsg = `${errorMessagePrefix}: No result`;
 					window.showErrorMessage(errorMsg);
@@ -635,6 +652,7 @@ export class ArduinoCLI {
 
 		} catch (error: any) {
 			window.showErrorMessage(`${errorMessagePrefix}`);
+			coloredOutputView?.setStatus('failure', `${errorMessagePrefix}`);
 			throw error;
 		}
 	}
@@ -744,13 +762,16 @@ export class ArduinoCLI {
 		}
 	}
 
-	private executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = this.arduinoCLIChannel, successMsg: string = ""): Promise<string | void> {
+	private executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = this.arduinoCLIChannel, successMsg: string = "", coloredOutputView?: CliOutputView): Promise<string | void> {
 		if (showOutput) {
 			channel.show(true);
 		}
 		this.arduinoCLIChannel.appendLine('Running Arduino CLI...');
 		this.arduinoCLIChannel.appendLine(`${command}`);
 		this.arduinoCLIChannel.appendLine(args.join(' '));
+		if (coloredOutputView) {
+			coloredOutputView.append(`$ ${command} ${args.join(' ')}\n`);
+		}
 
 		const child = cp.spawn(`${command}`, args);
 		this.activeProcess = child;
@@ -763,6 +784,7 @@ export class ArduinoCLI {
 				if (showOutput) {
 					channel.append(output);
 				}
+				coloredOutputView?.append(output);
 
 				if (returnOutput) {
 					outputBuffer += output;
@@ -775,6 +797,7 @@ export class ArduinoCLI {
 				if (showOutput) {
 					channel.append(error);
 				}
+				coloredOutputView?.append(error);
 				if (returnOutput) {
 					outputBuffer += error;
 				}
@@ -786,12 +809,20 @@ export class ArduinoCLI {
 					if (showOutput) {
 						channel.appendLine('Command executed successfully.');
 					}
+					coloredOutputView?.append('Command executed successfully.\n');
+					if (successMsg) {
+						coloredOutputView?.setStatus('success', successMsg);
+					} else {
+						coloredOutputView?.setStatus('success', 'Command executed successfully.');
+					}
 					if (successMsg) {
 						window.showInformationMessage(successMsg);
 					}
 					resolve(returnOutput ? outputBuffer : undefined);
 				} else {
 					channel.appendLine(`Command failed with code ${code}.`);
+					coloredOutputView?.append(`Command failed with code ${code}.\n`);
+					coloredOutputView?.setStatus('failure', `Command failed with code ${code}.`);
 					reject(undefined);
 				}
 			});
@@ -799,6 +830,8 @@ export class ArduinoCLI {
 			child.on('error', (err: any) => {
 				this.activeProcess = null;
 				channel.appendLine(`Failed to run command: ${err.message}`);
+				coloredOutputView?.append(`Failed to run command: ${err.message}\n`);
+				coloredOutputView?.setStatus('failure', `Failed to run command: ${err.message}`);
 				reject(undefined);
 			});
 			this.arduinoCLIChannel.appendLine('');
@@ -810,6 +843,8 @@ export class ArduinoCLI {
 			this.activeProcess.kill();
 			this.activeProcess = null;
 			this.arduinoCLIChannel.appendLine('Command execution was canceled.');
+			compileOutputView?.appendInfo('Command execution was canceled.\n');
+			compileOutputView?.setStatus('canceled', 'Command execution was canceled.');
 		} else {
 			window.showWarningMessage('No active command to cancel.');
 		}

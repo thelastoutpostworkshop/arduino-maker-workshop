@@ -1,10 +1,11 @@
-import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind, ConfigurationTarget } from "vscode";
+import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind, ConfigurationTarget, WebviewViewProvider } from "vscode";
 import { ArduinoProject, UPLOAD_READY_STATUS } from './ArduinoProject';
 import { sendBuildProfiles, VueWebviewPanel } from './VueWebviewPanel';
 import { primaryCompileCleanTitle, primaryCompileTitle, QuickAccessProvider, primaryUploadTitle } from './quickAccessProvider';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, PROFILES_STATUS, THEME_COLOR, YAML_FILENAME, YAML_FILENAME_INACTIVE } from "./shared/messages";
 import { ArduinoCLI } from "./cli";
 import { SketchProfileManager } from "./sketchProfileManager";
+import { CliOutputView } from "./cliOutputView";
 
 const os = require('os');
 
@@ -30,10 +31,16 @@ const quickAccessProvider = new QuickAccessProvider();
 export const arduinoProject: ArduinoProject = new ArduinoProject();
 export const arduinoYaml: SketchProfileManager = new SketchProfileManager();
 export let arduinoCLI: ArduinoCLI;
+export let compileOutputView: CliOutputView;
+export let compileOutputProvider: WebviewViewProvider;
 
 let debounceTimeout: NodeJS.Timeout | undefined; // To debounce changes to settings
 
 export async function activate(context: ExtensionContext) {
+	compileOutputView = new CliOutputView(context);
+	compileOutputProvider = window.registerWebviewViewProvider(CliOutputView.viewType, compileOutputView);
+	context.subscriptions.push(compileOutputView, compileOutputProvider);
+
 	arduinoCLI = new ArduinoCLI(context);
 	if (await arduinoCLI.isCLIReady()) {
 		arduinoExtensionChannel.appendLine(`Arduino CLI is ready, path: ${arduinoCLI.arduinoCLIPath}`);

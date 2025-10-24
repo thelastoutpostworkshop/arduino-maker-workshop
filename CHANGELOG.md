@@ -8,6 +8,8 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 - Optimized packaging by excluding unused node_modules while preserving USB runtime support
 - Notify when a zip library installation is completed
 - Detect build profile value changes and invalidate the previous build output so the next compile reflects the new configuration
+- Render Arduino CLI output with color in a dedicated panel view during compilation
+- Highlight compile warnings/errors inline in the colorized CLI output panel
 
 **Version 1.0.5**
 - Fix programmer issue, use id instead of value  ([issue #65](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/65))

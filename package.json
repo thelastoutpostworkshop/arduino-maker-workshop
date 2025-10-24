@@ -32,7 +32,8 @@
   ],
   "main": "./build/extension.js",
   "activationEvents": [
-    "onView:quickAccessView"
+    "onView:quickAccessView",
+    "onView:arduinoMakerWorkshop.compileOutput"
   ],
   "contributes": {
     "viewsContainers": {
@@ -40,6 +41,13 @@
         {
           "id": "arduino",
           "title": "Arduino Maker Workshop",
+          "icon": "resources/arduino.svg"
+        }
+      ],
+      "panel": [
+        {
+          "id": "arduinoCliOutput",
+          "title": "Arduino CLI Output",
           "icon": "resources/arduino.svg"
         }
       ]
@@ -50,6 +58,13 @@
           "id": "quickAccessView",
           "name": "",
           "icon": "resources/arduino.svg"
+        }
+      ],
+      "arduinoCliOutput": [
+        {
+          "id": "arduinoMakerWorkshop.compileOutput",
+          "name": "Compile Output",
+          "type": "webview"
         }
       ]
     },
@@ -169,6 +184,7 @@
   ],
   "dependencies": {
     "@microsoft/vscode-serial-monitor-api": "^0.1.7",
+    "ansi_up": "^6.0.6",
     "usb": "^2.14.0",
     "yaml": "^2.8.0"
   }
