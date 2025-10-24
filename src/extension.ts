@@ -1,4 +1,4 @@
-import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind, ConfigurationTarget, WebviewViewProvider } from "vscode";
+import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind, ConfigurationTarget } from "vscode";
 import { ArduinoProject, UPLOAD_READY_STATUS } from './ArduinoProject';
 import { sendBuildProfiles, VueWebviewPanel } from './VueWebviewPanel';
 import { primaryCompileCleanTitle, primaryCompileTitle, QuickAccessProvider, primaryUploadTitle } from './quickAccessProvider';
@@ -32,7 +32,7 @@ export const arduinoProject: ArduinoProject = new ArduinoProject();
 export const arduinoYaml: SketchProfileManager = new SketchProfileManager();
 export let arduinoCLI: ArduinoCLI;
 export let compileOutputView: CliOutputView;
-export let compileOutputProvider: WebviewViewProvider;
+export let compileOutputProvider: Disposable;
 
 let debounceTimeout: NodeJS.Timeout | undefined; // To debounce changes to settings
 
