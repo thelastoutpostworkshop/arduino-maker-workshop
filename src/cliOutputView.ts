@@ -48,7 +48,7 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 		});
 	}
 
-	public async prepare(title: string): Promise<void> {
+	public async prepare(title: string, reset: boolean = true): Promise<void> {
 		this.currentTitle = title || 'Arduino CLI Output';
 		try {
 			await vscode.commands.executeCommand('workbench.view.extension.arduinoCliOutput');
@@ -57,7 +57,9 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 		} catch {
 			// Ignore focus errors; panel might not be available in some VS Code flavors.
 		}
-		this.clear();
+		if (reset) {
+			this.clear();
+		}
 		this.setTitle(this.currentTitle);
 	}
 

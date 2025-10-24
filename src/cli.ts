@@ -447,6 +447,16 @@ export class ArduinoCLI {
 		const useBuildProfile = arduinoYaml.status() == PROFILES_STATUS.ACTIVE;
 		this.compileUploadChannel.appendLine("Upload starting...");
 		this.compileOrUploadRunning = true;
+		const uploadTitleBase = useBuildProfile
+			? `Uploading from profile ${arduinoYaml.getProfileName()}`
+			: `Uploading to ${arduinoProject.getBoard()} `;
+		let uploadTitle = uploadTitleBase;
+		let errorMsg: string;
+		if (useBuildProfile) {
+			errorMsg = `Uploading failed from profile ${arduinoYaml.getProfileName()}`;
+		} else {
+			errorMsg = "Failed to upload";
+		}
 
 		if (this.serialMonitorAPI) {
 			let port
@@ -460,25 +470,21 @@ export class ArduinoCLI {
 			}
 		}
 		try {
-			let title: string;
-			let errorMsg:string;
-			if (useBuildProfile) {
-				title = `Uploading from profile ${arduinoYaml.getProfileName()}`;
-				errorMsg = `Uploading failed from profile ${arduinoYaml.getProfileName()}`
-			} else {
-				title = `Uploading to ${arduinoProject.getBoard()} }`;
-				errorMsg = "Failed to upload"
-			}
 			if (!useBuildProfile && arduinoProject.useProgrammer()) {
-				title += ` using programmer ${arduinoProject.getProgrammer()}`;
+				uploadTitle += ` using programmer ${arduinoProject.getProgrammer()}`;
 			}
 			if (!useBuildProfile) {
-				title += ` on ${arduinoProject.getPort()}`;
+				uploadTitle += ` on ${arduinoProject.getPort()}`;
 			}
+
+			await compileOutputView?.prepare(uploadTitle.trim(), false);
+			compileOutputView?.setStatus('info', 'Starting upload...');
+			compileOutputView?.appendInfo('Upload starting...\n');
+
 			await window.withProgress(
 				{
 					location: ProgressLocation.Notification,
-					title: title,
+					title: uploadTitle.trim(),
 					cancellable: true,
 				},
 				async (progress, token) => {
@@ -494,7 +500,13 @@ export class ArduinoCLI {
 
 					await arduinoCLI.runArduinoCommand(
 						() => this.cliArgs.getUploadArguments(),
-						errorMsg, { caching: CacheState.NO, ttl: 0 }, false, true, this.compileUploadChannel
+						errorMsg,
+						{ caching: CacheState.NO, ttl: 0 },
+						false,
+						compileOutputView ? false : true,
+						this.compileUploadChannel,
+						"Upload completed successfully.",
+						compileOutputView
 					);
 					uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 					if (this.serialMonitorAPI) {
@@ -524,9 +536,18 @@ export class ArduinoCLI {
 					}
 				}
 			);
+			compileOutputView?.setStatus('success', 'Upload completed successfully.');
+			compileOutputView?.appendInfo('Upload completed successfully.\n');
 		} catch (error) {
 			uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 			console.log(error);
+			if (error instanceof Error && error.message === "Upload cancelled by user.") {
+				compileOutputView?.setStatus('canceled', error.message);
+				compileOutputView?.appendInfo(`${error.message}\n`);
+			} else {
+				compileOutputView?.setStatus('failure', 'Upload failed.');
+				compileOutputView?.appendInfo('Upload failed.\n');
+			}
 		}
 		this.compileOrUploadRunning = false;
 	}
