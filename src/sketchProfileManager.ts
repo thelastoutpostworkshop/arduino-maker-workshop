@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
-import { arduinoExtensionChannel, arduinoProject } from './extension';
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject } from './extension';
 import { BUILD_NAME_PROFILE, BuildProfile, BuildProfileUpdate, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
 import { window } from 'vscode';
 import { DataBit, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
@@ -12,6 +12,9 @@ export class SketchProfileManager {
     private yamlInInactiveState: string = "";
     private yamlInActiveState: string = "";
     private lastError: string = "";
+    private lastActiveProfileName: string | undefined;
+    private lastActiveProfileFingerprint: string | undefined;
+    private hasActiveProfileBaseline: boolean = false;
 
     constructor() {
         this.yamlInActiveState = path.join(arduinoProject.getProjectPath(), YAML_FILENAME);
@@ -400,24 +403,29 @@ export class SketchProfileManager {
                 break;
         }
         if (file.length > 0) {
+            const fileIsActive = file === this.yamlInActiveState;
             try {
                 const content = fs.readFileSync(file, 'utf8');
                 const data = yaml.parse(content) as SketchYaml;
                 if (!this.verify(data) && this.status() == PROFILES_STATUS.ACTIVE) {
                     this.setProfileStatus(PROFILES_STATUS.INACTIVE); // Set inactive if the yaml is malformed.
                     window.showErrorMessage(`The ${YAML_FILENAME} has errors and is now inactive`);
+                    this.resetActiveProfileCache();
                     return undefined;
                 }
+                this.updateActiveProfileCache(data, fileIsActive);
                 return data;
             } catch (error) {
                 if (this.status() == PROFILES_STATUS.ACTIVE) {
                     this.setProfileStatus(PROFILES_STATUS.INACTIVE); // Set inactive if any error reading the yaml file.
                     window.showErrorMessage(`The ${YAML_FILENAME} has errors and is now inactive`);
                 }
+                this.resetActiveProfileCache();
                 this.setLastError(`Failed to read build profile: ${error}`);
                 return undefined;
             }
         }
+        this.resetActiveProfileCache();
     }
     setProfileStatus(newStatus: PROFILES_STATUS) {
         const currentStatus = this.status();
@@ -460,8 +468,23 @@ export class SketchProfileManager {
                 break;
         }
         if (file.length > 0) {
+            let previousData: SketchYaml | undefined;
+            if (fs.existsSync(file)) {
+                try {
+                    const previousContent = fs.readFileSync(file, 'utf8');
+                    previousData = yaml.parse(previousContent) as SketchYaml;
+                } catch (error) {
+                    arduinoExtensionChannel.appendLine(`Failed to read previous ${YAML_FILENAME}: ${error}`);
+                }
+            }
+
             const content = yaml.stringify(yamlData);
             fs.writeFileSync(file, content, 'utf8');
+            this.updateActiveProfileCache(
+                yamlData,
+                file === this.yamlInActiveState,
+                previousData
+            );
         }
     }
 
@@ -657,6 +680,103 @@ export class SketchProfileManager {
             this.setLastError('Cannot update notes, no notes provided')
             return false;
         }
+    }
+
+    private updateActiveProfileCache(
+        currentData: SketchYaml | undefined,
+        fileIsActive: boolean,
+        previousData?: SketchYaml
+    ): void {
+        const selectedProfile = arduinoProject.getCompileProfile();
+        const currentActiveName = this.resolveActiveProfileName(currentData, selectedProfile);
+        const currentFingerprint = currentActiveName && currentData?.profiles
+            ? this.profileFingerprint(currentData.profiles[currentActiveName])
+            : undefined;
+
+        let previousActiveName = this.lastActiveProfileName;
+        let previousFingerprint = this.lastActiveProfileFingerprint;
+
+        if (previousData && previousData.profiles) {
+            previousActiveName = this.resolveActiveProfileName(previousData, selectedProfile);
+            previousFingerprint = previousActiveName && previousData.profiles
+                ? this.profileFingerprint(previousData.profiles[previousActiveName])
+                : undefined;
+        }
+
+        const hasBaseline = this.hasActiveProfileBaseline;
+        const hasChanged = hasBaseline && fileIsActive && (
+            previousActiveName !== currentActiveName ||
+            previousFingerprint !== currentFingerprint
+        );
+
+        if (hasChanged) {
+            arduinoCLI?.setBuildResult(false);
+        }
+
+        this.lastActiveProfileName = currentActiveName;
+        this.lastActiveProfileFingerprint = currentFingerprint;
+
+        if (fileIsActive) {
+            this.hasActiveProfileBaseline = true;
+        }
+    }
+
+    private resolveActiveProfileName(data: SketchYaml | undefined, selectedProfile: string | undefined): string | undefined {
+        if (!data || !data.profiles || !selectedProfile || selectedProfile.trim().length === 0) {
+            return undefined;
+        }
+
+        if (selectedProfile === DEFAULT_PROFILE) {
+            const defaultProfile = data.default_profile;
+            if (defaultProfile && data.profiles[defaultProfile]) {
+                return defaultProfile;
+            }
+            return undefined;
+        }
+
+        return data.profiles[selectedProfile] ? selectedProfile : undefined;
+    }
+
+    private profileFingerprint(profile: BuildProfile | undefined): string | undefined {
+        if (!profile) {
+            return undefined;
+        }
+
+        const libraries = profile.libraries
+            ? profile.libraries.map((entry) =>
+                typeof entry === 'string' ? entry : JSON.stringify(entry)
+            ).sort()
+            : [];
+
+        const platforms = profile.platforms
+            ? profile.platforms.map((platform) => JSON.stringify({
+                platform: platform.platform ?? '',
+                platform_index_url: platform.platform_index_url ?? ''
+            })).sort()
+            : [];
+
+        const portConfig = profile.port_config
+            ? Object.entries(profile.port_config)
+                .map(([key, value]) => `${key}:${value ?? ''}`)
+                .sort()
+            : [];
+
+        return JSON.stringify({
+            fqbn: profile.fqbn ?? '',
+            programmer: profile.programmer ?? '',
+            port: profile.port ?? '',
+            protocol: profile.protocol ?? '',
+            notes: profile.notes ?? '',
+            libraries,
+            platforms,
+            port_config: portConfig,
+        });
+    }
+
+    private resetActiveProfileCache(): void {
+        this.lastActiveProfileName = undefined;
+        this.lastActiveProfileFingerprint = undefined;
+        this.hasActiveProfileBaseline = false;
     }
 
     verify(yaml: SketchYaml): boolean {
