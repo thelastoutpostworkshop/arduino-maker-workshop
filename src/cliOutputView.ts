@@ -43,10 +43,13 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 		});
 
 		webviewView.webview.onDidReceiveMessage((message) => {
-			if (message?.command === 'ready') {
+			const command = message?.command;
+			if (command === 'ready') {
 				this.isReady = true;
 				this.flushPendingMessages();
 				this.setTitle(this.currentTitle);
+			} else if (command === 'requestClear') {
+				this.clear();
 			}
 		});
 	}
@@ -171,6 +174,71 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 			color: var(--vscode-panelTitle-activeForeground);
 			background-color: var(--vscode-panelTitle-activeBorder, transparent);
 		}
+		#toolbar {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 4px 12px;
+			border-bottom: 1px solid var(--vscode-panel-border);
+			gap: 8px;
+			background-color: var(--vscode-panel-background);
+		}
+		#search-box {
+			flex: 1;
+			min-width: 0;
+			display: flex;
+			align-items: center;
+			gap: 4px;
+		}
+		#filter-input {
+			flex: 1;
+			min-width: 0;
+			border-radius: 4px;
+			border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+			background-color: var(--vscode-input-background, var(--vscode-panel-background));
+			color: var(--vscode-input-foreground, inherit);
+			padding: 4px 8px;
+			font-size: 12px;
+		}
+		#filter-input:focus {
+			border-color: var(--vscode-inputValidation-infoBorder, var(--vscode-panel-border));
+			box-shadow: 0 0 0 1px var(--vscode-inputValidation-infoBorder, transparent);
+			outline: none;
+		}
+		#clear-filter {
+			border: none;
+			background: transparent;
+			color: var(--vscode-input-foreground, inherit);
+			font-size: 16px;
+			line-height: 1;
+			cursor: pointer;
+			padding: 0 6px;
+		}
+		#clear-filter:disabled {
+			cursor: not-allowed;
+			opacity: 0.4;
+		}
+		#toolbar-actions {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+		}
+		.toolbar-button {
+			border-radius: 4px;
+			border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
+			background: var(--vscode-button-background, transparent);
+			color: var(--vscode-button-foreground, var(--vscode-editor-foreground));
+			font-size: 12px;
+			padding: 4px 10px;
+			cursor: pointer;
+		}
+		.toolbar-button:hover:not(:disabled) {
+			background: var(--vscode-button-hoverBackground, rgba(255, 255, 255, 0.1));
+		}
+		.toolbar-button:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
 		#command {
 			font-size: 12px;
 			padding: 6px 12px;
@@ -187,10 +255,15 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 			background-color: var(--vscode-terminal-background, var(--vscode-panel-background));
 		}
 		#output {
+			display: flex;
+			flex-direction: column;
+			gap: 0;
 			font-size: 13px;
 			line-height: 1.5;
-			white-space: pre-wrap;
 			word-break: break-word;
+		}
+		.line {
+			white-space: pre-wrap;
 		}
 		#status {
 			padding: 6px 12px;
@@ -215,6 +288,16 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 </head>
 <body>
 	<div id="title">Arduino CLI Output</div>
+	<div id="toolbar">
+		<div id="search-box">
+			<input id="filter-input" type="search" placeholder="Search output..." spellcheck="false" aria-label="Filter Arduino CLI output">
+			<button id="clear-filter" type="button" title="Clear search filter" disabled>&times;</button>
+		</div>
+		<div id="toolbar-actions">
+			<button class="toolbar-button" id="toggle-autoscroll" type="button" aria-pressed="true">Auto-scroll: On</button>
+			<button class="toolbar-button" id="clear-output" type="button">Clear Output</button>
+		</div>
+	</div>
 	<div id="command"></div>
 	<div id="output-wrapper">
 		<div id="output"></div>
@@ -227,14 +310,94 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 		const titleEl = document.getElementById('title');
 		const commandEl = document.getElementById('command');
 		const wrapperEl = document.getElementById('output-wrapper');
+		const filterInput = document.getElementById('filter-input');
+		const clearFilterBtn = document.getElementById('clear-filter');
+		const clearOutputBtn = document.getElementById('clear-output');
+		const autoScrollBtn = document.getElementById('toggle-autoscroll');
+
+		let filterText = '';
+		let autoScrollEnabled = true;
+
+		const updateAutoScrollLabel = () => {
+			if (!autoScrollBtn) {
+				return;
+			}
+			autoScrollBtn.textContent = autoScrollEnabled ? 'Auto-scroll: On' : 'Auto-scroll: Off';
+			autoScrollBtn.setAttribute('aria-pressed', autoScrollEnabled.toString());
+		};
+
+		function applyFilterToLine(lineEl) {
+			if (!lineEl) {
+				return;
+			}
+			if (!filterText) {
+				lineEl.hidden = false;
+				return;
+			}
+			const candidate = lineEl.dataset.textLower || '';
+			lineEl.hidden = !candidate.includes(filterText);
+		}
+
+		function applyFilterToAllLines() {
+			if (!outputEl) {
+				return;
+			}
+			const lines = outputEl.querySelectorAll('.line');
+			lines.forEach(applyFilterToLine);
+		}
 
 		function appendChunk(html) {
-			if (!html) { return; }
-			const template = document.createElement('template');
-			template.innerHTML = html;
-			outputEl.appendChild(template.content);
-			wrapperEl.scrollTop = wrapperEl.scrollHeight;
+			if (!html || !outputEl) {
+				return;
+			}
+			const fragment = document.createDocumentFragment();
+			const segments = html.split('<br/>');
+			segments.forEach((segment) => {
+				const lineEl = document.createElement('div');
+				lineEl.className = 'line';
+				lineEl.innerHTML = segment || '&nbsp;';
+				const rawText = lineEl.textContent || '';
+				lineEl.dataset.text = rawText;
+				lineEl.dataset.textLower = rawText.toLowerCase();
+				applyFilterToLine(lineEl);
+				fragment.appendChild(lineEl);
+			});
+			outputEl.appendChild(fragment);
+			if (autoScrollEnabled && wrapperEl) {
+				wrapperEl.scrollTop = wrapperEl.scrollHeight;
+			}
 		}
+
+		const refreshFilter = () => {
+			filterText = (filterInput?.value || '').trim().toLowerCase();
+			if (clearFilterBtn) {
+				clearFilterBtn.disabled = !Boolean(filterText);
+			}
+			applyFilterToAllLines();
+		};
+
+		clearOutputBtn?.addEventListener('click', () => {
+			vscode.postMessage({ command: 'requestClear' });
+		});
+
+		autoScrollBtn?.addEventListener('click', () => {
+			autoScrollEnabled = !autoScrollEnabled;
+			updateAutoScrollLabel();
+			if (autoScrollEnabled && wrapperEl) {
+				wrapperEl.scrollTop = wrapperEl.scrollHeight;
+			}
+		});
+
+		clearFilterBtn?.addEventListener('click', () => {
+			if (filterInput) {
+				filterInput.value = '';
+				refreshFilter();
+			}
+		});
+
+		filterInput?.addEventListener('input', () => {
+			refreshFilter();
+		});
 
 		window.addEventListener('message', (event) => {
 			const { command, payload } = event.data;
@@ -243,20 +406,36 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 					appendChunk(payload);
 					break;
 				case 'clear':
-					outputEl.innerHTML = '';
-					statusEl.textContent = '';
-					statusEl.className = '';
-					commandEl.textContent = '';
+					if (outputEl) {
+						outputEl.innerHTML = '';
+					}
+					if (statusEl) {
+						statusEl.textContent = '';
+						statusEl.className = '';
+					}
+					if (commandEl) {
+						commandEl.textContent = '';
+					}
+					if (wrapperEl) {
+						wrapperEl.scrollTop = 0;
+					}
+					refreshFilter();
 					break;
 				case 'setTitle':
-					titleEl.textContent = payload || 'Arduino CLI Output';
+					if (titleEl) {
+						titleEl.textContent = payload || 'Arduino CLI Output';
+					}
 					break;
 				case 'status':
-					statusEl.textContent = payload?.text || '';
-					statusEl.className = payload?.state ? payload.state : '';
+					if (statusEl) {
+						statusEl.textContent = payload?.text || '';
+						statusEl.className = payload?.state ? payload.state : '';
+					}
 					break;
 				case 'showCommand':
-					commandEl.textContent = payload || '';
+					if (commandEl) {
+						commandEl.textContent = payload || '';
+					}
 					break;
 				default:
 					break;
@@ -264,6 +443,8 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 		});
 
 		window.addEventListener('load', () => {
+			updateAutoScrollLabel();
+			refreshFilter();
 			vscode.postMessage({ command: 'ready' });
 		});
 	</script>
