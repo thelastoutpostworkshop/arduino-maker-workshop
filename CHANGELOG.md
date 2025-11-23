@@ -4,6 +4,7 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 
 **Version 1.0.7**
 - Added toolbar controls in the Arduino CLI output view so users can clear the log, pause auto-scrolling, and filter compile/upload output with a search query  ([issue #78](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/78))
+- Port-only edits in build profiles no longer invalidate the last build; recompilation is only required when other profile settings change ([issue #84](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/84))
 
 **Version 1.0.6**
 - Reduced Arduino CLI cache durations so board metadata refreshes hourly and library info every 30 minutes, balancing freshness with CLI call volume ([issue #68](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/68))

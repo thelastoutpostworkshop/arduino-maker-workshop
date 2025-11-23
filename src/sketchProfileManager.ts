@@ -690,7 +690,8 @@ export class SketchProfileManager {
         const selectedProfile = arduinoProject.getCompileProfile();
         const currentActiveName = this.resolveActiveProfileName(currentData, selectedProfile);
         const currentFingerprint = currentActiveName && currentData?.profiles
-            ? this.profileFingerprint(currentData.profiles[currentActiveName])
+            // Ignore port-only changes to avoid unnecessary build invalidation
+            ? this.profileFingerprint(currentData.profiles[currentActiveName], false)
             : undefined;
 
         let previousActiveName = this.lastActiveProfileName;
@@ -699,7 +700,7 @@ export class SketchProfileManager {
         if (previousData && previousData.profiles) {
             previousActiveName = this.resolveActiveProfileName(previousData, selectedProfile);
             previousFingerprint = previousActiveName && previousData.profiles
-                ? this.profileFingerprint(previousData.profiles[previousActiveName])
+                ? this.profileFingerprint(previousData.profiles[previousActiveName], false)
                 : undefined;
         }
 
@@ -737,7 +738,7 @@ export class SketchProfileManager {
         return data.profiles[selectedProfile] ? selectedProfile : undefined;
     }
 
-    private profileFingerprint(profile: BuildProfile | undefined): string | undefined {
+    private profileFingerprint(profile: BuildProfile | undefined, includePort: boolean = true): string | undefined {
         if (!profile) {
             return undefined;
         }
@@ -755,7 +756,7 @@ export class SketchProfileManager {
             })).sort()
             : [];
 
-        const portConfig = profile.port_config
+        const portConfig = includePort && profile.port_config
             ? Object.entries(profile.port_config)
                 .map(([key, value]) => `${key}:${value ?? ''}`)
                 .sort()
@@ -764,7 +765,7 @@ export class SketchProfileManager {
         return JSON.stringify({
             fqbn: profile.fqbn ?? '',
             programmer: profile.programmer ?? '',
-            port: profile.port ?? '',
+            port: includePort ? profile.port ?? '' : '',
             protocol: profile.protocol ?? '',
             notes: profile.notes ?? '',
             libraries,
