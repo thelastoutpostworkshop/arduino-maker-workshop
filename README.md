@@ -1,5 +1,8 @@
 # Arduino Maker Workshop
 The ultimate tool for makers to bring Arduino projects to life in Visual Studio Code.
+<a href="https://www.buymeacoffee.com/thelastoutpostworkshop" target="_blank">
+<img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee">
+</a>
 
 > **Currently supported on Windows x64 and MacOS ARM64/Intel and Linux x64**, help needed for [for other platforms](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/discussions/2)
 ## Microcontrollers Platforms
