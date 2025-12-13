@@ -6,6 +6,7 @@ import BoardManager from '@/components/BoardManager.vue';
 import LibraryManager from '@/components/LibraryManager.vue';
 import LibExamples from '@/components/LibExamples.vue';
 import ProfileManager from '@/components/ProfilesManager.vue';
+import OtherTools from '@/components/OtherTools.vue';
 
 export const routerBoardSelectionName = 'board-selection';
 export const routerBoardConfigurationName = 'board-configuration';
@@ -61,6 +62,13 @@ const router = createRouter({
         name: "profiles-manager",
         components: {
           default: ProfileManager,
+        }
+      },
+      {
+        path: '/other-tools',
+        name: 'other-tools',
+        components: {
+          default: OtherTools,
         }
       },
 

@@ -96,6 +96,15 @@ const boardToUpdate = computed(() => {
             </template>
             <span>Library Examples</span>
         </v-tooltip>
+
+        <v-tooltip location="right">
+            <template #activator="{ props }">
+                <v-list-item v-bind="props" prepend-icon="mdi-tools" :to="{ name: 'other-tools' }" router>
+                    Other Tools
+                </v-list-item>
+            </template>
+            <span>External tools and resources</span>
+        </v-tooltip>
     </v-navigation-drawer>
 
 </template>
