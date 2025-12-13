@@ -8,15 +8,15 @@ type ExternalTool = {
 
 const externalTools: ExternalTool[] = [
   {
-    name: 'Example External Tool',
-    description: 'Fake tool link for testing the UI layout.',
-    url: 'https://example.com/tool-a',
+    name: 'ESPConnect',
+    description: 'Explore, back up, and manage your ESP32.',
+    url: 'https://thelastoutpostworkshop.github.io/microcontroller_devkit/espconnect/',
     icon: 'mdi-open-in-new',
   },
   {
-    name: 'Another Tool Link',
-    description: 'Another fake external tool to play with the visual.',
-    url: 'https://example.com/tool-b',
+    name: 'ESP32 Partition Builder',
+    description: 'Create custome partitions for the ESP32.',
+    url: 'https://thelastoutpostworkshop.github.io/microcontroller_devkit/esp32partitionbuilder/',
     icon: 'mdi-tools',
   },
 ];
@@ -33,7 +33,7 @@ const externalTools: ExternalTool[] = [
       <v-card rounded="lg">
         <v-card-text>
           <div class="text-body-2 text-medium-emphasis">
-            External resources and tools (links open in a new tab).
+            External tools (links open in a new tab).
           </div>
 
           <v-list class="mt-3" lines="two">
