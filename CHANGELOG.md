@@ -3,6 +3,7 @@
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
 **Version 1.0.8**
+- Added Links to external tools for the ESP32
 
 **Version 1.0.7**
 - Added toolbar controls in the Arduino CLI output view so users can clear the log, pause auto-scrolling, and filter compile/upload output with a search query  ([issue #78](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/78))
