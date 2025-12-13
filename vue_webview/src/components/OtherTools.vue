@@ -11,13 +11,13 @@ const externalTools: ExternalTool[] = [
     name: 'ESPConnect',
     description: 'Explore, back up, and manage your ESP32.',
     url: 'https://thelastoutpostworkshop.github.io/microcontroller_devkit/espconnect/',
-    icon: 'mdi-open-in-new',
+    icon: 'mdi-usb',
   },
   {
     name: 'ESP32 Partition Builder',
     description: 'Create custome partitions for the ESP32.',
     url: 'https://thelastoutpostworkshop.github.io/microcontroller_devkit/esp32partitionbuilder/',
-    icon: 'mdi-tools',
+    icon: 'mdi-animation',
   },
 ];
 </script>
@@ -39,7 +39,7 @@ const externalTools: ExternalTool[] = [
           <v-list class="mt-3" lines="two">
             <v-list-item v-for="tool in externalTools" :key="tool.name">
               <template #prepend>
-                <v-icon :icon="tool.icon" />
+                <v-icon size="x-large" :icon="tool.icon" />
               </template>
 
               <v-list-item-title>{{ tool.name }}</v-list-item-title>
