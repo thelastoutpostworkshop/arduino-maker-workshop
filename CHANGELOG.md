@@ -3,6 +3,7 @@
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
 **Version 1.0.8**
+- Arduino CLI 1.4.0
 - Added Links to external tools for the ESP32
 
 **Version 1.0.7**
