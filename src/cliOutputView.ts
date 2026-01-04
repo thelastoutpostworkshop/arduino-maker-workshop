@@ -169,10 +169,10 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 		}
 		#title {
 			padding: 8px 12px;
-			border-bottom: 1px solid var(--vscode-panel-border);
+			border-bottom: 1px solid var(--vscode-panelTitle-activeBorder, var(--vscode-panel-border));
 			font-weight: 600;
-			color: var(--vscode-panelTitle-activeForeground);
-			background-color: var(--vscode-panelTitle-activeBorder, transparent);
+			color: var(--vscode-panelTitle-activeForeground, var(--vscode-foreground));
+			background-color: var(--vscode-panelTitle-activeBackground, var(--vscode-panel-background));
 		}
 		#toolbar {
 			display: flex;
