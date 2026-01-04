@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, watch } from 'vue';
 import { useVsCodeStore } from '@/stores/useVsCodeStore';
-import { ARDUINO_MESSAGES } from '@shared/messages';
+import { ARDUINO_MESSAGES, ESP32_PARTITION_BUILDER_BASE_URL } from '@shared/messages';
 
 type ExternalTool = {
   name: string;
@@ -23,7 +23,7 @@ const externalTools: ExternalTool[] = [
   {
     name: 'ESP32 Partition Builder',
     description: 'Create custome partitions for the ESP32.',
-    url: 'https://thelastoutpostworkshop.github.io/ESP32PartitionBuilder/',
+    url: ESP32_PARTITION_BUILDER_BASE_URL,
     icon: 'mdi-animation',
   },
 ];

@@ -8,6 +8,7 @@ export const NO_PROGRAMMER = '<none>';
 export const DEFAULT_PROFILE = 'default_profile';
 export const UNKNOWN_PROFILE = 'unknown_profile';
 export const BUILD_NAME_PROFILE = 'build_';
+export const ESP32_PARTITION_BUILDER_BASE_URL = 'https://thelastoutpostworkshop.github.io/ESP32PartitionBuilder/';
 
 // Message exchange with webciew
 export interface WebviewToExtensionMessage {

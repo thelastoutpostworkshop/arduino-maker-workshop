@@ -1,7 +1,7 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionContext } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, PROFILES_STATUS, SketchProjectFile, WebviewToExtensionMessage } from './shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ESP32_PARTITION_BUILDER_BASE_URL, PROFILES_STATUS, SketchProjectFile, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, compile, loadArduinoConfiguration, openExample, shouldDetectPorts, updateStateCompileUpload } from "./extension";
 
 const path = require('path');
@@ -348,7 +348,7 @@ export class VueWebviewPanel {
     }
 
     private getPartitionBuilderUrl(): { url: string; error?: string } {
-        const baseUrl = "https://thelastoutpostworkshop.github.io/ESP32PartitionBuilder/";
+        const baseUrl = ESP32_PARTITION_BUILDER_BASE_URL;
         const partitionsPath = this.findPartitionsCsv();
         if (!partitionsPath) {
             return { url: baseUrl, error: "partitions.csv not found in the build output." };

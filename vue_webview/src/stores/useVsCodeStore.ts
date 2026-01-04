@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated, ArduinoConfig, LibraryInformation, THEME_COLOR, SketchProjectFile, PROFILES_STATUS } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated, ArduinoConfig, LibraryInformation, THEME_COLOR, SketchProjectFile, PROFILES_STATUS, ESP32_PARTITION_BUILDER_BASE_URL } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 import * as yaml from 'yaml';
 
@@ -201,7 +201,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         this.handleMessage(message);
                         break;
                     case ARDUINO_MESSAGES.GET_PARTITION_BUILDER_URL:
-                        message.payload = "https://thelastoutpostworkshop.github.io/ESP32PartitionBuilder/?flash=4&partitions=base64:IyBOYW1lLCBUeXBlLCBTdWJUeXBlLCBPZmZzZXQsIFNpemUsIEZsYWdzCm52cyxkYXRhLG52cywweDkwMDAsMHg1MDAwLApvdGFkYXRhLGRhdGEsb3RhLDB4ZTAwMCwweDIwMDAsCmFwcDAsYXBwLG90YV8wLDB4MTAwMDAsMHgxNDAwMDAsCmFwcDEsYXBwLG90YV8xLDB4MTUwMDAwLDB4MTQwMDAwLApzcGlmZnMsZGF0YSxzcGlmZnMsMHgyOTAwMDAsMHgxNzAwMDAs";
+                        message.payload = `${ESP32_PARTITION_BUILDER_BASE_URL}?flash=4&partitions=base64:IyBOYW1lLCBUeXBlLCBTdWJUeXBlLCBPZmZzZXQsIFNpemUsIEZsYWdzCm52cyxkYXRhLG52cywweDkwMDAsMHg1MDAwLApvdGFkYXRhLGRhdGEsb3RhLDB4ZTAwMCwweDIwMDAsCmFwcDAsYXBwLG90YV8wLDB4MTAwMDAsMHgxNDAwMDAsCmFwcDEsYXBwLG90YV8xLDB4MTUwMDAwLDB4MTQwMDAwLApzcGlmZnMsZGF0YSxzcGlmZnMsMHgyOTAwMDAsMHgxNzAwMDAs`;
                         message.errorMessage = "";
                         this.handleMessage(message);
                         break;
