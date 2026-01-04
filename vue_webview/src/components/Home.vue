@@ -244,7 +244,7 @@ onMounted(() => {
             The built-in CLI is not responding, see the "{{ ArduinoExtensionChannelName }}" output window for more
             information
           </v-alert>
-          <div v-if="store.projectStatus?.status != ARDUINO_ERRORS.CLI_NOT_WORKING" class="text-right">
+          <div v-if="store.projectStatus?.status != ARDUINO_ERRORS.CLI_NOT_WORKING" class="text-right" data-testid="cli-version">
             Built-in CLI v{{ store.projectStatus?.cli_status?.VersionString }} ({{ store.projectStatus?.cli_status?.Date
             }})
           </div>
@@ -351,7 +351,7 @@ onMounted(() => {
                 It is helpful to create build profiles easily
               </div>
             </template>
-            <v-text-field label="Board" :model-value="store.boardOptions?.name" readonly>
+            <v-text-field data-testid="board-name" label="Board" :model-value="store.boardOptions?.name" readonly>
               <template v-slot:loader>
                 <v-progress-linear :active="!store.boardOptions?.name" height="2" indeterminate></v-progress-linear>
               </template>
@@ -360,7 +360,7 @@ onMounted(() => {
                   variant="text"></v-btn>
               </template>
             </v-text-field>
-            <v-select :disabled="!store.boardConnected?.detected_ports" v-model="portSelected" :items="portsAvailable"
+            <v-select data-testid="upload-port" :disabled="!store.boardConnected?.detected_ports" v-model="portSelected" :items="portsAvailable"
               density="compact" label="Upload Port">
               <template v-slot:loader>
                 <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"

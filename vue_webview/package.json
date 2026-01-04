@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
+    "test:e2e": "playwright test",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -16,6 +17,7 @@
   },
   "devDependencies": {
     "@babel/types": "^7.24.7",
+    "@playwright/test": "^1.49.1",
     "@types/node": "^25.0.1",
     "@types/vscode-webview": "^1.57.5",
     "@vitejs/plugin-vue": "^6.0.0",

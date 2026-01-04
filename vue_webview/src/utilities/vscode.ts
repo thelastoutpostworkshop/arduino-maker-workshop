@@ -41,7 +41,7 @@ class VSCodeAPIWrapper {
       if(this.inDevelopment()) {
         console.log("Message sent:");
         console.log(message);
-        window.postMessage(message);
+        window.postMessage(message, window.location.origin);
       }
     }
   }

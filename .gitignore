@@ -3,6 +3,8 @@ node_modules
 build
 *.vsix
 .tool-versions
+playwright-report
+test-results
 
 # Allow .vsix files inside the vsix/ folder
 !vsix/*.vsix

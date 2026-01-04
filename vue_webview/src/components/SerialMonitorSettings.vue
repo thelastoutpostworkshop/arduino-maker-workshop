@@ -54,7 +54,7 @@ watch(
     <slot name="title" />
 
     <!-- Serial Port -->
-    <v-select :disabled="!store.boardConnected?.detected_ports" v-model="props.monitorPortSettings.port"
+    <v-select data-testid="monitor-serial-port" :disabled="!store.boardConnected?.detected_ports" v-model="props.monitorPortSettings.port"
         :items="serialPortsAvailable" density="compact" label="Serial Port" class="mb-3" hide-details>
         <template #loader>
             <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2" indeterminate />
@@ -65,7 +65,7 @@ watch(
     </v-select>
 
     <!-- Baud Rate -->
-    <v-select :disabled="!store.boardConnected?.detected_ports" v-model="props.monitorPortSettings.baudRate"
+    <v-select data-testid="monitor-baud-rate" :disabled="!store.boardConnected?.detected_ports" v-model="props.monitorPortSettings.baudRate"
         :items="[300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 74880, 115200, 230400, 250000]" density="compact"
         label="Baud Rate" class="mb-3" hide-details />
 
