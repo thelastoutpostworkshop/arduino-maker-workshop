@@ -6,6 +6,7 @@ import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, chang
 
 const path = require('path');
 const os = require('os');
+const fs = require('fs');
 
 export class VueWebviewPanel {
 
@@ -257,6 +258,12 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
+                    case ARDUINO_MESSAGES.GET_PARTITION_BUILDER_URL:
+                        const partitionBuilderResult = this.getPartitionBuilderUrl();
+                        message.payload = partitionBuilderResult.url;
+                        message.errorMessage = partitionBuilderResult.error ?? "";
+                        VueWebviewPanel.sendMessage(message);
+                        break;
                     case ARDUINO_MESSAGES.INSTALL_ZIP_LIBRARY:
                         arduinoCLI.installZipLibrary(message.payload).then(() => {
                             message.command = ARDUINO_MESSAGES.LIBRARY_VERSION_INSTALLED;
@@ -338,6 +345,201 @@ export class VueWebviewPanel {
             errorMessage: "",
             payload: ""
         };
+    }
+
+    private getPartitionBuilderUrl(): { url: string; error?: string } {
+        const baseUrl = "https://thelastoutpostworkshop.github.io/ESP32PartitionBuilder/";
+        const partitionsPath = this.findPartitionsCsv();
+        if (!partitionsPath) {
+            return { url: baseUrl, error: "partitions.csv not found in the build output." };
+        }
+
+        let csvContent = "";
+        try {
+            csvContent = fs.readFileSync(partitionsPath, 'utf8');
+        } catch (error) {
+            return { url: baseUrl, error: "Unable to read partitions.csv." };
+        }
+
+        if (!csvContent.trim()) {
+            return { url: baseUrl, error: "partitions.csv is empty." };
+        }
+
+        const flashSizeMB = this.resolveFlashSizeMB(path.dirname(partitionsPath));
+        if (!flashSizeMB) {
+            return { url: baseUrl, error: "Flash size not found (FlashSize)." };
+        }
+
+        const encodedCsv = Buffer.from(csvContent, 'utf8').toString('base64');
+        const partitionParam = `base64:${encodeURIComponent(encodedCsv)}`;
+        const url = `${baseUrl}?flash=${flashSizeMB}&partitions=${partitionParam}`;
+        return { url };
+    }
+
+    private findPartitionsCsv(): string | undefined {
+        const buildPath = arduinoCLI.getBuildPath();
+        const directPath = path.join(buildPath, "partitions.csv");
+        if (fs.existsSync(directPath)) {
+            return directPath;
+        }
+
+        const outputRoot = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput());
+        if (!fs.existsSync(outputRoot)) {
+            return undefined;
+        }
+
+        const candidates: { filePath: string; mtimeMs: number }[] = [];
+        const rootCandidate = path.join(outputRoot, "partitions.csv");
+        if (fs.existsSync(rootCandidate)) {
+            candidates.push({ filePath: rootCandidate, mtimeMs: fs.statSync(rootCandidate).mtimeMs });
+        }
+
+        try {
+            const entries = fs.readdirSync(outputRoot, { withFileTypes: true });
+            for (const entry of entries) {
+                if (!entry.isDirectory()) {
+                    continue;
+                }
+                const candidate = path.join(outputRoot, entry.name, "partitions.csv");
+                if (fs.existsSync(candidate)) {
+                    candidates.push({ filePath: candidate, mtimeMs: fs.statSync(candidate).mtimeMs });
+                }
+            }
+        } catch (error) {
+            return undefined;
+        }
+
+        if (candidates.length === 0) {
+            return undefined;
+        }
+
+        candidates.sort((a, b) => b.mtimeMs - a.mtimeMs);
+        return candidates[0].filePath;
+    }
+
+    private resolveFlashSizeMB(buildPath?: string): string | undefined {
+        const buildOptionsFlashSize = this.getFlashSizeFromBuildOptions(buildPath);
+        if (buildOptionsFlashSize) {
+            return buildOptionsFlashSize;
+        }
+
+        return (
+            this.getFlashSizeFromProfile() ??
+            this.getFlashSizeFromProjectConfiguration()
+        );
+    }
+
+    private getFlashSizeFromProfile(): string | undefined {
+        if (arduinoYaml.status() !== PROFILES_STATUS.ACTIVE) {
+            return undefined;
+        }
+
+        const profileName = arduinoYaml.getProfileName();
+        const profile = profileName ? arduinoYaml.getProfile(profileName) : undefined;
+        return this.extractFlashSize(profile?.fqbn);
+    }
+
+    private getFlashSizeFromProjectConfiguration(): string | undefined {
+        return this.extractFlashSize(arduinoProject.getBoardConfiguration());
+    }
+
+    private getFlashSizeFromBuildOptions(buildPath?: string): string | undefined {
+        const rootPath = buildPath ?? arduinoCLI.getBuildPath();
+        const buildOptionsPath = path.join(rootPath, "build.options.json");
+        if (!fs.existsSync(buildOptionsPath)) {
+            return undefined;
+        }
+
+        try {
+            const buildOptions = JSON.parse(fs.readFileSync(buildOptionsPath, 'utf8'));
+            const candidates = [
+                buildOptions["build.flash_size"],
+                buildOptions["upload.flash_size"],
+                buildOptions["flash_size"],
+                buildOptions["build.flashSize"],
+                buildOptions["upload.flashSize"],
+            ];
+
+            for (const candidate of candidates) {
+                const normalized = this.normalizeFlashSize(candidate);
+                if (normalized) {
+                    return normalized;
+                }
+            }
+
+            const fqbn = buildOptions["build.fqbn"] || buildOptions["build.fqbn_name"];
+            if (typeof fqbn === "string") {
+                return this.extractFlashSize(fqbn);
+            }
+        } catch (error) {
+            return undefined;
+        }
+
+        return undefined;
+    }
+
+    private extractFlashSize(source?: string): string | undefined {
+        if (!source) {
+            return undefined;
+        }
+
+        const match = source.match(/FlashSize=([^,]+)/i) || source.match(/flash_size=([^,]+)/i);
+        if (!match) {
+            return undefined;
+        }
+
+        return this.normalizeFlashSize(match[1]);
+    }
+
+    private normalizeFlashSize(value: unknown): string | undefined {
+        if (value === undefined || value === null) {
+            return undefined;
+        }
+
+        if (typeof value === "number") {
+            return this.formatFlashSize(value);
+        }
+
+        if (typeof value !== "string") {
+            return undefined;
+        }
+
+        const trimmed = value.trim();
+        if (!trimmed) {
+            return undefined;
+        }
+
+        const match = trimmed.match(/(\d+(?:\.\d+)?)/);
+        if (!match) {
+            return undefined;
+        }
+
+        const numeric = Number.parseFloat(match[1]);
+        if (!Number.isFinite(numeric)) {
+            return undefined;
+        }
+
+        let mb = numeric;
+        if (/gb/i.test(trimmed)) {
+            mb = numeric * 1024;
+        } else if (/kb/i.test(trimmed)) {
+            mb = numeric / 1024;
+        }
+
+        return this.formatFlashSize(mb);
+    }
+
+    private formatFlashSize(mb: number): string | undefined {
+        if (!Number.isFinite(mb) || mb <= 0) {
+            return undefined;
+        }
+
+        const rounded = Math.round(mb);
+        if (Math.abs(mb - rounded) < 0.0001) {
+            return String(rounded);
+        }
+
+        return mb.toFixed(2).replace(/\.?0+$/, "");
     }
 
     public static sendMessage(message: WebviewToExtensionMessage) {

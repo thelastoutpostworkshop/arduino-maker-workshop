@@ -533,6 +533,7 @@ export const ARDUINO_MESSAGES = {
   REQUEST_BOARD_CONNECTED: "requestBoardConnected",
   INSTALL_ZIP_LIBRARY: "installZipLibrary",
   COMPILE_IN_PROGRESS: 'compileInProgress',
+  GET_PARTITION_BUILDER_URL: 'getPartitionBuilderUrl',
 
   // Misc commands
   OPEN_LIBRARY: 'openExample',

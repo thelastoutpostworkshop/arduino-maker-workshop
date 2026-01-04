@@ -1,10 +1,17 @@
 <script setup lang="ts">
+import { computed, onMounted, watch } from 'vue';
+import { useVsCodeStore } from '@/stores/useVsCodeStore';
+import { ARDUINO_MESSAGES } from '@shared/messages';
+
 type ExternalTool = {
   name: string;
   description: string;
   url: string;
   icon: string;
 };
+
+const store = useVsCodeStore();
+const partitionToolName = 'ESP32 Partition Builder';
 
 const externalTools: ExternalTool[] = [
   {
@@ -16,10 +23,49 @@ const externalTools: ExternalTool[] = [
   {
     name: 'ESP32 Partition Builder',
     description: 'Create custome partitions for the ESP32.',
-    url: 'https://thelastoutpostworkshop.github.io/microcontroller_devkit/esp32partitionbuilder/',
+    url: 'https://thelastoutpostworkshop.github.io/ESP32PartitionBuilder/',
     icon: 'mdi-animation',
   },
 ];
+
+const partitionBuilderUrl = computed(() => store.partitionBuilderUrl);
+const partitionBuilderError = computed(() => store.partitionBuilderError);
+
+const getToolUrl = (tool: ExternalTool) => {
+  if (tool.name === partitionToolName && partitionBuilderUrl.value) {
+    return partitionBuilderUrl.value;
+  }
+  return tool.url;
+};
+
+const isToolDisabled = (tool: ExternalTool) =>
+  tool.name === partitionToolName && !partitionBuilderUrl.value;
+
+const requestPartitionBuilderUrl = () => {
+  store.sendMessage({
+    command: ARDUINO_MESSAGES.GET_PARTITION_BUILDER_URL,
+    errorMessage: "",
+    payload: "",
+  });
+};
+
+onMounted(() => {
+  requestPartitionBuilderUrl();
+});
+
+watch(() => store.compileInProgress, (current, previous) => {
+  if (previous && !current) {
+    requestPartitionBuilderUrl();
+  }
+});
+
+watch(() => store.projectInfo?.compile_profile, () => {
+  requestPartitionBuilderUrl();
+});
+
+watch(() => store.sketchProject?.buildProfileStatus, () => {
+  requestPartitionBuilderUrl();
+});
 </script>
 
 <template>
@@ -43,11 +89,20 @@ const externalTools: ExternalTool[] = [
               </template>
 
               <v-list-item-title>{{ tool.name }}</v-list-item-title>
-              <v-list-item-subtitle>{{ tool.description }}</v-list-item-subtitle>
+              <v-list-item-subtitle>
+                <div>{{ tool.description }}</div>
+                <div
+                  v-if="tool.name === partitionToolName && partitionBuilderError"
+                  class="text-error"
+                >
+                  {{ partitionBuilderError }}
+                </div>
+              </v-list-item-subtitle>
 
               <template #append>
                 <v-btn
-                  :href="tool.url"
+                  :href="getToolUrl(tool)"
+                  :disabled="isToolDisabled(tool)"
                   target="_blank"
                   variant="text"
                   prepend-icon="mdi-open-in-new"
@@ -62,4 +117,3 @@ const externalTools: ExternalTool[] = [
     </v-responsive>
   </v-container>
 </template>
-

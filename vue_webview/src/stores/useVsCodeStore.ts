@@ -58,6 +58,8 @@ export const useVsCodeStore = defineStore('vsCode', {
         compileInProgress: "",
         currentTheme: null as string | null,
         sketchProject: null as SketchProjectFile | null,
+        partitionBuilderUrl: "" as string,
+        partitionBuilderError: "" as string,
     }),
     actions: {
         changeTheme(theme: THEME_COLOR) {
@@ -196,6 +198,11 @@ export const useVsCodeStore = defineStore('vsCode', {
                         this.handleMessage(message);
                         break;
                     case ARDUINO_MESSAGES.CHANGE_THEME_COLOR:
+                        this.handleMessage(message);
+                        break;
+                    case ARDUINO_MESSAGES.GET_PARTITION_BUILDER_URL:
+                        message.payload = "https://thelastoutpostworkshop.github.io/ESP32PartitionBuilder/?flash=4&partitions=base64:ZGF0YQ%3D%3D";
+                        message.errorMessage = "";
                         this.handleMessage(message);
                         break;
                     default:
@@ -422,6 +429,15 @@ export const useVsCodeStore = defineStore('vsCode', {
                     break;
                 case ARDUINO_MESSAGES.CHANGE_THEME_COLOR:
                     this.changeTheme(message.payload);
+                    break;
+                case ARDUINO_MESSAGES.GET_PARTITION_BUILDER_URL:
+                    if (message.errorMessage) {
+                        this.partitionBuilderUrl = "";
+                        this.partitionBuilderError = message.errorMessage;
+                    } else {
+                        this.partitionBuilderUrl = message.payload || "";
+                        this.partitionBuilderError = "";
+                    }
                     break;
                 default:
                     console.warn('Unknown command received:', message.command);
