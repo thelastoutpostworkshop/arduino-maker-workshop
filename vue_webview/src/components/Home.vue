@@ -56,6 +56,10 @@ function createNewSketch() {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CREATE_NEW_SKETCH, errorMessage: "", payload: sketchName.value });
 }
 
+function openWorkspaceFolder() {
+  store.sendMessage({ command: ARDUINO_MESSAGES.OPEN_WORKSPACE_FOLDER, errorMessage: "", payload: "" });
+}
+
 function refreshPorts() {
   store.boardConnected = null;
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
@@ -249,6 +253,27 @@ onMounted(() => {
             A problem occured initializing the Arduino config file, see the "{{ ArduinoExtensionChannelName }}" output
             window for more information
           </v-alert>
+          <v-alert
+            v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_INO_FILES"
+            type="info"
+            variant="tonal"
+            class="mb-4"
+          >
+            <v-alert-title>No sketch folder found</v-alert-title>
+            Compile, upload, and board actions stay disabled until you open a sketch folder
+            (the `.ino` file name must match the folder name) or create one here.
+            <template #text>
+              <div class="mt-3">
+                <v-text-field label="Sketch Name" v-model="sketchName" />
+                <v-btn @click="createNewSketch" :disabled="sketchName.trim().length == 0">
+                  Create New Sketch
+                </v-btn>
+                <v-btn variant="text" class="ml-2" @click="openWorkspaceFolder">
+                  Open Folder
+                </v-btn>
+              </div>
+            </template>
+          </v-alert>
           <v-row class="mb-2" v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS">
             <v-col cols="12" v-if="profileStatusInformation">
               <v-card color="primary" prepend-icon="mdi-application-array-outline" rounded="lg" class="pa-4">
@@ -381,19 +406,6 @@ onMounted(() => {
               Your sketch name is '{{ store.projectStatus?.sketchName }}' and folder name is '{{
                 store.projectStatus?.folderName }}', they must have the same name.
             </v-card-text>
-          </v-card>
-          <v-card v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_INO_FILES" class="pa-4"
-            color="blue-grey-darken-3" prepend-icon="mdi-folder-plus-outline" rounded="lg">
-            <template #title>
-              <h2 class="text-h6 font-weight-bold">Create a new sketch</h2>
-            </template>
-            <v-text-field label="Sketch Name" v-model="sketchName">
-
-            </v-text-field>
-
-            <v-card-actions>
-              <v-btn @click="createNewSketch" :disabled="sketchName.trim().length == 0">New Sketch</v-btn>
-            </v-card-actions>
           </v-card>
           <div v-if="store.projectStatus == null && !store.projectInfo?.board == null">
             <v-card class="mt-5">

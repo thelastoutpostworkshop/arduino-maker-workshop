@@ -1,4 +1,4 @@
-import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionContext, Position, Range, Selection, workspace } from "vscode";
+import { commands, Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionContext, Position, Range, Selection, workspace } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BacktraceDecodeFrame, BacktraceDecodeResult, ESP32_PARTITION_BUILDER_BASE_URL, PROFILES_STATUS, SketchProjectFile, WebviewToExtensionMessage } from './shared/messages';
@@ -274,6 +274,9 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.OPEN_FILE_AT_LOCATION:
                         this.openFileAtLocation(message.payload);
+                        break;
+                    case ARDUINO_MESSAGES.OPEN_WORKSPACE_FOLDER:
+                        commands.executeCommand('vscode.openFolder', undefined, { forceNewWindow: false });
                         break;
                     case ARDUINO_MESSAGES.INSTALL_ZIP_LIBRARY:
                         arduinoCLI.installZipLibrary(message.payload).then(() => {

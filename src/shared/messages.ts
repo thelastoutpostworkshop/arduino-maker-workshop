@@ -552,6 +552,7 @@ export const ARDUINO_MESSAGES = {
   GET_PARTITION_BUILDER_URL: 'getPartitionBuilderUrl',
   DECODE_ESP32_BACKTRACE: 'decodeEsp32Backtrace',
   OPEN_FILE_AT_LOCATION: 'openFileAtLocation',
+  OPEN_WORKSPACE_FOLDER: 'openWorkspaceFolder',
 
   // Misc commands
   OPEN_LIBRARY: 'openExample',

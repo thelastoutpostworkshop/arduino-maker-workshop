@@ -224,6 +224,8 @@ export const useVsCodeStore = defineStore('vsCode', {
                         message.errorMessage = "";
                         this.handleMessage(message);
                         break;
+                    case ARDUINO_MESSAGES.OPEN_WORKSPACE_FOLDER:
+                        break;
                     default:
                         break;
                 }
