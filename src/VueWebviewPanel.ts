@@ -1,12 +1,13 @@
-import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionContext } from "vscode";
+import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionContext, Position, Range, Selection, workspace } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ESP32_PARTITION_BUILDER_BASE_URL, PROFILES_STATUS, SketchProjectFile, WebviewToExtensionMessage } from './shared/messages';
+import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BacktraceDecodeFrame, BacktraceDecodeResult, ESP32_PARTITION_BUILDER_BASE_URL, PROFILES_STATUS, SketchProjectFile, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, compile, loadArduinoConfiguration, openExample, shouldDetectPorts, updateStateCompileUpload } from "./extension";
 
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
+const cp = require('child_process');
 
 export class VueWebviewPanel {
 
@@ -263,6 +264,16 @@ export class VueWebviewPanel {
                         message.payload = partitionBuilderResult.url;
                         message.errorMessage = partitionBuilderResult.error ?? "";
                         VueWebviewPanel.sendMessage(message);
+                        break;
+                    case ARDUINO_MESSAGES.DECODE_ESP32_BACKTRACE:
+                        this.decodeEsp32Backtrace(message.payload).then((result) => {
+                            message.payload = result;
+                            message.errorMessage = result.error ?? "";
+                            VueWebviewPanel.sendMessage(message);
+                        });
+                        break;
+                    case ARDUINO_MESSAGES.OPEN_FILE_AT_LOCATION:
+                        this.openFileAtLocation(message.payload);
                         break;
                     case ARDUINO_MESSAGES.INSTALL_ZIP_LIBRARY:
                         arduinoCLI.installZipLibrary(message.payload).then(() => {
@@ -541,6 +552,410 @@ export class VueWebviewPanel {
         }
 
         return mb.toFixed(2).replace(/\.?0+$/, "");
+    }
+
+    private async decodeEsp32Backtrace(log: string): Promise<BacktraceDecodeResult> {
+        if (!log || !log.trim()) {
+            return { frames: [], error: "Paste a crash log to decode." };
+        }
+
+        const { addresses, pc } = this.extractBacktraceAddresses(log);
+        if (addresses.length === 0 && !pc) {
+            return { frames: [], error: "No backtrace addresses found in the log." };
+        }
+
+        const elfPath = this.findNewestElf();
+        if (!elfPath) {
+            return { frames: [], error: "No ELF file found in the build output." };
+        }
+
+        const dataDir = await this.getArduinoDataDirectory();
+        if (!dataDir) {
+            return { frames: [], error: "Arduino data directory not found." };
+        }
+
+        const chipId = this.resolveEsp32ChipId();
+        if (!chipId) {
+            return { frames: [], error: "Unable to resolve ESP32 target from the current board/profile." };
+        }
+
+        const arch = this.resolveEsp32Arch(chipId);
+        if (!arch) {
+            return { frames: [], error: "Unsupported ESP32 target for backtrace decoding." };
+        }
+
+        const addr2linePath = this.findAddr2LineBinary(dataDir, chipId, arch);
+        if (!addr2linePath) {
+            return { frames: [], error: "addr2line tool not found. Install ESP32 toolchains via the Arduino board manager." };
+        }
+
+        arduinoExtensionChannel.appendLine("ESP32 Backtrace Decoder:");
+        arduinoExtensionChannel.appendLine(`ELF: ${elfPath}`);
+        arduinoExtensionChannel.appendLine(`addr2line: ${addr2linePath}`);
+
+        try {
+            const output = await this.runAddr2Line(addr2linePath, elfPath, pc, addresses);
+            const frames = this.parseAddr2LineOutput(output);
+            this.logBacktraceFrames(frames);
+            return { frames, elfPath, addr2linePath, arch };
+        } catch (error: any) {
+            const errorMessage = error?.message || "Failed to run addr2line.";
+            arduinoExtensionChannel.appendLine(`ESP32 Backtrace Decoder error: ${errorMessage}`);
+            return { frames: [], elfPath, addr2linePath, arch, error: errorMessage };
+        }
+    }
+
+    private extractBacktraceAddresses(log: string): { addresses: string[]; pc?: string } {
+        const addresses: string[] = [];
+        const seen = new Set<string>();
+        const addressRegex = /0x[0-9a-fA-F]+:0x[0-9a-fA-F]+/g;
+        let match: RegExpExecArray | null;
+        while ((match = addressRegex.exec(log)) !== null) {
+            const addr = match[0].split(':')[0];
+            if (!seen.has(addr)) {
+                seen.add(addr);
+                addresses.push(addr);
+            }
+        }
+
+        let pc: string | undefined;
+        const pcMatch = log.match(/(?:^|\s)PC\s*[:=]?\s*(0x[0-9a-fA-F]+)/mi)
+            || log.match(/PC\s+0x[0-9a-fA-F]+/mi);
+        if (pcMatch) {
+            const direct = pcMatch[1];
+            if (direct) {
+                pc = direct;
+            } else {
+                const found = pcMatch[0].match(/0x[0-9a-fA-F]+/);
+                pc = found ? found[0] : undefined;
+            }
+        }
+
+        return { addresses, pc };
+    }
+
+    private findNewestElf(): string | undefined {
+        const buildPath = arduinoCLI.getBuildPath();
+        const elfInBuild = this.findNewestElfInFolder(buildPath);
+        if (elfInBuild) {
+            return elfInBuild;
+        }
+
+        const outputRoot = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput());
+        return this.findNewestElfInFolder(outputRoot, true);
+    }
+
+    private findNewestElfInFolder(folder: string, includeSubfolders: boolean = false): string | undefined {
+        if (!fs.existsSync(folder)) {
+            return undefined;
+        }
+
+        const candidates: { filePath: string; mtimeMs: number }[] = [];
+        const scan = (dir: string, depth: number) => {
+            const entries = fs.readdirSync(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                    if (includeSubfolders && depth < 2) {
+                        scan(fullPath, depth + 1);
+                    }
+                    continue;
+                }
+                if (entry.isFile() && entry.name.toLowerCase().endsWith('.elf')) {
+                    candidates.push({ filePath: fullPath, mtimeMs: fs.statSync(fullPath).mtimeMs });
+                }
+            }
+        };
+
+        try {
+            scan(folder, 0);
+        } catch {
+            return undefined;
+        }
+
+        if (candidates.length === 0) {
+            return undefined;
+        }
+
+        candidates.sort((a, b) => b.mtimeMs - a.mtimeMs);
+        return candidates[0].filePath;
+    }
+
+    private async getArduinoDataDirectory(): Promise<string | undefined> {
+        try {
+            const json = await arduinoCLI.getArduinoConfig();
+            const config = JSON.parse(json);
+            return config?.config?.directories?.data;
+        } catch {
+            return undefined;
+        }
+    }
+
+    private resolveEsp32ChipId(): string | undefined {
+        if (arduinoYaml.status() === PROFILES_STATUS.ACTIVE) {
+            const profileName = arduinoYaml.getProfileName();
+            const profile = profileName ? arduinoYaml.getProfile(profileName) : undefined;
+            const chip = this.extractChipFromFqbn(profile?.fqbn);
+            if (chip) {
+                return chip;
+            }
+        }
+
+        return this.extractChipFromFqbn(arduinoProject.getBoard());
+    }
+
+    private extractChipFromFqbn(fqbn?: string): string | undefined {
+        if (!fqbn || typeof fqbn !== "string") {
+            return undefined;
+        }
+        const parts = fqbn.split(':');
+        if (parts.length >= 3) {
+            return parts[2].toLowerCase();
+        }
+        return undefined;
+    }
+
+    private resolveEsp32Arch(chipId: string): "xtensa" | "riscv" | undefined {
+        const riscv = new Set(["esp32c2", "esp32c3", "esp32c6", "esp32h2"]);
+        if (riscv.has(chipId)) {
+            return "riscv";
+        }
+        if (chipId.startsWith("esp32")) {
+            return "xtensa";
+        }
+        return undefined;
+    }
+
+    private findAddr2LineBinary(dataDir: string, chipId: string, arch: "xtensa" | "riscv"): string | undefined {
+        const toolsRoot = path.join(dataDir, "packages", "esp32", "tools");
+        if (!fs.existsSync(toolsRoot)) {
+            return undefined;
+        }
+
+        const exeSuffix = os.platform() === "win32" ? ".exe" : "";
+        const candidates = arch === "riscv"
+            ? [`riscv32-esp-elf-addr2line${exeSuffix}`]
+            : [
+                `xtensa-esp32-elf-addr2line${exeSuffix}`,
+                `xtensa-${chipId}-elf-addr2line${exeSuffix}`,
+                `xtensa-esp32s2-elf-addr2line${exeSuffix}`,
+                `xtensa-esp32s3-elf-addr2line${exeSuffix}`,
+            ];
+
+        return this.findBestToolMatch(toolsRoot, candidates);
+    }
+
+    private findBestToolMatch(root: string, candidates: string[]): string | undefined {
+        const candidateIndex = new Map<string, number>();
+        candidates.forEach((name, index) => {
+            candidateIndex.set(name.toLowerCase(), index);
+        });
+
+        const matches: { filePath: string; mtimeMs: number; name: string }[] = [];
+        const stack: string[] = [root];
+
+        while (stack.length > 0) {
+            const current = stack.pop();
+            if (!current) {
+                continue;
+            }
+            let entries: any[];
+            try {
+                entries = fs.readdirSync(current, { withFileTypes: true });
+            } catch {
+                continue;
+            }
+            for (const entry of entries) {
+                const fullPath = path.join(current, entry.name);
+                if (entry.isDirectory()) {
+                    stack.push(fullPath);
+                } else if (entry.isFile()) {
+                    const entryName = entry.name.toLowerCase();
+                    if (candidateIndex.has(entryName)) {
+                        matches.push({
+                            filePath: fullPath,
+                            mtimeMs: fs.statSync(fullPath).mtimeMs,
+                            name: entryName,
+                        });
+                    }
+                }
+            }
+        }
+
+        if (matches.length === 0) {
+            return undefined;
+        }
+
+        matches.sort((a, b) => {
+            const indexA = candidateIndex.get(a.name) ?? candidates.length;
+            const indexB = candidateIndex.get(b.name) ?? candidates.length;
+            if (indexA !== indexB) {
+                return indexA - indexB;
+            }
+            return b.mtimeMs - a.mtimeMs;
+        });
+
+        return matches[0].filePath;
+    }
+
+    private runAddr2Line(addr2linePath: string, elfPath: string, pc: string | undefined, addresses: string[]): Promise<string> {
+        const args = ["-fip", "-e", elfPath];
+        if (pc) {
+            args.push(pc);
+        }
+        args.push(...addresses);
+
+        return new Promise((resolve, reject) => {
+            const child = cp.spawn(addr2linePath, args);
+            let outputBuffer = "";
+            let errorBuffer = "";
+
+            child.stdout.on("data", (data: Buffer) => {
+                outputBuffer += data.toString();
+            });
+
+            child.stderr.on("data", (data: Buffer) => {
+                errorBuffer += data.toString();
+            });
+
+            child.on("close", (code: number) => {
+                if (code === 0) {
+                    resolve(outputBuffer);
+                } else {
+                    reject(new Error(errorBuffer || `addr2line exited with code ${code}.`));
+                }
+            });
+
+            child.on("error", (err: any) => {
+                reject(err);
+            });
+        });
+    }
+
+    private parseAddr2LineOutput(output: string): BacktraceDecodeFrame[] {
+        const frames: BacktraceDecodeFrame[] = [];
+        const lines = output.split(/\r?\n/).filter((line) => line.trim().length > 0);
+        for (let index = 0; index < lines.length; index++) {
+            const line = lines[index];
+            const parsed = this.parseAddr2LineLine(line);
+            if (parsed) {
+                frames.push(parsed);
+                continue;
+            }
+
+            if (index + 1 < lines.length) {
+                const paired = this.parseAddr2LinePair(line, lines[index + 1]);
+                if (paired) {
+                    frames.push(paired);
+                    index += 1;
+                }
+            }
+        }
+        return frames;
+    }
+
+    private parseAddr2LineLine(line: string): BacktraceDecodeFrame | undefined {
+        const trimmed = line.trim();
+        const atIndex = trimmed.lastIndexOf(" at ");
+        if (atIndex === -1) {
+            return undefined;
+        }
+
+        const left = trimmed.slice(0, atIndex).trim();
+        const right = trimmed.slice(atIndex + 4).trim();
+
+        let address = "";
+        let functionName = left;
+        const addressMatch = left.match(/^(0x[0-9a-fA-F]+):\s*(.*)$/);
+        if (addressMatch) {
+            address = addressMatch[1];
+            functionName = addressMatch[2] || "";
+        }
+
+        const cleaned = right.replace(/\s+\(inlined by\).*/, "");
+        const lastColon = cleaned.lastIndexOf(":");
+        if (lastColon === -1) {
+            return {
+                address: address || undefined,
+                functionName: functionName || "??",
+                file: cleaned || "??",
+                line: 0,
+            };
+        }
+
+        const file = cleaned.slice(0, lastColon) || "??";
+        const lineStr = cleaned.slice(lastColon + 1);
+        const lineNumber = Number.parseInt(lineStr, 10);
+
+        return {
+            address: address || undefined,
+            functionName: functionName || "??",
+            file,
+            line: Number.isFinite(lineNumber) ? lineNumber : 0,
+        };
+    }
+
+    private parseAddr2LinePair(functionLine: string, locationLine: string): BacktraceDecodeFrame | undefined {
+        const functionName = functionLine.trim();
+        if (!functionName) {
+            return undefined;
+        }
+
+        const cleaned = locationLine.trim();
+        const lastColon = cleaned.lastIndexOf(":");
+        if (lastColon === -1) {
+            return {
+                functionName: functionName || "??",
+                file: cleaned || "??",
+                line: 0,
+            };
+        }
+
+        const file = cleaned.slice(0, lastColon) || "??";
+        const lineStr = cleaned.slice(lastColon + 1);
+        const lineNumber = Number.parseInt(lineStr, 10);
+
+        return {
+            functionName: functionName || "??",
+            file,
+            line: Number.isFinite(lineNumber) ? lineNumber : 0,
+        };
+    }
+
+    private logBacktraceFrames(frames: BacktraceDecodeFrame[]) {
+        if (frames.length === 0) {
+            arduinoExtensionChannel.appendLine("ESP32 Backtrace Decoder: no frames resolved.");
+            return;
+        }
+
+        frames.forEach((frame) => {
+            const location = frame.file && frame.line > 0 ? `${frame.file}:${frame.line}` : frame.file || "??";
+            const address = frame.address ? `${frame.address} ` : "";
+            const functionName = frame.functionName || "??";
+            arduinoExtensionChannel.appendLine(`${address}${functionName} at ${location}`);
+        });
+    }
+
+    private async openFileAtLocation(payload: { file?: string; line?: number; beside?: boolean }) {
+        if (!payload || !payload.file || payload.file === "??") {
+            window.showErrorMessage("No file path available for this frame.");
+            return;
+        }
+
+        const line = payload.line && payload.line > 0 ? payload.line : 1;
+        try {
+            const fileUri = Uri.file(payload.file);
+            const document = await workspace.openTextDocument(fileUri);
+            const editor = await window.showTextDocument(document, {
+                preview: true,
+                viewColumn: payload.beside ? ViewColumn.Beside : undefined
+            });
+            const position = new Position(line - 1, 0);
+            editor.selection = new Selection(position, position);
+            editor.revealRange(new Range(position, position));
+        } catch (error) {
+            window.showErrorMessage(`Failed to open file: ${payload.file}`);
+        }
     }
 
     public static sendMessage(message: WebviewToExtensionMessage) {

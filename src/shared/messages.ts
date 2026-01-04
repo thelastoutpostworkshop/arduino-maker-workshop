@@ -10,6 +10,21 @@ export const UNKNOWN_PROFILE = 'unknown_profile';
 export const BUILD_NAME_PROFILE = 'build_';
 export const ESP32_PARTITION_BUILDER_BASE_URL = 'https://thelastoutpostworkshop.github.io/ESP32PartitionBuilder/';
 
+export interface BacktraceDecodeFrame {
+  address?: string;
+  functionName: string;
+  file: string;
+  line: number;
+}
+
+export interface BacktraceDecodeResult {
+  frames: BacktraceDecodeFrame[];
+  elfPath?: string;
+  addr2linePath?: string;
+  arch?: string;
+  error?: string;
+}
+
 // Message exchange with webciew
 export interface WebviewToExtensionMessage {
   command: string;
@@ -535,6 +550,8 @@ export const ARDUINO_MESSAGES = {
   INSTALL_ZIP_LIBRARY: "installZipLibrary",
   COMPILE_IN_PROGRESS: 'compileInProgress',
   GET_PARTITION_BUILDER_URL: 'getPartitionBuilderUrl',
+  DECODE_ESP32_BACKTRACE: 'decodeEsp32Backtrace',
+  OPEN_FILE_AT_LOCATION: 'openFileAtLocation',
 
   // Misc commands
   OPEN_LIBRARY: 'openExample',

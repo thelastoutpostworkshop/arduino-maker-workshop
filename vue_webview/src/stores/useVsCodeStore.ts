@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated, ArduinoConfig, LibraryInformation, THEME_COLOR, SketchProjectFile, PROFILES_STATUS, ESP32_PARTITION_BUILDER_BASE_URL } from '@shared/messages';
+import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BacktraceDecodeResult, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated, ArduinoConfig, LibraryInformation, THEME_COLOR, SketchProjectFile, PROFILES_STATUS, ESP32_PARTITION_BUILDER_BASE_URL } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 import * as yaml from 'yaml';
 
@@ -60,6 +60,8 @@ export const useVsCodeStore = defineStore('vsCode', {
         sketchProject: null as SketchProjectFile | null,
         partitionBuilderUrl: "" as string,
         partitionBuilderError: "" as string,
+        backtraceDecodeResult: null as BacktraceDecodeResult | null,
+        backtraceDecodeError: "" as string,
     }),
     actions: {
         changeTheme(theme: THEME_COLOR) {
@@ -202,6 +204,23 @@ export const useVsCodeStore = defineStore('vsCode', {
                         break;
                     case ARDUINO_MESSAGES.GET_PARTITION_BUILDER_URL:
                         message.payload = `${ESP32_PARTITION_BUILDER_BASE_URL}?flash=4&partitions=base64:IyBOYW1lLCBUeXBlLCBTdWJUeXBlLCBPZmZzZXQsIFNpemUsIEZsYWdzCm52cyxkYXRhLG52cywweDkwMDAsMHg1MDAwLApvdGFkYXRhLGRhdGEsb3RhLDB4ZTAwMCwweDIwMDAsCmFwcDAsYXBwLG90YV8wLDB4MTAwMDAsMHgxNDAwMDAsCmFwcDEsYXBwLG90YV8xLDB4MTUwMDAwLDB4MTQwMDAwLApzcGlmZnMsZGF0YSxzcGlmZnMsMHgyOTAwMDAsMHgxNzAwMDAs`;
+                        message.errorMessage = "";
+                        this.handleMessage(message);
+                        break;
+                    case ARDUINO_MESSAGES.DECODE_ESP32_BACKTRACE:
+                        message.payload = {
+                            frames: [
+                                {
+                                    address: "0x400d10ec",
+                                    functionName: "panic_abort",
+                                    file: "C:\\path\\to\\main.cpp",
+                                    line: 42
+                                }
+                            ],
+                            elfPath: "C:\\path\\to\\build\\sketch.elf",
+                            addr2linePath: "C:\\path\\to\\xtensa-esp32-elf-addr2line.exe",
+                            arch: "xtensa"
+                        };
                         message.errorMessage = "";
                         this.handleMessage(message);
                         break;
@@ -437,6 +456,15 @@ export const useVsCodeStore = defineStore('vsCode', {
                     } else {
                         this.partitionBuilderUrl = message.payload || "";
                         this.partitionBuilderError = "";
+                    }
+                    break;
+                case ARDUINO_MESSAGES.DECODE_ESP32_BACKTRACE:
+                    if (message.errorMessage) {
+                        this.backtraceDecodeResult = null;
+                        this.backtraceDecodeError = message.errorMessage;
+                    } else {
+                        this.backtraceDecodeResult = message.payload || null;
+                        this.backtraceDecodeError = message.payload?.error || "";
                     }
                     break;
                 default:

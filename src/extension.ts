@@ -15,6 +15,7 @@ export const uploadCommandName: string = 'quickAccessView.upload';
 export const profileCommandName: string = 'quickAccessView.profile';
 export const profileActivateCommandName: string = 'activateBuildProfile';
 export const profileDeactivateCommandName: string = 'deactivateBuildProfile';
+export const decodeBacktraceCommandName: string = 'arduinoMakerWorkshop.decodeEsp32Backtrace';
 
 export const compileStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
 export const compileStatusBarNotExecuting: string = "$(check) Compile";
@@ -64,6 +65,7 @@ export async function activate(context: ExtensionContext) {
 			context.subscriptions.push(vsCommandProfile());
 			context.subscriptions.push(vsCommandActivateBuildProfiles());
 			context.subscriptions.push(vsCommandDeactivateBuildProfiles());
+			context.subscriptions.push(vsCommandDecodeBacktrace(context));
 
 			compileStatusBarItem.text = compileStatusBarNotExecuting;
 			compileStatusBarItem.command = compileCommandName;
@@ -534,6 +536,13 @@ function vsCommandDeactivateBuildProfiles(): Disposable {
 	return commands.registerCommand(profileDeactivateCommandName, async () => {
 		arduinoYaml.setProfileStatus(PROFILES_STATUS.INACTIVE);
 		window.showInformationMessage("Build Profiles dactivated");
+	});
+}
+
+function vsCommandDecodeBacktrace(context: ExtensionContext): Disposable {
+	return commands.registerCommand(decodeBacktraceCommandName, async () => {
+		VueWebviewPanel.render(context);
+		window.showInformationMessage("Paste the ESP32 crash log in the Backtrace Decoder.");
 	});
 }
 

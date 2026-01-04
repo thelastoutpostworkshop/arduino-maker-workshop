@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useVsCodeStore } from '@/stores/useVsCodeStore';
 import { ARDUINO_MESSAGES, ESP32_PARTITION_BUILDER_BASE_URL } from '@shared/messages';
 
@@ -30,6 +30,9 @@ const externalTools: ExternalTool[] = [
 
 const partitionBuilderUrl = computed(() => store.partitionBuilderUrl);
 const partitionBuilderError = computed(() => store.partitionBuilderError);
+const backtraceDecodeResult = computed(() => store.backtraceDecodeResult);
+const backtraceDecodeError = computed(() => store.backtraceDecodeError);
+const backtraceLog = ref('');
 
 const getToolUrl = (tool: ExternalTool) => {
   if (tool.name === partitionToolName && partitionBuilderUrl.value) {
@@ -46,6 +49,26 @@ const requestPartitionBuilderUrl = () => {
     command: ARDUINO_MESSAGES.GET_PARTITION_BUILDER_URL,
     errorMessage: "",
     payload: "",
+  });
+};
+
+const decodeBacktrace = () => {
+  store.sendMessage({
+    command: ARDUINO_MESSAGES.DECODE_ESP32_BACKTRACE,
+    errorMessage: "",
+    payload: backtraceLog.value,
+  });
+};
+
+const openFrameLocation = (file: string, line: number) => {
+  store.sendMessage({
+    command: ARDUINO_MESSAGES.OPEN_FILE_AT_LOCATION,
+    errorMessage: "",
+    payload: {
+      file,
+      line,
+      beside: true,
+    },
   });
 };
 
@@ -113,6 +136,58 @@ watch(() => store.sketchProject?.buildProfileStatus, () => {
             </v-list-item>
           </v-list>
         </v-card-text>
+      </v-card>
+
+      <v-card rounded="lg" class="mt-6">
+        <v-card-title>ESP32 Backtrace Decoder</v-card-title>
+        <v-card-text>
+          <v-textarea
+            v-model="backtraceLog"
+            label="Paste ESP32 crash log from Serial Monitor"
+            auto-grow
+            rows="6"
+          />
+          <v-btn
+            class="mt-2"
+            color="primary"
+            :disabled="!backtraceLog.trim()"
+            @click="decodeBacktrace"
+          >
+            Decode Backtrace
+          </v-btn>
+
+          <div v-if="backtraceDecodeError" class="text-error mt-2">
+            {{ backtraceDecodeError }}
+          </div>
+
+          <div v-if="backtraceDecodeResult?.frames?.length" class="mt-4">
+            <div class="text-subtitle-1">Decoded Frames</div>
+            <v-list density="compact">
+            <v-list-item
+              v-for="(frame, index) in backtraceDecodeResult.frames"
+              :key="`${frame.address}-${index}`"
+            >
+                <v-list-item-title>
+                  {{ frame.functionName || '??' }}
+                </v-list-item-title>
+                <v-list-item-subtitle>
+                  <span v-if="frame.address">{{ frame.address }} - </span>
+                  {{ frame.file }}:{{ frame.line }}
+                </v-list-item-subtitle>
+
+                <template #append>
+                  <v-btn
+                    v-if="frame.file && frame.file !== '??' && frame.line > 0"
+                    icon="mdi-open-in-new"
+                    variant="text"
+                    :title="frame.file"
+                    @click="openFrameLocation(frame.file, frame.line)"
+                  />
+                </template>
+            </v-list-item>
+          </v-list>
+        </div>
+      </v-card-text>
       </v-card>
     </v-responsive>
   </v-container>

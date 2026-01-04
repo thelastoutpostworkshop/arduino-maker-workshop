@@ -33,7 +33,8 @@
   "main": "./build/extension.js",
   "activationEvents": [
     "onView:quickAccessView",
-    "onView:arduinoMakerWorkshop.compileOutput"
+    "onView:arduinoMakerWorkshop.compileOutput",
+    "onCommand:arduinoMakerWorkshop.decodeEsp32Backtrace"
   ],
   "contributes": {
     "viewsContainers": {
@@ -72,6 +73,11 @@
       {
         "command": "extension.openVueWebview",
         "title": "Arduino Home",
+        "category": "Arduino"
+      },
+      {
+        "command": "arduinoMakerWorkshop.decodeEsp32Backtrace",
+        "title": "Arduino Maker Workshop: Decode ESP32 Backtrace",
         "category": "Arduino"
       },
       {
