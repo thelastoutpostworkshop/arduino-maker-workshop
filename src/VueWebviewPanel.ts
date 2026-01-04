@@ -688,10 +688,43 @@ export class VueWebviewPanel {
         try {
             const json = await arduinoCLI.getArduinoConfig();
             const config = JSON.parse(json);
-            return config?.config?.directories?.data;
+            const dataDir = config?.config?.directories?.data;
+            if (dataDir && dataDir.trim().length > 0) {
+                arduinoExtensionChannel.appendLine(`ESP32 Backtrace Decoder: Arduino data directory is ${dataDir}`);
+                return dataDir;
+            }
+            return this.getDefaultArduinoDataDirectory();
         } catch {
+            return this.getDefaultArduinoDataDirectory();
+        }
+    }
+
+    private getDefaultArduinoDataDirectory(): string | undefined {
+        let candidate = "";
+        switch (os.platform()) {
+            case "win32": {
+                const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
+                candidate = path.join(localAppData, "Arduino15");
+                break;
+            }
+            case "darwin":
+                candidate = path.join(os.homedir(), "Library", "Arduino15");
+                break;
+            case "linux":
+                candidate = path.join(os.homedir(), ".arduino15");
+                break;
+            default:
+                break;
+        }
+
+        if (!candidate) {
             return undefined;
         }
+        if (fs.existsSync(candidate)) {
+            arduinoExtensionChannel.appendLine(`ESP32 Backtrace Decoder: Arduino data directory fallback is ${candidate}`);
+            return candidate;
+        }
+        return undefined;
     }
 
     private resolveEsp32ChipId(): string | undefined {
