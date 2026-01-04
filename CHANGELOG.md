@@ -2,7 +2,7 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
-**Version 1.0.9**
+**Version 1.1.0**
 - The link to the ESP32 Partition builder application in external tools, now pass the current partitions.csv stored the current build output
 - Added ESP32 backtrace decoder to resolve crash logs to functions and source lines in "Other Tools and ressources" ([issue #97](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/97))
 - Fixed Arduino CLI output title bar text visibility on some dark themes ([issue #89](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/89))
