@@ -60,6 +60,10 @@ function openWorkspaceFolder() {
   store.sendMessage({ command: ARDUINO_MESSAGES.OPEN_WORKSPACE_FOLDER, errorMessage: "", payload: "" });
 }
 
+function selectSketchFolder() {
+  store.sendMessage({ command: ARDUINO_MESSAGES.SELECT_SKETCH_FOLDER, errorMessage: "", payload: "" });
+}
+
 function refreshPorts() {
   store.boardConnected = null;
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
@@ -270,6 +274,22 @@ onMounted(() => {
                 </v-btn>
                 <v-btn variant="text" class="ml-2" @click="openWorkspaceFolder">
                   Open Folder
+                </v-btn>
+              </div>
+            </template>
+          </v-alert>
+          <v-alert
+            v-if="store.projectStatus?.status == ARDUINO_ERRORS.MULTIPLE_SKETCHES_FOUND"
+            type="info"
+            variant="tonal"
+            class="mb-4"
+          >
+            <v-alert-title>Multiple sketch folders found</v-alert-title>
+            Select the sketch folder you want to use for compile, upload, and board actions.
+            <template #text>
+              <div class="mt-3">
+                <v-btn @click="selectSketchFolder">
+                  Select Sketch Folder
                 </v-btn>
               </div>
             </template>

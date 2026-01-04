@@ -131,6 +131,7 @@ export interface ArduinoProjectConfiguration {
 export enum ARDUINO_ERRORS {
   NO_ERRORS,
   NO_INO_FILES,
+  MULTIPLE_SKETCHES_FOUND,
   WRONG_FOLDER_NAME,
   CLI_NOT_WORKING,
   CONFIG_FILE_PROBLEM,
@@ -553,6 +554,7 @@ export const ARDUINO_MESSAGES = {
   DECODE_ESP32_BACKTRACE: 'decodeEsp32Backtrace',
   OPEN_FILE_AT_LOCATION: 'openFileAtLocation',
   OPEN_WORKSPACE_FOLDER: 'openWorkspaceFolder',
+  SELECT_SKETCH_FOLDER: 'selectSketchFolder',
 
   // Misc commands
   OPEN_LIBRARY: 'openExample',

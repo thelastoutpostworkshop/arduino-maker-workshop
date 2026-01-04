@@ -7,6 +7,7 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 - Added ESP32 backtrace decoder to resolve crash logs to functions and source lines in "Other Tools and ressources" ([issue #97](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/97))
 - Fixed Arduino CLI output title bar text visibility on some dark themes ([issue #89](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/89))
 - Added an empty-state banner on Home with create/open sketch actions when no sketch folder is open ([issue #88](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/88))
+- Added sketch-folder selection and config migration support for multi-root workspaces ([issue #55](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/55), [issue #52](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/52))
 
 **Version 1.0.8**
 - Arduino CLI 1.4.0

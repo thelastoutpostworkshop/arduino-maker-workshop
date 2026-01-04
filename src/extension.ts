@@ -41,6 +41,7 @@ export async function activate(context: ExtensionContext) {
 	compileOutputView = new CliOutputView(context);
 	compileOutputProvider = window.registerWebviewViewProvider(CliOutputView.viewType, compileOutputView);
 	context.subscriptions.push(compileOutputView, compileOutputProvider);
+	arduinoProject.setWorkspaceState(context.workspaceState);
 
 	arduinoCLI = new ArduinoCLI(context);
 	if (await arduinoCLI.isCLIReady()) {
@@ -96,6 +97,22 @@ export async function activate(context: ExtensionContext) {
 					arduinoCLI.setBuildResult(false);
 					updateStateCompileUpload();
 
+				}
+			});
+
+			window.onDidChangeActiveTextEditor((editor) => {
+				const filePath = editor?.document?.uri?.fsPath;
+				if (!filePath) {
+					return;
+				}
+				if (arduinoProject.trySetActiveSketchFromFile(filePath)) {
+					arduinoProject.readConfiguration();
+					updateStateCompileUpload();
+					VueWebviewPanel.sendMessage({
+						command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO,
+						errorMessage: "",
+						payload: arduinoProject.getArduinoConfiguration()
+					});
 				}
 			});
 
@@ -389,6 +406,9 @@ export function loadArduinoConfiguration(): boolean {
 		switch (projectError) {
 			case ARDUINO_ERRORS.NO_INO_FILES:
 				message = "No sketch file (.ino) found";
+				break;
+			case ARDUINO_ERRORS.MULTIPLE_SKETCHES_FOUND:
+				message = "Multiple sketch folders found. Select one in Arduino Maker Workshop Home.";
 				break;
 			case ARDUINO_ERRORS.WRONG_FOLDER_NAME:
 				message = "Folder and sketch name mismatch";

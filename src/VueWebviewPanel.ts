@@ -278,6 +278,16 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.OPEN_WORKSPACE_FOLDER:
                         commands.executeCommand('vscode.openFolder', undefined, { forceNewWindow: false });
                         break;
+                    case ARDUINO_MESSAGES.SELECT_SKETCH_FOLDER:
+                        arduinoProject.selectSketchFolder().then((selected) => {
+                            if (selected) {
+                                const projectInfo = this.createWebviewMessage(ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO);
+                                projectInfo.payload = arduinoProject.getArduinoConfiguration();
+                                VueWebviewPanel.sendMessage(projectInfo);
+                                updateStateCompileUpload();
+                            }
+                        });
+                        break;
                     case ARDUINO_MESSAGES.INSTALL_ZIP_LIBRARY:
                         arduinoCLI.installZipLibrary(message.payload).then(() => {
                             message.command = ARDUINO_MESSAGES.LIBRARY_VERSION_INSTALLED;
