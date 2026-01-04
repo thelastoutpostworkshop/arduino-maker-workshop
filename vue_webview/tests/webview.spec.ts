@@ -121,4 +121,41 @@ test.describe('webview dev server', () => {
       })
     ).toBeVisible();
   });
+
+  test('shows library manager statuses from mock data', async ({ page }) => {
+    await page.goto('/');
+
+    await page.getByTestId('nav-library-manager').click();
+    await expect(
+      page.getByRole('main').getByText('Library Manager', { exact: true })
+    ).toBeVisible();
+
+    const installedFilter = page.getByTestId('libraries-filter-installed');
+    const updatableFilter = page.getByTestId('libraries-filter-updatable');
+    const notInstalledFilter = page.getByTestId('libraries-filter-not-installed');
+    const deprecatedFilter = page.getByTestId('libraries-filter-deprecated');
+    const librariesTable = page.getByTestId('libraries-table');
+
+    await expect(installedFilter).toBeVisible();
+    await expect(updatableFilter).toBeVisible();
+    await expect(
+      librariesTable.getByRole('cell', { name: 'Adafruit BusIO' })
+    ).toBeVisible();
+    await expect(updatableFilter.getByText(/\d+/)).toBeVisible();
+
+    await updatableFilter.click();
+    await expect(
+      librariesTable.getByRole('cell', { name: 'Async TCP' })
+    ).toBeVisible();
+
+    await notInstalledFilter.click();
+    await expect(
+      librariesTable.getByRole('cell', { name: '107-Arduino-24LCxx' })
+    ).toBeVisible();
+
+    await deprecatedFilter.click();
+    await expect(
+      librariesTable.getByRole('cell', { name: 'Arduino_MachineControl' })
+    ).toBeVisible();
+  });
 });

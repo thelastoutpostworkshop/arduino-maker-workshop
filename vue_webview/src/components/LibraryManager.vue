@@ -237,17 +237,17 @@ watch(zipFile, () => {
 
         </v-file-input>
         <v-chip-group mandatory v-model="filterLibraries">
-          <v-chip filter :value="FilterLibraries.installed">Installed & Up to date</v-chip>
-          <v-chip :disabled="updatableLibraryCount == 0" filter :value="FilterLibraries.updatable">Updatable
+          <v-chip data-testid="libraries-filter-installed" filter :value="FilterLibraries.installed">Installed & Up to date</v-chip>
+          <v-chip data-testid="libraries-filter-updatable" :disabled="updatableLibraryCount == 0" filter :value="FilterLibraries.updatable">Updatable
             <v-badge v-if="updatableLibraryCount > 0" color="green" :content="updatableLibraryCount" inline>
 
             </v-badge>
           </v-chip>
-          <v-chip filter :value="FilterLibraries.zip">Zip Installed</v-chip>
-          <v-chip filter :value="FilterLibraries.not_installed">Not Installed</v-chip>
-          <v-chip filter :value="FilterLibraries.deprecated">Deprecated</v-chip>
+          <v-chip data-testid="libraries-filter-zip" filter :value="FilterLibraries.zip">Zip Installed</v-chip>
+          <v-chip data-testid="libraries-filter-not-installed" filter :value="FilterLibraries.not_installed">Not Installed</v-chip>
+          <v-chip data-testid="libraries-filter-deprecated" filter :value="FilterLibraries.deprecated">Deprecated</v-chip>
         </v-chip-group>
-        <v-data-table :items="filteredLibraries" :headers="headers" density="compact" show-expand item-value="name"
+        <v-data-table data-testid="libraries-table" :items="filteredLibraries" :headers="headers" density="compact" show-expand item-value="name"
           :sort-by="[{ key: 'name', order: 'asc' }]" :search="searchLibrary">
           <template v-slot:expanded-row="{ columns, item }">
             <tr>
