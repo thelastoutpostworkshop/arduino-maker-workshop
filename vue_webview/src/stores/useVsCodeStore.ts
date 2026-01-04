@@ -201,7 +201,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         this.handleMessage(message);
                         break;
                     case ARDUINO_MESSAGES.GET_PARTITION_BUILDER_URL:
-                        message.payload = "https://thelastoutpostworkshop.github.io/ESP32PartitionBuilder/?flash=4&partitions=base64:ZGF0YQ%3D%3D";
+                        message.payload = "https://thelastoutpostworkshop.github.io/ESP32PartitionBuilder/?flash=4&partitions=base64:IyBOYW1lLCBUeXBlLCBTdWJUeXBlLCBPZmZzZXQsIFNpemUsIEZsYWdzCm52cyxkYXRhLG52cywweDkwMDAsMHg1MDAwLApvdGFkYXRhLGRhdGEsb3RhLDB4ZTAwMCwweDIwMDAsCmFwcDAsYXBwLG90YV8wLDB4MTAwMDAsMHgxNDAwMDAsCmFwcDEsYXBwLG90YV8xLDB4MTUwMDAwLDB4MTQwMDAwLApzcGlmZnMsZGF0YSxzcGlmZnMsMHgyOTAwMDAsMHgxNzAwMDAs";
                         message.errorMessage = "";
                         this.handleMessage(message);
                         break;
