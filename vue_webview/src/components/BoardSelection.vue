@@ -88,7 +88,7 @@ const boardStructure = computed<{ [platform: string]: { metadata: Metadata; boar
         <v-icon>mdi-format-list-checks</v-icon>
         <span class="text-h4 font-weight-bold ml-5">Board Selection</span>
       </v-row>
-      <v-text-field :label="!store.boardOptions?.name ? 'Select a board below' : 'Current Board:'"
+      <v-text-field data-testid="board-selection-current-board" :label="!store.boardOptions?.name ? 'Select a board below' : 'Current Board:'"
         :model-value="store.boardOptions?.name" readonly>
         <template v-slot:loader>
           <v-progress-linear :active="!store.boardOptions?.name" height="2" indeterminate></v-progress-linear>

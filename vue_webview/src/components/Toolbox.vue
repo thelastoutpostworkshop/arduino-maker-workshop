@@ -35,7 +35,7 @@ const boardToUpdate = computed(() => {
 
         <v-tooltip location="right">
             <template #activator="{ props }">
-                <v-list-item :disabled="store.projectStatus?.status != ARDUINO_ERRORS.NO_ERRORS" v-bind="props" prepend-icon="mdi-format-list-checks" :to="{ name: 'board-selection' }"
+                <v-list-item :disabled="store.projectStatus?.status != ARDUINO_ERRORS.NO_ERRORS" v-bind="props" data-testid="nav-board-selection" prepend-icon="mdi-format-list-checks" :to="{ name: 'board-selection' }"
                     router>
                     Board Selection
                 </v-list-item>

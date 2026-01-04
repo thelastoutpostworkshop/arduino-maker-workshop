@@ -54,4 +54,32 @@ test.describe('webview dev server', () => {
     await expect(page.getByText('Decoded Frames', { exact: true })).toBeVisible();
     await expect(page.getByText('panic_abort')).toBeVisible();
   });
+
+  test('shows board selection platforms from mock data', async ({ page }) => {
+    await page.goto('/');
+
+    await page.getByTestId('nav-board-selection').click();
+    await expect(
+      page.getByRole('main').getByText('Board Selection', { exact: true })
+    ).toBeVisible();
+
+    await expect(
+      page.getByTestId('board-selection-current-board').locator('input').first()
+    ).toHaveValue('Arduino Uno');
+
+    const rpPlatform = page.getByRole('button', {
+      name: 'Raspberry Pi Pico/RP2040/RP2350 by Earle F. Philhower, III',
+    });
+    await expect(rpPlatform).toBeVisible();
+
+    const esp32Platform = page.getByRole('button', {
+      name: 'esp32 by Espressif Systems',
+    });
+    await expect(esp32Platform).toBeVisible();
+
+    await rpPlatform.click();
+    await expect(
+      page.locator('a[href="https://github.com/earlephilhower/arduino-pico"]')
+    ).toBeVisible();
+  });
 });
