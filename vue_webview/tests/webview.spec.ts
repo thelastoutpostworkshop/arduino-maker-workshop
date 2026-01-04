@@ -82,4 +82,43 @@ test.describe('webview dev server', () => {
       page.locator('a[href="https://github.com/earlephilhower/arduino-pico"]')
     ).toBeVisible();
   });
+
+  test('shows boards manager statuses from mock data', async ({ page }) => {
+    await page.goto('/');
+
+    await page.getByTestId('nav-board-manager').click();
+    await expect(
+      page.getByRole('main').getByText('Boards Manager', { exact: true })
+    ).toBeVisible();
+
+    const installedFilter = page.getByTestId('boards-filter-installed');
+    const updatableFilter = page.getByTestId('boards-filter-updatable');
+    const notInstalledFilter = page.getByTestId('boards-filter-not-installed');
+    const deprecatedFilter = page.getByTestId('boards-filter-deprecated');
+    const boardsTable = page.getByTestId('boards-table');
+
+    await expect(installedFilter).toBeVisible();
+    await expect(updatableFilter).toBeVisible();
+    await expect(boardsTable.getByRole('cell', { name: 'Arduino AVR Boards' })).toBeVisible();
+    await expect(updatableFilter.getByText(/\d+/)).toBeVisible();
+
+    await updatableFilter.click();
+    await expect(
+      boardsTable.getByRole('cell', {
+        name: 'Arduino SAMD Boards (32-bits ARM Cortex-M0+)',
+      })
+    ).toBeVisible();
+
+    await notInstalledFilter.click();
+    await expect(
+      boardsTable.getByRole('cell', { name: 'Arduino ESP32 Boards' })
+    ).toBeVisible();
+
+    await deprecatedFilter.click();
+    await expect(
+      boardsTable.getByRole('cell', {
+        name: '[DEPRECATED - Please install standalone packages] Arduino Mbed OS Boards',
+      })
+    ).toBeVisible();
+  });
 });

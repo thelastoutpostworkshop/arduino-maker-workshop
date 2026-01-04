@@ -236,14 +236,14 @@ const isURLInvalid = computed(() => {
       </v-card>
       <div v-else-if="!store.boardUpdating">
         <v-chip-group mandatory v-model="filterBoards">
-          <v-chip filter :value="FilterBoards.installed">Installed & Up to date</v-chip>
-          <v-chip :disabled="updatableBoardCount == 0" filter :value="FilterBoards.updatable">Updatable
+          <v-chip data-testid="boards-filter-installed" filter :value="FilterBoards.installed">Installed & Up to date</v-chip>
+          <v-chip data-testid="boards-filter-updatable" :disabled="updatableBoardCount == 0" filter :value="FilterBoards.updatable">Updatable
             <v-badge v-if="updatableBoardCount > 0" color="green" :content="updatableBoardCount" inline />
           </v-chip>
-          <v-chip filter :value="FilterBoards.not_installed">Not Installed</v-chip>
-          <v-chip filter :value="FilterBoards.deprecated">Deprecated</v-chip>
+          <v-chip data-testid="boards-filter-not-installed" filter :value="FilterBoards.not_installed">Not Installed</v-chip>
+          <v-chip data-testid="boards-filter-deprecated" filter :value="FilterBoards.deprecated">Deprecated</v-chip>
         </v-chip-group>
-        <v-data-table :items="filteredPlatforms" :headers="boardHeaders" density="compact" show-expand item-value="name"
+        <v-data-table data-testid="boards-table" :items="filteredPlatforms" :headers="boardHeaders" density="compact" show-expand item-value="name"
           :sort-by="[{ key: 'name', order: 'asc' }]" :search="searchBoards" :no-data-text="NoDataToShow()">
           <template v-slot:expanded-row="{ columns, item }">
             <tr>

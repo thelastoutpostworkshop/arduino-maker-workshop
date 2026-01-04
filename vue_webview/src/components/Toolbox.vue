@@ -54,7 +54,7 @@ const boardToUpdate = computed(() => {
 
         <v-tooltip location="right">
             <template #activator="{ props }">
-                <v-list-item v-bind="props" :to="{ name: 'board-manager' }" router>
+                <v-list-item v-bind="props" data-testid="nav-board-manager" :to="{ name: 'board-manager' }" router>
                     Boards Manager
                     <template #prepend>
                         <v-icon>mdi-developer-board</v-icon>
