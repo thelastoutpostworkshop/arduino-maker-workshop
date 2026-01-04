@@ -353,6 +353,7 @@ export class VueWebviewPanel {
         if (!partitionsPath) {
             return { url: baseUrl, error: "partitions.csv not found in the build output." };
         }
+        arduinoExtensionChannel.appendLine(`ESP32 Partition Builder: using partitions.csv at ${partitionsPath}`);
 
         let csvContent = "";
         try {
