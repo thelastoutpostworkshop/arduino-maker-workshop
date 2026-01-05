@@ -593,6 +593,7 @@ export class VueWebviewPanel {
         }
 
         arduinoExtensionChannel.appendLine("ESP32 Backtrace Decoder:");
+        arduinoExtensionChannel.appendLine(`Target: ${chipId} (${arch})`);
         arduinoExtensionChannel.appendLine(`ELF: ${elfPath}`);
         arduinoExtensionChannel.appendLine(`addr2line: ${addr2linePath}`);
 
@@ -728,6 +729,11 @@ export class VueWebviewPanel {
     }
 
     private resolveEsp32ChipId(): string | undefined {
+        const fromBuildOptions = this.getChipIdFromBuildOptions();
+        if (fromBuildOptions) {
+            return fromBuildOptions;
+        }
+
         if (arduinoYaml.status() === PROFILES_STATUS.ACTIVE) {
             const profileName = arduinoYaml.getProfileName();
             const profile = profileName ? arduinoYaml.getProfile(profileName) : undefined;
@@ -744,15 +750,53 @@ export class VueWebviewPanel {
         if (!fqbn || typeof fqbn !== "string") {
             return undefined;
         }
-        const parts = fqbn.split(':');
-        if (parts.length >= 3) {
-            return parts[2].toLowerCase();
+        return this.extractChipFromString(fqbn);
+    }
+
+    private extractChipFromString(input?: string): string | undefined {
+        if (!input) {
+            return undefined;
+        }
+
+        const match = input.toLowerCase().match(/esp32[a-z0-9]+/);
+        if (match) {
+            return match[0];
         }
         return undefined;
     }
 
+    private getChipIdFromBuildOptions(): string | undefined {
+        const buildOptionsPath = path.join(arduinoCLI.getBuildPath(), "build.options.json");
+        if (!fs.existsSync(buildOptionsPath)) {
+            return undefined;
+        }
+
+        try {
+            const buildOptions = JSON.parse(fs.readFileSync(buildOptionsPath, 'utf8'));
+            const candidates = [
+                buildOptions["build.fqbn"],
+                buildOptions["build.fqbn_name"],
+                buildOptions["build.board"],
+                buildOptions["build.mcu"],
+                buildOptions["build.arch"],
+                buildOptions["build.core"],
+            ];
+
+            for (const candidate of candidates) {
+                const chip = this.extractChipFromString(candidate);
+                if (chip) {
+                    return chip;
+                }
+            }
+        } catch (error) {
+            return undefined;
+        }
+
+        return undefined;
+    }
+
     private resolveEsp32Arch(chipId: string): "xtensa" | "riscv" | undefined {
-        const riscv = new Set(["esp32c2", "esp32c3", "esp32c6", "esp32h2"]);
+        const riscv = new Set(["esp32c2", "esp32c3", "esp32c5", "esp32c6", "esp32h2"]);
         if (riscv.has(chipId)) {
             return "riscv";
         }
