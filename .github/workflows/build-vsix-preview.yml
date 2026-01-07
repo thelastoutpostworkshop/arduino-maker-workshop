@@ -19,7 +19,11 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      - name: Install deps
+      - name: Install deps (root)
+        run: npm ci
+
+      - name: Install deps (vue_webview)
+        working-directory: vue_webview
         run: npm ci
 
       - name: Build
