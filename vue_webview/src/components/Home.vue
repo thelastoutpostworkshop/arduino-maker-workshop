@@ -10,6 +10,7 @@ import { getAvailablePorts } from '@/utilities/utils';
 const router = useRouter()
 const store = useVsCodeStore();
 const portSelected = ref('');
+const shouldSyncPort = ref(false);
 const sketchName = ref("");
 const useProgrammer = ref(store.projectInfo?.useProgrammer ?? false);
 type ProgrammerOption = { id: string; name: string; platform?: string };
@@ -18,6 +19,7 @@ const optimize_for_debug = ref(false);
 const monitorPortSettings = ref({ port: "", baudRate: 115200, lineEnding: "\r\n", dataBits: 8, parity: "none", stopBits: "one" });
 const selectedBuildProfile = ref("");
 const portsAvailable = computed(() => getAvailablePorts(store));
+const isProfileActive = computed(() => store.sketchProject?.buildProfileStatus === PROFILES_STATUS.ACTIVE);
 
 // This is a macOS-specific thing. The upload port is on /dev/cu.* and the serial port is on /dev/tty.*
 const serialPortsAvailable = computed(() => getAvailablePorts(store).map((p: any) => p.replace("/dev/cu.", "/dev/tty.")));
@@ -63,6 +65,15 @@ function openWorkspaceFolder() {
 function refreshPorts() {
   store.boardConnected = null;
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
+}
+
+function setPortSelected(value: string, syncToProject: boolean) {
+  shouldSyncPort.value = syncToProject;
+  portSelected.value = value;
+}
+
+function onPortSelected() {
+  shouldSyncPort.value = true;
 }
 
 const profileStatusInformation = computed(() => {
@@ -138,24 +149,38 @@ watch(optimize_for_debug, (newStatus) => {
 });
 
 watch(
-  [() => store.boardConnected, () => store.projectInfo],
+  [() => store.boardConnected, () => store.projectInfo, () => store.sketchProject?.buildProfileStatus],
   ([boardConnected, projectInfo]) => {
     if (boardConnected) {
-      const projectPort = projectInfo?.port;
+      const availablePorts = boardConnected.detected_ports
+        .map((detectedPort) => detectedPort.port.label)
+        .filter((label): label is string => !!label);
+      const projectPort = projectInfo?.port ?? "";
+      const monitorPort = projectInfo?.monitorPortSettings?.port ?? "";
+      const preferredPort = projectPort || monitorPort;
+      const preferredPortIsValid = !!preferredPort && availablePorts.includes(preferredPort) && preferredPort !== "COM1";
+      const preferFromMonitor = !projectPort && !!monitorPort;
 
-      // Check if projectPort is in the detected_ports array
-      if (projectPort && boardConnected.detected_ports.some(detectedPort => detectedPort.port.label === projectPort) && projectPort !== "COM1") {
-        portSelected.value = projectPort;
+      if (isProfileActive.value) {
+        if (preferredPort && portSelected.value !== preferredPort) {
+          setPortSelected(preferredPort, false);
+        }
       } else {
-        // Set portSelected to the first detected port, if available
-        if (boardConnected.detected_ports.length > 0) {
-          if (boardConnected.detected_ports[1].port.label) {
-            portSelected.value = boardConnected.detected_ports[1].port.label;
-            store.sendMessage({ command: ARDUINO_MESSAGES.SET_PORT, errorMessage: "", payload: portSelected.value });
-          } else
-            if (boardConnected.detected_ports[0].port.label) {
-              portSelected.value = boardConnected.detected_ports[0].port.label;
+        if (preferredPortIsValid) {
+          if (portSelected.value !== preferredPort) {
+            setPortSelected(preferredPort, preferFromMonitor);
+          }
+        } else {
+          const currentSelected = portSelected.value;
+          const currentIsValid = !!currentSelected && availablePorts.includes(currentSelected);
+          if (!currentIsValid) {
+            if (availablePorts.length > 0) {
+              const defaultPort = availablePorts.find((port) => port !== "COM1") || availablePorts[0];
+              setPortSelected(defaultPort, true);
+            } else {
+              setPortSelected("", false);
             }
+          }
         }
       }
     }
@@ -215,9 +240,14 @@ watch(() => store.projectInfo?.monitorPortSettings, (newMonitorPortSettings) => 
 });
 
 watch((portSelected), (newPort) => {
-  if (newPort && store.projectInfo) {
+  if (!store.projectInfo || isProfileActive.value) {
+    shouldSyncPort.value = false;
+    return;
+  }
+  if (newPort && shouldSyncPort.value && newPort !== store.projectInfo.port) {
     store.sendMessage({ command: ARDUINO_MESSAGES.SET_PORT, errorMessage: "", payload: newPort });
   }
+  shouldSyncPort.value = false;
 });
 
 watch([() => store.cliStatus, () => store.projectStatus], () => { }, { immediate: true });
@@ -360,8 +390,10 @@ onMounted(() => {
                   variant="text"></v-btn>
               </template>
             </v-text-field>
-            <v-select data-testid="upload-port" :disabled="!store.boardConnected?.detected_ports" v-model="portSelected" :items="portsAvailable"
-              density="compact" label="Upload Port">
+            <v-select data-testid="upload-port" :disabled="!store.boardConnected?.detected_ports || isProfileActive"
+              v-model="portSelected" @update:modelValue="onPortSelected"
+              :items="portsAvailable" density="compact" label="Upload Port"
+              :hint="isProfileActive ? 'Upload port is managed by the active build profile.' : ''" :persistent-hint="isProfileActive">
               <template v-slot:loader>
                 <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"
                   indeterminate></v-progress-linear>

@@ -171,15 +171,12 @@ export class ArduinoProject {
 
     public setPort(port: string): void {
         this.configJson.port = port;
-        if (this.configJson.monitorPortSettings.port.trim().length === 0) {
-            arduinoExtensionChannel.appendLine(`Monitor port is empty. Default to ${this.configJson.port}`);
-            this.configJson.monitorPortSettings.port = this.configJson.port;
-            VueWebviewPanel.sendMessage({
-                command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO,
-                errorMessage: "",
-                payload: this.configJson
-            })
-        }
+        this.configJson.monitorPortSettings.port = port;
+        VueWebviewPanel.sendMessage({
+            command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO,
+            errorMessage: "",
+            payload: this.configJson
+        });
         this.writeVSCodeArduinoConfiguration();
     }
 
