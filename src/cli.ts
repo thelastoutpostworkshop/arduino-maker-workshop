@@ -882,18 +882,19 @@ export class ArduinoCLI {
 		try {
 			// Read includes.cache file and dynamically add paths
 			const includeDataPath = path.join(this.getBuildPath(), "includes.cache");
-			const includeData = JSON.parse(fs.readFileSync(includeDataPath, 'utf8'));
+			const includeData = this.parseIncludesCache(fs.readFileSync(includeDataPath, 'utf8'));
 			includeData.forEach((entry: any) => {
+				if (!entry || typeof entry !== 'object') {
+					return;
+				}
 				if (!entry.Sourcefile) {
 					if (entry.Includepath) {
-						includePathsForIntelissense.add(`${entry.Includepath}/**`);
-						includePathsForArduinoSearch.add(entry.Includepath);
+						this.addIncludePath(entry.Includepath, includePathsForIntelissense, includePathsForArduinoSearch);
 					}
 				} else {
 					if (entry.Include) {
 						if (entry.Includepath) {
-							includePathsForIntelissense.add(`${entry.Includepath}/**`);
-							includePathsForArduinoSearch.add(entry.Includepath);
+							this.addIncludePath(entry.Includepath, includePathsForIntelissense, includePathsForArduinoSearch);
 						}
 					}
 				}
@@ -922,17 +923,10 @@ export class ArduinoCLI {
 			compileCommandJson = path.join(this.getBuildPath(), "compile_commands.json");
 			const compileInfo = JSON.parse(fs.readFileSync(compileCommandJson, 'utf8'));
 			for (const entry of compileInfo) {
-				if (entry.arguments && Array.isArray(entry.arguments) && entry.arguments.length > 0) {
-					compilerArgs = entry.arguments;
-					compilerArgs.forEach((arg) => {
-						const potentialPath = arg.trim(); // Remove any leading/trailing whitespace
-
-						// Check if the argument is a valid path and is a directory
-						if (fs.existsSync(potentialPath) && fs.statSync(potentialPath).isDirectory()) {
-							includePathsForIntelissense.add(`${path.resolve(potentialPath)}/**`);
-						}
-					});
-					compilerPath = entry.arguments[0]; // Take the first argument
+				const entryArgs = this.getCompilerArgsFromEntry(entry, includePathsForIntelissense, includePathsForArduinoSearch);
+				if (entryArgs.length > 0) {
+					compilerArgs = entryArgs;
+					compilerPath = entryArgs[0]; // Take the first argument
 					break; // Stop after finding the first valid entry
 				}
 			}
@@ -968,6 +962,134 @@ export class ArduinoCLI {
 		// Write to c_cpp_properties.json
 		const cppPropertiesPath = path.join(arduinoProject.getProjectPath(), VSCODE_FOLDER, CPP_PROPERTIES);
 		fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
+	}
+
+	private parseIncludesCache(includeDataRaw: string): any[] {
+		const trimmed = includeDataRaw.trim();
+		if (!trimmed) {
+			return [];
+		}
+		try {
+			const parsed = JSON.parse(trimmed);
+			if (Array.isArray(parsed)) {
+				return parsed;
+			}
+			if (parsed && typeof parsed === 'object') {
+				if (Array.isArray((parsed as any).includes)) {
+					return (parsed as any).includes;
+				}
+				if (Array.isArray((parsed as any).data)) {
+					return (parsed as any).data;
+				}
+				return [parsed];
+			}
+		} catch (error) {
+			// Fall back to JSONL parsing.
+		}
+
+		const entries: any[] = [];
+		const lines = includeDataRaw.split(/\r?\n/);
+		for (const line of lines) {
+			const trimmedLine = line.trim();
+			if (!trimmedLine) {
+				continue;
+			}
+			try {
+				entries.push(JSON.parse(trimmedLine));
+			} catch (error) {
+				continue;
+			}
+		}
+		return entries;
+	}
+
+	private cleanIncludePath(includePath: string): string {
+		return includePath.trim().replace(/^["']|["']$/g, '');
+	}
+
+	private addIncludePath(includePath: string, includePathsForIntelissense: Set<string>, includePathsForArduinoSearch: Set<string>, baseDir?: string) {
+		const cleanedPath = this.cleanIncludePath(includePath);
+		if (!cleanedPath) {
+			return;
+		}
+		const resolvedPath = baseDir ? path.resolve(baseDir, cleanedPath) : cleanedPath;
+		includePathsForIntelissense.add(`${resolvedPath}/**`);
+		if (fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory()) {
+			includePathsForArduinoSearch.add(resolvedPath);
+		}
+	}
+
+	private addIncludePathsFromCompilerArgs(args: string[], includePathsForIntelissense: Set<string>, includePathsForArduinoSearch: Set<string>, baseDir?: string) {
+		for (let i = 0; i < args.length; i++) {
+			const arg = args[i];
+			if (!arg) {
+				continue;
+			}
+			if (arg === "-I" || arg === "-isystem") {
+				const nextArg = args[i + 1];
+				if (nextArg) {
+					this.addIncludePath(nextArg, includePathsForIntelissense, includePathsForArduinoSearch, baseDir);
+					i++;
+				}
+				continue;
+			}
+			if (arg.startsWith("-I") && arg.length > 2) {
+				this.addIncludePath(arg.slice(2), includePathsForIntelissense, includePathsForArduinoSearch, baseDir);
+				continue;
+			}
+			if (arg.startsWith("-isystem") && arg.length > 8) {
+				this.addIncludePath(arg.slice(8), includePathsForIntelissense, includePathsForArduinoSearch, baseDir);
+				continue;
+			}
+			const potentialPath = this.cleanIncludePath(arg);
+			if (fs.existsSync(potentialPath) && fs.statSync(potentialPath).isDirectory()) {
+				this.addIncludePath(potentialPath, includePathsForIntelissense, includePathsForArduinoSearch, baseDir);
+			}
+		}
+	}
+
+	private tokenizeCommand(command: string): string[] {
+		const tokens: string[] = [];
+		let current = '';
+		let quote: string | null = null;
+
+		for (let i = 0; i < command.length; i++) {
+			const char = command[i];
+			if (quote) {
+				if (char === quote) {
+					quote = null;
+				} else {
+					current += char;
+				}
+				continue;
+			}
+			if (char === '"' || char === "'") {
+				quote = char;
+				continue;
+			}
+			if (/\s/.test(char)) {
+				if (current) {
+					tokens.push(current);
+					current = '';
+				}
+				continue;
+			}
+			current += char;
+		}
+		if (current) {
+			tokens.push(current);
+		}
+		return tokens;
+	}
+
+	private getCompilerArgsFromEntry(entry: any, includePathsForIntelissense: Set<string>, includePathsForArduinoSearch: Set<string>): string[] {
+		const args = Array.isArray(entry?.arguments) ? entry.arguments : this.tokenizeCommand(entry?.command || "");
+		if (!args.length) {
+			return [];
+		}
+		const baseDir = typeof entry?.directory === "string" && entry.directory ? entry.directory : undefined;
+		this.addIncludePathsFromCompilerArgs(args, includePathsForIntelissense, includePathsForArduinoSearch, baseDir);
+		return args;
 	}
 
 	private findFileRecursively(dir: string, fileName: string): string | null {
