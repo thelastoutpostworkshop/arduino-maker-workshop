@@ -3,7 +3,7 @@
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
 **Version 1.1.1**
-- Implemented robust target detection so SparkFun-style FQBNs (and other variants) are recognized, and defaulted to xtensa when the target is ESP32 but not RISC‑V
+- For the ESP32 Backtrace Decoder implemented robust target detection so SparkFun-style FQBNs (and other variants) are recognized, and defaulted to xtensa when the target is ESP32 but not RISC‑V ([issue #98](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/98))
 
 **Version 1.1.0**
 - The link to the ESP32 Partition builder application in external tools, now pass the current partitions.csv stored the current build output
