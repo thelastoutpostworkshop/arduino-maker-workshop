@@ -8,6 +8,7 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 - Added Board Examples view sourced from the selected board platform libraries ([issue #100](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/100))
 - Disabled the Home upload port selector while build profiles are active to avoid mismatched upload ports ([issue #81](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/81))
 - Synced upload port updates back to the webview and tightened auto-selection to avoid overriding user choices during port refreshes ([issue #81](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/81))
+- Upload now invalidates stale builds after git pulls by watching filesystem changes and checking build timestamps before upload ([issue #80](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/80))
 
 **Version 1.1.0**
 - The link to the ESP32 Partition builder application in external tools, now pass the current partitions.csv stored the current build output

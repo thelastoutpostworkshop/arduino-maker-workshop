@@ -8,8 +8,10 @@ import { SketchProfileManager } from "./sketchProfileManager";
 import { CliOutputView } from "./cliOutputView";
 
 const os = require('os');
+const path = require('path');
 
 const watchedExtensions = ['.cpp', '.h', '.ino']; // List of extensions to watch for invalidating the build
+const watchedGlob = `**/*.{${watchedExtensions.map((ext) => ext.slice(1)).join(',')}}`;
 export const compileCommandName: string = 'quickAccessView.compile';
 export const uploadCommandName: string = 'quickAccessView.upload';
 export const profileCommandName: string = 'quickAccessView.profile';
@@ -175,6 +177,18 @@ export async function activate(context: ExtensionContext) {
 				}, 500); // Debounce delay (500ms here)
 			});
 
+			const sourceWatcher = workspace.createFileSystemWatcher(watchedGlob);
+			const invalidateBuild = (filePath: string) => {
+				if (isWatchedExtension(filePath)) {
+					arduinoCLI.setBuildResult(false);
+					updateStateCompileUpload();
+				}
+			};
+			sourceWatcher.onDidChange((uri) => invalidateBuild(uri.fsPath));
+			sourceWatcher.onDidCreate((uri) => invalidateBuild(uri.fsPath));
+			sourceWatcher.onDidDelete((uri) => invalidateBuild(uri.fsPath));
+			context.subscriptions.push(sourceWatcher);
+
 		} else {
 			arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
 			arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
@@ -287,7 +301,19 @@ function changeUserDirectory() {
 }
 
 function isWatchedExtension(filePath: string): boolean {
-	return watchedExtensions.some((ext) => filePath.endsWith(ext));
+	return !isIgnoredPath(filePath) && watchedExtensions.some((ext) => filePath.endsWith(ext));
+}
+
+function isIgnoredPath(filePath: string): boolean {
+	const projectPath = arduinoProject.getProjectPath();
+	const outputPath = path.join(projectPath, arduinoProject.getOutput());
+	const normalizedPath = path.normalize(filePath);
+	const normalizedOutput = path.normalize(outputPath + path.sep);
+	if (normalizedPath.startsWith(normalizedOutput)) {
+		return true;
+	}
+	const ignoredSegments = [".git", ".vscode", "node_modules"];
+	return ignoredSegments.some((segment) => normalizedPath.includes(`${path.sep}${segment}${path.sep}`));
 }
 
 export function changeTheme(themeKind: ColorThemeKind) {

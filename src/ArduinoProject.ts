@@ -12,6 +12,7 @@ export const COMPILE_RESULT_FILE: string = "compile_result.json";
 const ARDUINO_SETTINGS: string = "arduino.json";
 export const ARDUINO_SKETCH_EXTENSION: string = ".ino";
 const ARDUINO_DEFAULT_OUTPUT: string = "build";
+const SOURCE_EXTENSIONS = ['.ino', '.cpp', '.h', '.hpp', '.c', '.cc', '.cxx'];
 
 export enum UPLOAD_READY_STATUS {
     READY,
@@ -57,7 +58,10 @@ export class ArduinoProject {
             const content = fs.readFileSync(resultFile, 'utf-8');
             const result: CompileResult = JSON.parse(content);
             if (result.result) {
-                return UPLOAD_READY_STATUS.READY
+                if (this.isBuildOutOfDate(resultFile)) {
+                    return UPLOAD_READY_STATUS.LAST_COMPILE_FAILED;
+                }
+                return UPLOAD_READY_STATUS.READY;
             } else {
                 return UPLOAD_READY_STATUS.LAST_COMPILE_FAILED
             }
@@ -82,6 +86,65 @@ export class ArduinoProject {
         this.projectStatus.status = this.isFolderArduinoProject();
         this.projectStatus.cli_status = arduinoCLI.getCLIStatus();
         return this.projectStatus;
+    }
+
+    private isBuildOutOfDate(resultFile: string): boolean {
+        try {
+            const buildTime = fs.statSync(resultFile).mtimeMs;
+            const latestSourceTime = this.getLatestSourceMtime();
+            return latestSourceTime > buildTime;
+        } catch (error) {
+            return true;
+        }
+    }
+
+    private getLatestSourceMtime(): number {
+        const root = this.getProjectPath();
+        const outputDir = path.join(root, this.getOutput());
+        const ignoredNames = new Set([".git", ".vscode", "node_modules"]);
+        let latest = 0;
+        const stack = [root];
+
+        while (stack.length > 0) {
+            const current = stack.pop();
+            if (!current) {
+                continue;
+            }
+            let entries: fs.Dirent[];
+            try {
+                entries = fs.readdirSync(current, { withFileTypes: true });
+            } catch (error) {
+                continue;
+            }
+            for (const entry of entries) {
+                const fullPath = path.join(current, entry.name);
+                if (fullPath.startsWith(outputDir + path.sep)) {
+                    continue;
+                }
+                if (entry.isDirectory()) {
+                    if (ignoredNames.has(entry.name)) {
+                        continue;
+                    }
+                    stack.push(fullPath);
+                    continue;
+                }
+                if (!entry.isFile()) {
+                    continue;
+                }
+                if (!SOURCE_EXTENSIONS.some((ext) => entry.name.endsWith(ext))) {
+                    continue;
+                }
+                try {
+                    const mtime = fs.statSync(fullPath).mtimeMs;
+                    if (mtime > latest) {
+                        latest = mtime;
+                    }
+                } catch (error) {
+                    continue;
+                }
+            }
+        }
+        return latest;
     }
     public setStatus(status: ARDUINO_ERRORS) {
         this.projectStatus.status = status;
