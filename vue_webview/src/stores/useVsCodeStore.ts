@@ -48,6 +48,8 @@ export const useVsCodeStore = defineStore('vsCode', {
         platform: null as CorePlatforms | null,
         libraries: null as Libsearch | null,
         librariesInstalled: null as Liblist | null,
+        boardExamples: null as Liblist | null,
+        boardExamplesError: "" as string,
         libariesInformation: null as LibraryInformation[] | null,
         additionalBoardURLs: null as string | null,
         outdated: null as Outdated | null,
@@ -103,6 +105,12 @@ export const useVsCodeStore = defineStore('vsCode', {
                         break;
                     case ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED:
                         loadMockData('libinstalled.json').then((mockPayload) => {
+                            message.payload = mockPayload;
+                            this.handleMessage(message);
+                        });
+                        break;
+                    case ARDUINO_MESSAGES.CLI_BOARD_EXAMPLES:
+                        loadMockData('board_examples.json').then((mockPayload) => {
                             message.payload = mockPayload;
                             this.handleMessage(message);
                         });
@@ -405,6 +413,21 @@ export const useVsCodeStore = defineStore('vsCode', {
                         this.librariesInstalled = JSON.parse(message.payload);
                     } catch (error) {
                         console.log("Failed to parse library search response: " + error);
+                    }
+                    break;
+                case ARDUINO_MESSAGES.CLI_BOARD_EXAMPLES:
+                    if (message.errorMessage) {
+                        this.boardExamples = null;
+                        this.boardExamplesError = message.errorMessage;
+                        break;
+                    }
+                    try {
+                        this.boardExamples = JSON.parse(message.payload);
+                        this.boardExamplesError = "";
+                    } catch (error) {
+                        this.boardExamples = null;
+                        this.boardExamplesError = "Failed to parse board examples response";
+                        console.log("Failed to parse board examples response: " + error);
                     }
                     break;
                 case ARDUINO_MESSAGES.LIBRARY_UNINSTALLED:

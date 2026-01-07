@@ -1,0 +1,28 @@
+{
+  "installed_libraries": [
+    {
+      "library": {
+        "name": "SPI",
+        "author": "Arduino",
+        "maintainer": "Arduino <info@arduino.cc>",
+        "sentence": "SPI library for the Arduino core.",
+        "paragraph": "Board-provided examples for SPI.",
+        "website": "https://www.arduino.cc/en/Reference/SPI",
+        "category": "Communication",
+        "architectures": ["avr"],
+        "install_dir": "C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\libraries\\SPI",
+        "source_dir": "C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\libraries\\SPI\\src",
+        "version": "1.0",
+        "license": "Unspecified",
+        "properties": {},
+        "location": "platform",
+        "layout": "recursive",
+        "examples": [
+          "C:\\Users\\Charles\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.6\\libraries\\SPI\\examples\\BarometricPressureSensor"
+        ],
+        "provides_includes": ["SPI.h"],
+        "compatible_with": {}
+      }
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import { createRouter, createMemoryHistory } from 'vue-router'
 import BoardManager from '@/components/BoardManager.vue';
 import LibraryManager from '@/components/LibraryManager.vue';
 import LibExamples from '@/components/LibExamples.vue';
+import BoardExamples from '@/components/BoardExamples.vue';
 import ProfileManager from '@/components/ProfilesManager.vue';
 import OtherTools from '@/components/OtherTools.vue';
 
@@ -55,6 +56,13 @@ const router = createRouter({
         name: "library-examples",
         components: {
           default: LibExamples,
+        }
+      },
+      {
+        path: '/board-examples',
+        name: "board-examples",
+        components: {
+          default: BoardExamples,
         }
       },
       {

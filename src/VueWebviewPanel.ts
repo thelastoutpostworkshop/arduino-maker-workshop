@@ -226,6 +226,16 @@ export class VueWebviewPanel {
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
+                    case ARDUINO_MESSAGES.CLI_BOARD_EXAMPLES:
+                        arduinoCLI.searchBoardExamples().then((result) => {
+                            message.payload = result;
+                            VueWebviewPanel.sendMessage(message);
+                        }).catch((error) => {
+                            message.payload = "";
+                            message.errorMessage = error?.message || "Failed to get board examples";
+                            VueWebviewPanel.sendMessage(message);
+                        });
+                        break;
                     // case ARDUINO_MESSAGES.CLI_OUTDATED:
                     //     arduinoCLI.getOutdatedBoardAndLib().then((result) => {
                     //         message.payload = result;

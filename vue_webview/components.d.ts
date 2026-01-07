@@ -13,6 +13,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     BoardConfiguration: typeof import('./src/components/BoardConfiguration.vue')['default']
     BoardConfigurationForm: typeof import('./src/components/BoardConfigurationForm.vue')['default']
+    BoardExamples: typeof import('./src/components/BoardExamples.vue')['default']
     BoardManager: typeof import('./src/components/BoardManager.vue')['default']
     BoardSelection: typeof import('./src/components/BoardSelection.vue')['default']
     Home: typeof import('./src/components/Home.vue')['default']

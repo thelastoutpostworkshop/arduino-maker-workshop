@@ -99,6 +99,15 @@ const boardToUpdate = computed(() => {
 
         <v-tooltip location="right">
             <template #activator="{ props }">
+                <v-list-item v-bind="props" prepend-icon="mdi-chip" :to="{ name: 'board-examples' }" router>
+                    Board Examples
+                </v-list-item>
+            </template>
+            <span>Board Examples</span>
+        </v-tooltip>
+
+        <v-tooltip location="right">
+            <template #activator="{ props }">
                 <v-list-item v-bind="props" data-testid="nav-other-tools" prepend-icon="mdi-tools" :to="{ name: 'other-tools' }" router>
                     Other Tools
                 </v-list-item>

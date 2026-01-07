@@ -5,6 +5,7 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 **Version 1.1.1**
 - For the ESP32 Backtrace Decoder implemented robust target detection so SparkFun-style FQBNs (and other variants) are recognized, and defaulted to xtensa when the target is ESP32 but not RISC‑V ([issue #98](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/98))
 - Improve IntelliSense generation by parsing JSON includes.cache entries and extracting include paths from compile_commands.json, ensuring Arduino.h is forced when available ([issue #99](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/99))
+- Added Board Examples view sourced from the selected board platform libraries ([issue #100](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/100))
 
 **Version 1.1.0**
 - The link to the ESP32 Partition builder application in external tools, now pass the current partitions.csv stored the current build output

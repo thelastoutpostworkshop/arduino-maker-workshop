@@ -42,6 +42,8 @@ const searchOption: string = 'search';
 const listOption: string = 'list';
 const zipOption: string = '--zip-path';
 const programmerOption: string = '-P';
+const boardOptionsOptionArduino: string = '--board-options';
+const allOptionArduino: string = '--all';
 
 // Config settings
 const configAdditionnalURLsetting: string = 'board_manager.additional_urls';
@@ -223,6 +225,22 @@ export class CLIArguments {
             `${listOption}`,
             `${jsonOutputArduino}`
         ];
+        return command;
+    }
+    public getBoardExamplesArguments(): string[] {
+        const command = [
+            `${libraryCommandArduino}`,
+            `${listOption}`,
+            `${allOptionArduino}`,
+            `${jsonOutputArduino}`,
+            `${fqbnOptionArduino}`,
+            `${arduinoProject.getBoard()}`
+        ];
+        const boardOptions = arduinoProject.getBoardConfiguration();
+        if (boardOptions) {
+            command.push(boardOptionsOptionArduino);
+            command.push(boardOptions);
+        }
         return command;
     }
     public getBoardConfigurationArguments(): string[] {

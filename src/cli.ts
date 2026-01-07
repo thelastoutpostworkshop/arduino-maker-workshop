@@ -265,6 +265,22 @@ export class ArduinoCLI {
 		);
 	}
 
+	// Get board-related examples from platform libraries
+	public async searchBoardExamples(): Promise<string> {
+		if (!loadArduinoConfiguration()) {
+			window.showErrorMessage(`Unable to load Project Configuration`);
+			throw new Error("Unable to load Project Configuration");
+		}
+		if (!arduinoProject.getBoard()) {
+			window.showErrorMessage(`Select a board first`);
+			throw new Error("Board not selected");
+		}
+		return this.runArduinoCommand(
+			() => this.cliArgs.getBoardExamplesArguments(),
+			"CLI: Failed to get board examples", { caching: CacheState.YES, ttl: LIBRARY_INDEX_TTL }
+		);
+	}
+
 	// Get all the libraries avalaible in the Arduino registry
 	public async searchLibrary(): Promise<string> {
 		return this.runArduinoCommand(

@@ -503,6 +503,7 @@ export const ARDUINO_MESSAGES = {
   CLI_INSTALL_LIBRARY: 'cli_InstallLibrary',
   CLI_UNINSTALL_LIBRARY: 'cli_UnInstallLibrary',
   CLI_LIBRARY_INSTALLED: 'cli_libraryInstalled',
+  CLI_BOARD_EXAMPLES: 'cli_boardExamples',
   CLI_LIBRARY_INSTALLATION_ERROR: 'cli_libraryInstallationError',
   CLI_GET_CONFIG: 'cli_getConfig',
   CLI_CONFIG_REMOVE_ADDITIONAL_URL: 'cli_congifRemoveAdditionnalUrl',
