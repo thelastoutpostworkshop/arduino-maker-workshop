@@ -1,0 +1,44 @@
+name: Build VSIX (preview artifact)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-vsix:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (main)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Package VSIX
+        run: npx @vscode/vsce package --no-dependencies
+
+      - name: Find VSIX filename
+        id: vsix
+        shell: bash
+        run: |
+          VSIX_FILE="$(ls -1 *.vsix | head -n 1)"
+          echo "file=$VSIX_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix-main-${{ github.sha }}
+          path: ${{ steps.vsix.outputs.file }}
+          if-no-files-found: error
+          retention-days: 14
