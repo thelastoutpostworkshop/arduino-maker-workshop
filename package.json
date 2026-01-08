@@ -165,8 +165,7 @@
     "lint": "eslint src --ext ts",
     "test": "vscode-test",
     "test:webview": "npm --prefix vue_webview run test:e2e",
-    "build:vue": "cd vue_webview && npm run build",
-    "vueapp": "cd vue_webview && npm run dev"
+    "build:vue": "cd vue_webview && npm run build"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.7",
