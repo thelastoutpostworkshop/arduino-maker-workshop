@@ -2,6 +2,8 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
+**Version 1.1.2**
+
 **Version 1.1.1**
 - For the ESP32 Backtrace Decoder implemented robust target detection so SparkFun-style FQBNs (and other variants) are recognized, and defaulted to xtensa when the target is ESP32 but not RISC‑V ([issue #98](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/98))
 - Improve IntelliSense generation by parsing JSON includes.cache entries and extracting include paths from compile_commands.json, ensuring Arduino.h is forced when available ([issue #99](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/99))
