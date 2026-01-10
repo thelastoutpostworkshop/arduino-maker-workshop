@@ -14,6 +14,9 @@
 - `src/sketchProfileManager.ts`: `sketch.yaml` build profiles.
 - `vue_webview/src/stores/useVsCodeStore.ts`: message dispatch + webview state.
 - `vue_webview/src/components/OtherTools.vue`: external tools UI.
+- `vue_webview/src/components/LibExamples.vue`: library examples UI (sorted list + sorted examples).
+- `vue_webview/src/components/BoardExamples.vue`: board examples UI (sorted list + sorted examples).
+- `src/cliOutputView.ts`: Arduino CLI Output webview panel (search/filter, colorized output).
 
 ## Build/Run
 - Extension build: `npm run compile` (produces `build/extension.js` via Vite).
@@ -27,6 +30,24 @@
 - Webview -> extension: `useVsCodeStore.sendMessage()` posts `ARDUINO_MESSAGES`.
 - Extension -> webview: `VueWebviewPanel.sendMessage()`.
 - Any new message should be defined in `src/shared/messages.ts` and handled on both sides.
+
+## Board Examples
+- Fetch path: `BoardExamples.vue` -> `ARDUINO_MESSAGES.CLI_BOARD_EXAMPLES` -> `VueWebviewPanel` -> `ArduinoCLI.searchBoardExamples()` -> `arduino-cli lib list --all`.
+- Filtering happens in the extension (`src/cli.ts`), not the UI, so board/library caches stay separate.
+- FQBN respects build profiles: `ArduinoCLI.getBoardFqbnForExamples()` selects profile FQBN when active and passes it to CLI args.
+- UI label shows `library.container_platform` as "Examples from: ..."; `container_platform` is part of `Library` in `src/shared/messages.ts`.
+
+## Library Examples
+- Uses `cli_libraryInstalled` output; no server-side filtering.
+- UI sorts libraries and example lists alphabetically.
+
+## Ports and Profiles
+- Home upload port is disabled when build profiles are active (profiles manage port).
+- Port selection sync is debounced to avoid overriding user choices during refresh; monitor port is kept in sync with upload port in `ArduinoProject.setPort`.
+
+## Build Invalidation
+- Build invalidation happens on editor changes and filesystem changes (including git pulls) via file watchers in `src/extension.ts`.
+- Upload checks build freshness: `ArduinoProject.isUploadReady()` compares `compile_result.json` mtime to latest source mtime.
 
 ## Build Output + Profiles
 - Default build output is `build/` at workspace root.
