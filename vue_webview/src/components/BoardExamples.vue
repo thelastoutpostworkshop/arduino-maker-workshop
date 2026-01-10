@@ -14,7 +14,8 @@ function examplesItems(examples: string[]): any[] {
   const groups: Record<string, any[]> = {};
   const noGroupItems: any[] = [];
 
-  examples.forEach((example) => {
+  const sortedExamples = [...examples].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+  sortedExamples.forEach((example) => {
     const parts = example.split('examples\\');
     const relevantPart = parts.length > 1 ? parts[1] : example;
     const pathParts = relevantPart.split('\\');
@@ -39,9 +40,17 @@ function examplesItems(examples: string[]): any[] {
     }
   });
 
+  noGroupItems.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
   groupedItems.push(...noGroupItems);
 
-  Object.entries(groups).forEach(([groupName, items]) => {
+  const sortedGroups = Object.entries(groups)
+    .map(([groupName, items]) => ({
+      groupName,
+      items: items.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }))
+    }))
+    .sort((a, b) => a.groupName.localeCompare(b.groupName, undefined, { sensitivity: 'base' }));
+
+  sortedGroups.forEach(({ groupName, items }) => {
     groupedItems.push({ type: 'subheader', title: groupName });
     groupedItems.push(...items);
     groupedItems.push({ type: 'divider' });
@@ -51,7 +60,10 @@ function examplesItems(examples: string[]): any[] {
 }
 
 const boardExampleLibraries = computed(() => {
-  return store.boardExamples?.installed_libraries ?? [];
+  const libraries = store.boardExamples?.installed_libraries ?? [];
+  return [...libraries].sort((a, b) => {
+    return a.library.name.localeCompare(b.library.name, undefined, { sensitivity: 'base' });
+  });
 });
 
 const hasBoard = computed(() => {

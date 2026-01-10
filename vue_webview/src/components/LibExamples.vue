@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ARDUINO_MESSAGES } from '@shared/messages';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
-import { onMounted } from 'vue';
+import { computed, onMounted } from 'vue';
 
 const store = useVsCodeStore();
 
@@ -14,7 +14,8 @@ function examplesItems(examples: string[]): any[] {
   const groups: Record<string, any[]> = {}; // Groups to hold examples under subheaders
   const noGroupItems: any[] = []; // Examples without subpaths
 
-  examples.forEach((example, index) => {
+  const sortedExamples = [...examples].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+  sortedExamples.forEach((example) => {
     // Extract the part after "examples\\"
     const parts = example.split('examples\\');
     const relevantPart = parts.length > 1 ? parts[1] : example;
@@ -46,11 +47,18 @@ function examplesItems(examples: string[]): any[] {
     }
   });
 
-  // Add ungrouped items first
+  noGroupItems.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
   groupedItems.push(...noGroupItems);
 
+  const sortedGroups = Object.entries(groups)
+    .map(([groupName, items]) => ({
+      groupName,
+      items: items.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }))
+    }))
+    .sort((a, b) => a.groupName.localeCompare(b.groupName, undefined, { sensitivity: 'base' }));
+
   // Convert groups into the required format
-  Object.entries(groups).forEach(([groupName, items]) => {
+  sortedGroups.forEach(({ groupName, items }) => {
     groupedItems.push({ type: 'subheader', title: groupName }); // Add subheader
     groupedItems.push(...items); // Add examples under this group
     groupedItems.push({ type: 'divider' }); // Add a divider after each group
@@ -58,6 +66,13 @@ function examplesItems(examples: string[]): any[] {
 
   return groupedItems;
 }
+
+const sortedLibraries = computed(() => {
+  const libraries = store.librariesInstalled?.installed_libraries ?? [];
+  return [...libraries].sort((a, b) => {
+    return a.library.name.localeCompare(b.library.name, undefined, { sensitivity: 'base' });
+  });
+});
 
 
 
@@ -86,7 +101,7 @@ onMounted(() => {
           </v-card-text>
         </v-card>
         <v-expansion-panels v-else multiple>
-          <v-expansion-panel v-for="(library) in store.librariesInstalled.installed_libraries"
+          <v-expansion-panel v-for="(library) in sortedLibraries"
             :key="library.library.name">
             <v-expansion-panel-title>
               {{ library.library.name }}
