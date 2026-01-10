@@ -2,6 +2,8 @@
 
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
+**Version 1.1.3**
+
 **Version 1.1.2**
 - Fixed board examples mixed with library examples and board examples not refreshed when a board change ([issue #100](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/100))
 - Board examples now compatible with build profiles
