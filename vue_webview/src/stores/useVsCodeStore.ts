@@ -67,6 +67,15 @@ export const useVsCodeStore = defineStore('vsCode', {
         backtraceDecodeError: "" as string,
     }),
     actions: {
+        refreshBoardExamples() {
+            this.boardExamples = null;
+            this.boardExamplesError = "";
+            const canRequest = !!this.projectInfo?.board
+                || this.sketchProject?.buildProfileStatus === PROFILES_STATUS.ACTIVE;
+            if (canRequest) {
+                this.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_EXAMPLES, errorMessage: "", payload: "" });
+            }
+        },
         changeTheme(theme: THEME_COLOR) {
             switch (theme as THEME_COLOR) {
                 case THEME_COLOR.dark:
@@ -308,22 +317,27 @@ export const useVsCodeStore = defineStore('vsCode', {
             switch (message.command) {
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                     const previousBoard = this.projectInfo?.board ?? "";
+                    const previousCompileProfile = this.projectInfo?.compile_profile ?? "";
                     this.projectInfo = message.payload;
                     const nextBoard = this.projectInfo?.board ?? "";
+                    const nextCompileProfile = this.projectInfo?.compile_profile ?? "";
                     if (previousBoard !== nextBoard) {
-                        this.boardExamples = null;
-                        this.boardExamplesError = "";
                         this.boardExamplesBoard = nextBoard;
-                        if (nextBoard) {
-                            this.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_EXAMPLES, errorMessage: "", payload: "" });
-                        }
+                    }
+                    if (previousBoard !== nextBoard || previousCompileProfile !== nextCompileProfile) {
+                        this.refreshBoardExamples();
                     }
                     if (this.projectInfo?.board) {
                         this.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS, errorMessage: "", payload: this.projectInfo.board });
                     }
                     break;
                 case ARDUINO_MESSAGES.GET_BUILD_PROFILES:
+                    const previousProfileStatus = this.sketchProject?.buildProfileStatus;
                     this.sketchProject = message.payload;
+                    const nextProfileStatus = this.sketchProject?.buildProfileStatus;
+                    if (previousProfileStatus !== nextProfileStatus) {
+                        this.refreshBoardExamples();
+                    }
                     break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                     this.projectStatus = message.payload;
