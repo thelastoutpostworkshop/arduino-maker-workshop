@@ -375,6 +375,7 @@ export interface Library {
   examples?: string[];
   provides_includes: string[];
   compatible_with: CompatibleWith;
+  container_platform?: string;
 }
 
 export interface CompatibleWith {

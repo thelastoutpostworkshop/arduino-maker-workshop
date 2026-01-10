@@ -66,6 +66,17 @@ const boardExampleLibraries = computed(() => {
   });
 });
 
+const boardExamplesSource = computed(() => {
+  const libraries = store.boardExamples?.installed_libraries ?? [];
+  for (const entry of libraries) {
+    const platform = entry?.library?.container_platform;
+    if (platform) {
+      return platform;
+    }
+  }
+  return "";
+});
+
 const hasBoard = computed(() => {
   return !!store.projectInfo?.board && store.projectStatus?.status === ARDUINO_ERRORS.NO_ERRORS;
 });
@@ -90,6 +101,9 @@ watch(() => store.projectInfo, (info) => {
         <v-icon>mdi-chip</v-icon>
         <span class="text-h4 font-weight-bold ml-5">Board Examples</span>
       </v-row>
+      <div v-if="boardExamplesSource" class="ml-5 text-subtitle-2 text-grey">
+        Examples from: {{ boardExamplesSource }}
+      </div>
       <div>
         <v-card v-if="!hasBoard" class="mt-5">
           <v-card-item title="Select a board to see board examples">
