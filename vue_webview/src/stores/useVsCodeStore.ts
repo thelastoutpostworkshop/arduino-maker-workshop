@@ -50,6 +50,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         librariesInstalled: null as Liblist | null,
         boardExamples: null as Liblist | null,
         boardExamplesError: "" as string,
+        boardExamplesBoard: "" as string,
         libariesInformation: null as LibraryInformation[] | null,
         additionalBoardURLs: null as string | null,
         outdated: null as Outdated | null,
@@ -306,7 +307,17 @@ export const useVsCodeStore = defineStore('vsCode', {
         handleMessage(message: WebviewToExtensionMessage) {
             switch (message.command) {
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
+                    const previousBoard = this.projectInfo?.board ?? "";
                     this.projectInfo = message.payload;
+                    const nextBoard = this.projectInfo?.board ?? "";
+                    if (previousBoard !== nextBoard) {
+                        this.boardExamples = null;
+                        this.boardExamplesError = "";
+                        this.boardExamplesBoard = nextBoard;
+                        if (nextBoard) {
+                            this.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_EXAMPLES, errorMessage: "", payload: "" });
+                        }
+                    }
                     if (this.projectInfo?.board) {
                         this.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS, errorMessage: "", payload: this.projectInfo.board });
                     }
