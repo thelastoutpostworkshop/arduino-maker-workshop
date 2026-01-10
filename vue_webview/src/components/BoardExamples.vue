@@ -51,8 +51,7 @@ function examplesItems(examples: string[]): any[] {
 }
 
 const boardExampleLibraries = computed(() => {
-  const libraries = store.boardExamples?.installed_libraries ?? [];
-  return libraries.filter((entry) => entry?.library?.location && entry.library.location !== 'user');
+  return store.boardExamples?.installed_libraries ?? [];
 });
 
 const hasBoard = computed(() => {

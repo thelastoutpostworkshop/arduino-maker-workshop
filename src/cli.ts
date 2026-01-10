@@ -275,10 +275,11 @@ export class ArduinoCLI {
 			window.showErrorMessage(`Select a board first`);
 			throw new Error("Board not selected");
 		}
-		return this.runArduinoCommand(
+		const result = await this.runArduinoCommand(
 			() => this.cliArgs.getBoardExamplesArguments(),
-			"CLI: Failed to get board examples", { caching: CacheState.YES, ttl: LIBRARY_INDEX_TTL }
+			"CLI: Failed to get board examples", { caching: CacheState.NO, ttl: LIBRARY_INDEX_TTL }
 		);
+		return this.filterBoardExamples(result);
 	}
 
 	// Get all the libraries avalaible in the Arduino registry
@@ -650,6 +651,7 @@ export class ArduinoCLI {
 			}
 			if (cache.caching == CacheState.YES) {
 				const cacheKey = this.cliCache.getCacheKeyFromArguments(args);
+				this.arduinoCLIChannel.appendLine(`Cache key:${cacheKey}`)
 				const cachedData = this.cliCache.get(cacheKey);
 				if (cachedData) {
 					this.arduinoCLIChannel.appendLine(`Cache hit:${cacheKey}`);
@@ -684,6 +686,58 @@ export class ArduinoCLI {
 			coloredOutputView?.setStatus('failure', `${errorMessagePrefix}`);
 			throw error;
 		}
+	}
+
+	private filterBoardExamples(rawOutput: string): string {
+		if (!rawOutput) {
+			return rawOutput;
+		}
+		try {
+			const parsed = JSON.parse(rawOutput);
+			if (!parsed?.installed_libraries || !Array.isArray(parsed.installed_libraries)) {
+				return rawOutput;
+			}
+			const platformId = this.getBoardPlatformId();
+			parsed.installed_libraries = parsed.installed_libraries.filter((entry: any) => {
+				const lib = entry?.library;
+				if (!lib || lib.location === "user") {
+					return false;
+				}
+				if (!platformId) {
+					return true;
+				}
+				if (!lib.container_platform || typeof lib.container_platform !== "string") {
+					return true;
+				}
+				return lib.container_platform.startsWith(platformId);
+			});
+			return JSON.stringify(parsed);
+		} catch (error) {
+			return rawOutput;
+		}
+	}
+
+	private getBoardPlatformId(): string {
+		const fqbn = this.getBoardFqbnForExamples();
+		if (!fqbn) {
+			return "";
+		}
+		const parts = fqbn.split(':');
+		if (parts.length < 2) {
+			return "";
+		}
+		return `${parts[0]}:${parts[1]}`;
+	}
+
+	private getBoardFqbnForExamples(): string {
+		if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
+			const profileName = arduinoYaml.getProfileName();
+			const profile = arduinoYaml.getProfile(profileName);
+			if (profile?.fqbn) {
+				return profile.fqbn;
+			}
+		}
+		return arduinoProject.getBoard();
 	}
 
 	private async getArduinoCliPath() {
