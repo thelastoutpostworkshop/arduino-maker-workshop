@@ -3,6 +3,7 @@
 All notable changes to the Arduino Malker Workshop extension will be documented in this file.
 
 **Version 1.1.2**
+- Fixed board examples mixed with library examples and board examples not refreshed when a board change ([issue #100](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/100))
 
 **Version 1.1.1**
 - For the ESP32 Backtrace Decoder implemented robust target detection so SparkFun-style FQBNs (and other variants) are recognized, and defaulted to xtensa when the target is ESP32 but not RISC‑V ([issue #98](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/98))
