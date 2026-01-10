@@ -227,19 +227,25 @@ export class CLIArguments {
         ];
         return command;
     }
-    public getBoardExamplesArguments(): string[] {
+    public getBoardExamplesArguments(fqbnOverride?: string): string[] {
+        const useOverride = !!fqbnOverride && fqbnOverride.trim().length > 0;
+        const fqbn = useOverride ? fqbnOverride : arduinoProject.getBoard();
         const command = [
             `${libraryCommandArduino}`,
             `${listOption}`,
             `${allOptionArduino}`,
-            `${jsonOutputArduino}`,
-            `${fqbnOptionArduino}`,
-            `${arduinoProject.getBoard()}`
+            `${jsonOutputArduino}`
         ];
-        const boardOptions = arduinoProject.getBoardConfiguration();
-        if (boardOptions) {
-            command.push(boardOptionsOptionArduino);
-            command.push(boardOptions);
+        if (fqbn) {
+            command.push(`${fqbnOptionArduino}`);
+            command.push(`${fqbn}`);
+        }
+        if (!useOverride) {
+            const boardOptions = arduinoProject.getBoardConfiguration();
+            if (boardOptions) {
+                command.push(boardOptionsOptionArduino);
+                command.push(boardOptions);
+            }
         }
         return command;
     }

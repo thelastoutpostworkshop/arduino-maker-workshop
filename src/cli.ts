@@ -271,12 +271,13 @@ export class ArduinoCLI {
 			window.showErrorMessage(`Unable to load Project Configuration`);
 			throw new Error("Unable to load Project Configuration");
 		}
-		if (!arduinoProject.getBoard()) {
-			window.showErrorMessage(`Select a board first`);
+		const fqbn = this.getBoardFqbnForExamples();
+		if (!fqbn) {
+			window.showErrorMessage(`Select a board or activate a profile first`);
 			throw new Error("Board not selected");
 		}
 		const result = await this.runArduinoCommand(
-			() => this.cliArgs.getBoardExamplesArguments(),
+			() => this.cliArgs.getBoardExamplesArguments(fqbn),
 			"CLI: Failed to get board examples", { caching: CacheState.NO, ttl: LIBRARY_INDEX_TTL }
 		);
 		return this.filterBoardExamples(result);
