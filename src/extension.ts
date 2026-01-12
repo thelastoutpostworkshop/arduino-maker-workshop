@@ -18,6 +18,7 @@ export const profileCommandName: string = 'quickAccessView.profile';
 export const profileActivateCommandName: string = 'activateBuildProfile';
 export const profileDeactivateCommandName: string = 'deactivateBuildProfile';
 export const decodeBacktraceCommandName: string = 'arduinoMakerWorkshop.decodeEsp32Backtrace';
+export const clearCacheCommandName: string = 'arduinoMakerWorkshop.clearCache';
 
 export const compileStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
 export const compileStatusBarNotExecuting: string = "$(check) Compile";
@@ -68,6 +69,7 @@ export async function activate(context: ExtensionContext) {
 			context.subscriptions.push(vsCommandActivateBuildProfiles());
 			context.subscriptions.push(vsCommandDeactivateBuildProfiles());
 			context.subscriptions.push(vsCommandDecodeBacktrace(context));
+			context.subscriptions.push(vsCommandClearCache());
 
 			compileStatusBarItem.text = compileStatusBarNotExecuting;
 			compileStatusBarItem.command = compileCommandName;
@@ -569,6 +571,31 @@ function vsCommandDecodeBacktrace(context: ExtensionContext): Disposable {
 	return commands.registerCommand(decodeBacktraceCommandName, async () => {
 		VueWebviewPanel.render(context);
 		window.showInformationMessage("Paste the ESP32 crash log in the Backtrace Decoder.");
+	});
+}
+
+function vsCommandClearCache(): Disposable {
+	return commands.registerCommand(clearCacheCommandName, async () => {
+		arduinoCLI.clearCache();
+		arduinoExtensionChannel.appendLine("Arduino CLI cache cleared.");
+		window.showInformationMessage("Arduino CLI cache cleared.");
+
+		if (VueWebviewPanel.currentPanel) {
+			try {
+				const [boards, cores, libraries, installed] = await Promise.all([
+					arduinoCLI.getBoardsListAll(),
+					arduinoCLI.searchCore(),
+					arduinoCLI.searchLibrary(),
+					arduinoCLI.searchLibraryInstalled()
+				]);
+				VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_SEARCH, errorMessage: "", payload: boards });
+				VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: cores });
+				VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: libraries });
+				VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: "", payload: installed });
+			} catch (error) {
+				arduinoExtensionChannel.appendLine("Failed to refresh cached data after clearing the cache.");
+			}
+		}
 	});
 }
 

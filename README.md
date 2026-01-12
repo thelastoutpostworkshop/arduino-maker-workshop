@@ -41,6 +41,11 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 ## Library Manager
 ![new sketch](.readme/library_manager.gif)
 
+## Clear CLI Cache
+If the Library Manager or Boards Manager does not refresh after installing cores/libraries externally, use the command palette:
+- Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+- Run `Arduino Maker Workshop: Clear CLI Cache`
+
 ## Library Example
 ![new sketch](.readme/library_example.gif)
 

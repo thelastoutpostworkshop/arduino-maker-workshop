@@ -4,6 +4,7 @@ All notable changes to the Arduino Malker Workshop extension will be documented 
 
 **Version 1.1.3**
 - Persist upload/monitor ports by address while keeping the label visible (fixes Wi-Fi board uploads like UNO Q; backwards compatible with existing port labels) ([issue #103](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/103))
+- Added a command to clear Arduino CLI caches and refresh board/library data ([issue #102](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/102))
 
 **Version 1.1.2**
 - Fixed board examples mixed with library examples and board examples not refreshed when a board change ([issue #100](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/100))

@@ -257,6 +257,10 @@ export class ArduinoCLI {
 		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getLibrarySearchArguments()));
 	}
 
+	public clearCache() {
+		this.cliCache.clear();
+	}
+
 	// Get the list of libraries installed
 	public async searchLibraryInstalled(): Promise<string> {
 		return this.runArduinoCommand(

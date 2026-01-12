@@ -34,7 +34,8 @@
   "activationEvents": [
     "onView:quickAccessView",
     "onView:arduinoMakerWorkshop.compileOutput",
-    "onCommand:arduinoMakerWorkshop.decodeEsp32Backtrace"
+    "onCommand:arduinoMakerWorkshop.decodeEsp32Backtrace",
+    "onCommand:arduinoMakerWorkshop.clearCache"
   ],
   "contributes": {
     "viewsContainers": {
@@ -108,6 +109,11 @@
       {
         "command": "deactivateBuildProfile",
         "title": "Deactivate Build Profile",
+        "category": "Arduino"
+      },
+      {
+        "command": "arduinoMakerWorkshop.clearCache",
+        "title": "Arduino Maker Workshop: Clear CLI Cache",
         "category": "Arduino"
       }
     ],
