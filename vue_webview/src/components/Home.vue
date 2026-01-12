@@ -5,7 +5,7 @@ import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, DEFAULT_
 import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
 import arduinoImage from '@/assets/extension_icon.png';
-import { getAvailablePorts } from '@/utilities/utils';
+import { getAvailablePorts, resolvePortValue } from '@/utilities/utils';
 
 const router = useRouter()
 const store = useVsCodeStore();
@@ -22,7 +22,11 @@ const portsAvailable = computed(() => getAvailablePorts(store));
 const isProfileActive = computed(() => store.sketchProject?.buildProfileStatus === PROFILES_STATUS.ACTIVE);
 
 // This is a macOS-specific thing. The upload port is on /dev/cu.* and the serial port is on /dev/tty.*
-const serialPortsAvailable = computed(() => getAvailablePorts(store).map((p: any) => p.replace("/dev/cu.", "/dev/tty.")));
+const serialPortsAvailable = computed(() => getAvailablePorts(store).map((p: any) => {
+  const value = p.value.replace("/dev/cu.", "/dev/tty.");
+  const title = p.title.replace("/dev/cu.", "/dev/tty.");
+  return { ...p, value, title };
+}));
 
 function updatePortSettings(settings: PortSettings) {
   store.sendMessage({
@@ -45,7 +49,10 @@ function changeStatusBuildProfile() {
 
 function getStoredMonitorPortSettings() {
   if (store.projectInfo?.monitorPortSettings) {
-    monitorPortSettings.value.port = store.projectInfo?.monitorPortSettings.port ?? "";
+    monitorPortSettings.value.port = resolvePortValue(
+      serialPortsAvailable.value,
+      store.projectInfo?.monitorPortSettings.port ?? ""
+    );
     monitorPortSettings.value.baudRate = store.projectInfo?.monitorPortSettings.baudRate ?? 115200;
     monitorPortSettings.value.lineEnding = store.projectInfo?.monitorPortSettings.lineEnding ?? "\r\n";
     monitorPortSettings.value.dataBits = store.projectInfo?.monitorPortSettings.dataBits ?? 8;
@@ -152,31 +159,34 @@ watch(
   [() => store.boardConnected, () => store.projectInfo, () => store.sketchProject?.buildProfileStatus],
   ([boardConnected, projectInfo]) => {
     if (boardConnected) {
-      const availablePorts = boardConnected.detected_ports
-        .map((detectedPort) => detectedPort.port.label)
-        .filter((label): label is string => !!label);
+      const availableOptions = portsAvailable.value;
+      const availableValues = availableOptions.map((option) => option.value);
       const projectPort = projectInfo?.port ?? "";
       const monitorPort = projectInfo?.monitorPortSettings?.port ?? "";
       const preferredPort = projectPort || monitorPort;
-      const preferredPortIsValid = !!preferredPort && availablePorts.includes(preferredPort) && preferredPort !== "COM1";
+      const projectPortValue = resolvePortValue(availableOptions, projectPort);
+      const projectPortNeedsSync = !!projectPort && projectPortValue !== projectPort && availableValues.includes(projectPortValue);
+      const preferredValue = resolvePortValue(availableOptions, preferredPort);
+      const preferredPortIsValid = !!preferredValue && availableValues.includes(preferredValue) && preferredValue !== "COM1";
       const preferFromMonitor = !projectPort && !!monitorPort;
+      const shouldSyncPreferred = preferFromMonitor || projectPortNeedsSync;
 
       if (isProfileActive.value) {
-        if (preferredPort && portSelected.value !== preferredPort) {
-          setPortSelected(preferredPort, false);
+        if (preferredValue && portSelected.value !== preferredValue) {
+          setPortSelected(preferredValue, false);
         }
       } else {
         if (preferredPortIsValid) {
-          if (portSelected.value !== preferredPort) {
-            setPortSelected(preferredPort, preferFromMonitor);
+          if (portSelected.value !== preferredValue) {
+            setPortSelected(preferredValue, shouldSyncPreferred);
           }
         } else {
-          const currentSelected = portSelected.value;
-          const currentIsValid = !!currentSelected && availablePorts.includes(currentSelected);
+          const currentSelected = resolvePortValue(availableOptions, portSelected.value);
+          const currentIsValid = !!currentSelected && availableValues.includes(currentSelected);
           if (!currentIsValid) {
-            if (availablePorts.length > 0) {
-              const defaultPort = availablePorts.find((port) => port !== "COM1") || availablePorts[0];
-              setPortSelected(defaultPort, true);
+            if (availableOptions.length > 0) {
+              const defaultPort = availableOptions.find((port) => port.value !== "COM1") || availableOptions[0];
+              setPortSelected(defaultPort?.value ?? "", true);
             } else {
               setPortSelected("", false);
             }
@@ -392,7 +402,7 @@ onMounted(() => {
             </v-text-field>
             <v-select data-testid="upload-port" :disabled="!store.boardConnected?.detected_ports || isProfileActive"
               v-model="portSelected" @update:modelValue="onPortSelected"
-              :items="portsAvailable" density="compact" label="Upload Port"
+              :items="portsAvailable" item-title="title" item-value="value" density="compact" label="Upload Port"
               :hint="isProfileActive ? 'Upload port is managed by the active build profile.' : ''" :persistent-hint="isProfileActive">
               <template v-slot:loader>
                 <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2"

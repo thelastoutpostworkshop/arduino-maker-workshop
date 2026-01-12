@@ -3,7 +3,7 @@ import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BoardConfiguration, BuildProfileUpdate, ConfigOptionValue, NO_DEFAULT_PROFILE, NO_PROGRAMMER, PortSettings, YAML_FILENAME } from '@shared/messages';
 import { useRouter } from 'vue-router';
-import { getAvailablePorts } from '@/utilities/utils';
+import { getAvailablePorts, resolvePortValue } from '@/utilities/utils';
 import { VForm } from 'vuetify/components';
 type VFormInstance = InstanceType<typeof VForm>
 
@@ -430,14 +430,20 @@ const profilesList = computed(() => {
             editProfileName.value[name] = false
         }
         if (!profileMonitorSettings.value[name]) {
+            const resolvedPort = resolvePortValue(portsAvailable.value, data.port || "");
             profileMonitorSettings.value[name] = {
-                port: data.port || "",
+                port: resolvedPort,
                 baudRate: parseInt(data.port_config?.baudrate ?? "115200"),
                 lineEnding: data.port_config?.lineEnding ?? "\r\n",
                 dataBits: parseInt(data.port_config?.bits ?? "8"),
                 parity: data.port_config?.parity ?? "none",
                 stopBits: data.port_config?.stop_bits ?? "one",
             };
+        } else if (data.port) {
+            const resolvedPort = resolvePortValue(portsAvailable.value, data.port);
+            if (resolvedPort && profileMonitorSettings.value[name].port === data.port && resolvedPort !== data.port) {
+                profileMonitorSettings.value[name].port = resolvedPort;
+            }
         }
         return {
             originalName: name, // keep original for renaming

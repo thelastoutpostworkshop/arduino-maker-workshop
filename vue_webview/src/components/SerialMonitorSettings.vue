@@ -55,7 +55,7 @@ watch(
 
     <!-- Serial Port -->
     <v-select data-testid="monitor-serial-port" :disabled="!store.boardConnected?.detected_ports" v-model="props.monitorPortSettings.port"
-        :items="serialPortsAvailable" density="compact" label="Serial Port" class="mb-3" hide-details>
+        :items="serialPortsAvailable" item-title="title" item-value="value" density="compact" label="Serial Port" class="mb-3" hide-details>
         <template #loader>
             <v-progress-linear :active="!store.boardConnected?.detected_ports" height="2" indeterminate />
         </template>
