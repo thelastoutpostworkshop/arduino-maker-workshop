@@ -159,7 +159,6 @@
     ]
   },
   "extensionDependencies": [
-    "ms-vscode.vscode-serial-monitor",
     "ms-vscode.cpptools"
   ],
   "scripts": {

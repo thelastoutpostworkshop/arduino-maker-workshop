@@ -193,11 +193,15 @@ export async function activate(context: ExtensionContext) {
 
 		} else {
 			arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
-			arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
+			const configError = arduinoCLI.lastCLIError() || 'Arduino CLI configuration is not valid';
+			arduinoExtensionChannel.appendLine(`${configError}`);
+			return;
 		}
 	} else {
 		arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
-		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
+		const cliError = arduinoCLI.lastCLIError() || 'Arduino CLI is not available';
+		arduinoExtensionChannel.appendLine(`${cliError}`);
+		return;
 	}
 
 }

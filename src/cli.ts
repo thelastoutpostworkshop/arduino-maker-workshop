@@ -46,9 +46,14 @@ export class ArduinoCLI {
 		this.cliCache = new CliCache(cacheDirectory);
 		arduinoExtensionChannel.appendLine(`arduino-cli cache created: ${cacheDirectory}`)
 
-		getSerialMonitorApi(Version.latest, context).then((api) => {
-			this.serialMonitorAPI = api;
-		});
+		getSerialMonitorApi(Version.latest, context)
+			.then((api) => {
+				this.serialMonitorAPI = api;
+			})
+			.catch((error) => {
+				const message = `Serial Monitor extension unavailable: ${error?.message ?? error}`;
+				arduinoExtensionChannel.appendLine(message);
+			});
 	}
 
 	public lastCLIError(): string {
@@ -755,45 +760,41 @@ export class ArduinoCLI {
 	private async getSystemArduinoCliPath() {
 		const platform = os.platform();
 		const extConfig = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
-		const arduinoCLIInstallPath = extConfig.get('installPath');
+		const arduinoCLIInstallPath = extConfig.get('installPath') || '';
 		let arduinoCLIExecutable = extConfig.get('executable');
 
 		if (!arduinoCLIExecutable) {
-			if (platform === 'win32') {
-				arduinoCLIExecutable = 'arduino-cli.exe';
-			} else {
-				arduinoCLIExecutable = 'arduino-cli';
-			}
+			arduinoCLIExecutable = platform === 'win32' ? 'arduino-cli.exe' : 'arduino-cli';
 		}
 
-		if (platform === 'darwin') {
-			try {
-				let arduinoCLIPath = path.join(arduinoCLIInstallPath, arduinoCLIExecutable);
-				await workspace.fs.stat(arduinoCLIPath);
-				this.arduinoCLIChannel.appendLine(`Using arduino CLI in ${arduinoCLIPath}`);
-				return arduinoCLIPath;
-			} catch {
-				try {
-					const which = require('which');
-					let detectedArduinoCLI = await which(arduinoCLIExecutable);
-					this.arduinoCLIChannel.appendLine(`Found system installed arduino CLI in ${detectedArduinoCLI}`);
-					return detectedArduinoCLI;
-				} catch { }
+		const tryResolvePath = async (candidate: string): Promise<string> => {
+			if (!candidate) {
 				return '';
 			}
-		}
-		if (platform === 'win32') {
 			try {
-				let arduinoCLIPath = path.join(arduinoCLIInstallPath, arduinoCLIExecutable);
-				const arduinoCLIUri = Uri.file(arduinoCLIPath);
+				const arduinoCLIUri = Uri.file(candidate);
 				await workspace.fs.stat(arduinoCLIUri);
-				this.arduinoCLIChannel.appendLine(`Using arduino CLI in ${arduinoCLIPath}`);
-				return arduinoCLIPath;
+				this.arduinoCLIChannel.appendLine(`Using arduino CLI in ${candidate}`);
+				return candidate;
+			} catch {
+				return '';
+			}
+		};
+
+		const configuredPath = await tryResolvePath(path.join(arduinoCLIInstallPath, arduinoCLIExecutable));
+		if (configuredPath) {
+			return configuredPath;
+		}
+
+		try {
+			const which = require('which');
+			const detectedArduinoCLI = await which(arduinoCLIExecutable);
+			this.arduinoCLIChannel.appendLine(`Found system installed arduino CLI in ${detectedArduinoCLI}`);
+			return detectedArduinoCLI;
 			} catch {
 				return '';
 			}
 		}
-	}
 
 	private async getBundledArduinoCliPath() {
 		const platform = os.platform();
