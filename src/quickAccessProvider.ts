@@ -153,30 +153,30 @@ class QuickAccessItem extends TreeItem {
     private disabled: boolean = false
   ) {
     super(label, TreeItemCollapsibleState.None);
+    const baseTooltip = tooltip ?? label;
+    this.tooltip = baseTooltip;
 
-    if (!disabled) {
+    if (!disabled && this.commandId) {
       this.command = {
         command: this.commandId,
         title: this.label
       };
-    } else {
+    } else if (disabled) {
       // Update the label to show it's disabled and apply the grey color
       this.label = `${this.label}`;
-      this.tooltip = `${this.tooltip} - disabled`;
+      this.tooltip = `${baseTooltip} - disabled`;
       if (this.label === primaryCompileTitle || this.label === primaryCompileCleanTitle) {
         this.tooltip = `${this.tooltip} - select a board first in Home`;
       }
       if (this.label === primaryUploadTitle) {
         this.tooltip = `${this.tooltip} - Last compile must be successful, cannot upload`;
       }
-
-      if (this.iconName) {
-        this.iconPath = new ThemeIcon(this.iconName, new ThemeColor('disabledForeground'));
-      }
     }
 
-    if (this.iconName && !disabled) {
-      this.iconPath = new ThemeIcon(this.iconName);
+    if (this.iconName) {
+      this.iconPath = disabled
+        ? new ThemeIcon(this.iconName, new ThemeColor('disabledForeground'))
+        : new ThemeIcon(this.iconName);
     }
 
     this.contextValue = disabled ? 'disabled' : 'enabled';

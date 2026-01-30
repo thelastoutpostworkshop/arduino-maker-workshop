@@ -791,10 +791,10 @@ export class ArduinoCLI {
 			const detectedArduinoCLI = await which(arduinoCLIExecutable);
 			this.arduinoCLIChannel.appendLine(`Found system installed arduino CLI in ${detectedArduinoCLI}`);
 			return detectedArduinoCLI;
-			} catch {
-				return '';
-			}
+		} catch {
+			return '';
 		}
+	}
 
 	private async getBundledArduinoCliPath() {
 		const platform = os.platform();
