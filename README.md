@@ -4,7 +4,8 @@ The ultimate tool for makers to bring Arduino projects to life in Visual Studio 
 <img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee">
 </a>
 
-> **Currently supported on Windows x64 and MacOS ARM64/Intel and Linux x64**, help needed for [for other platforms](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/discussions/2)
+> **Supported platforms:** Windows x64, macOS (Intel + Apple Silicon), Linux x64.  
+> **Other platforms:** not officially supported yet; you can try by installing your own `arduino-cli` and pointing the extension to it, and help is needed for [other platforms](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/discussions/2).
 ## Microcontrollers Platforms
 All the platforms supported by the [Arduino CLI](https://arduino.github.io/arduino-cli) (the CLI is included in this extension).
 
