@@ -2,6 +2,10 @@
 
 All notable changes to the Arduino Maker Workshop extension will be documented in this file.
 
+## Unversioned
+
+- Added support for Windows ARM (issue #5); limitation: Serial Monitor does not work, as this extension does not work on Windows ARM
+
 ## Version 1.1.3
 
 - Persist upload/monitor ports by address while keeping the label visible (fixes Wi-Fi board uploads like UNO Q; backwards compatible with existing port labels) ([issue #103](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/103))
