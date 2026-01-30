@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "compile",
+      "group": "build",
+      "label": "npm: compile",
+      "problemMatcher": []
+    },
+    {
+      "type": "npm",
+      "script": "build:vue",
+      "group": "build",
+      "label": "npm: build:vue",
+      "problemMatcher": []
+    },
+    {
+      "label": "build: extension+webview",
+      "dependsOn": [
+        "npm: compile",
+        "npm: build:vue"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    }
+  ]
+}
