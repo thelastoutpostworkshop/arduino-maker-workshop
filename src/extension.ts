@@ -1,4 +1,4 @@
-import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind, ConfigurationTarget } from "vscode";
+import { window, ExtensionContext, commands, Disposable, workspace, Uri, StatusBarAlignment, ColorThemeKind, ConfigurationTarget, extensions } from "vscode";
 import { ArduinoProject, UPLOAD_READY_STATUS } from './ArduinoProject';
 import { sendBuildProfiles, VueWebviewPanel } from './VueWebviewPanel';
 import { primaryCompileCleanTitle, primaryCompileTitle, QuickAccessProvider, primaryUploadTitle } from './quickAccessProvider';
@@ -40,7 +40,65 @@ export let compileOutputProvider: Disposable;
 
 let debounceTimeout: NodeJS.Timeout | undefined; // To debounce changes to settings
 
+async function ensureSerialMonitorAvailable(): Promise<void> {
+	const arch = os.arch?.() || "";
+	if (arch === "arm64" || arch === "aarch64") {
+		arduinoExtensionChannel.appendLine("Serial Monitor skipped on ARM architectures.");
+		return;
+	}
+
+	const extensionId = "ms-vscode.vscode-serial-monitor";
+	let serialMonitor = extensions.getExtension(extensionId);
+
+	if (!serialMonitor) {
+		arduinoExtensionChannel.appendLine("Serial Monitor extension not found; prompting install.");
+		const choice = await window.showInformationMessage(
+			"Serial Monitor extension is recommended for monitoring after upload.",
+			"Install Serial Monitor",
+			"Ignore"
+		);
+		if (choice === "Install Serial Monitor") {
+			try {
+				await commands.executeCommand("workbench.extensions.installExtension", extensionId);
+				arduinoExtensionChannel.appendLine("Serial Monitor extension installed; attempting activation.");
+				serialMonitor = extensions.getExtension(extensionId);
+				if (serialMonitor && !serialMonitor.isActive) {
+					await serialMonitor.activate();
+					arduinoExtensionChannel.appendLine("Serial Monitor extension activated successfully.");
+				}
+			} catch (err: any) {
+				arduinoExtensionChannel.appendLine(`Serial Monitor install/activation failed; continuing without it: ${err?.message ?? err}`);
+			}
+		}
+		return;
+	}
+
+	if (!serialMonitor.isActive) {
+		try {
+			await serialMonitor.activate();
+			arduinoExtensionChannel.appendLine("Serial Monitor extension activated successfully.");
+		} catch (err: any) {
+			arduinoExtensionChannel.appendLine(`Serial Monitor activation failed; continuing without it: ${err?.message ?? err}`);
+			const retry = await window.showInformationMessage(
+				"Serial Monitor failed to activate.",
+				"Retry Activate",
+				"Ignore"
+			);
+			if (retry === "Retry Activate") {
+				try {
+					await serialMonitor.activate();
+					arduinoExtensionChannel.appendLine("Serial Monitor extension activated on retry.");
+				} catch (innerErr: any) {
+					arduinoExtensionChannel.appendLine(`Serial Monitor retry activation failed: ${innerErr?.message ?? innerErr}`);
+				}
+			}
+		}
+	}
+}
+
 export async function activate(context: ExtensionContext) {
+	ensureSerialMonitorAvailable();
+
 	compileOutputView = new CliOutputView(context);
 	compileOutputProvider = window.registerWebviewViewProvider(CliOutputView.viewType, compileOutputView);
 	context.subscriptions.push(compileOutputView, compileOutputProvider);
@@ -193,11 +251,15 @@ export async function activate(context: ExtensionContext) {
 
 		} else {
 			arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
-			arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
+			const configError = arduinoCLI.lastCLIError() || 'Arduino CLI configuration is not valid';
+			arduinoExtensionChannel.appendLine(`${configError}`);
+			return;
 		}
 	} else {
 		arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
-		arduinoExtensionChannel.appendLine(`${arduinoCLI.lastCLIError()}`);
+		const cliError = arduinoCLI.lastCLIError() || 'Arduino CLI is not available';
+		arduinoExtensionChannel.appendLine(`${cliError}`);
+		return;
 	}
 
 }

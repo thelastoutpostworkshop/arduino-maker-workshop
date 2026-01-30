@@ -159,7 +159,6 @@
     ]
   },
   "extensionDependencies": [
-    "ms-vscode.vscode-serial-monitor",
     "ms-vscode.cpptools"
   ],
   "scripts": {
@@ -183,11 +182,12 @@
     "@vscode/test-electron": "^2.4.0",
     "eslint": "^9.17.0",
     "typescript": "^5.9.2",
-    "vite": "^7.0.0"
+    "vite": "^7.3.1"
   },
   "os": [
     "darwin",
     "win32",
+    "arm64",
     "linux"
   ],
   "cpu": [
@@ -198,6 +198,9 @@
     "@microsoft/vscode-serial-monitor-api": "^0.1.7",
     "ansi_up": "^6.0.6",
     "usb": "^2.14.0",
+    "which": "^4.0.0",
+    "vue": "^3.5.27",
+    "vue-tsc": "^3.2.4",
     "yaml": "^2.8.0"
   }
 }

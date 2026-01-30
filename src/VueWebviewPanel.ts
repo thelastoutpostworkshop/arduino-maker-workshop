@@ -22,13 +22,17 @@ export class VueWebviewPanel {
     private constructor(panel: WebviewPanel, extensionUri: Uri) {
         this._panel = panel;
         if (os.platform() === 'win32') {
-            const usb = require('usb').usb;
-            usb.on("attach", () => {
-                this.usbChange();
-            });
-            usb.on("detach", () => {
-                this.usbChange();
-            });
+            try {
+                const usb = require('usb').usb;
+                usb.on("attach", () => {
+                    this.usbChange();
+                });
+                usb.on("detach", () => {
+                    this.usbChange();
+                });
+            } catch (error: any) {
+                arduinoExtensionChannel.appendLine(`USB hotplug events disabled: ${error?.message ?? error}`);
+            }
         }
         // Handle messages from the Vue web application
         this._panel.webview.onDidReceiveMessage(

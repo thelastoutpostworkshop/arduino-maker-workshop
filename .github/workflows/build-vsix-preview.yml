@@ -11,6 +11,8 @@ jobs:
         include:
           - os: windows-latest
             target: win32-x64
+          - os: windows-latest
+            target: win32-arm64
           - os: macos-latest
             target: darwin-x64
           - os: macos-latest
