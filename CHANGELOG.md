@@ -2,10 +2,6 @@
 
 All notable changes to the Arduino Maker Workshop extension will be documented in this file.
 
-## Unversioned
-
-- Added support for Windows ARM (issue #5); limitation: Serial Monitor does not work, as this extension does not work on Windows ARM
-
 ## Version 1.1.3
 
 - Support for Windows ARM (Serial Monitor not supported) thanks to [jfthuong](https://github.com/jfthuong) ([issue #5](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/5))
