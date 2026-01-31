@@ -9,6 +9,7 @@ All notable changes to the Arduino Maker Workshop extension will be documented i
 ## Version 1.1.3
 
 - Support for Windows ARM (Serial Monitor not supported) thanks to [jfthuong](https://github.com/jfthuong) ([issue #5](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/5))
+- Arduino CLI 1.4.1
 - Persist upload/monitor ports by address while keeping the label visible (fixes Wi-Fi board uploads like UNO Q; backwards compatible with existing port labels) ([issue #103](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/103))
 - Added a command to clear Arduino CLI caches and refresh board/library data ([issue #102](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/102))
 
