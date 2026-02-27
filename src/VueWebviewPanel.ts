@@ -2,7 +2,7 @@ import { commands, Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, E
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BacktraceDecodeFrame, BacktraceDecodeResult, ESP32_PARTITION_BUILDER_BASE_URL, PROFILES_STATUS, SketchProjectFile, WebviewToExtensionMessage } from './shared/messages';
-import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, compile, loadArduinoConfiguration, openExample, shouldDetectPorts, updateStateCompileUpload } from "./extension";
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, compile, loadArduinoConfiguration, openExample, shouldCheckForUpdates, shouldDetectPorts, updateStateCompileUpload } from "./extension";
 
 const path = require('path');
 const os = require('os');
@@ -14,6 +14,7 @@ export class VueWebviewPanel {
     private readonly _panel: WebviewPanel;
     private _disposables: Disposable[] = [];
     public static currentPanel: VueWebviewPanel | undefined;
+    private static readonly EMPTY_OUTDATED_PAYLOAD = JSON.stringify({ platforms: [], libraries: [] });
     private usbChange() {
         if (shouldDetectPorts()) {
             VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.REQUEST_BOARD_CONNECTED, errorMessage: "", payload: "" });
@@ -173,12 +174,31 @@ export class VueWebviewPanel {
                         arduinoCLI.setBuildResult(false);
                         break;
                     case ARDUINO_MESSAGES.CLI_UPDATE_INDEX:
-                        arduinoCLI.getCoreUpdate().then(() => {
-                            arduinoCLI.getOutdatedBoardAndLib().then((result) => {
-                                message.payload = result;
+                        {
+                            const forceRefresh = !!message.payload?.force;
+                            if (!forceRefresh && !shouldCheckForUpdates()) {
+                                message.payload = VueWebviewPanel.EMPTY_OUTDATED_PAYLOAD;
+                                message.errorMessage = "";
                                 VueWebviewPanel.sendMessage(message);
-                            });
-                        });
+                                break;
+                            }
+
+                            arduinoCLI.getCoreUpdate()
+                                .catch(() => {
+                                    arduinoExtensionChannel.appendLine("Arduino index update failed.");
+                                })
+                                .then(() => arduinoCLI.getOutdatedBoardAndLib())
+                                .then((result) => {
+                                    message.payload = result;
+                                    message.errorMessage = "";
+                                    VueWebviewPanel.sendMessage(message);
+                                })
+                                .catch(() => {
+                                    message.payload = VueWebviewPanel.EMPTY_OUTDATED_PAYLOAD;
+                                    message.errorMessage = "";
+                                    VueWebviewPanel.sendMessage(message);
+                                });
+                        }
                         break;
                     case ARDUINO_MESSAGES.CLI_INSTALL_CORE_VERSION:
                         const coreToUpdate = message.payload;

@@ -11,10 +11,10 @@ onMounted(() => {
 });
 
 const libraryToUpdate = computed(() => {
-    return !!store.outdated?.libraries;
+    return Array.isArray(store.outdated?.libraries) && store.outdated.libraries.length > 0;
 });
 const boardToUpdate = computed(() => {
-    return !!store.outdated?.platforms;
+    return Array.isArray(store.outdated?.platforms) && store.outdated.platforms.length > 0;
 });
 
 </script>

@@ -1,5 +1,5 @@
 import { commands, OutputChannel, Uri, window, workspace, ExtensionContext, ProgressLocation } from "vscode";
-import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, compileOutputView, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
+import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, compileOutputView, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, shouldCheckForUpdates, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
 import { ArduinoCLIStatus, BuildOptions, CompileResult, PROFILES_STATUS } from "./shared/messages";
 import { getSerialMonitorApi, MonitorPortSettings, SerialMonitorApi, Version } from "@microsoft/vscode-serial-monitor-api";
 import { COMPILE_RESULT_FILE, VSCODE_FOLDER } from "./ArduinoProject";
@@ -89,7 +89,13 @@ export class ArduinoCLI {
 			() => this.cliArgs.getVersionArguments(),
 			"CLI: Failed to get Arduino CLI version information", { caching: CacheState.NO, ttl: 0 }
 		);
-		arduinoCLI.getCoreUpdate();
+		if (shouldCheckForUpdates()) {
+			this.getCoreUpdate().catch(() => {
+				arduinoExtensionChannel.appendLine("Automatic board/library update check failed.");
+			});
+		} else {
+			arduinoExtensionChannel.appendLine("Automatic board/library update checks are disabled.");
+		}
 		return (JSON.parse(result));
 	}
 

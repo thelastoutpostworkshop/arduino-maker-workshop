@@ -350,6 +350,12 @@ export function shouldDetectPorts(): boolean {
 	return true; // Proceed with port detection
 }
 
+export function shouldCheckForUpdates(): boolean {
+	const config = workspace.getConfiguration('arduinoMakerWorkshop');
+	const disableAutoUpdateChecks = config.get<boolean>('disableAutoUpdateChecks', false);
+	return !disableAutoUpdateChecks;
+}
+
 function changeUserDirectory() {
 	const config = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
 	const userDirectory = config.get<string>('userDirectory', '');

@@ -292,7 +292,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     }
                     break;
                 case ARDUINO_MESSAGES.CLI_UPDATE_INDEX:
-                    if (!this.outdated) {
+                    if (message.payload?.force || !this.outdated) {
                         vscode.postMessage(message);
                     }
                     break;

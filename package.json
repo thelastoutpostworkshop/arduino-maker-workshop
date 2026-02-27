@@ -3,7 +3,7 @@
   "displayName": "Arduino Maker Workshop",
   "publisher": "TheLastOutpostWorkshop",
   "description": "The ultimate tool for makers to bring Arduino projects to life!",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -143,6 +143,12 @@
           "default": false,
           "scope": "machine",
           "description": "Disable automatic port detection (only applies on Windows)."
+        },
+        "arduinoMakerWorkshop.disableAutoUpdateChecks": {
+          "type": "boolean",
+          "default": false,
+          "scope": "machine",
+          "description": "Disable automatic checks for board/library updates (useful for offline use)."
         },
         "arduinoMakerWorkshop.verboseCompile": {
           "type": "boolean",
