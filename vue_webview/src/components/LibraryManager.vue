@@ -16,6 +16,8 @@ const selectedLibrary = ref<Record<string, string>>({});
 const searchLibrary = ref('');
 const filterdLibrariesCount = ref(0);
 const zipFile = ref<File | undefined>(undefined);
+const sketchbookFolder = computed(() => store.cliConfig?.config.directories?.user ?? '');
+const librariesFolder = computed(() => getLibrariesFolder(sketchbookFolder.value));
 
 const headers = [
   { title: 'Name', value: 'name', key: 'name', sortable: true },
@@ -89,6 +91,7 @@ function updateLibariesInformation() {
 onMounted(() => {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_SEARCH, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: "", payload: "" });
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_GET_CONFIG, errorMessage: "", payload: "" });
   // store.sendMessage({ command: ARDUINO_MESSAGES.CLI_OUTDATED, errorMessage: "", payload: "" });
   // Force recompute when component mounts
   if (areLibrariesAvailable.value) {
@@ -116,6 +119,18 @@ function uninstallLibrary(name: string) {
   const toUnInstall = `${name}`;
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_UNINSTALL_LIBRARY, errorMessage: "", payload: toUnInstall });
   store.libraryUpdating = `Removing library ${toUnInstall}`;
+}
+
+function changeSketchbookFolder() {
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_CONFIG_SELECT_USER_DIRECTORY, errorMessage: "", payload: "" });
+}
+
+function getLibrariesFolder(sketchbookPath: string): string {
+  if (!sketchbookPath) {
+    return "";
+  }
+  const separator = sketchbookPath.includes("\\") ? "\\" : "/";
+  return `${sketchbookPath.replace(/[\\/]+$/, "")}${separator}libraries`;
 }
 
 function isLibraryInstalled(library: LibraryInformation): boolean {
@@ -323,6 +338,34 @@ watch(zipFile, () => {
 
           </template>
         </v-data-table>
+        <v-card class="mt-4 pa-4" color="primary" prepend-icon="mdi-folder-cog" rounded="lg"
+          data-testid="library-sketchbook-settings">
+          <template #title>
+            <span class="text-h6 font-weight-bold">Sketchbook Folder</span>
+          </template>
+          <template #subtitle>
+            <div class="text-wrap">
+              Library Manager installs libraries in the libraries subfolder.
+            </div>
+          </template>
+          <v-card-text>
+            <v-row>
+              <v-col cols="12" md="6">
+                <v-text-field data-testid="library-sketchbook-folder" label="Sketchbook"
+                  :model-value="sketchbookFolder || 'Loading...'" readonly density="compact" hide-details />
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-text-field data-testid="library-libraries-folder" label="Libraries"
+                  :model-value="librariesFolder || 'Loading...'" readonly density="compact" hide-details />
+              </v-col>
+            </v-row>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn prepend-icon="mdi-folder-open" @click="changeSketchbookFolder">
+              Change Sketchbook Folder
+            </v-btn>
+          </v-card-actions>
+        </v-card>
       </div>
       <div v-else>
         <v-card class="mt-5">

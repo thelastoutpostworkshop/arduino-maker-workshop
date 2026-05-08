@@ -356,10 +356,14 @@ export function shouldCheckForUpdates(): boolean {
 	return !disableAutoUpdateChecks;
 }
 
-function changeUserDirectory() {
+async function changeUserDirectory() {
 	const config = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
 	const userDirectory = config.get<string>('userDirectory', '');
 	if (userDirectory.trim().length > 0) {
+		const currentUserDirectory = await arduinoCLI.getConfigUserDirectory();
+		if (currentUserDirectory.trim() === userDirectory.trim()) {
+			return;
+		}
 		if (VueWebviewPanel.currentPanel) {
 			VueWebviewPanel.currentPanel.dispose();
 			VueWebviewPanel.currentPanel = undefined;

@@ -135,7 +135,15 @@ test.describe('webview dev server', () => {
     const notInstalledFilter = page.getByTestId('libraries-filter-not-installed');
     const deprecatedFilter = page.getByTestId('libraries-filter-deprecated');
     const librariesTable = page.getByTestId('libraries-table');
+    const sketchbookSettings = page.getByTestId('library-sketchbook-settings');
 
+    await expect(sketchbookSettings).toContainText('Sketchbook Folder');
+    await expect(
+      page.getByTestId('library-sketchbook-folder').locator('input').first()
+    ).toHaveValue('C:\\Users\\Charles\\Documents\\Arduino');
+    await expect(
+      page.getByTestId('library-libraries-folder').locator('input').first()
+    ).toHaveValue('C:\\Users\\Charles\\Documents\\Arduino\\libraries');
     await expect(installedFilter).toBeVisible();
     await expect(updatableFilter).toBeVisible();
     await expect(

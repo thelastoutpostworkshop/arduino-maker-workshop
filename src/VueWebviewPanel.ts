@@ -1,4 +1,4 @@
-import { commands, Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionContext, Position, Range, Selection, workspace } from "vscode";
+import { commands, ConfigurationTarget, Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionContext, Position, Range, Selection, workspace } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BacktraceDecodeFrame, BacktraceDecodeResult, ESP32_PARTITION_BUILDER_BASE_URL, PROFILES_STATUS, SketchProjectFile, WebviewToExtensionMessage } from './shared/messages';
@@ -292,6 +292,9 @@ export class VueWebviewPanel {
                             message.payload = result;
                             VueWebviewPanel.sendMessage(message);
                         });
+                        break;
+                    case ARDUINO_MESSAGES.CLI_CONFIG_SELECT_USER_DIRECTORY:
+                        this.selectUserDirectory(message);
                         break;
                     case ARDUINO_MESSAGES.GET_PARTITION_BUILDER_URL:
                         const partitionBuilderResult = this.getPartitionBuilderUrl();
@@ -1082,6 +1085,52 @@ export class VueWebviewPanel {
 
         if (folderUris && folderUris.length > 0) {
             commands.executeCommand('vscode.openFolder', folderUris[0], { forceNewWindow: false });
+        }
+    }
+
+    private async selectUserDirectory(message: WebviewToExtensionMessage) {
+        const folderUris = await window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            openLabel: "Use as Sketchbook Folder"
+        });
+
+        if (!folderUris || folderUris.length === 0) {
+            return;
+        }
+
+        let sketchbookPath = folderUris[0].fsPath;
+        if (path.basename(sketchbookPath).toLowerCase() === "libraries") {
+            const choice = await window.showWarningMessage(
+                "Arduino CLI expects the Sketchbook folder. Libraries are installed in its libraries subfolder.",
+                "Use Parent Folder",
+                "Use Selected Folder",
+                "Cancel"
+            );
+
+            if (choice === "Cancel" || !choice) {
+                return;
+            }
+            if (choice === "Use Parent Folder") {
+                sketchbookPath = path.dirname(sketchbookPath);
+            }
+        }
+
+        try {
+            const config = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
+            await config.update('userDirectory', sketchbookPath, ConfigurationTarget.Global);
+            await arduinoCLI.setConfigUserDirectory(sketchbookPath);
+            arduinoCLI.clearLibraryCache();
+            message.payload = await arduinoCLI.getArduinoConfig();
+            message.errorMessage = "";
+            VueWebviewPanel.sendMessage(message);
+            window.showInformationMessage(`Sketchbook folder set to: ${sketchbookPath}`);
+        } catch (error: any) {
+            message.payload = "";
+            message.errorMessage = error?.message ?? `${error}`;
+            VueWebviewPanel.sendMessage(message);
+            window.showErrorMessage(`Failed to set Sketchbook folder: ${message.errorMessage}`);
         }
     }
 

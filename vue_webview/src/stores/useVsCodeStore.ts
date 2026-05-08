@@ -101,6 +101,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         break;
                     case ARDUINO_MESSAGES.CLI_CONFIG_ADD_ADDITIONAL_URL:
                     case ARDUINO_MESSAGES.CLI_CONFIG_REMOVE_ADDITIONAL_URL:
+                    case ARDUINO_MESSAGES.CLI_CONFIG_SELECT_USER_DIRECTORY:
                     case ARDUINO_MESSAGES.CLI_GET_CONFIG:
                         loadMockData('config.json').then((mockPayload) => {
                             message.payload = mockPayload;
@@ -495,6 +496,23 @@ export const useVsCodeStore = defineStore('vsCode', {
                     this.platform = null;
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_GET_CONFIG, errorMessage: "", payload: "" });
                     this.sendMessage({ command: ARDUINO_MESSAGES.CLI_CORE_SEARCH, errorMessage: "", payload: "" });
+                    break;
+                case ARDUINO_MESSAGES.CLI_CONFIG_SELECT_USER_DIRECTORY:
+                    if (message.errorMessage) {
+                        console.log("Failed to update Sketchbook folder: " + message.errorMessage);
+                        break;
+                    }
+                    try {
+                        this.cliConfig = JSON.parse(message.payload);
+                    } catch (error) {
+                        this.cliConfig = null;
+                        console.log("Failed to parse CLI Configuration: " + error);
+                    }
+                    this.librariesInstalled = null;
+                    this.libariesInformation = null;
+                    this.outdated = null;
+                    this.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: "", payload: "" });
+                    this.sendMessage({ command: ARDUINO_MESSAGES.CLI_UPDATE_INDEX, errorMessage: "", payload: { force: true } });
                     break;
                 case ARDUINO_MESSAGES.CHANGE_THEME_COLOR:
                     this.changeTheme(message.payload);

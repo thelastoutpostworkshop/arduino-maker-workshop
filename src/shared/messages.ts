@@ -511,6 +511,7 @@ export const ARDUINO_MESSAGES = {
   CLI_CONFIG_REMOVE_ADDITIONAL_URL: 'cli_congifRemoveAdditionnalUrl',
   CLI_CONFIG_ADD_ADDITIONAL_URL: 'cli_congifAddAdditionnalUrl',
   CLI_CONFIG_SET_ADDITIONAL_URL: 'cli_congifSetAdditionnalUrl',
+  CLI_CONFIG_SELECT_USER_DIRECTORY: 'cli_configSelectUserDirectory',
 
   // project related commands
   ARDUINO_PROJECT_STATUS: 'getArduinoProjectStatus',
