@@ -12,7 +12,7 @@
     "pinia": "^3.0.1",
     "roboto-fontface": "*",
     "vue": "^3.4.31",
-    "vue-router": "^4.4.5",
+    "vue-router": "^5.0.6",
     "vuetify": "^3.6.11"
   },
   "devDependencies": {
