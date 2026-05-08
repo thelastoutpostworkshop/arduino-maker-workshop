@@ -2,6 +2,10 @@
 
 All notable changes to the Arduino Maker Workshop extension will be documented in this file.
 
+## Version 1.1.5
+
+- Added a Home page warning and Open Folder action when VS Code has no workspace folder open
+
 ## Version 1.1.4
 - Added a setting to disable automatic board/library update checks for offline usage ([issue #108](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/108))
 
