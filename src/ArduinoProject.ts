@@ -34,9 +34,7 @@ export class ArduinoProject {
     private projectStatus: ArduinoProjectStatus = { status: ARDUINO_ERRORS.NO_ERRORS };
 
     constructor() {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (workspaceFolders) {
-            this.projectFullPath = workspaceFolders[0].uri.fsPath;
+        if (this.updateProjectPathFromWorkspace()) {
             arduinoExtensionChannel.appendLine(`Workspace is ${this.projectFullPath}`)
         } else {
             arduinoExtensionChannel.appendLine(`No workspace available, open a workspace by using the File > Open Folder... menu, and then selecting a folder`);
@@ -48,6 +46,19 @@ export class ArduinoProject {
             monitorPortSettings: getMonitorPortSettingsDefault()
         };
     }
+
+    private updateProjectPathFromWorkspace(): boolean {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders || workspaceFolders.length === 0) {
+            this.projectFullPath = "";
+            this.arduinoConfigurationPath = "";
+            return false;
+        }
+
+        this.projectFullPath = workspaceFolders[0].uri.fsPath;
+        return true;
+    }
+
     public isUploadReady(): UPLOAD_READY_STATUS {
         if (arduinoYaml.status() !== PROFILES_STATUS.ACTIVE && this.configJson.port.trim().length == 0) {
             return UPLOAD_READY_STATUS.NO_PORT;
@@ -153,7 +164,7 @@ export class ArduinoProject {
         return this.arduinoConfigurationPath;
     }
     public readConfiguration(): boolean {
-        if (!this.projectFullPath) {
+        if (!this.updateProjectPathFromWorkspace()) {
             return false;
         }
 
@@ -202,6 +213,13 @@ export class ArduinoProject {
     }
 
     public isFolderArduinoProject(): ARDUINO_ERRORS {
+        delete this.projectStatus.folderName;
+        delete this.projectStatus.sketchName;
+
+        if (!this.updateProjectPathFromWorkspace()) {
+            return ARDUINO_ERRORS.NO_WORKSPACE;
+        }
+
         let error: ARDUINO_ERRORS = ARDUINO_ERRORS.NO_INO_FILES;
 
         const folderName = path.basename(this.getProjectPath());

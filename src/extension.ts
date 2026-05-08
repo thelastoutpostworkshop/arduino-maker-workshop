@@ -489,10 +489,15 @@ export function loadArduinoConfiguration(): boolean {
 			case ARDUINO_ERRORS.WRONG_FOLDER_NAME:
 				message = "Folder and sketch name mismatch";
 				break;
+			case ARDUINO_ERRORS.NO_WORKSPACE:
+				message = "Open a folder before using Arduino Maker Workshop";
+				break;
 			default:
 				break;
 		}
-		window.showErrorMessage(message);
+		if (message) {
+			window.showErrorMessage(message);
+		}
 		return false;
 	} else {
 		if (!arduinoProject.readConfiguration()) {

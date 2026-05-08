@@ -294,6 +294,22 @@ onMounted(() => {
             window for more information
           </v-alert>
           <v-alert
+            v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_WORKSPACE"
+            type="warning"
+            variant="tonal"
+            class="mb-4"
+            data-testid="no-workspace-alert"
+          >
+            <v-alert-title>No workspace folder open</v-alert-title>
+            Open a folder before using Arduino Maker Workshop. Compile, upload, board selection, and sketch setup need a
+            VS Code workspace folder.
+            <template #append>
+              <v-btn @click="openWorkspaceFolder">
+                Open Folder
+              </v-btn>
+            </template>
+          </v-alert>
+          <v-alert
             v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_INO_FILES"
             type="info"
             variant="tonal"

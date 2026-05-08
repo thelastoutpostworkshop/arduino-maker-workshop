@@ -310,7 +310,7 @@ export class VueWebviewPanel {
                         this.openFileAtLocation(message.payload);
                         break;
                     case ARDUINO_MESSAGES.OPEN_WORKSPACE_FOLDER:
-                        commands.executeCommand('vscode.openFolder', undefined, { forceNewWindow: false });
+                        this.openWorkspaceFolder();
                         break;
                     case ARDUINO_MESSAGES.INSTALL_ZIP_LIBRARY:
                         arduinoCLI.installZipLibrary(message.payload).then(() => {
@@ -1069,6 +1069,19 @@ export class VueWebviewPanel {
             editor.revealRange(new Range(position, position));
         } catch (error) {
             window.showErrorMessage(`Failed to open file: ${payload.file}`);
+        }
+    }
+
+    private async openWorkspaceFolder() {
+        const folderUris = await window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            openLabel: "Open Folder"
+        });
+
+        if (folderUris && folderUris.length > 0) {
+            commands.executeCommand('vscode.openFolder', folderUris[0], { forceNewWindow: false });
         }
     }
 

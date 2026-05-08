@@ -134,7 +134,8 @@ export enum ARDUINO_ERRORS {
   WRONG_FOLDER_NAME,
   CLI_NOT_WORKING,
   CONFIG_FILE_PROBLEM,
-  INTERNAL
+  INTERNAL,
+  NO_WORKSPACE
 }
 
 export interface ArduinoProjectStatus {
