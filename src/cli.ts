@@ -1016,34 +1016,65 @@ export class ArduinoCLI {
 			arduinoExtensionChannel.appendLine('IntelliSense: compile_commands.json not found');
 		}
 
-		// Search for defines in the compiled output
 		const defines = new Set<string>(); // Use a Set to ensure uniqueness
-		let match;
-		const defineRegex = /-D([^\s]+)/g;
-		while ((match = defineRegex.exec(output)) !== null) {
-			defines.add(match[1]);
-		}
+		this.addDefinesFromArgs(this.tokenizeCommand(output), defines);
+		this.addDefinesFromArgs(compilerArgs, defines);
+		this.addActiveProfileBuildPropertyDefines(defines);
 		defines.add("USBCON");
 
 		const arduinoHeaderPath = this.findArduinoHeaderRecursively(Array.from(includePathsForArduinoSearch));
 
-		// Create c_cpp_properties.json 
-		const cppProperties = {
-			configurations: [{
-				name: "Arduino",
-				includePath: Array.from(includePathsForIntelissense),
-				forcedInclude: arduinoHeaderPath ? [arduinoHeaderPath] : [], // Add arduinoHeaderPath if it exists
-				compilerPath: compilerPath,
-				compilerArgs: compilerArgs,
-				defines: Array.from(defines),
-				cStandard: "c17",
-				cppStandard: "c++17"
-			}],
-			version: 4
+		const arduinoConfiguration = {
+			name: "Arduino",
+			includePath: Array.from(includePathsForIntelissense),
+			forcedInclude: arduinoHeaderPath ? [arduinoHeaderPath] : [], // Add arduinoHeaderPath if it exists
+			compilerPath: compilerPath,
+			compilerArgs: compilerArgs,
+			defines: Array.from(defines),
+			cStandard: "c17",
+			cppStandard: "c++17"
 		};
+
 		// Write to c_cpp_properties.json
 		const cppPropertiesPath = path.join(arduinoProject.getProjectPath(), VSCODE_FOLDER, CPP_PROPERTIES);
+		const cppProperties = this.mergeCppProperties(cppPropertiesPath, arduinoConfiguration);
 		fs.writeFileSync(cppPropertiesPath, JSON.stringify(cppProperties, null, 2));
+	}
+
+	private mergeCppProperties(cppPropertiesPath: string, arduinoConfiguration: Record<string, any>): Record<string, any> {
+		let existingProperties: Record<string, any> = {};
+		if (fs.existsSync(cppPropertiesPath)) {
+			try {
+				const parsed = JSON.parse(fs.readFileSync(cppPropertiesPath, 'utf8'));
+				if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+					existingProperties = parsed;
+				}
+			} catch (error) {
+				arduinoExtensionChannel.appendLine(`IntelliSense: failed to parse existing ${CPP_PROPERTIES}; regenerating Arduino configuration only.`);
+			}
+		}
+
+		const existingConfigurations = Array.isArray(existingProperties.configurations)
+			? existingProperties.configurations.filter((configuration: any) => configuration && typeof configuration === 'object')
+			: [];
+		let replacedArduinoConfiguration = false;
+		const configurations = existingConfigurations.map((configuration: any) => {
+			if (configuration.name === arduinoConfiguration.name) {
+				replacedArduinoConfiguration = true;
+				return arduinoConfiguration;
+			}
+			return configuration;
+		});
+
+		if (!replacedArduinoConfiguration) {
+			configurations.unshift(arduinoConfiguration);
+		}
+
+		return {
+			...existingProperties,
+			configurations,
+			version: existingProperties.version ?? 4
+		};
 	}
 
 	private parseIncludesCache(includeDataRaw: string): any[] {
@@ -1128,6 +1159,48 @@ export class ArduinoCLI {
 				this.addIncludePath(potentialPath, includePathsForIntelissense, includePathsForArduinoSearch, baseDir);
 			}
 		}
+	}
+
+	private addDefinesFromArgs(args: string[], defines: Set<string>) {
+		for (let i = 0; i < args.length; i++) {
+			const arg = args[i];
+			if (!arg) {
+				continue;
+			}
+			if (arg === "-D") {
+				const nextArg = args[i + 1];
+				if (nextArg) {
+					this.addDefine(nextArg, defines);
+					i++;
+				}
+				continue;
+			}
+			if (arg.startsWith("-D") && arg.length > 2) {
+				this.addDefine(arg.slice(2), defines);
+			}
+		}
+	}
+
+	private addDefine(rawDefine: string, defines: Set<string>) {
+		const define = rawDefine.trim().replace(/^["']|["']$/g, '');
+		if (define.length > 0) {
+			defines.add(define);
+		}
+	}
+
+	private addActiveProfileBuildPropertyDefines(defines: Set<string>) {
+		if (arduinoYaml.status() !== PROFILES_STATUS.ACTIVE) {
+			return;
+		}
+
+		const buildProperties = arduinoYaml.getProfileBuildProperties(arduinoYaml.getProfileName());
+		buildProperties.forEach((buildProperty) => {
+			const separatorIndex = buildProperty.indexOf('=');
+			const propertyValue = separatorIndex >= 0
+				? buildProperty.slice(separatorIndex + 1)
+				: buildProperty;
+			this.addDefinesFromArgs(this.tokenizeCommand(propertyValue), defines);
+		});
 	}
 
 	private tokenizeCommand(command: string): string[] {

@@ -210,6 +210,41 @@ export class SketchProfileManager {
         }
     }
 
+    updateProfileBuildProperties(propertiesUpdate: BuildProfileUpdate): boolean {
+        this.clearError();
+
+        const yamlData = this.getYaml();
+        if (!yamlData || !yamlData.profiles) {
+            this.setLastError(`Cannot update build properties, no YAML data or profiles found`);
+            return false;
+        }
+
+        const profile = yamlData.profiles[propertiesUpdate.profile_name];
+        if (!profile) {
+            this.setLastError(`Cannot update build properties, profile "${propertiesUpdate.profile_name}" not found.`);
+            return false;
+        }
+
+        if (propertiesUpdate.build_properties === undefined) {
+            this.setLastError(`No build properties update found`);
+            return false;
+        }
+
+        const buildProperties = propertiesUpdate.build_properties
+            .map((property) => property.trim())
+            .filter((property) => property.length > 0);
+
+        if (buildProperties.length > 0) {
+            profile.build_properties = buildProperties;
+        } else {
+            delete profile.build_properties;
+        }
+
+        yamlData.profiles[propertiesUpdate.profile_name] = profile;
+        this.writeYaml(yamlData);
+        return true;
+    }
+
     getProfileMonitorPortSettings(profileName: string): {
         port: string;
         baudRate: number;
@@ -498,6 +533,11 @@ export class SketchProfileManager {
         return yamlData?.profiles[name];
     }
 
+    getProfileBuildProperties(profileName: string): string[] {
+        const profile = this.getProfile(profileName);
+        return profile?.build_properties ?? [];
+    }
+
     setDefaultProfile(profileName: string): void {
         const yamlData = this.getYaml();
         this.clearError();
@@ -756,6 +796,10 @@ export class SketchProfileManager {
             })).sort()
             : [];
 
+        const buildProperties = profile.build_properties
+            ? [...profile.build_properties].sort()
+            : [];
+
         const portConfig = includePort && profile.port_config
             ? Object.entries(profile.port_config)
                 .map(([key, value]) => `${key}:${value ?? ''}`)
@@ -770,6 +814,7 @@ export class SketchProfileManager {
             notes: profile.notes ?? '',
             libraries,
             platforms,
+            build_properties: buildProperties,
             port_config: portConfig,
         });
     }
@@ -806,6 +851,20 @@ export class SketchProfileManager {
                 if (profile.port && typeof profile.port !== 'string') {
                     this.setLastError(`YAML verification: profile "${name}" has an invalid "port" (must be a string).`);
                     return false;
+                }
+
+                if (profile.build_properties) {
+                    if (!Array.isArray(profile.build_properties)) {
+                        this.setLastError(`YAML verification: profile "${name}" has an invalid "build_properties" section (must be a list).`);
+                        return false;
+                    }
+
+                    for (const buildProperty of profile.build_properties) {
+                        if (typeof buildProperty !== 'string') {
+                            this.setLastError(`YAML verification: profile "${name}" has invalid entries in "build_properties" (values must be strings).`);
+                            return false;
+                        }
+                    }
                 }
 
                 // Validate port_config if present

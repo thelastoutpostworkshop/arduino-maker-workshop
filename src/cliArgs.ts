@@ -22,6 +22,7 @@ const verboseOptionArduino: string = '-v';
 const noColorOptionArduino: string = '--no-color';
 const fqbnOptionArduino: string = '--fqbn';
 const jopsOptionArduino: string = '--jobs';
+const buildPropertyOptionArduino: string = '--build-property';
 const uploadCommandArduino: string = 'upload';
 const portOptionArduino: string = '-p';
 const inputDirOptionArduino: string = '--input-dir';
@@ -293,6 +294,18 @@ export class CLIArguments {
             return path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput());
         }
     }
+
+    private appendProfileBuildProperties(command: string[], profileName: string) {
+        const buildProperties = arduinoYaml.getProfileBuildProperties(profileName);
+        buildProperties.forEach((buildProperty) => {
+            const property = buildProperty.trim();
+            if (property.length > 0) {
+                command.push(buildPropertyOptionArduino);
+                command.push(property);
+            }
+        });
+    }
+
     public getUploadArguments(): string[] {
         if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
             // Upload using a profile
@@ -385,6 +398,8 @@ export class CLIArguments {
             if (arduinoProject.optimizeForDebug()) {
                 compileCommand.push(`${optimizeForDebugOption}`);
             }
+            const resolvedProfileName = arduinoYaml.getProfileName();
+            this.appendProfileBuildProperties(compileCommand, resolvedProfileName);
             compileCommand.push(`${jopsOptionArduino}`);
             compileCommand.push("0");
             compileCommand.push(`${buildPathArduino}`);

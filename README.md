@@ -46,6 +46,23 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 
 ![new sketch](.readme/profiles_manager.gif)
 
+Build profiles can define Arduino CLI build properties. Each entry is passed to `arduino-cli compile` as a `--build-property` argument.
+
+Example:
+
+```yaml
+profiles:
+  sensor-node:
+    fqbn: esp32:esp32:esp32
+    build_properties:
+      - build.extra_flags=-DNODE_SENSOR
+      - compiler.cpp.extra_flags=-DDEBUG_NODE
+```
+
+This is useful for compiling variants of the same sketch with different `#define` values. The extension also adds these defines to the generated C/C++ IntelliSense configuration.
+
+Only build properties are supported in profiles. Pre-build and post-build commands are not currently supported.
+
 ### Arduino Code Snippets
 
 [Documentation](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/blob/main/Arduino_Snippets_Documentation.md)
@@ -89,6 +106,7 @@ If the Library Manager or Boards Manager does not refresh after installing cores
 IntelliSense data (`c_cpp_properties.json`) is generated after each successful compile.  
 For a new project, IntelliSense mark almost everything as "undefined" until you make your first good compile.
 IntelliSense is generated based on the arduino-cli build outputs.
+If you add custom C/C++ configurations, the extension preserves them and only updates the generated `Arduino` configuration.
 
 ## Troubleshooting
 

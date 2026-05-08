@@ -19,6 +19,7 @@ const selectedProgrammer = ref<Record<string, string>>({});
 const selectedDefaultProfile = ref<string | null>(null);
 const newProfileName = ref<Record<string, string>>({});
 const editProfileName = ref<Record<string, boolean>>({});
+const profileBuildPropertiesText = ref<Record<string, string>>({});
 const addLibrariesFlag = ref<Record<string, boolean>>({});
 const editingNotes = ref<string | null>(null);
 const showBoardConfiguration = ref<Record<string, boolean>>({});
@@ -417,6 +418,32 @@ function updatePlatformVersion(profileName: string, platformEntry: string, versi
         payload: updates
     });
 }
+
+function buildPropertiesToText(buildProperties: string[] | undefined): string {
+    return (buildProperties ?? []).join('\n');
+}
+
+function parseBuildPropertiesText(value: string): string[] {
+    return value
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+}
+
+function updateProfileBuildProperties(profileName: string) {
+    const buildProperties = parseBuildPropertiesText(profileBuildPropertiesText.value[profileName] ?? '');
+    const updates: BuildProfileUpdate = {
+        profile_name: profileName,
+        build_properties: buildProperties,
+    };
+
+    store.sendMessage({
+        command: ARDUINO_MESSAGES.UPDATE_BUILD_PROFILE_BUILD_PROPERTIES,
+        errorMessage: '',
+        payload: updates,
+    });
+}
+
 const profilesList = computed(() => {
     if (!store.sketchProject?.yaml?.profiles) return [];
 
@@ -444,6 +471,9 @@ const profilesList = computed(() => {
             if (resolvedPort && profileMonitorSettings.value[name].port === data.port && resolvedPort !== data.port) {
                 profileMonitorSettings.value[name].port = resolvedPort;
             }
+        }
+        if (!(name in profileBuildPropertiesText.value)) {
+            profileBuildPropertiesText.value[name] = buildPropertiesToText(data.build_properties);
         }
         return {
             originalName: name, // keep original for renaming
@@ -714,6 +744,13 @@ onMounted(() => {
                                     </v-card-subtitle>
 
                                     <v-card-text>
+                                        <div class="mb-4">
+                                            <strong>Build Properties:</strong>
+                                            <v-textarea v-model="profileBuildPropertiesText[profile.name]"
+                                                label="Build properties, one per line" variant="outlined"
+                                                density="compact" rows="2" auto-grow clearable
+                                                @blur="updateProfileBuildProperties(profile.name)" />
+                                        </div>
                                         <span v-if="profile.platforms?.length" class="mt-4">
                                             <strong>Platforms:</strong>
                                             <v-list density="compact" variant="tonal">

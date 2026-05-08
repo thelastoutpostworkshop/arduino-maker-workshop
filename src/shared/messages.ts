@@ -468,6 +468,7 @@ export interface BuildProfile {
   programmer?: string;
   platforms?: PlatformDependencyProfile[];
   libraries?: ProfileLibraryEntry[];          
+  build_properties?: string[];
   port?: string;
   port_config?: Record<string, string>;
   protocol?: string;
@@ -484,6 +485,7 @@ export interface BuildProfileUpdate {
   fqbn?: string;
   platforms?: PlatformDependencyProfile[];
   libraries?: ProfileLibraryEntry[];          
+  build_properties?: string[];
   notes?: string;
   port_settings?: PortSettings;
   programmer?: string;
@@ -535,6 +537,7 @@ export const ARDUINO_MESSAGES = {
   UPDATE_BUILD_PROFILES: 'updateBuildProfiles',
   UPDATE_BUILD_PROFILE_LIBRARIES: 'updateBuildProfileLibraries',
   UPDATE_BUILD_PROFILE_PLATFORMS: 'updateBuildProfilePlatforms',
+  UPDATE_BUILD_PROFILE_BUILD_PROPERTIES: 'updateBuildProfileBuildProperties',
   UPDATE_BUILD_PROFILE_NOTES: 'updateBuildProfileNotes',
   UPDATE_BUILD_PROFILE_FQBN: 'updateBuildProfileFQBN',
   UPDATE_BUILD_PROFILE_PROGRAMMER: 'updateBuildProfileProgrammer',
