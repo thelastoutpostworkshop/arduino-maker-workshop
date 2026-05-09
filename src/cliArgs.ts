@@ -11,6 +11,7 @@ const removeOption: string = 'remove';
 const addOption: string = 'add';
 const initOption: string = 'init';
 const setOption: string = 'set';
+const deleteOption: string = 'delete';
 const getOption: string = 'get';
 const compileCommandArduino: string = 'compile';
 const compileCleanOption: string = '--clean';
@@ -53,6 +54,7 @@ const configDirDataSetting: string = 'directories.data';
 const configDirDownloadSetting: string = 'directories.downloads';
 const configDirUserSetting: string = 'directories.user';
 const configLibrarySetting: string = 'library.enable_unsafe_install';
+const configNetworkConnectionTimeoutSetting: string = 'network.connection_timeout';
 
 export class CLIArguments {
     public getVerboseOption(): boolean {
@@ -65,6 +67,23 @@ export class CLIArguments {
             `${setOption}`,
             `${configLibrarySetting}`,
             `${enable}`,
+        ];
+        return command;
+    }
+    public getConfigSetNetworkConnectionTimeout(timeout: string): string[] {
+        const command = [
+            `${configCommandArduino}`,
+            `${setOption}`,
+            `${configNetworkConnectionTimeoutSetting}`,
+            `${timeout}`,
+        ];
+        return command;
+    }
+    public getConfigDeleteNetworkConnectionTimeout(): string[] {
+        const command = [
+            `${configCommandArduino}`,
+            `${deleteOption}`,
+            `${configNetworkConnectionTimeoutSetting}`,
         ];
         return command;
     }

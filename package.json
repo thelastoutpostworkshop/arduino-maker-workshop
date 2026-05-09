@@ -138,6 +138,18 @@
           "default": "",
           "description": "File system path to the equivalent of the Arduino IDE's 'sketchbook' directory. Library Manager installations are made to the libraries subdirectory of the user director."
         },
+        "arduinoMakerWorkshop.arduinoCLI.networkConnectionTimeoutEnabled": {
+          "type": "boolean",
+          "scope": "machine",
+          "default": false,
+          "description": "Enable the Arduino CLI network connection timeout override. Leave disabled to use the Arduino CLI default."
+        },
+        "arduinoMakerWorkshop.arduinoCLI.networkConnectionTimeoutValue": {
+          "type": "string",
+          "scope": "machine",
+          "default": "600s",
+          "description": "Network connection timeout to write to Arduino CLI when the override is enabled. Use Go duration syntax such as 600s, 10m, or 1h."
+        },
         "arduinoMakerWorkshop.disableAutoPortDetection": {
           "type": "boolean",
           "default": false,

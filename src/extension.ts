@@ -234,6 +234,12 @@ export async function activate(context: ExtensionContext) {
 					if (event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.userDirectory')) {
 						changeUserDirectory();
 					}
+					if (
+						event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.networkConnectionTimeoutEnabled') ||
+						event.affectsConfiguration('arduinoMakerWorkshop.arduinoCLI.networkConnectionTimeoutValue')
+					) {
+						await arduinoCLI.syncNetworkConnectionTimeoutSetting();
+					}
 				}, 500); // Debounce delay (500ms here)
 			});
 

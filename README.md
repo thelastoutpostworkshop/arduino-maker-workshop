@@ -38,6 +38,7 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 * You can change the Arduino CLI used (*not recommended*) instead of using the built-in Arduino CLI (*recommended*)
 * You can disable automatic port detection on Windows
 * You can disable automatic board/library update checks (useful for offline usage)
+* You can opt in to an Arduino CLI network connection timeout override for slow board/tool downloads
 * You can enable or disable verbose compilation (default is verbose)
 
 ## Features
@@ -118,6 +119,17 @@ If you get this error message:
 > No workspace available, open a workspace by using the File > Open Folder... menu, and then selecting a folder
 
 It means you must open a workspace in Visual Studio Code, see the [official documentation](https://code.visualstudio.com/docs/editor/workspaces).
+
+### Slow Board Or Tool Downloads
+
+Arduino CLI's default network inactivity timeout is 60 seconds. Large platform downloads, such as ESP32 tools, can fail on slow connections with errors like `context deadline exceeded` or `Client.Timeout`.
+
+To let Arduino Maker Workshop set a longer Arduino CLI timeout, enable:
+
+- `arduinoMakerWorkshop.arduinoCLI.networkConnectionTimeoutEnabled`
+- `arduinoMakerWorkshop.arduinoCLI.networkConnectionTimeoutValue` (default: `600s`)
+
+When the override is disabled, the extension leaves Arduino CLI's timeout at its default. If the extension previously applied the override, disabling it removes `network.connection_timeout` from the Arduino CLI config.
 
 ## Contributors
 

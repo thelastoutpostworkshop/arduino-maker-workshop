@@ -17,6 +17,7 @@ const fs = require('fs');
 
 const BOARD_CACHE_TTL = 60 // 1 hour
 const LIBRARY_INDEX_TTL = 30 // 30 minutes
+const NETWORK_TIMEOUT_OVERRIDE_STATE_KEY = 'arduinoMakerWorkshop.networkConnectionTimeoutOverrideApplied';
 
 enum CacheState {
 	YES,
@@ -106,6 +107,7 @@ export class ArduinoCLI {
 			this._lastCLIError = "Problem with the Arduino Config file";
 			return false;
 		}
+		await this.syncNetworkConnectionTimeoutSetting();
 		return true;
 	}
 
@@ -201,6 +203,55 @@ export class ArduinoCLI {
 			"CLI: Failed to set user directory setting", { caching: CacheState.NO, ttl: 0 },
 			false, false
 		);
+	}
+
+	public async setConfigNetworkConnectionTimeout(timeout: string): Promise<string> {
+		// Invalidate cache
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getConfigDumpArgs()));
+
+		return this.runArduinoCommand(
+			() => this.cliArgs.getConfigSetNetworkConnectionTimeout(timeout),
+			"CLI: Failed to set network connection timeout setting", { caching: CacheState.NO, ttl: 0 },
+			false, false
+		);
+	}
+
+	public async deleteConfigNetworkConnectionTimeout(): Promise<string> {
+		// Invalidate cache
+		this.cliCache.delete(this.cliCache.getCacheKeyFromArguments(this.cliArgs.getConfigDumpArgs()));
+
+		return this.runArduinoCommand(
+			() => this.cliArgs.getConfigDeleteNetworkConnectionTimeout(),
+			"CLI: Failed to delete network connection timeout setting", { caching: CacheState.NO, ttl: 0 },
+			false, false
+		);
+	}
+
+	public async syncNetworkConnectionTimeoutSetting(): Promise<void> {
+		const extConfig = workspace.getConfiguration('arduinoMakerWorkshop.arduinoCLI');
+		const enabled = extConfig.get<boolean>('networkConnectionTimeoutEnabled', false);
+		const timeout = (extConfig.get<string>('networkConnectionTimeoutValue', '600s') || '600s').trim() || '600s';
+
+		try {
+			if (enabled) {
+				await this.setConfigNetworkConnectionTimeout(timeout);
+				await this.context.globalState.update(NETWORK_TIMEOUT_OVERRIDE_STATE_KEY, true);
+				arduinoExtensionChannel.appendLine(`Arduino CLI network connection timeout override set to ${timeout}`);
+				return;
+			}
+
+			const overrideApplied = this.context.globalState.get<boolean>(NETWORK_TIMEOUT_OVERRIDE_STATE_KEY, false);
+			if (overrideApplied) {
+				await this.deleteConfigNetworkConnectionTimeout();
+				await this.context.globalState.update(NETWORK_TIMEOUT_OVERRIDE_STATE_KEY, false);
+				arduinoExtensionChannel.appendLine("Arduino CLI network connection timeout override removed; using Arduino CLI default.");
+			}
+		} catch (error: any) {
+			const action = enabled ? `set to ${timeout}` : "remove";
+			const message = `Failed to ${action} Arduino CLI network connection timeout override.`;
+			arduinoExtensionChannel.appendLine(`${message} ${error?.message ?? error ?? ""}`.trim());
+			window.showErrorMessage(message);
+		}
 	}
 
 	// Set the equivalent of the Arduino IDE's "sketchbook" directory. Library Manager installations are made to the libraries subdirectory of the user director

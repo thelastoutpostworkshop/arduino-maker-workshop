@@ -8,6 +8,7 @@ All notable changes to the Arduino Maker Workshop extension will be documented i
 - Added Sketchbook folder controls to Library Manager so users can choose where Arduino libraries are installed ([issue #112](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/112))
 - Preserved user C/C++ configurations when regenerating IntelliSense settings and added build profile build properties ([issue #109](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/109))
 - Added an OTA password prompt for network uploads that require one ([issue #110](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/110))
+- Added an opt-in Arduino CLI network connection timeout override for slow board/tool downloads ([issue #94](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/94))
 
 ## Version 1.1.4
 - Added a setting to disable automatic board/library update checks for offline usage ([issue #108](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/108))
