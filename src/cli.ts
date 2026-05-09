@@ -1062,6 +1062,10 @@ export class ArduinoCLI {
 	}
 
 	private redactSensitiveText(text: string, sensitiveValues: string[]): string {
+		if (sensitiveValues.length === 0) {
+			return text;
+		}
+
 		let redacted = text;
 		for (const value of sensitiveValues) {
 			redacted = redacted.replace(new RegExp(this.escapeRegExp(value), 'g'), '<redacted>');

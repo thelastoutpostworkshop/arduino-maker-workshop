@@ -66,20 +66,20 @@ export class VueWebviewPanel {
 
                     case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
                         arduinoCLI.getBoardConfiguration().then((result) => {
-                            message.payload = result;
+                            message.payload = this.getBoardConfigurationPayload(result);
+                            message.errorMessage = "";
                             VueWebviewPanel.sendMessage(message);
-                        }).catch(() => {
-                            // Board info is wrong or not installed
-                            arduinoProject.setBoard("");
-                            arduinoProject.setConfiguration("");
-                            arduinoProject.setPort("");
+                        }).catch((error) => {
+                            const errorText = error instanceof Error ? error.message : `${error}`;
+                            arduinoExtensionChannel.appendLine(`Failed to load board configuration: ${errorText}`);
                             message.payload = "";
+                            message.errorMessage = "Board not installed or board configuration unavailable";
                             VueWebviewPanel.sendMessage(message);
                         });
                         break;
                     case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS_PROFILE:
                         arduinoCLI.getProfileBoardConfiguration(message.payload).then((result) => {
-                            message.payload = result;
+                            message.payload = this.getBoardConfigurationPayload(result);
                             VueWebviewPanel.sendMessage(message);
                         }).catch(() => {
                             message.payload = "";
@@ -108,10 +108,25 @@ export class VueWebviewPanel {
                         arduinoProject.resetBoardConfiguration();
                         arduinoExtensionChannel.appendLine(`Current Board Configuration: ${arduinoProject.getBoardConfiguration()}`);
                         updateStateCompileUpload();
+                        VueWebviewPanel.sendMessage({
+                            command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO,
+                            errorMessage: "",
+                            payload: arduinoProject.getArduinoConfiguration()
+                        });
                         arduinoCLI.getBoardConfiguration().then((result) => {
-                            message.command = ARDUINO_MESSAGES.CLI_BOARD_OPTIONS;
-                            message.payload = result;
-                            VueWebviewPanel.sendMessage(message);
+                            VueWebviewPanel.sendMessage({
+                                command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS,
+                                errorMessage: "",
+                                payload: this.getBoardConfigurationPayload(result)
+                            });
+                        }).catch((error) => {
+                            const errorText = error instanceof Error ? error.message : `${error}`;
+                            arduinoExtensionChannel.appendLine(`Failed to load board configuration after board selection: ${errorText}`);
+                            VueWebviewPanel.sendMessage({
+                                command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS,
+                                errorMessage: "Board not installed or board configuration unavailable",
+                                payload: ""
+                            });
                         });
                         break;
                     case ARDUINO_MESSAGES.SET_PORT:
@@ -399,6 +414,29 @@ export class VueWebviewPanel {
             errorMessage: "",
             payload: ""
         };
+    }
+
+    private getBoardConfigurationPayload(result: string): string {
+        try {
+            const details = JSON.parse(result);
+            const payload: any = {
+                fqbn: details?.fqbn ?? "",
+                name: details?.name ?? "",
+                version: details?.version ?? "",
+            };
+
+            if (Array.isArray(details?.config_options)) {
+                payload.config_options = details.config_options;
+            }
+            if (Array.isArray(details?.programmers)) {
+                payload.programmers = details.programmers;
+            }
+
+            return JSON.stringify(payload);
+        } catch (error) {
+            arduinoExtensionChannel.appendLine(`Failed to compact board configuration payload: ${error}`);
+            return result;
+        }
     }
 
     private getPartitionBuilderUrl(): { url: string; error?: string } {

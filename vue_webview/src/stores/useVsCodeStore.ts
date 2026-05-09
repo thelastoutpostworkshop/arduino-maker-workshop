@@ -324,11 +324,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                     const nextCompileProfile = this.projectInfo?.compile_profile ?? "";
                     if (previousBoard !== nextBoard) {
                         this.boardExamplesBoard = nextBoard;
+                        this.boardOptions = null;
                     }
                     if (previousBoard !== nextBoard || previousCompileProfile !== nextCompileProfile) {
                         this.refreshBoardExamples();
                     }
-                    if (this.projectInfo?.board) {
+                    const boardOptionsMatchProject = this.boardOptions?.fqbn === this.projectInfo?.board && !!this.boardOptions?.name;
+                    if (this.projectInfo?.board && !boardOptionsMatchProject) {
                         this.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_OPTIONS, errorMessage: "", payload: this.projectInfo.board });
                     }
                     break;
@@ -365,6 +367,11 @@ export const useVsCodeStore = defineStore('vsCode', {
                     }
                     break;
                 case ARDUINO_MESSAGES.CLI_BOARD_OPTIONS:
+                    if (message.errorMessage) {
+                        this.boardOptions = null;
+                        console.log(message.errorMessage);
+                        break;
+                    }
                     try {
                         this.boardOptions = JSON.parse(message.payload);
                         if (this.boardOptions?.config_options) {
@@ -391,7 +398,6 @@ export const useVsCodeStore = defineStore('vsCode', {
                         }
                     } catch (error) {
                         this.boardOptions = null;
-                        this.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO, errorMessage: "", payload: "" });
                         console.log("Failed to parse Board Configuration information.");
                     }
                     break;
