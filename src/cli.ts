@@ -506,6 +506,7 @@ export class ArduinoCLI {
 			await compileOutputView?.prepare(uploadTitle.trim(), false);
 			compileOutputView?.setStatus('info', 'Starting upload...');
 			compileOutputView?.appendInfo('Upload starting...\n');
+			const uploadFields = await this.getUploadFieldsForUpload(useBuildProfile);
 
 			await window.withProgress(
 				{
@@ -524,7 +525,7 @@ export class ArduinoCLI {
 					});
 
 					await arduinoCLI.runArduinoCommand(
-						() => this.cliArgs.getUploadArguments(),
+						() => this.cliArgs.getUploadArguments(uploadFields),
 						errorMsg,
 						{ caching: CacheState.NO, ttl: 0 },
 						false,
@@ -575,6 +576,113 @@ export class ArduinoCLI {
 			}
 		}
 		this.compileOrUploadRunning = false;
+	}
+
+	private async getUploadFieldsForUpload(useBuildProfile: boolean): Promise<string[]> {
+		const passwordLabel = await this.getUploadPasswordLabel(useBuildProfile);
+		if (!passwordLabel) {
+			return [];
+		}
+
+		const password = await window.showInputBox({
+			title: "OTA Password",
+			prompt: "Enter the password for OTA upload.",
+			placeHolder: passwordLabel,
+			password: true,
+			ignoreFocusOut: true,
+		});
+
+		if (password === undefined) {
+			throw new Error("Upload cancelled by user.");
+		}
+
+		return [`password=${password}`];
+	}
+
+	private async getUploadPasswordLabel(useBuildProfile: boolean): Promise<string | undefined> {
+		if (!await this.isNetworkUploadPort(useBuildProfile)) {
+			return undefined;
+		}
+
+		const buildProperties = await this.getActiveBoardBuildProperties(useBuildProfile);
+		const passwordProperty = buildProperties.find((property) =>
+			/\.upload\.field\.password=/.test(property) &&
+			!/\.upload\.field\.password\.secret=/.test(property)
+		);
+
+		if (!passwordProperty) {
+			return undefined;
+		}
+
+		const label = passwordProperty.substring(passwordProperty.indexOf('=') + 1).trim();
+		return label || "Password";
+	}
+
+	private async isNetworkUploadPort(useBuildProfile: boolean): Promise<boolean> {
+		const uploadPort = useBuildProfile
+			? arduinoYaml.getProfilePort(arduinoYaml.getProfileName())
+			: arduinoProject.getPort();
+		if (!uploadPort) {
+			return false;
+		}
+
+		if (this.isSerialPortName(uploadPort)) {
+			return false;
+		}
+
+		try {
+			const boardList = JSON.parse(await this.getBoardConnected());
+			const detectedPorts = Array.isArray(boardList?.detected_ports) ? boardList.detected_ports : [];
+			const detectedPort = detectedPorts.find((entry: any) => {
+				const port = entry?.port ?? {};
+				return port.address === uploadPort || port.label === uploadPort;
+			});
+			const protocol = detectedPort?.port?.protocol;
+			if (protocol) {
+				return protocol !== "serial";
+			}
+		} catch (error) {
+			arduinoExtensionChannel.appendLine(`OTA password: failed to inspect board list, falling back to port name: ${error}`);
+		}
+
+		return true;
+	}
+
+	private isSerialPortName(port: string): boolean {
+		const normalizedPort = port.trim();
+		return /\bCOM\d+\b/i.test(normalizedPort)
+			|| /\/dev\/(tty|cu)\./.test(normalizedPort)
+			|| /\/dev\/tty/.test(normalizedPort)
+			|| /\/dev\/cu/.test(normalizedPort)
+			|| /\/dev\/serial/.test(normalizedPort);
+	}
+
+	private async getActiveBoardBuildProperties(useBuildProfile: boolean): Promise<string[]> {
+		try {
+			if (useBuildProfile) {
+				const fqbn = arduinoYaml.getProfile(arduinoYaml.getProfileName())?.fqbn ?? "";
+				if (!fqbn) {
+					return [];
+				}
+
+				const result = await this.getProfileBoardConfiguration(fqbn);
+				const details = JSON.parse(result);
+				if (Array.isArray(details?.build_properties)) {
+					return details.build_properties;
+				}
+				return [];
+			}
+
+			const result = await this.getBoardConfiguration();
+			const details = JSON.parse(result);
+			if (Array.isArray(details?.build_properties)) {
+				return details.build_properties;
+			}
+		} catch (error) {
+			arduinoExtensionChannel.appendLine(`OTA password: failed to inspect board upload fields: ${error}`);
+		}
+
+		return [];
 	}
 
 	public async installZipLibrary(buffer: ArrayBuffer) {
@@ -662,7 +770,7 @@ export class ArduinoCLI {
 			}
 			if (coloredOutputView) {
 				const cliExecutable = this.arduinoCLIPath || 'arduino-cli';
-				coloredOutputView.showCommand(cliExecutable, args);
+				coloredOutputView.showCommand(cliExecutable, this.redactSensitiveArgs(args, this.getSensitiveValues(args)));
 				coloredOutputView.setStatus('info', 'Running Arduino CLI...');
 			}
 			if (cache.caching == CacheState.YES) {
@@ -861,11 +969,13 @@ export class ArduinoCLI {
 		if (showOutput) {
 			channel.show(true);
 		}
+		const sensitiveValues = this.getSensitiveValues(args);
+		const displayArgs = this.redactSensitiveArgs(args, sensitiveValues);
 		this.arduinoCLIChannel.appendLine('Running Arduino CLI...');
 		this.arduinoCLIChannel.appendLine(`${command}`);
-		this.arduinoCLIChannel.appendLine(args.join(' '));
+		this.arduinoCLIChannel.appendLine(displayArgs.join(' '));
 		if (coloredOutputView) {
-			coloredOutputView.append(`$ ${command} ${args.join(' ')}\n`);
+			coloredOutputView.append(`$ ${command} ${displayArgs.join(' ')}\n`);
 		}
 
 		const child = cp.spawn(`${command}`, args);
@@ -875,7 +985,7 @@ export class ArduinoCLI {
 		return new Promise((resolve, reject) => {
 			// Stream stdout to the output channel and optionally to the buffer
 			child.stdout.on('data', (data: Buffer) => {
-				const output = data.toString();
+				const output = this.redactSensitiveText(data.toString(), sensitiveValues);
 				if (showOutput) {
 					channel.append(output);
 				}
@@ -888,7 +998,7 @@ export class ArduinoCLI {
 
 			// Stream stderr to the output channel and optionally to the buffer
 			child.stderr.on('data', (data: Buffer) => {
-				const error = data.toString();
+				const error = this.redactSensitiveText(data.toString(), sensitiveValues);
 				if (showOutput) {
 					channel.append(error);
 				}
@@ -931,6 +1041,40 @@ export class ArduinoCLI {
 			});
 			this.arduinoCLIChannel.appendLine('');
 		});
+	}
+
+	private getSensitiveValues(args: string[]): string[] {
+		const sensitiveValues: string[] = [];
+		for (let i = 0; i < args.length; i++) {
+			if (args[i] === "--upload-field") {
+				const uploadField = args[i + 1] ?? "";
+				const passwordMatch = uploadField.match(/^password=(.*)$/);
+				if (passwordMatch && passwordMatch[1]) {
+					sensitiveValues.push(passwordMatch[1]);
+				}
+			}
+		}
+		return sensitiveValues;
+	}
+
+	private redactSensitiveArgs(args: string[], sensitiveValues: string[]): string[] {
+		return args.map((arg) => this.redactSensitiveText(arg, sensitiveValues));
+	}
+
+	private redactSensitiveText(text: string, sensitiveValues: string[]): string {
+		let redacted = text;
+		for (const value of sensitiveValues) {
+			redacted = redacted.replace(new RegExp(this.escapeRegExp(value), 'g'), '<redacted>');
+		}
+		return redacted
+			.replace(/(password=)([^\s"']+)/g, '$1<redacted>')
+			.replace(/("--auth=)([^"]*)(")/g, '$1<redacted>$3')
+			.replace(/(--auth=)([^\s"']+)/g, '$1<redacted>')
+			.replace(/(--auth\s+)([^\s"']+)/g, '$1<redacted>');
+	}
+
+	private escapeRegExp(value: string): string {
+		return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 	}
 
 	private cancelExecution() {

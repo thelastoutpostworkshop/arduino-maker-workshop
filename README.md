@@ -82,6 +82,10 @@ Only build properties are supported in profiles. Pre-build and post-build comman
 
 ![board configuration](.readme/board_configuration.gif)
 
+### OTA Upload Passwords
+
+For OTA/network uploads that define an Arduino CLI password field, the extension prompts for the password at upload time with a masked VS Code input dialog. The password is passed to `arduino-cli` as an upload field and is not stored in `.vscode/arduino.json`.
+
 ### Boards Manager
 
 ![board manager](.readme/board_manager.gif)

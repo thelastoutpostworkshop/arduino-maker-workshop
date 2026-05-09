@@ -95,7 +95,7 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 	}
 
 	public showCommand(command: string, args: string[]): void {
-		const cmdLine = `${command} ${args.join(' ')}`.trim();
+		const cmdLine = this.redactSensitiveText(`${command} ${args.join(' ')}`.trim());
 		this.lastCommandText = cmdLine;
 		this.postMessage({
 			command: 'showCommand',
@@ -141,6 +141,14 @@ export class CliOutputView implements vscode.WebviewViewProvider, vscode.Disposa
 			this.view.webview.postMessage({ command: 'status', payload: this.lastStatusPayload });
 		}
 		this.pendingMessages = [];
+	}
+
+	private redactSensitiveText(text: string): string {
+		return text
+			.replace(/(password=)([^\s"']+)/g, '$1<redacted>')
+			.replace(/("--auth=)([^"]*)(")/g, '$1<redacted>$3')
+			.replace(/(--auth=)([^\s"']+)/g, '$1<redacted>')
+			.replace(/(--auth\s+)([^\s"']+)/g, '$1<redacted>');
 	}
 
 	private getHtml(): string {

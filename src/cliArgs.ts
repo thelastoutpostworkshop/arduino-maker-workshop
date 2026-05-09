@@ -45,6 +45,7 @@ const zipOption: string = '--zip-path';
 const programmerOption: string = '-P';
 const boardOptionsOptionArduino: string = '--board-options';
 const allOptionArduino: string = '--all';
+const uploadFieldOptionArduino: string = '--upload-field';
 
 // Config settings
 const configAdditionnalURLsetting: string = 'board_manager.additional_urls';
@@ -306,7 +307,14 @@ export class CLIArguments {
         });
     }
 
-    public getUploadArguments(): string[] {
+    private appendUploadFields(command: string[], uploadFields: string[]) {
+        uploadFields.forEach((uploadField) => {
+            command.push(uploadFieldOptionArduino);
+            command.push(uploadField);
+        });
+    }
+
+    public getUploadArguments(uploadFields: string[] = []): string[] {
         if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
             // Upload using a profile
             const command = [
@@ -323,6 +331,7 @@ export class CLIArguments {
             }
             command.push(verboseOptionArduino);
             command.push(noColorOptionArduino);
+            this.appendUploadFields(command, uploadFields);
             command.push(`${inputDirOptionArduino}`);
             command.push(this.getBuildPath());
             command.push(arduinoProject.getProjectPath());
@@ -348,6 +357,7 @@ export class CLIArguments {
             command.push(programmerOption);
             command.push(arduinoProject.getProgrammer());
         }
+        this.appendUploadFields(command, uploadFields);
         command.push(`${inputDirOptionArduino}`);
         command.push(this.getBuildPath());
         command.push(arduinoProject.getProjectPath());
