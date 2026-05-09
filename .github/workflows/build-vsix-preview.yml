@@ -3,15 +3,18 @@ name: Build VSIX (preview artifact)
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-vsix:
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: windows-latest
+          - os: windows-2025-vs2026
             target: win32-x64
-          - os: windows-latest
+          - os: windows-2025-vs2026
             target: win32-arm64
           - os: macos-latest
             target: darwin-x64
@@ -24,14 +27,14 @@ jobs:
 
     steps:
       - name: Checkout (main)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: main
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: "24"
           cache: "npm"
 
       - name: Install deps (root)
@@ -55,7 +58,7 @@ jobs:
           echo "file=$VSIX_FILE" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: vsix-main-${{ github.sha }}-${{ matrix.target }}
           path: ${{ steps.vsix.outputs.file }}
