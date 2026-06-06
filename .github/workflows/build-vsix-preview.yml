@@ -22,6 +22,8 @@ jobs:
             target: darwin-arm64
           - os: ubuntu-latest
             target: linux-x64
+          - os: ubuntu-latest
+            target: linux-arm64
 
     runs-on: ${{ matrix.os }}
 
