@@ -42,6 +42,24 @@ export class VueWebviewPanel {
                     case ARDUINO_MESSAGES.CLI_CREATE_NEW_SKETCH:
                         arduinoCLI.createNewSketch(message.payload);
                         break;
+                    case ARDUINO_MESSAGES.CLI_BURN_BOOTLOADER:
+                        if (arduinoCLI.compileOrUploadRunning) {
+                            void arduinoCLI.burnBootloader();
+                            break;
+                        }
+                        VueWebviewPanel.sendMessage({
+                            command: ARDUINO_MESSAGES.COMPILE_IN_PROGRESS,
+                            errorMessage: "",
+                            payload: "Burn bootloader in progress"
+                        });
+                        void arduinoCLI.burnBootloader().finally(() => {
+                            VueWebviewPanel.sendMessage({
+                                command: ARDUINO_MESSAGES.COMPILE_IN_PROGRESS,
+                                errorMessage: "",
+                                payload: ""
+                            });
+                        });
+                        break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                         const projectStatus = arduinoProject.getStatus();
                         if (projectStatus.status == ARDUINO_ERRORS.WRONG_FOLDER_NAME) {

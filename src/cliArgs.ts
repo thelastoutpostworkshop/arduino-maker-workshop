@@ -25,6 +25,7 @@ const fqbnOptionArduino: string = '--fqbn';
 const jopsOptionArduino: string = '--jobs';
 const buildPropertyOptionArduino: string = '--build-property';
 const uploadCommandArduino: string = 'upload';
+const burnBootloaderCommandArduino: string = 'burn-bootloader';
 const portOptionArduino: string = '-p';
 const inputDirOptionArduino: string = '--input-dir';
 const preprocessCompileOptionArduino: string = '--preprocess';
@@ -380,6 +381,34 @@ export class CLIArguments {
         command.push(`${inputDirOptionArduino}`);
         command.push(this.getBuildPath());
         command.push(arduinoProject.getProjectPath());
+        return command;
+    }
+
+    public getBurnBootloaderArguments(): string[] {
+        arduinoProject.readConfiguration();
+        const command = [
+            burnBootloaderCommandArduino,
+            verboseOptionArduino,
+            noColorOptionArduino,
+            fqbnOptionArduino,
+            arduinoProject.getBoard()
+        ];
+
+        const boardOptions = arduinoProject.getBoardConfiguration();
+        if (boardOptions) {
+            command.push(boardOptionsOptionArduino);
+            command.push(boardOptions);
+        }
+
+        command.push(programmerOption);
+        command.push(arduinoProject.getProgrammer());
+
+        const port = arduinoProject.getPort();
+        if (port) {
+            command.push(portOptionArduino);
+            command.push(port);
+        }
+
         return command;
     }
     public getCompileCommandArguments(jsonOutput: boolean = false, clean: boolean = false, configurationRequired: boolean, buildProfile = false): string[] {

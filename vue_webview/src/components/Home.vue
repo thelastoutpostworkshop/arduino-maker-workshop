@@ -20,6 +20,11 @@ const monitorPortSettings = ref({ port: "", baudRate: 115200, lineEnding: "\r\n"
 const selectedBuildProfile = ref("");
 const portsAvailable = computed(() => getAvailablePorts(store));
 const isProfileActive = computed(() => store.sketchProject?.buildProfileStatus === PROFILES_STATUS.ACTIVE);
+const canBurnBootloader = computed(() =>
+  !!store.projectInfo?.board &&
+  !!programmer.value?.id &&
+  store.compileInProgress === ''
+);
 
 // This is a macOS-specific thing. The upload port is on /dev/cu.* and the serial port is on /dev/tty.*
 const serialPortsAvailable = computed(() => getAvailablePorts(store).map((p: any) => {
@@ -72,6 +77,10 @@ function openWorkspaceFolder() {
 function refreshPorts() {
   store.boardConnected = null;
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
+}
+
+function burnBootloader() {
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BURN_BOOTLOADER, errorMessage: "", payload: "" });
 }
 
 function setPortSelected(value: string, syncToProject: boolean) {
@@ -431,16 +440,25 @@ onMounted(() => {
             <div v-if="store.boardOptions?.programmers">
               <v-row class="pt-3 ml-2">
                 <span>
-                  <v-checkbox v-model="useProgrammer" label="Use programmer">
+                  <v-checkbox v-model="useProgrammer" label="Use programmer for upload">
 
                   </v-checkbox>
 
                 </span>
                 <span class="pl-5">
-                  <v-select width="250" v-model="programmer" :disabled="!useProgrammer"
+                  <v-select width="250" v-model="programmer" label="Programmer"
                     :items="store.boardOptions.programmers" item-title="name" item-value="id" return-object>
 
                   </v-select>
+                </span>
+              </v-row>
+              <v-row class="ml-2 mb-2" align="center">
+                <v-btn data-testid="burn-bootloader" prepend-icon="mdi-download" :disabled="!canBurnBootloader"
+                  @click="burnBootloader">
+                  Burn Bootloader
+                </v-btn>
+                <span class="text-caption ml-3">
+                  Uses the selected board, board options, programmer, and port (when available).
                 </span>
               </v-row>
               <v-row class="ml-2">

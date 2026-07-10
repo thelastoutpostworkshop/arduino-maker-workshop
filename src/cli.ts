@@ -629,6 +629,90 @@ export class ArduinoCLI {
 		this.compileOrUploadRunning = false;
 	}
 
+	public async burnBootloader(): Promise<void> {
+		if (this.compileOrUploadRunning) {
+			window.showWarningMessage("Another Arduino CLI operation is already running.");
+			return;
+		}
+
+		arduinoProject.readConfiguration();
+		const board = arduinoProject.getBoard();
+		const programmer = arduinoProject.getProgrammer();
+		const port = arduinoProject.getPort();
+
+		if (!board) {
+			window.showErrorMessage("Select a board before burning the bootloader.");
+			return;
+		}
+		if (!programmer) {
+			window.showErrorMessage("Select a programmer before burning the bootloader.");
+			return;
+		}
+
+		const portDescription = port ? ` on ${port}` : "";
+		const confirmation = await window.showWarningMessage(
+			`Burn the bootloader for ${board} using ${programmer}${portDescription}?`,
+			{
+				modal: true,
+				detail: "This uses the bootloader and recipe supplied by the installed board package and may erase the existing sketch."
+			},
+			"Burn Bootloader"
+		);
+		if (confirmation !== "Burn Bootloader") {
+			return;
+		}
+
+		const title = `Burning bootloader using ${programmer}${portDescription}`;
+		let cancelled = false;
+		this.compileOrUploadRunning = true;
+
+		try {
+			await compileOutputView?.prepare(title, false);
+			compileOutputView?.setStatus('info', 'Starting bootloader burn...');
+			compileOutputView?.appendInfo('Burn bootloader starting...\n');
+
+			await window.withProgress(
+				{
+					location: ProgressLocation.Notification,
+					title,
+					cancellable: true,
+				},
+				async (_progress, token) => {
+					token.onCancellationRequested(() => {
+						cancelled = true;
+						this.cancelExecution();
+					});
+
+					await this.runArduinoCommand(
+						() => this.cliArgs.getBurnBootloaderArguments(),
+						"CLI: Failed to burn bootloader",
+						{ caching: CacheState.NO, ttl: 0 },
+						false,
+						compileOutputView ? false : true,
+						this.arduinoCLIChannel,
+						"Bootloader burned successfully.",
+						compileOutputView
+					);
+				}
+			);
+
+			compileOutputView?.setStatus('success', 'Bootloader burned successfully.');
+			compileOutputView?.appendInfo('Bootloader burned successfully.\n');
+		} catch (error) {
+			console.log(error);
+			if (cancelled) {
+				compileOutputView?.setStatus('canceled', 'Bootloader burn cancelled by user.');
+				compileOutputView?.appendInfo('Bootloader burn cancelled by user.\n');
+			} else {
+				compileOutputView?.setStatus('failure', 'Bootloader burn failed.');
+				compileOutputView?.appendInfo('Bootloader burn failed.\n');
+			}
+		} finally {
+			this.compileOrUploadRunning = false;
+			updateStateCompileUpload();
+		}
+	}
+
 	private async getUploadFieldsForUpload(useBuildProfile: boolean): Promise<string[]> {
 		const passwordLabel = await this.getUploadPasswordLabel(useBuildProfile);
 		if (!passwordLabel) {
