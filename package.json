@@ -205,7 +205,6 @@
   "os": [
     "darwin",
     "win32",
-    "arm64",
     "linux"
   ],
   "cpu": [
