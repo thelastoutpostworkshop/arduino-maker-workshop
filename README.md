@@ -83,6 +83,16 @@ Only build properties are supported in profiles. Pre-build and post-build comman
 
 ![board configuration](.readme/board_configuration.gif)
 
+### Burn Bootloader
+
+Use **Burn Bootloader** on the Home page to burn the bootloader supplied by the selected board package. Select a board and programmer first; the current port is included when the board package supports it. Burning a bootloader may erase the existing sketch.
+
+### Cortex-Debug Configuration
+
+Use **Generate Cortex-Debug Configuration** on the Home page to create or update a matching entry in `.vscode/launch.json`. The extension asks Arduino CLI for debug metadata for the selected board, programmer, and active build profile, then generates a configuration for the [Cortex-Debug](https://marketplace.visualstudio.com/items?itemName=marus25.cortex-debug) VS Code extension.
+
+Compile with **Optimize compile output for debugging** enabled before starting a debug session. The generated configuration connects a debugger to a compatible board; it does not upload the sketch.
+
 ### OTA Upload Passwords
 
 For OTA/network uploads that define an Arduino CLI password field, the extension prompts for the password at upload time with a masked VS Code input dialog. The password is passed to `arduino-cli` as an upload field and is not stored in `.vscode/arduino.json`.
