@@ -82,3 +82,16 @@ export function mergeCortexDebugConfiguration(existing: unknown, configuration: 
     launch.configurations = entries;
     return launch;
 }
+
+export function findCortexDebugConfiguration(existing: unknown, configId: string): Record<string, unknown> | undefined {
+    if (!existing || typeof existing !== 'object' || Array.isArray(existing)) {
+        return undefined;
+    }
+    const configurations = (existing as Record<string, unknown>).configurations;
+    if (!Array.isArray(configurations)) {
+        return undefined;
+    }
+    return configurations.find((entry): entry is Record<string, unknown> =>
+        !!entry && typeof entry === 'object' && (entry as Record<string, unknown>).configId === configId
+    );
+}

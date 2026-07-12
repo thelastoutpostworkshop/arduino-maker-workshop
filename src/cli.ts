@@ -1,4 +1,4 @@
-import { commands, OutputChannel, Uri, window, workspace, ExtensionContext, ProgressLocation } from "vscode";
+import { commands, debug, OutputChannel, Uri, window, workspace, ExtensionContext, ProgressLocation } from "vscode";
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, compileOutputView, compileStatusBarExecuting, compileStatusBarItem, compileStatusBarNotExecuting, loadArduinoConfiguration, shouldCheckForUpdates, updateStateCompileUpload, uploadStatusBarExecuting, uploadStatusBarItem, uploadStatusBarNotExecuting } from "./extension";
 import { ArduinoCLIStatus, BuildOptions, CompileResult, PROFILES_STATUS } from "./shared/messages";
 import { getSerialMonitorApi, MonitorPortSettings, SerialMonitorApi, Version } from "@microsoft/vscode-serial-monitor-api";
@@ -6,7 +6,7 @@ import { COMPILE_RESULT_FILE, VSCODE_FOLDER } from "./ArduinoProject";
 import { CLIArguments } from "./cliArgs";
 import { ArduinoConfiguration } from "./config";
 import { CliCache } from "./cliCache";
-import { ArduinoDebugInfo, createCortexDebugConfiguration, mergeCortexDebugConfiguration } from "./debugConfiguration";
+import { ArduinoDebugInfo, createCortexDebugConfiguration, findCortexDebugConfiguration, mergeCortexDebugConfiguration } from "./debugConfiguration";
 import type { CliOutputView } from "./cliOutputView";
 
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
@@ -772,6 +772,44 @@ export class ArduinoCLI {
 		} finally {
 			this.compileOrUploadRunning = false;
 			updateStateCompileUpload();
+		}
+	}
+
+	public async startGeneratedCortexDebug(): Promise<void> {
+		if (this.compileOrUploadRunning) {
+			window.showWarningMessage("Another Arduino CLI operation is already running.");
+			return;
+		}
+
+		arduinoProject.readConfiguration();
+		const debugTarget = this.getDebugTarget();
+		if (!debugTarget.fqbn || !debugTarget.programmer) {
+			window.showErrorMessage("Select a board and programmer before starting Cortex-Debug.");
+			return;
+		}
+
+		const launchJsonPath = path.join(arduinoProject.getProjectPath(), VSCODE_FOLDER, "launch.json");
+		if (!fs.existsSync(launchJsonPath)) {
+			window.showErrorMessage("Generate a Cortex-Debug configuration before starting it.");
+			return;
+		}
+
+		try {
+			const launchJson = JSON.parse(fs.readFileSync(launchJsonPath, 'utf8'));
+			const configId = `${debugTarget.fqbn}:programmer=${debugTarget.programmer}`;
+			const configuration = findCortexDebugConfiguration(launchJson, configId);
+			if (!configuration || typeof configuration.name !== 'string') {
+				window.showErrorMessage("No generated Cortex-Debug configuration matches the selected board and programmer.");
+				return;
+			}
+
+			const started = await debug.startDebugging(workspace.workspaceFolders?.[0], configuration.name);
+			if (!started) {
+				window.showErrorMessage("VS Code could not start the generated Cortex-Debug configuration.");
+			}
+		} catch (error: any) {
+			arduinoExtensionChannel.appendLine(`Failed to start Cortex-Debug: ${error?.message ?? error}`);
+			window.showErrorMessage(`Failed to start Cortex-Debug: ${error?.message ?? error}`);
 		}
 	}
 

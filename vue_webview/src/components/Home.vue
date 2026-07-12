@@ -92,6 +92,10 @@ function generateCortexDebugConfiguration() {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_GENERATE_CORTEX_DEBUG_CONFIGURATION, errorMessage: "", payload: "" });
 }
 
+function startGeneratedCortexDebug() {
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_START_CORTEX_DEBUG, errorMessage: "", payload: "" });
+}
+
 function setPortSelected(value: string, syncToProject: boolean) {
   shouldSyncPort.value = syncToProject;
   portSelected.value = value;
@@ -474,6 +478,18 @@ onMounted(() => {
                       <v-btn data-testid="generate-cortex-debug" prepend-icon="mdi-bug" :disabled="!canGenerateCortexDebugConfiguration"
                         @click="generateCortexDebugConfiguration">
                         Generate Cortex-Debug Configuration
+                      </v-btn>
+                    </span>
+                  </template>
+                </v-tooltip>
+              </div>
+              <div>
+                <v-tooltip location="top" text="Starts the generated Cortex-Debug configuration for the selected board and programmer.">
+                  <template #activator="{ props }">
+                    <span v-bind="props">
+                      <v-btn data-testid="start-cortex-debug" prepend-icon="mdi-play" :disabled="!canGenerateCortexDebugConfiguration"
+                        @click="startGeneratedCortexDebug">
+                        Start Generated Cortex-Debug
                       </v-btn>
                     </span>
                   </template>

@@ -2,9 +2,10 @@
 
 All notable changes to the Arduino Maker Workshop extension will be documented in this file.
 
-## Version 1.1.7
+## Version 1.1.8
 
 - Added a Home UI action to generate a Cortex-Debug `launch.json` configuration from Arduino CLI debug metadata ([issue #116](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/116))
+- Added a Home UI action to start the generated Cortex-Debug configuration ([issue #116](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/116))
 
 ## Version 1.1.6
 

@@ -78,6 +78,9 @@ export class VueWebviewPanel {
                             });
                         });
                         break;
+                    case ARDUINO_MESSAGES.CLI_START_CORTEX_DEBUG:
+                        void arduinoCLI.startGeneratedCortexDebug();
+                        break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                         const projectStatus = arduinoProject.getStatus();
                         if (projectStatus.status == ARDUINO_ERRORS.WRONG_FOLDER_NAME) {

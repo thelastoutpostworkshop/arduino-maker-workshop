@@ -91,7 +91,7 @@ Use **Burn Bootloader** on the Home page to burn the bootloader supplied by the 
 
 Use **Generate Cortex-Debug Configuration** on the Home page to create or update a matching entry in `.vscode/launch.json`. The extension asks Arduino CLI for debug metadata for the selected board, programmer, and active build profile, then generates a configuration for the [Cortex-Debug](https://marketplace.visualstudio.com/items?itemName=marus25.cortex-debug) VS Code extension.
 
-Compile with **Optimize compile output for debugging** enabled before starting a debug session. The generated configuration connects a debugger to a compatible board; it does not upload the sketch.
+Compile with **Optimize compile output for debugging** enabled before starting a debug session. Use **Start Generated Cortex-Debug** to start the matching generated configuration. The configuration connects a debugger to a compatible board; it does not upload the sketch.
 
 ### OTA Upload Passwords
 

@@ -3,7 +3,7 @@ import * as assert from 'assert';
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
-import { createCortexDebugConfiguration, mergeCortexDebugConfiguration } from '../debugConfiguration';
+import { createCortexDebugConfiguration, findCortexDebugConfiguration, mergeCortexDebugConfiguration } from '../debugConfiguration';
 // import * as myExtension from '../../extension';
 
 suite('Extension Test Suite', () => {
@@ -63,5 +63,15 @@ suite('Cortex-Debug configuration', () => {
 		}, 'arduino:samd:zero', 'edbg');
 		const launch = mergeCortexDebugConfiguration({ version: '0.3.0' }, generated);
 		assert.strictEqual(launch.version, '0.3.0');
+	});
+
+	test('finds a generated configuration by its stable identifier', () => {
+		const generated = createCortexDebugConfiguration({
+			executable: '/tmp/blink.elf',
+			server: 'openocd',
+			server_path: '/tools/openocd',
+		}, 'arduino:samd:zero', 'edbg');
+		const launch = mergeCortexDebugConfiguration(undefined, generated);
+		assert.strictEqual(findCortexDebugConfiguration(launch, generated.configId)?.name, generated.name);
 	});
 });
