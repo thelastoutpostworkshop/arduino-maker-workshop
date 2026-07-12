@@ -26,6 +26,8 @@ const jopsOptionArduino: string = '--jobs';
 const buildPropertyOptionArduino: string = '--build-property';
 const uploadCommandArduino: string = 'upload';
 const burnBootloaderCommandArduino: string = 'burn-bootloader';
+const debugCommandArduino: string = 'debug';
+const debugInfoOptionArduino: string = '--info';
 const portOptionArduino: string = '-p';
 const inputDirOptionArduino: string = '--input-dir';
 const preprocessCompileOptionArduino: string = '--preprocess';
@@ -314,6 +316,52 @@ export class CLIArguments {
         } else {
             return path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput());
         }
+    }
+
+    public getDebugInfoArguments(): string[] {
+        const command = [
+            debugCommandArduino,
+            debugInfoOptionArduino,
+            jsonOutputArduino,
+            noColorOptionArduino,
+            buildPathArduino,
+            this.getBuildPath(),
+        ];
+
+        if (arduinoYaml.status() === PROFILES_STATUS.ACTIVE) {
+            const profileName = arduinoYaml.getProfileName();
+            const profile = arduinoYaml.getProfile(profileName);
+            if (!profile?.fqbn) {
+                return [];
+            }
+            command.push(profileOption, profileName, fqbnOptionArduino, profile.fqbn);
+            const programmer = profile.programmer || arduinoProject.getProgrammer();
+            if (programmer) {
+                command.push(programmerOption, programmer);
+            }
+            if (profile.port) {
+                command.push(portOptionArduino, profile.port);
+            }
+            if (profile.protocol) {
+                command.push('-l', profile.protocol);
+            }
+        } else {
+            const board = arduinoProject.getBoard();
+            if (!board) {
+                return [];
+            }
+            const boardConfig = arduinoProject.getBoardConfiguration();
+            command.push(fqbnOptionArduino, boardConfig ? `${board}:${boardConfig}` : board);
+            if (arduinoProject.getProgrammer()) {
+                command.push(programmerOption, arduinoProject.getProgrammer());
+            }
+            if (arduinoProject.getPort()) {
+                command.push(portOptionArduino, arduinoProject.getPort());
+            }
+        }
+
+        command.push(arduinoProject.getProjectPath());
+        return command;
     }
 
     private appendProfileBuildProperties(command: string[], profileName: string) {

@@ -25,6 +25,11 @@ const canBurnBootloader = computed(() =>
   !!programmer.value?.id &&
   store.compileInProgress === ''
 );
+const canGenerateCortexDebugConfiguration = computed(() =>
+  !!store.projectInfo?.board &&
+  !!programmer.value?.id &&
+  store.compileInProgress === ''
+);
 
 // This is a macOS-specific thing. The upload port is on /dev/cu.* and the serial port is on /dev/tty.*
 const serialPortsAvailable = computed(() => getAvailablePorts(store).map((p: any) => {
@@ -81,6 +86,10 @@ function refreshPorts() {
 
 function burnBootloader() {
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BURN_BOOTLOADER, errorMessage: "", payload: "" });
+}
+
+function generateCortexDebugConfiguration() {
+  store.sendMessage({ command: ARDUINO_MESSAGES.CLI_GENERATE_CORTEX_DEBUG_CONFIGURATION, errorMessage: "", payload: "" });
 }
 
 function setPortSelected(value: string, syncToProject: boolean) {
@@ -437,39 +446,39 @@ onMounted(() => {
                 <v-btn @click="refreshPorts" icon="mdi-refresh" variant="text"></v-btn>
               </template>
             </v-select>
-            <div v-if="store.boardOptions?.programmers">
-              <v-row class="pt-3 ml-2">
-                <span>
-                  <v-checkbox v-model="useProgrammer" label="Use programmer for upload">
-
-                  </v-checkbox>
-
-                </span>
-                <span class="pl-5">
-                  <v-select width="250" v-model="programmer" label="Programmer"
-                    :items="store.boardOptions.programmers" item-title="name" item-value="id" return-object>
-
-                  </v-select>
-                </span>
+            <div v-if="store.boardOptions?.programmers" class="ml-2 mt-2 d-flex flex-column ga-2">
+              <v-row class="ma-0" align="center" no-gutters>
+                <v-checkbox class="mr-6" v-model="useProgrammer" label="Use programmer for upload" density="compact"
+                  hide-details></v-checkbox>
+                <v-select width="250" v-model="programmer" label="Programmer" density="compact" hide-details
+                  :items="store.boardOptions.programmers" item-title="name" item-value="id" return-object></v-select>
               </v-row>
-              <v-row class="ml-2 mb-2" align="center">
-                <v-btn data-testid="burn-bootloader" prepend-icon="mdi-download" :disabled="!canBurnBootloader"
-                  @click="burnBootloader">
-                  Burn Bootloader
-                </v-btn>
-                <span class="text-caption ml-3">
-                  Uses the selected board, board options, programmer, and port (when available).
-                </span>
-              </v-row>
-              <v-row class="ml-2">
-                <div>
-                  <v-checkbox v-model="optimize_for_debug"
-                    label="Optimize compile output for debugging, rather than for release">
-
-                  </v-checkbox>
-
-                </div>
-              </v-row>
+              <div>
+                <v-tooltip location="top" text="Uses the selected board, board options, programmer, and port when available.">
+                  <template #activator="{ props }">
+                    <span v-bind="props">
+                      <v-btn data-testid="burn-bootloader" prepend-icon="mdi-download" :disabled="!canBurnBootloader"
+                        @click="burnBootloader">
+                        Burn Bootloader
+                      </v-btn>
+                    </span>
+                  </template>
+                </v-tooltip>
+              </div>
+              <v-checkbox class="my-0" v-model="optimize_for_debug" density="compact" hide-details
+                label="Optimize compile output for debugging, rather than for release"></v-checkbox>
+              <div>
+                <v-tooltip location="top" text="Creates or updates .vscode/launch.json for the selected board and programmer.">
+                  <template #activator="{ props }">
+                    <span v-bind="props">
+                      <v-btn data-testid="generate-cortex-debug" prepend-icon="mdi-bug" :disabled="!canGenerateCortexDebugConfiguration"
+                        @click="generateCortexDebugConfiguration">
+                        Generate Cortex-Debug Configuration
+                      </v-btn>
+                    </span>
+                  </template>
+                </v-tooltip>
+              </div>
             </div>
           </v-card>
 

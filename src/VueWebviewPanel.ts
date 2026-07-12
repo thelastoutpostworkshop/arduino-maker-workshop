@@ -60,6 +60,24 @@ export class VueWebviewPanel {
                             });
                         });
                         break;
+                    case ARDUINO_MESSAGES.CLI_GENERATE_CORTEX_DEBUG_CONFIGURATION:
+                        if (arduinoCLI.compileOrUploadRunning) {
+                            void arduinoCLI.generateCortexDebugConfiguration();
+                            break;
+                        }
+                        VueWebviewPanel.sendMessage({
+                            command: ARDUINO_MESSAGES.COMPILE_IN_PROGRESS,
+                            errorMessage: "",
+                            payload: "Generating Cortex-Debug configuration"
+                        });
+                        void arduinoCLI.generateCortexDebugConfiguration().finally(() => {
+                            VueWebviewPanel.sendMessage({
+                                command: ARDUINO_MESSAGES.COMPILE_IN_PROGRESS,
+                                errorMessage: "",
+                                payload: ""
+                            });
+                        });
+                        break;
                     case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                         const projectStatus = arduinoProject.getStatus();
                         if (projectStatus.status == ARDUINO_ERRORS.WRONG_FOLDER_NAME) {

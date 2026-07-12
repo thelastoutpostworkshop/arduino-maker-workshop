@@ -509,6 +509,7 @@ export const ARDUINO_MESSAGES = {
   CLI_LIBRARY_INSTALLED: 'cli_libraryInstalled',
   CLI_BOARD_EXAMPLES: 'cli_boardExamples',
   CLI_BURN_BOOTLOADER: 'cli_burnBootloader',
+  CLI_GENERATE_CORTEX_DEBUG_CONFIGURATION: 'cli_generateCortexDebugConfiguration',
   CLI_LIBRARY_INSTALLATION_ERROR: 'cli_libraryInstallationError',
   CLI_GET_CONFIG: 'cli_getConfig',
   CLI_CONFIG_REMOVE_ADDITIONAL_URL: 'cli_congifRemoveAdditionnalUrl',

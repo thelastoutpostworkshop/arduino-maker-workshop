@@ -8,6 +8,7 @@ All notable changes to the Arduino Maker Workshop extension will be documented i
 - Added a bundled Arduino CLI for Linux ARM64
 - Added Linux ARM64 to the preview VSIX build matrix
 - Added a Home UI action to burn the selected board's bootloader with the selected programmer ([issue #115](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/115))
+- Added a Home UI action to generate a Cortex-Debug `launch.json` configuration from Arduino CLI debug metadata ([issue #116](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/116))
 
 ## Version 1.1.5
 

@@ -6,6 +6,7 @@ import { COMPILE_RESULT_FILE, VSCODE_FOLDER } from "./ArduinoProject";
 import { CLIArguments } from "./cliArgs";
 import { ArduinoConfiguration } from "./config";
 import { CliCache } from "./cliCache";
+import { ArduinoDebugInfo, createCortexDebugConfiguration, mergeCortexDebugConfiguration } from "./debugConfiguration";
 import type { CliOutputView } from "./cliOutputView";
 
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
@@ -711,6 +712,83 @@ export class ArduinoCLI {
 			this.compileOrUploadRunning = false;
 			updateStateCompileUpload();
 		}
+	}
+
+	public async generateCortexDebugConfiguration(): Promise<void> {
+		if (this.compileOrUploadRunning) {
+			window.showWarningMessage("Another Arduino CLI operation is already running.");
+			return;
+		}
+
+		arduinoProject.readConfiguration();
+		const debugTarget = this.getDebugTarget();
+		if (!debugTarget.fqbn) {
+			window.showErrorMessage("Select a board before generating a Cortex-Debug configuration.");
+			return;
+		}
+		if (!debugTarget.programmer) {
+			window.showErrorMessage("Select a programmer before generating a Cortex-Debug configuration.");
+			return;
+		}
+
+		this.compileOrUploadRunning = true;
+		try {
+			const output = await window.withProgress(
+				{ location: ProgressLocation.Notification, title: "Generating Cortex-Debug configuration", cancellable: true },
+				async (_progress, token) => {
+					token.onCancellationRequested(() => this.cancelExecution());
+					return this.runArduinoCommand(
+						() => this.cliArgs.getDebugInfoArguments(),
+						"CLI: Failed to get debug configuration information",
+						{ caching: CacheState.NO, ttl: 0 }
+					);
+				}
+			);
+
+			let debugInfo: ArduinoDebugInfo;
+			try {
+				debugInfo = JSON.parse(output);
+			} catch {
+				throw new Error("Arduino CLI returned invalid debug configuration JSON.");
+			}
+			const configuration = createCortexDebugConfiguration(debugInfo, debugTarget.fqbn, debugTarget.programmer);
+			const vscodeDirectory = path.join(arduinoProject.getProjectPath(), VSCODE_FOLDER);
+			const launchJsonPath = path.join(vscodeDirectory, "launch.json");
+			let existing: unknown;
+			if (fs.existsSync(launchJsonPath)) {
+				try {
+					existing = JSON.parse(fs.readFileSync(launchJsonPath, 'utf8'));
+				} catch {
+					throw new Error("Cannot update .vscode/launch.json because it contains invalid JSON.");
+				}
+			}
+			const launchJson = mergeCortexDebugConfiguration(existing, configuration);
+			fs.mkdirSync(vscodeDirectory, { recursive: true });
+			fs.writeFileSync(launchJsonPath, JSON.stringify(launchJson, null, 2) + '\n', 'utf8');
+			window.showInformationMessage("Cortex-Debug configuration generated in .vscode/launch.json.");
+		} catch (error: any) {
+			arduinoExtensionChannel.appendLine(`Failed to generate Cortex-Debug configuration: ${error?.message ?? error}`);
+			window.showErrorMessage(`Failed to generate Cortex-Debug configuration: ${error?.message ?? error}`);
+		} finally {
+			this.compileOrUploadRunning = false;
+			updateStateCompileUpload();
+		}
+	}
+
+	private getDebugTarget(): { fqbn: string; programmer: string } {
+		if (arduinoYaml.status() === PROFILES_STATUS.ACTIVE) {
+			const profile = arduinoYaml.getProfile(arduinoYaml.getProfileName());
+			return {
+				fqbn: profile?.fqbn ?? '',
+				programmer: profile?.programmer || arduinoProject.getProgrammer()
+			};
+		}
+		const board = arduinoProject.getBoard();
+		const configuration = arduinoProject.getBoardConfiguration();
+		return {
+			fqbn: configuration ? `${board}:${configuration}` : board,
+			programmer: arduinoProject.getProgrammer()
+		};
 	}
 
 	private async getUploadFieldsForUpload(useBuildProfile: boolean): Promise<string[]> {
