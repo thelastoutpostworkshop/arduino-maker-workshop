@@ -19,6 +19,7 @@ export const profileActivateCommandName: string = 'activateBuildProfile';
 export const profileDeactivateCommandName: string = 'deactivateBuildProfile';
 export const decodeBacktraceCommandName: string = 'arduinoMakerWorkshop.decodeEsp32Backtrace';
 export const clearCacheCommandName: string = 'arduinoMakerWorkshop.clearCache';
+export const addSubfolderToWorkspaceCommandName: string = 'arduinoMakerWorkshop.addSubfolderToWorkspace';
 
 export const compileStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
 export const compileStatusBarNotExecuting: string = "$(check) Compile";
@@ -97,6 +98,8 @@ async function ensureSerialMonitorAvailable(): Promise<void> {
 }
 
 export async function activate(context: ExtensionContext) {
+	context.subscriptions.push(vsCommandAddSubfolderToWorkspace());
+
 	ensureSerialMonitorAvailable();
 
 	compileOutputView = new CliOutputView(context);
@@ -680,6 +683,59 @@ function vsCommandClearCache(): Disposable {
 			}
 		}
 	});
+}
+
+function vsCommandAddSubfolderToWorkspace(): Disposable {
+	return commands.registerCommand(
+		addSubfolderToWorkspaceCommandName,
+		(selectedUri?: Uri) => {
+			if (!selectedUri) {
+				window.showErrorMessage(
+					'Select a folder in the Explorer first.'
+				);
+				return;
+			}
+
+			const currentFolders = workspace.workspaceFolders ?? [];
+
+			const alreadyFirst =
+				currentFolders.length > 0 &&
+				currentFolders[0].uri.toString() === selectedUri.toString();
+
+			if (alreadyFirst) {
+				window.showInformationMessage(
+					`${path.basename(selectedUri.fsPath)} is already the active workspace folder.`
+				);
+				return;
+			}
+
+			const remainingFolders = currentFolders
+				.filter(
+					(folder) =>
+						folder.uri.toString() !== selectedUri.toString()
+				)
+				.map((folder) => ({
+					uri: folder.uri,
+					name: folder.name
+				}));
+
+			const success = workspace.updateWorkspaceFolders(
+				0,
+				currentFolders.length,
+				{
+					uri: selectedUri,
+					name: path.basename(selectedUri.fsPath)
+				},
+				...remainingFolders
+			);
+
+			if (!success) {
+				window.showErrorMessage(
+					'Could not add the selected folder to the workspace.'
+				);
+			}
+		}
+	);
 }
 
 export function deactivate() { }
