@@ -75,6 +75,12 @@ Only build properties are supported in profiles. Pre-build and post-build comman
 
 ![new sketch](.readme/new_sketch.gif)
 
+### Multiple Sketches in One Repository
+
+Arduino Maker Workshop treats the first workspace folder as the active sketch project. To work with several sketches stored in one repository, right-click the desired sketch folder in the Explorer and select **Add as Active Workspace Folder**.
+
+The command adds the folder to the workspace, or moves it to the first position when it is already present. The Home page, board settings, build profiles, compile, and upload actions then use that sketch. You can keep the repository root open as another workspace folder and repeat the command to switch sketches.
+
 ### Board Selection
 
 ![board selection](.readme/board_selection.gif)
