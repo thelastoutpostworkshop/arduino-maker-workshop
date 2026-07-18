@@ -132,6 +132,18 @@ export async function activate(context: ExtensionContext) {
 			context.subscriptions.push(vsCommandDecodeBacktrace(context));
 			context.subscriptions.push(vsCommandClearCache());
 
+			context.subscriptions.push(
+				workspace.onDidChangeWorkspaceFolders(() => {
+					arduinoProject.readConfiguration();
+					arduinoYaml.refreshProjectState();
+					arduinoCLI.setBuildResult(false);
+
+					checkYamlStatus();
+					updateStateCompileUpload();
+					sendBuildProfiles();
+				})
+			);
+
 			compileStatusBarItem.text = compileStatusBarNotExecuting;
 			compileStatusBarItem.command = compileCommandName;
 			context.subscriptions.push(compileStatusBarItem);
