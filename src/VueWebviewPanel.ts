@@ -1223,6 +1223,37 @@ export class VueWebviewPanel {
         }
     }
 
+    public static restore(panel: WebviewPanel, context: ExtensionContext): void {
+        VueWebviewPanel.configurePanel(panel, context);
+        VueWebviewPanel.currentPanel = new VueWebviewPanel(panel, context.extensionUri);
+        changeTheme(window.activeColorTheme.kind);
+    }
+
+    public static refreshActiveProject(): void {
+        const projectStatus = arduinoProject.getStatus();
+        VueWebviewPanel.sendMessage({
+            command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS,
+            errorMessage: "",
+            payload: projectStatus
+        });
+
+        if (projectStatus.status === ARDUINO_ERRORS.NO_ERRORS) {
+            VueWebviewPanel.sendMessage({
+                command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO,
+                errorMessage: "",
+                payload: arduinoProject.getArduinoConfiguration()
+            });
+        } else {
+            VueWebviewPanel.sendMessage({
+                command: ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO,
+                errorMessage: "Not an Arduino Project",
+                payload: ""
+            });
+        }
+
+        sendBuildProfiles();
+    }
+
     public static render(context: ExtensionContext) {
 
         if (VueWebviewPanel.currentPanel) {
@@ -1244,13 +1275,22 @@ export class VueWebviewPanel {
                 }
             );
 
-            panel.iconPath = Uri.file(
-                path.join(context.extensionPath, 'resources', 'arduino_color.svg')
-            );
-
-            VueWebviewPanel.currentPanel = new VueWebviewPanel(panel, context.extensionUri);
-            changeTheme(window.activeColorTheme.kind);
+            VueWebviewPanel.restore(panel, context);
         }
+    }
+
+    private static configurePanel(panel: WebviewPanel, context: ExtensionContext): void {
+        panel.webview.options = {
+            enableScripts: true,
+            localResourceRoots: [
+                Uri.joinPath(context.extensionUri, "build"),
+                Uri.joinPath(context.extensionUri, "vue_webview/dist"),
+                Uri.joinPath(context.extensionUri, "resources")
+            ]
+        };
+        panel.iconPath = Uri.file(
+            path.join(context.extensionPath, 'resources', 'arduino_color.svg')
+        );
     }
 
     public dispose() {

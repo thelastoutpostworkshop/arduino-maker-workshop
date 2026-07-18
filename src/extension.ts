@@ -131,6 +131,13 @@ export async function activate(context: ExtensionContext) {
 			context.subscriptions.push(vsCommandDeactivateBuildProfiles());
 			context.subscriptions.push(vsCommandDecodeBacktrace(context));
 			context.subscriptions.push(vsCommandClearCache());
+			context.subscriptions.push(
+				window.registerWebviewPanelSerializer('vueWebview', {
+					deserializeWebviewPanel(webviewPanel) {
+						VueWebviewPanel.restore(webviewPanel, context);
+					}
+				})
+			);
 
 			context.subscriptions.push(
 				workspace.onDidChangeWorkspaceFolders(() => {
@@ -140,7 +147,7 @@ export async function activate(context: ExtensionContext) {
 
 					checkYamlStatus();
 					updateStateCompileUpload();
-					sendBuildProfiles();
+					VueWebviewPanel.refreshActiveProject();
 				})
 			);
 

@@ -34,6 +34,7 @@
   "activationEvents": [
     "onView:quickAccessView",
     "onView:arduinoMakerWorkshop.compileOutput",
+    "onWebviewPanel:vueWebview",
     "onCommand:arduinoMakerWorkshop.decodeEsp32Backtrace",
     "onCommand:arduinoMakerWorkshop.clearCache"
   ],
