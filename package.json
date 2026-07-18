@@ -115,8 +115,22 @@
         "command": "arduinoMakerWorkshop.clearCache",
         "title": "Arduino Maker Workshop: Clear CLI Cache",
         "category": "Arduino"
+      },
+      {
+        "command": "arduinoMakerWorkshop.addSubfolderToWorkspace",
+        "title": "Add as Active Workspace Folder",
+        "category": "Arduino"
       }
     ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "arduinoMakerWorkshop.addSubfolderToWorkspace",
+          "when": "explorerResourceIsFolder",
+          "group": "2_workspace"
+        }
+      ]
+    },
     "configuration": {
       "title": "Arduino Maker Workshop",
       "properties": {

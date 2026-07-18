@@ -20,6 +20,14 @@ export class SketchProfileManager {
         this.yamlInActiveState = path.join(arduinoProject.getProjectPath(), YAML_FILENAME);
         this.yamlInInactiveState = path.join(arduinoProject.getProjectPath(), YAML_FILENAME_INACTIVE);
     }
+
+    public refreshProjectState(): void {
+        this.yamlInActiveState = path.join(arduinoProject.getProjectPath(), YAML_FILENAME);
+        this.yamlInInactiveState = path.join(arduinoProject.getProjectPath(), YAML_FILENAME_INACTIVE);
+        this.resetActiveProfileCache();
+        this.clearError();
+    }
+
     private clearError() {
         this.lastError = "";
     }
