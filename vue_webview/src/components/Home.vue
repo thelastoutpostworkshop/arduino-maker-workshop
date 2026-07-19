@@ -267,12 +267,6 @@ watch(selectedBuildProfile, (newProfile) => {
 });
 
 
-watch(monitorPortSettings, (newMonitorPortSettings) => {
-  store.sendMessage({
-    command: ARDUINO_MESSAGES.SET_MONITOR_PORT_SETTINGS, errorMessage: "", payload: JSON.stringify(newMonitorPortSettings)
-  });
-});
-
 watch(() => store.projectInfo?.monitorPortSettings, (newMonitorPortSettings) => {
   getStoredMonitorPortSettings();
 });
