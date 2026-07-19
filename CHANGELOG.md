@@ -5,6 +5,7 @@ All notable changes to the Arduino Maker Workshop extension will be documented i
 ## Version 1.1.9
 
 - Added an Explorer command to make a sketch folder the active workspace folder, supporting repositories with multiple Arduino sketches. Thanks to [BerndDonner](https://github.com/BerndDonner) ([PR #117](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/pull/117))
+- Fixed serial-monitor settings persistence and migrated affected existing configurations. Thanks to [BerndDonner](https://github.com/BerndDonner) ([PR #118](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/pull/118))
 
 ## Version 1.1.8
 
