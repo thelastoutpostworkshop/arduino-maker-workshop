@@ -116,6 +116,7 @@ export interface PortSettings {
 
 // Arduino Project Configuration
 export interface ArduinoProjectConfiguration {
+  schemaVersion: number;
   port: string;
   configuration: string;
   configurationRequired: boolean;
