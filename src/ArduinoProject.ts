@@ -12,6 +12,7 @@ export const COMPILE_RESULT_FILE: string = "compile_result.json";
 const ARDUINO_SETTINGS: string = "arduino.json";
 export const ARDUINO_SKETCH_EXTENSION: string = ".ino";
 const ARDUINO_DEFAULT_OUTPUT: string = "build";
+const ARDUINO_CONFIGURATION_SCHEMA_VERSION: number = 1;
 const SOURCE_EXTENSIONS = ['.ino', '.cpp', '.h', '.hpp', '.c', '.cc', '.cxx'];
 
 export enum UPLOAD_READY_STATUS {
@@ -41,6 +42,7 @@ export class ArduinoProject {
             vscode.window.showErrorMessage('No workspace available, open a workspace by using the File > Open Folder... menu, and then selecting a folder');
         }
         this.configJson = {
+            schemaVersion: ARDUINO_CONFIGURATION_SCHEMA_VERSION,
             port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "", programmer: "", useProgrammer: false,
             optimize_for_debug: false, configurationRequired: false, compile_profile: "",
             monitorPortSettings: getMonitorPortSettingsDefault()
@@ -184,6 +186,15 @@ export class ArduinoProject {
             try {
                 const configContent = fs.readFileSync(this.arduinoConfigurationPath, 'utf-8');
                 let configJson = JSON.parse(configContent);
+
+                // Files without a schema version use the legacy, unversioned format.
+                if (configJson.schemaVersion === undefined) {
+                    const legacyMonitorPortSettings = configJson.monitorPortSettings?.settings;
+                    if (legacyMonitorPortSettings !== undefined) {
+                        configJson.monitorPortSettings = legacyMonitorPortSettings;
+                    }
+                    configJson.schemaVersion = ARDUINO_CONFIGURATION_SCHEMA_VERSION;
+                }
 
                 if (configJson.monitorPortSettings === undefined) {
                     configJson.monitorPortSettings = getMonitorPortSettingsDefault();
