@@ -38,13 +38,19 @@ const serialPortsAvailable = computed(() => getAvailablePorts(store).map((p: any
   return { ...p, value, title };
 }));
 
-function updatePortSettings(settings: PortSettings) {
+function updatePortSettings(
+  { settings }: {
+    settings: PortSettings;
+    profile_name: string;
+  }
+) {
   store.sendMessage({
     command: ARDUINO_MESSAGES.SET_MONITOR_PORT_SETTINGS,
     errorMessage: "",
     payload: JSON.stringify(settings),
-  });;
+  });
 }
+
 function changeStatusBuildProfile() {
   const status = store.sketchProject?.buildProfileStatus;
   switch (status) {
