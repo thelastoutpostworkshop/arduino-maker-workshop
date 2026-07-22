@@ -738,6 +738,10 @@ function vsCommandAddSubfolderToWorkspace(): Disposable {
 					name: folder.name
 				}));
 
+			// This command can restart the extension host without closing the webview.
+			// Close the panel while the current extension host still owns it.
+			VueWebviewPanel.disposeCurrentPanel();
+
 			const success = workspace.updateWorkspaceFolders(
 				0,
 				currentFolders.length,
@@ -757,5 +761,8 @@ function vsCommandAddSubfolderToWorkspace(): Disposable {
 	);
 }
 
-export function deactivate() { }
+export function deactivate() {
+	// Best-effort cleanup for extension-host restarts initiated outside this extension.
+	VueWebviewPanel.disposeCurrentPanel();
+}
 

@@ -1229,6 +1229,10 @@ export class VueWebviewPanel {
         changeTheme(window.activeColorTheme.kind);
     }
 
+    public static disposeCurrentPanel(): void {
+        VueWebviewPanel.currentPanel?.dispose();
+    }
+
     public static refreshActiveProject(): void {
         const projectStatus = arduinoProject.getStatus();
         VueWebviewPanel.sendMessage({
