@@ -98,6 +98,14 @@ async function ensureSerialMonitorAvailable(): Promise<void> {
 }
 
 export async function activate(context: ExtensionContext) {
+	context.subscriptions.push(
+		window.registerWebviewPanelSerializer('vueWebview', {
+			deserializeWebviewPanel(webviewPanel) {
+				VueWebviewPanel.restore(webviewPanel, context);
+			}
+		})
+	);
+
 	context.subscriptions.push(vsCommandAddSubfolderToWorkspace());
 
 	ensureSerialMonitorAvailable();
@@ -131,14 +139,6 @@ export async function activate(context: ExtensionContext) {
 			context.subscriptions.push(vsCommandDeactivateBuildProfiles());
 			context.subscriptions.push(vsCommandDecodeBacktrace(context));
 			context.subscriptions.push(vsCommandClearCache());
-			context.subscriptions.push(
-				window.registerWebviewPanelSerializer('vueWebview', {
-					deserializeWebviewPanel(webviewPanel) {
-						VueWebviewPanel.restore(webviewPanel, context);
-					}
-				})
-			);
-
 			context.subscriptions.push(
 				workspace.onDidChangeWorkspaceFolders(() => {
 					arduinoProject.readConfiguration();
