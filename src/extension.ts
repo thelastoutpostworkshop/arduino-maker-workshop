@@ -750,10 +750,6 @@ function vsCommandAddSubfolderToWorkspace(): Disposable {
 					name: folder.name
 				}));
 
-			// This command can restart the extension host without closing the webview.
-			// Close the panel while the current extension host still owns it.
-			VueWebviewPanel.disposeCurrentPanel();
-
 			const success = workspace.updateWorkspaceFolders(
 				0,
 				currentFolders.length,
@@ -764,7 +760,11 @@ function vsCommandAddSubfolderToWorkspace(): Disposable {
 				...remainingFolders
 			);
 
-			if (!success) {
+			if (success) {
+				// This command can restart the extension host without closing the webview.
+				// Close the panel only after VS Code accepts the workspace change.
+				VueWebviewPanel.disposeCurrentPanel();
+			} else {
 				window.showErrorMessage(
 					'Could not add the selected folder to the workspace.'
 				);
