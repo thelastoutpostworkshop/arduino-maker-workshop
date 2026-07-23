@@ -98,10 +98,19 @@ async function ensureSerialMonitorAvailable(): Promise<void> {
 }
 
 export async function activate(context: ExtensionContext) {
+	let resolveExtensionReady!: (ready: boolean) => void;
+	const extensionReady = new Promise<boolean>((resolve) => {
+		resolveExtensionReady = resolve;
+	});
+
 	context.subscriptions.push(
 		window.registerWebviewPanelSerializer('vueWebview', {
-			deserializeWebviewPanel(webviewPanel) {
-				VueWebviewPanel.restore(webviewPanel, context);
+			async deserializeWebviewPanel(webviewPanel) {
+				if (await extensionReady) {
+					VueWebviewPanel.restore(webviewPanel, context);
+				} else {
+					webviewPanel.dispose();
+				}
 			}
 		})
 	);
@@ -277,16 +286,19 @@ export async function activate(context: ExtensionContext) {
 			sourceWatcher.onDidDelete((uri) => invalidateBuild(uri.fsPath));
 			context.subscriptions.push(sourceWatcher);
 
+			resolveExtensionReady(true);
 		} else {
 			arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
 			const configError = arduinoCLI.lastCLIError() || 'Arduino CLI configuration is not valid';
 			arduinoExtensionChannel.appendLine(`${configError}`);
+			resolveExtensionReady(false);
 			return;
 		}
 	} else {
 		arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
 		const cliError = arduinoCLI.lastCLIError() || 'Arduino CLI is not available';
 		arduinoExtensionChannel.appendLine(`${cliError}`);
+		resolveExtensionReady(false);
 		return;
 	}
 
