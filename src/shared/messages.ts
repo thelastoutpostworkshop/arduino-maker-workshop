@@ -568,5 +568,6 @@ export const ARDUINO_MESSAGES = {
   // Misc commands
   OPEN_LIBRARY: 'openExample',
   CHANGE_THEME_COLOR: "changeThemeColor",
+  EXTENSION_HEARTBEAT: "extensionHeartbeat",
   LOG_DEBUG: "logDebug"
 };

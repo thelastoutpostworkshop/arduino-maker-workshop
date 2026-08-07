@@ -1,6 +1,7 @@
 import { commands, ConfigurationTarget, Disposable, Webview, WebviewPanel, window, Uri, ViewColumn, ExtensionContext, Position, Range, Selection, workspace } from "vscode";
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
+import { WebviewConnectionHeartbeat } from "./webviewConnectionHeartbeat";
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BacktraceDecodeFrame, BacktraceDecodeResult, ESP32_PARTITION_BUILDER_BASE_URL, PROFILES_STATUS, SketchProjectFile, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, compile, loadArduinoConfiguration, openExample, shouldCheckForUpdates, shouldDetectPorts, updateStateCompileUpload } from "./extension";
 
@@ -393,6 +394,7 @@ export class VueWebviewPanel {
         );
 
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+        this._disposables.push(new WebviewConnectionHeartbeat(this._panel.webview));
         this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
         arduinoExtensionChannel.appendLine("Arduino Web view ready");
     }
@@ -1227,6 +1229,10 @@ export class VueWebviewPanel {
         VueWebviewPanel.configurePanel(panel, context);
         VueWebviewPanel.currentPanel = new VueWebviewPanel(panel, context.extensionUri);
         changeTheme(window.activeColorTheme.kind);
+    }
+
+    public static disposeCurrentPanel(): void {
+        VueWebviewPanel.currentPanel?.dispose();
     }
 
     public static refreshActiveProject(): void {

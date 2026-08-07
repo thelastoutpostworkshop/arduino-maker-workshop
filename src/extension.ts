@@ -98,6 +98,23 @@ async function ensureSerialMonitorAvailable(): Promise<void> {
 }
 
 export async function activate(context: ExtensionContext) {
+	let resolveExtensionReady!: (ready: boolean) => void;
+	const extensionReady = new Promise<boolean>((resolve) => {
+		resolveExtensionReady = resolve;
+	});
+
+	context.subscriptions.push(
+		window.registerWebviewPanelSerializer('vueWebview', {
+			async deserializeWebviewPanel(webviewPanel) {
+				if (await extensionReady) {
+					VueWebviewPanel.restore(webviewPanel, context);
+				} else {
+					webviewPanel.dispose();
+				}
+			}
+		})
+	);
+
 	context.subscriptions.push(vsCommandAddSubfolderToWorkspace());
 
 	ensureSerialMonitorAvailable();
@@ -131,14 +148,6 @@ export async function activate(context: ExtensionContext) {
 			context.subscriptions.push(vsCommandDeactivateBuildProfiles());
 			context.subscriptions.push(vsCommandDecodeBacktrace(context));
 			context.subscriptions.push(vsCommandClearCache());
-			context.subscriptions.push(
-				window.registerWebviewPanelSerializer('vueWebview', {
-					deserializeWebviewPanel(webviewPanel) {
-						VueWebviewPanel.restore(webviewPanel, context);
-					}
-				})
-			);
-
 			context.subscriptions.push(
 				workspace.onDidChangeWorkspaceFolders(() => {
 					arduinoProject.readConfiguration();
@@ -277,16 +286,19 @@ export async function activate(context: ExtensionContext) {
 			sourceWatcher.onDidDelete((uri) => invalidateBuild(uri.fsPath));
 			context.subscriptions.push(sourceWatcher);
 
+			resolveExtensionReady(true);
 		} else {
 			arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
 			const configError = arduinoCLI.lastCLIError() || 'Arduino CLI configuration is not valid';
 			arduinoExtensionChannel.appendLine(`${configError}`);
+			resolveExtensionReady(false);
 			return;
 		}
 	} else {
 		arduinoProject.setStatus(ARDUINO_ERRORS.CLI_NOT_WORKING);
 		const cliError = arduinoCLI.lastCLIError() || 'Arduino CLI is not available';
 		arduinoExtensionChannel.appendLine(`${cliError}`);
+		resolveExtensionReady(false);
 		return;
 	}
 
@@ -748,7 +760,11 @@ function vsCommandAddSubfolderToWorkspace(): Disposable {
 				...remainingFolders
 			);
 
-			if (!success) {
+			if (success) {
+				// This command can restart the extension host without closing the webview.
+				// Close the panel only after VS Code accepts the workspace change.
+				VueWebviewPanel.disposeCurrentPanel();
+			} else {
 				window.showErrorMessage(
 					'Could not add the selected folder to the workspace.'
 				);
@@ -757,5 +773,8 @@ function vsCommandAddSubfolderToWorkspace(): Disposable {
 	);
 }
 
-export function deactivate() { }
+export function deactivate() {
+	// Best-effort cleanup for extension-host restarts initiated outside this extension.
+	VueWebviewPanel.disposeCurrentPanel();
+}
 
