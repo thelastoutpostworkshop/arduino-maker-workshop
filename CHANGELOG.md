@@ -2,7 +2,7 @@
 
 All notable changes to the Arduino Maker Workshop extension will be documented in this file.
 
-## Unreleased
+## Version 1.1.10
 
 - Updated the bundled Arduino CLI to 1.5.1
 
