@@ -9,7 +9,7 @@ test.describe('webview dev server', () => {
     ).toBeVisible();
 
     await expect(page.getByTestId('cli-version')).toContainText(
-      'Built-in CLI v1.5.0 (2026-05-19T14:07:59Z)'
+      'Built-in CLI v1.5.1 (2026-06-05T10:22:12Z)'
     );
 
     await expect(

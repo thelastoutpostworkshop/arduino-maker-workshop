@@ -16,6 +16,7 @@ declare module 'vue' {
     BoardExamples: typeof import('./src/components/BoardExamples.vue')['default']
     BoardManager: typeof import('./src/components/BoardManager.vue')['default']
     BoardSelection: typeof import('./src/components/BoardSelection.vue')['default']
+    DisconnectedView: typeof import('./src/components/DisconnectedView.vue')['default']
     Home: typeof import('./src/components/Home.vue')['default']
     LibExamples: typeof import('./src/components/LibExamples.vue')['default']
     LibraryManager: typeof import('./src/components/LibraryManager.vue')['default']
