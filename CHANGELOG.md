@@ -2,6 +2,10 @@
 
 All notable changes to the Arduino Maker Workshop extension will be documented in this file.
 
+## Version 1.1.11
+
+- Hide Arduino CLI's generated `build/**/sketch` files from the Explorer and file search to prevent duplicate source-file results ([issue #122](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/122))
+
 ## Version 1.1.10
 
 - Updated the bundled Arduino CLI to 1.5.1
