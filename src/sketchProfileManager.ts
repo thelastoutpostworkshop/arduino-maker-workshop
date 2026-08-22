@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 import * as yaml from 'yaml';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject } from './extension';
-import { BUILD_NAME_PROFILE, BuildProfile, BuildProfileUpdate, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
+import { BUILD_NAME_PROFILE, BuildProfile, BuildProfileUpdate, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, NO_PROGRAMMER, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
 import { window } from 'vscode';
 import { DataBit, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
 import { sendBuildProfiles } from './VueWebviewPanel';
@@ -119,11 +119,13 @@ export class SketchProfileManager {
             profile = { ...profileData };
         }
 
-        // Add programmer 
-        if (arduinoProject.useProgrammer()) {
-            profile.programmer = arduinoProject.getProgrammer() ?? "";
+        // Arduino CLI treats the presence of a profile programmer as a request
+        // to use the program recipe. Omit it for a normal upload.
+        const programmer = arduinoProject.getProgrammer();
+        if (arduinoProject.useProgrammer() && programmer && programmer !== NO_PROGRAMMER) {
+            profile.programmer = programmer;
         } else {
-            profile.programmer = "";
+            delete profile.programmer;
         }
 
         // Port settings
@@ -389,9 +391,15 @@ export class SketchProfileManager {
             return false;
         }
 
-        // Update programmer
+        // Arduino CLI uses the program recipe whenever this optional field is
+        // present. Persisting the UI's <none> sentinel would therefore turn a
+        // normal upload into an upload using programmer.
         if (programmerUpdate.programmer !== undefined) {
-            profile.programmer = programmerUpdate.programmer;
+            if (!programmerUpdate.programmer || programmerUpdate.programmer === NO_PROGRAMMER) {
+                delete profile.programmer;
+            } else {
+                profile.programmer = programmerUpdate.programmer;
+            }
             yamlData.profiles[programmerUpdate.profile_name] = profile;
 
             // Save the updated YAML
