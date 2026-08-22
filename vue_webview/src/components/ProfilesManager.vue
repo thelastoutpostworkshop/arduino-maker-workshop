@@ -159,6 +159,12 @@ function getProgrammerOptions(profileName: string) {
     return [{ name: NO_PROGRAMMER, id: NO_PROGRAMMER }, ...opts];
 }
 
+function usesEsp32ApplicationOnlyProgramming(profileName: string): boolean {
+    const profile = store.sketchProject?.yaml?.profiles?.[profileName];
+    return profile?.programmer?.trim().toLowerCase() === 'esptool'
+        && profile.fqbn.split(':')[1] === 'esp32';
+}
+
 function updateProfileProgrammer(profileName: string, programmer: string) {
     const update: BuildProfileUpdate = {
         profile_name: profileName,
@@ -873,6 +879,13 @@ onMounted(() => {
                                                         :items="getProgrammerOptions(profile.name)" item-title="name"
                                                         item-value="id"
                                                         @update:model-value="val => updateProfileProgrammer(profile.name, val)"></v-select>
+                                                    <v-alert v-if="usesEsp32ApplicationOnlyProgramming(profile.name)"
+                                                        type="warning" density="compact" variant="tonal" class="mb-4">
+                                                        <strong>ESP32 application-only programming:</strong>
+                                                        <code>esptool</code> preserves the current bootloader and partition table.
+                                                        Use <strong>{{ NO_PROGRAMMER }}</strong> for a normal upload to a new
+                                                        board or after changing partition layouts.
+                                                    </v-alert>
                                                     <BoardConfigurationForm
                                                         v-if="profileBoardOptions[profile.name].config_options"
                                                         :options="profileBoardOptions[profile.name].config_options"

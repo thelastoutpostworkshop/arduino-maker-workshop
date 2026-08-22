@@ -5,6 +5,7 @@ All notable changes to the Arduino Maker Workshop extension will be documented i
 ## Version 1.1.11
 
 - Hide Arduino CLI's generated `build/**/sketch` files from the Explorer and file search to prevent duplicate source-file results ([issue #122](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/122))
+- Explain that selecting `esptool` as an ESP32 build-profile programmer performs application-only programming, and advise using No programmer for a new board or changed partition layout ([issue #123](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/123))
 
 ## Version 1.1.10
 
