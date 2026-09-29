@@ -27,6 +27,7 @@ function handleMessageFromVsCode(event: MessageEvent) {
 
 onMounted(() => {
   window.addEventListener('message', handleMessageFromVsCode);
+  store.sendMessage({ command: ARDUINO_MESSAGES.WEBVIEW_READY, errorMessage: "", payload: "" });
   if (import.meta.env.DEV) {
     store.sendMessage({ command: ARDUINO_MESSAGES.CHANGE_THEME_COLOR, errorMessage: "", payload: THEME_COLOR.dark });
   }
