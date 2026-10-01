@@ -43,8 +43,8 @@ let debounceTimeout: NodeJS.Timeout | undefined; // To debounce changes to setti
 
 async function ensureSerialMonitorAvailable(): Promise<void> {
 	const arch = os.arch?.() || "";
-	if (arch === "arm64" || arch === "aarch64") {
-		arduinoExtensionChannel.appendLine("Serial Monitor skipped on ARM architectures.");
+	if (os.platform() === "win32" && (arch === "arm64" || arch === "aarch64")) {
+		arduinoExtensionChannel.appendLine("Serial Monitor skipped on Windows ARM.");
 		return;
 	}
 
