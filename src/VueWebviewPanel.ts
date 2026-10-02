@@ -14,6 +14,8 @@ export class VueWebviewPanel {
 
     private readonly _panel: WebviewPanel;
     private _disposables: Disposable[] = [];
+    private _webviewReady = false;
+    private _pendingMessages: WebviewToExtensionMessage[] = [];
     public static currentPanel: VueWebviewPanel | undefined;
     private static readonly EMPTY_OUTDATED_PAYLOAD = JSON.stringify({ platforms: [], libraries: [] });
     private usbChange() {
@@ -40,6 +42,14 @@ export class VueWebviewPanel {
         this._panel.webview.onDidReceiveMessage(
             (message: WebviewToExtensionMessage) => {
                 switch (message.command) {
+                    case ARDUINO_MESSAGES.WEBVIEW_READY:
+                        this._webviewReady = true;
+                        for (const pendingMessage of this._pendingMessages) {
+                            void this._panel.webview.postMessage(pendingMessage);
+                        }
+                        this._pendingMessages = [];
+                        arduinoExtensionChannel.appendLine("Arduino Web view ready");
+                        break;
                     case ARDUINO_MESSAGES.CLI_CREATE_NEW_SKETCH:
                         arduinoCLI.createNewSketch(message.payload);
                         break;
@@ -396,7 +406,6 @@ export class VueWebviewPanel {
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
         this._disposables.push(new WebviewConnectionHeartbeat(this._panel.webview));
         this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
-        arduinoExtensionChannel.appendLine("Arduino Web view ready");
     }
 
     private createBuildProfile(message: WebviewToExtensionMessage) {
@@ -1218,7 +1227,11 @@ export class VueWebviewPanel {
 
     public static sendMessage(message: WebviewToExtensionMessage) {
         if (VueWebviewPanel.currentPanel) {
-            VueWebviewPanel.currentPanel._panel.webview.postMessage(message);
+            if (VueWebviewPanel.currentPanel._webviewReady) {
+                void VueWebviewPanel.currentPanel._panel.webview.postMessage(message);
+            } else {
+                VueWebviewPanel.currentPanel._pendingMessages.push(message);
+            }
             // arduinoExtensionChannel.appendLine(`Message to vue app: ${message.payload}`);
         } else {
             arduinoExtensionChannel.appendLine("Attempted to send message, but the webview panel is not active.");
