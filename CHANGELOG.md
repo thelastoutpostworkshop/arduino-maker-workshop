@@ -6,9 +6,8 @@ All notable changes to the Arduino Maker Workshop extension will be documented i
 
 - Hide Arduino CLI's generated `build/**/sketch` files from the Explorer and file search to prevent duplicate source-file results ([issue #122](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/122))
 - Fixed build profiles saving the `No programmer` placeholder as a programmer. Profiles now omit the programmer field, allowing normal ESP32 uploads to flash the bootloader and partition table ([issue #123](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/123))
-
-## Version 1.1.10
-
+- Fixed the Home webview getting stuck on the loading indicator on slow systems by waiting for the Vue app to be ready before sending initial messages. Thanks to [BerndDonner](https://github.com/BerndDonner) ([PR #124](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/pull/124))
+- Fixed Serial Monitor initialization being skipped on macOS ARM64 and Linux ARM64; the restriction now applies only to Windows ARM64. Thanks to [BerndDonner](https://github.com/BerndDonner) ([PR #125](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/pull/125))
 - Updated the bundled Arduino CLI to 1.5.1
 
 ## Version 1.1.9
