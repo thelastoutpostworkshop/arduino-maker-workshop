@@ -7,6 +7,8 @@ import { routerBoardSelectionName } from '@/router';
 import arduinoImage from '@/assets/extension_icon.png';
 import { getAvailablePorts, resolvePortValue } from '@/utilities/utils';
 
+// Keep the URL in script to avoid vue-tsc treating its // as a template comment.
+const buildProfilesTutorialUrl = 'https://youtu.be/i0gzop0k6yY';
 const router = useRouter()
 const store = useVsCodeStore();
 const portSelected = ref('');
@@ -401,7 +403,7 @@ onMounted(() => {
                     <!-- Tutorial Icon -->
                     <v-tooltip location="top">
                       <template #activator="{ props }">
-                        <v-btn icon variant="text" v-bind="props" :href="'https://youtu.be/i0gzop0k6yY'"
+                        <v-btn icon variant="text" v-bind="props" :href="buildProfilesTutorialUrl"
                           target="_blank" class="ml-2">
                           <v-icon>mdi-open-in-new</v-icon>
                         </v-btn>

@@ -7,6 +7,8 @@ import { getAvailablePorts, resolvePortValue } from '@/utilities/utils';
 import { VForm } from 'vuetify/components';
 type VFormInstance = InstanceType<typeof VForm>
 
+// Keep the URL in script to avoid vue-tsc treating its // as a template comment.
+const buildProfilesTutorialUrl = 'https://youtu.be/i0gzop0k6yY';
 const router = useRouter()
 const store = useVsCodeStore();
 store.profileBoardOptions = null;
@@ -614,7 +616,7 @@ onMounted(() => {
                             <span>Tools</span>
                             <v-tooltip location="top">
                                 <template #activator="{ props }">
-                                    <v-btn icon variant="text" v-bind="props" :href="'https://youtu.be/i0gzop0k6yY'"
+                                    <v-btn icon variant="text" v-bind="props" :href="buildProfilesTutorialUrl"
                                         target="_blank" class="ml-2">
                                         <v-icon>mdi-open-in-new</v-icon>
                                     </v-btn>
