@@ -15,7 +15,7 @@ export default defineConfig({
     }),
     // https://github.com/vuetifyjs/vuetify-loader/tree/master/packages/vite-plugin#readme
     Vuetify(),
-    Components(),
+    Components({ dts: 'components.d.ts' }),
   ],
   build: {
     copyPublicDir:false,

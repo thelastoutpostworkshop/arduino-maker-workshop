@@ -25,8 +25,10 @@
   },
   "include": [
     "src/**/*",
-    "src/**/*.vue"
-, "../src/shared/messages.ts"  ],
+    "src/**/*.vue",
+    "components.d.ts",
+    "../src/shared/messages.ts"
+  ],
   "exclude": ["dist", "node_modules", "cypress"],
   "references": [{ "path": "./tsconfig.node.json" }],
 }
