@@ -7,7 +7,7 @@ Complete each step with tests, user documentation, and a separate commit.
 
 - [x] 1. Project context and dependencies (completed)
 - [x] 2. Board and library discovery (completed)
-- [ ] 3. Better compile results (in progress)
+- [x] 3. Better compile results (completed)
 - [ ] 4. ESP32 crash decoding
 - [ ] 5. Library installation
 - [ ] 6. Firmware upload
@@ -60,9 +60,9 @@ Suggested commit: `Add MCP board and library discovery`
 - [x] Test successful and failed builds, different output formats, truncation, and stale artifacts (256 AI bridge tests passing).
 - [x] Update the compilation prompts and expected results in `AI_ASSISTANTS.md`, including unavailable details and artifact freshness limits.
 - [x] Test used dependencies across output formats, missing versions, profile installation paths, failed builds, and truncation; update the dependency prompt and limitations.
-- [ ] Verify the compilation prompts in an AI client, including memory usage, source locations on a failed build, and clean-build artifact paths.
-- [ ] Verify the used-dependencies prompt in an AI client against Arduino CLI Output, including a verbose profile build, unavailable details without verbose output, and the CLI version.
-- [ ] Commit this step.
+- [x] Verify the compilation prompts in an AI client, including memory usage, source locations on a failed build, and clean-build artifact paths (confirmed by the user).
+- [x] Verify the used-dependencies prompt in an AI client against Arduino CLI Output, including a verbose profile build, unavailable details without verbose output, and the CLI version (confirmed by the user).
+- [x] Commit this step (`0b67849`, `a71fafc`).
 
 Suggested commit: `Return richer MCP compile results`
 
