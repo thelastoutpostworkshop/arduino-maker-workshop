@@ -9,7 +9,7 @@ Complete each step with tests, user documentation, and a separate commit.
 - [x] 2. Board and library discovery (completed)
 - [x] 3. Better compile results (completed)
 - [x] 4. ESP32 crash decoding (completed)
-- [ ] 5. Library installation (implemented; manual checks pending)
+- [x] 5. Library installation (completed)
 - [ ] 6. Firmware upload
 - [ ] 7. Serial capture
 
@@ -86,8 +86,8 @@ Suggested commit: `Expose ESP32 backtrace decoding through MCP`
 - [x] Return installation progress and a structured result, including observed partial changes; refresh library caches and Library Manager inventory.
 - [x] Test already-installed versions, version replacement, profile behavior, download failures, cancellation, concurrency, and bounded results (341 AI bridge tests passing).
 - [x] Update `AI_ASSISTANTS.md` with installation prompts, prerequisites, and expected results.
-- [ ] Verify installation, repeat installation, explicit-profile, and profile-conflict prompts in an AI client; check progress, Library Manager refresh, and cancellation.
-- [ ] Commit this step.
+- [x] Verify installation, repeat installation, explicit-profile, and profile-conflict prompts in an AI client; check progress, Library Manager refresh, and cancellation (confirmed by the user).
+- [x] Commit this step (`ed8de18`, with manager regression fix `ce36685`).
 
 Suggested commit: `Add MCP library installation`
 
