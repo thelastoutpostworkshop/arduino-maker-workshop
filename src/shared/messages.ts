@@ -585,6 +585,7 @@ export const ARDUINO_MESSAGES = {
   OPEN_LIBRARY: 'openExample',
   CHANGE_THEME_COLOR: "changeThemeColor",
   WEBVIEW_READY: "webviewReady",
+  WEBVIEW_HEARTBEAT_REQUEST: "webviewHeartbeatRequest",
   EXTENSION_HEARTBEAT: "extensionHeartbeat",
   LOG_DEBUG: "logDebug"
 };

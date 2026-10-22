@@ -51,6 +51,9 @@ export class VueWebviewPanel {
                         arduinoExtensionChannel.appendLine("Arduino Web view ready");
                         void this.handleAiIntegrationMessage({ command: ARDUINO_MESSAGES.AI_GET_STATE, errorMessage: '', payload: '' });
                         break;
+                    case ARDUINO_MESSAGES.WEBVIEW_HEARTBEAT_REQUEST:
+                        // The connection heartbeat listener responds without reinitializing the view.
+                        break;
                     case ARDUINO_MESSAGES.AI_GET_STATE:
                     case ARDUINO_MESSAGES.AI_SET_ENABLED:
                     case ARDUINO_MESSAGES.AI_SETUP_CLIENT:
@@ -411,7 +414,7 @@ export class VueWebviewPanel {
         );
 
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
-        this._disposables.push(new WebviewConnectionHeartbeat(this._panel.webview));
+        this._disposables.push(new WebviewConnectionHeartbeat(this._panel));
         this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
     }
 

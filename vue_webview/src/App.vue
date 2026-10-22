@@ -8,7 +8,7 @@ import { useExtensionConnection } from './composables/useExtensionConnection';
 import { ARDUINO_MESSAGES, THEME_COLOR } from '@shared/messages';
 
 const store = useVsCodeStore();
-const { connectionState, handleConnectionMessage } = useExtensionConnection();
+const { connectionState, hasConnected, handleConnectionMessage } = useExtensionConnection();
 
 function handleMessageFromVsCode(event: MessageEvent) {
   const message = event.data; // The message sent from the extension
@@ -43,13 +43,15 @@ onUnmounted(() => {
   <Theme></Theme>
   <v-app v-if="store.currentTheme">
     <DisconnectedView v-if="connectionState === 'disconnected'"></DisconnectedView>
-    <template v-else-if="connectionState === 'connected'">
-      <Toolbox></Toolbox>
-      <v-main>
+    <template v-if="hasConnected">
+      <div v-show="connectionState === 'connected'">
+        <Toolbox></Toolbox>
+      </div>
+      <v-main v-show="connectionState === 'connected'">
         <router-view></router-view>
       </v-main>
     </template>
-    <v-main v-else class="d-flex align-center justify-center">
+    <v-main v-else-if="connectionState === 'waiting'" class="d-flex align-center justify-center">
       <v-progress-circular indeterminate></v-progress-circular>
     </v-main>
   </v-app>
