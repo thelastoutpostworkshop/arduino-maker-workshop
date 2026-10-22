@@ -6,12 +6,26 @@ import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
 import arduinoImage from '@/assets/extension_icon.png';
 import { getAvailablePorts, resolvePortValue } from '@/utilities/utils';
-import AiIntegration from './AiIntegration.vue';
 
 // Keep the URL in script to avoid vue-tsc treating its // as a template comment.
 const buildProfilesTutorialUrl = 'https://youtu.be/i0gzop0k6yY';
 const router = useRouter()
 const store = useVsCodeStore();
+const aiAvailability = computed(() => {
+  switch (store.aiIntegration?.status) {
+    case 'disabled': return 'Disabled';
+    case 'waiting': return 'Not yet available';
+    case 'connecting': return 'Starting...';
+    case 'ready': return 'Available to assistants';
+    case 'error': return 'Needs attention';
+    default: return 'Checking availability...';
+  }
+});
+const aiApprovalSummary = computed(() => !store.aiIntegration ? 'Loading AI preferences...' :
+  store.aiIntegration.confirmCompile !== false
+    ? 'AI compile approval: ask each time in VS Code.'
+    : 'AI compile approval: automatic in trusted local workspaces.'
+);
 const portSelected = ref('');
 const shouldSyncPort = ref(false);
 const sketchName = ref("");
@@ -288,6 +302,7 @@ watch((portSelected), (newPort) => {
 watch([() => store.cliStatus, () => store.projectStatus], () => { }, { immediate: true });
 
 onMounted(() => {
+  store.sendMessage({ command: ARDUINO_MESSAGES.AI_GET_STATE, errorMessage: '', payload: '' });
   store.sendMessage({ command: ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_CONNECTED, errorMessage: "", payload: "" });
   store.sendMessage({ command: ARDUINO_MESSAGES.GET_BUILD_PROFILES, errorMessage: '', payload: '' });
@@ -355,7 +370,18 @@ onMounted(() => {
               </div>
             </template>
           </v-alert>
-          <AiIntegration class="mb-4" />
+          <v-card rounded="lg" variant="tonal" class="mb-4" data-testid="ai-home-summary">
+            <v-card-text class="d-flex flex-wrap align-center ga-3">
+              <v-icon icon="mdi-robot-outline" aria-hidden="true" />
+              <div class="flex-grow-1">
+                <div class="text-subtitle-1">AI integration: {{ aiAvailability }}</div>
+                <div class="text-body-2 text-medium-emphasis">{{ aiApprovalSummary }}</div>
+              </div>
+              <v-btn variant="text" :to="{ name: 'ai-integration' }" data-testid="ai-manage">
+                Manage AI integration
+              </v-btn>
+            </v-card-text>
+          </v-card>
           <v-row class="mb-2" v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS">
             <v-col cols="12" v-if="profileStatusInformation">
               <v-card color="primary" prepend-icon="mdi-application-array-outline" rounded="lg" class="pa-4">

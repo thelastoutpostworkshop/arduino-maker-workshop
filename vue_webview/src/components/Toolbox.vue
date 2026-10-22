@@ -26,7 +26,7 @@ const boardToUpdate = computed(() => {
 
         <v-tooltip location="right">
             <template #activator="{ props }">
-                <v-list-item v-bind="props" prepend-icon="mdi-home" :to="{ name: 'home' }" router>
+                <v-list-item v-bind="props" data-testid="nav-home" prepend-icon="mdi-home" :to="{ name: 'home' }" router>
                     Project Home
                 </v-list-item>
             </template>
@@ -104,6 +104,16 @@ const boardToUpdate = computed(() => {
                 </v-list-item>
             </template>
             <span>Board Examples</span>
+        </v-tooltip>
+
+        <v-tooltip location="right">
+            <template #activator="{ props }">
+                <v-list-item v-bind="props" data-testid="nav-ai-integration" prepend-icon="mdi-robot-outline"
+                    :to="{ name: 'ai-integration' }" router>
+                    AI integration
+                </v-list-item>
+            </template>
+            <span>AI integration</span>
         </v-tooltip>
 
         <v-tooltip location="right">

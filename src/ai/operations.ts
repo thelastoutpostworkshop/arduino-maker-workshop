@@ -21,7 +21,7 @@ function awaitApproval(approval: Promise<boolean>, signal: AbortSignal): Promise
     return new Promise((resolve, reject) => {
         const abort = () => {
             signal.removeEventListener('abort', abort);
-            reject(new AiBridgeError('CANCELED', 'Compilation was canceled while awaiting approval.'));
+            reject(new AiBridgeError('CANCELED', 'Compilation was canceled before it started.'));
         };
         if (signal.aborted) { abort(); return; }
         signal.addEventListener('abort', abort, { once: true });
@@ -70,7 +70,7 @@ export function createAiOperationHandler(dependencies: AiOperationDependencies):
             throw new AiBridgeError('INVALID_TARGET', 'Resolve project context issues and select a valid board or profile before compiling.');
         }
         if (compilePending) {
-            throw new AiBridgeError('BUSY', 'Another assistant compile is awaiting approval or running in this window.');
+            throw new AiBridgeError('BUSY', 'Another assistant compile is pending or running in this window.');
         }
         compilePending = true;
         try {
@@ -79,7 +79,7 @@ export function createAiOperationHandler(dependencies: AiOperationDependencies):
             if (dependencies.hasUnsavedSketchDocuments(target.sketchPath)) {
                 throw new AiBridgeError('UNSAVED_DOCUMENTS', 'Save the sketch documents in VS Code before compiling. Other files will not be saved.');
             }
-            progress({ message: 'Waiting for compile approval in the selected VS Code window.' });
+            progress({ message: 'Checking AI compile permissions...' });
             if (!await awaitApproval(dependencies.confirmCompile(target), signal)) {
                 throw new AiBridgeError('CANCELED', 'Compilation was declined in VS Code.');
             }
@@ -88,7 +88,7 @@ export function createAiOperationHandler(dependencies: AiOperationDependencies):
             const currentTarget = currentPath && dependencies.inspect(input, currentPath);
             if (!currentTarget || currentTarget.fingerprint !== target.fingerprint ||
                 dependencies.revision() !== initialRevision || JSON.stringify(dependencies.cliInfo()) !== initialToolchain || dependencies.hasUnsavedSketchDocuments(target.sketchPath)) {
-                throw new AiBridgeError('STALE_TARGET', 'The sketch or target changed while awaiting approval. Request fresh context and retry.');
+                throw new AiBridgeError('STALE_TARGET', 'The sketch or target changed before compilation. Request fresh context and retry.');
             }
             const result = await dependencies.compile(target, signal, progress);
             if (result.status === 'success') {

@@ -5,8 +5,9 @@ stdio bridge. The bridge forwards requests to the running extension through
 authenticated local IPC. Arduino CLI runs only in the extension host, with the
 existing compile output panel, status bar, and cancel control.
 
-This preview is disabled by default. Open **Arduino Home > AI integration** and
-turn on **Enable AI integration**. The choice is saved for this computer and VS
+This preview is disabled by default. Select **AI integration** (the robot icon)
+in the extension's navigation bar and turn on **Enable AI integration**.
+Home shows a short status summary and a link to this page. The choice is saved for this computer and VS
 Code profile. Trusted local sketch windows restore their bridge automatically
 after reloads and restarts, including **Run and Debug** restarts.
 
@@ -42,10 +43,10 @@ provider uses the editor's runtime instead.
    `sketchName.ino` or `sketchName.pde` file. Use **Add as Active Workspace Folder**
    when necessary.
 2. Resolve Arduino CLI setup and select a board or build profile in Arduino Home.
-3. In **Arduino Home > AI integration**, enable the integration and use the setup
+3. On the **AI integration** navigation page, enable the integration and use the setup
    button for your client. Restart the client's MCP server or open a new client
    session as directed. Copilot may ask you to enable the registered server's tools.
-4. Once Home shows **Available to assistants**, ask your client to list connected
+4. Once the status shows **Available to assistants**, ask your client to list connected
    sketches, choose the intended sketch, then request its project context. Every
    project operation must include that sketch's explicit `sketchPath`.
 5. Turn off **Enable AI integration** to revoke access and prevent automatic
@@ -73,12 +74,26 @@ them. After a debug restart, an already running client reconnects on its next to
 call once the extension is ready. It never retries an interrupted operation
 automatically.
 
-Every assistant compile separately asks for approval in VS Code, showing sketch,
-FQBN, profile, output directory, and whether a clean build was requested. Builds
-execute board-package recipes, write files, and can download profile dependencies.
-Clean builds may clear the output directory. A canceled or disconnected request
-cannot execute if a previously shown approval dialog is answered later. VS Code
-may leave that dialog visible until you dismiss it.
+## Compilation approval
+
+**Ask before AI compilation** is on by default on the **AI integration** page.
+When on, each AI compile opens a VS Code approval dialog showing the sketch,
+FQBN, profile, output directory, and whether a clean build was requested.
+
+Turn the switch off to compile automatically in trusted workspaces. This applies
+to normal and clean builds and is remembered across restarts for this computer
+and VS Code profile. Builds execute board-package recipes, write build files,
+and may download dependencies; clean builds may clear the output directory.
+Codex, Claude, or Copilot may still ask for their own tool approval.
+
+The user setting is `arduinoMakerWorkshop.ai.confirmCompile` (default `true`).
+Workspace settings cannot turn off approval. Changing this preference does not
+enable the bridge or affect manual compilation, upload, or serial tools.
+An approval dialog already open must still be answered or canceled; the switch
+applies to subsequent requests. Trust, sketch scope, unsaved-file checks, and
+cancellation checks apply in both modes. A canceled or disconnected request
+cannot execute if an earlier approval dialog is answered later; VS Code may
+leave that dialog visible until you dismiss it.
 
 ## Tools
 
@@ -97,7 +112,7 @@ the transport and extension backend.
 | `get_project_context` | Reads selected/resolved target, FQBN, build plan, CLI identity, and validation issues. Does not repair or rewrite project configuration. |
 | `list_boards` | Runs the extension's `arduino-cli board listall --json`. Does not install or select boards. |
 | `list_ports` | Runs `arduino-cli board list --json`. Does not open a monitor, select a port, or upload. |
-| `compile_sketch` | After VS Code approval, executes the inspected compile plan and returns structured completion. |
+| `compile_sketch` | Executes the inspected compile plan after applying the user's compilation approval preference, and returns structured completion. |
 
 There are no upload, reset, erase, bootloader, serial monitor, package installation,
 or arbitrary command tools. Compilation has `readOnlyHint: false`; tool hints are
@@ -189,9 +204,9 @@ Save the file, then restart the MCP server or your Codex client. Ask it to call
 path and board or profile before requesting a compile.
 
 `tool_timeout_sec = 900` is a client setting, not a command argument. It allows
-time for VS Code approval and compilation; the default is 60 seconds. Keep
-client-side tool approval enabled. The extension also asks for its own compile
-approval. See [official OpenAI MCP setup](https://learn.chatgpt.com/docs/extend/mcp).
+time for VS Code approval and compilation; the default is 60 seconds. Client-side
+tool approval is separate from the extension's **Ask before AI compilation**
+preference. See [official OpenAI MCP setup](https://learn.chatgpt.com/docs/extend/mcp).
 
 #### Optional alternative: Codex desktop form
 
@@ -275,7 +290,8 @@ another computer or VS Code storage profile, such as a separate development prof
 - Windows uses a session-specific named pipe; Unix uses a short private temporary
   directory and socket. There is no HTTP listener, remote endpoint, OAuth account,
   or selection of an arbitrary window. Enablement is persistent user consent;
-  each compile still requires separate approval. Each project operation requires
+  compilation approval is requested by default and can be disabled through the
+  user's **Ask before AI compilation** preference. Each project operation requires
   exactly one live session for its explicit `sketchPath`.
 - The launcher is copied from the package into extension global storage only on
   enabled startup. Its path remains stable across extension upgrades. Session

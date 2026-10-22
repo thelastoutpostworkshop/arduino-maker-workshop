@@ -8,6 +8,7 @@ import LibExamples from '@/components/LibExamples.vue';
 import BoardExamples from '@/components/BoardExamples.vue';
 import ProfileManager from '@/components/ProfilesManager.vue';
 import OtherTools from '@/components/OtherTools.vue';
+import AiIntegration from '@/components/AiIntegration.vue';
 
 export const routerBoardSelectionName = 'board-selection';
 export const routerBoardConfigurationName = 'board-configuration';
@@ -70,6 +71,13 @@ const router = createRouter({
         name: "profiles-manager",
         components: {
           default: ProfileManager,
+        }
+      },
+      {
+        path: '/ai-integration',
+        name: 'ai-integration',
+        components: {
+          default: AiIntegration,
         }
       },
       {

@@ -99,10 +99,13 @@ export const useVsCodeStore = defineStore('vsCode', {
                 switch (message.command) {
                     case ARDUINO_MESSAGES.AI_GET_STATE:
                     case ARDUINO_MESSAGES.AI_SET_ENABLED:
+                    case ARDUINO_MESSAGES.AI_SET_COMPILE_APPROVAL:
                     case ARDUINO_MESSAGES.AI_SETUP_CLIENT:
                     case ARDUINO_MESSAGES.AI_SHOW_SETUP: {
                         const enabled = message.command === ARDUINO_MESSAGES.AI_SET_ENABLED
                             ? message.payload === true : this.aiIntegration?.enabled ?? false;
+                        const confirmCompile = message.command === ARDUINO_MESSAGES.AI_SET_COMPILE_APPROVAL
+                            ? message.payload !== false : this.aiIntegration?.confirmCompile ?? true;
                         let description = enabled
                             ? 'Development preview: this sketch is available to assistants.'
                             : 'Enable AI integration to make trusted local sketches available to assistants.';
@@ -114,7 +117,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                         }
                         this.handleMessage({
                             command: message.command, errorMessage: '',
-                            payload: { enabled, status: enabled ? 'ready' : 'disabled', message: description, nativeMcpAvailable: true, busy: false } satisfies AiIntegrationState
+                            payload: { enabled, confirmCompile, status: enabled ? 'ready' : 'disabled', message: description, nativeMcpAvailable: true, busy: false } satisfies AiIntegrationState
                         });
                         break;
                     }
@@ -278,6 +281,7 @@ export const useVsCodeStore = defineStore('vsCode', {
         sendMessage(message: WebviewToExtensionMessage) {
             switch (message.command) {
                 case ARDUINO_MESSAGES.AI_SET_ENABLED:
+                case ARDUINO_MESSAGES.AI_SET_COMPILE_APPROVAL:
                 case ARDUINO_MESSAGES.AI_SETUP_CLIENT:
                 case ARDUINO_MESSAGES.AI_SHOW_SETUP:
                     if (this.aiActionPending || this.aiIntegration?.busy) { return; }
@@ -358,6 +362,7 @@ export const useVsCodeStore = defineStore('vsCode', {
                     if (message.errorMessage) { this.aiIntegrationError = message.errorMessage; }
                     break;
                 case ARDUINO_MESSAGES.AI_SET_ENABLED:
+                case ARDUINO_MESSAGES.AI_SET_COMPILE_APPROVAL:
                 case ARDUINO_MESSAGES.AI_SETUP_CLIENT:
                 case ARDUINO_MESSAGES.AI_SHOW_SETUP:
                     this.aiIntegration = message.payload;

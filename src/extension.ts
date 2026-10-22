@@ -7,6 +7,7 @@ import { ArduinoCLI } from "./cli";
 import { SketchProfileManager } from "./sketchProfileManager";
 import { CliOutputView } from "./cliOutputView";
 import { registerAiConnection } from './ai/connection';
+import { confirmAiCompilation } from './ai/compileApproval';
 import { createAiOperationHandler } from './ai/operations';
 import { AI_INPUT_GLOB, inspectProject, isAiSourceFile } from './ai/projectInspection';
 import { ProjectInspection } from './ai/contracts';
@@ -135,14 +136,14 @@ export async function activate(context: ExtensionContext) {
 		hasUnsavedSketchDocuments: (root) => workspace.textDocuments.some((document) =>
 			document.isDirty && document.uri.scheme === 'file' && isWithin(root, document.uri.fsPath)),
 		revision: () => aiRevision,
-		confirmCompile: async (target) => {
+		confirmCompile: (target) => confirmAiCompilation(workspace.getConfiguration('arduinoMakerWorkshop'), workspace.isTrusted, async () => {
 			const action = target.compileArgs.includes('--clean') ? 'Clean Compile' : 'Compile';
 			return (await window.showWarningMessage(
 				`${action} ${target.sketchName} for ${target.fqbn}${target.resolvedProfile ? ` (profile ${target.resolvedProfile})` : ''}?`,
 				{ modal: true, detail: `Requested by a connected AI assistant. This executes installed board-package recipes, writes build artifacts, and may download dependencies.${action === 'Clean Compile' ? ' The build output directory may be cleared before compilation.' : ''}\nSketch: ${target.sketchPath}\nOutput: ${target.buildPath}\nNo upload or serial operation is included.` },
 				action
 			)) === action;
-		},
+		}),
 		compile: async (target, signal, progress) => {
 			aiCompileOutput = target.buildPath;
 			try { return await arduinoCLI.compileForAssistant(target, signal, progress); }

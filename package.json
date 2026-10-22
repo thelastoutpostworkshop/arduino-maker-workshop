@@ -175,7 +175,13 @@
           "type": "boolean",
           "scope": "machine",
           "default": false,
-          "markdownDescription": "Enable the local AI assistant bridge in trusted Arduino workspaces on this computer and VS Code profile. Remembers your choice across reloads and restarts. Configure your AI client once from Arduino Home. Every AI compile still requires approval."
+          "markdownDescription": "Enable the local AI assistant bridge in trusted Arduino workspaces on this computer and VS Code profile. Remembers your choice across reloads and restarts. Configure your AI client once from the AI Integration page."
+        },
+        "arduinoMakerWorkshop.ai.confirmCompile": {
+          "type": "boolean",
+          "scope": "machine",
+          "default": true,
+          "markdownDescription": "Ask before AI compilation in VS Code. Turn off to let connected AI assistants compile trusted local sketches without the extension's confirmation dialog. Compiles execute installed board-package recipes and may download dependencies. This user preference is remembered on this computer and VS Code profile; workspace overrides are ignored. AI client permissions still apply."
         },
         "arduinoMakerWorkshop.arduinoCLI.executable": {
           "type": "string",

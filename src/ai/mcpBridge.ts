@@ -24,7 +24,7 @@ const descriptions: Record<AiToolName, string> = {
     get_project_context: 'Inspect the connected Arduino sketch, resolved profile, FQBN, build arguments, toolchain and issues without changing settings or opening hardware ports.',
     list_boards: 'List available Arduino boards using the connected VS Code toolchain. Does not select a board or install packages.',
     list_ports: 'Discover connected Arduino ports without opening a serial monitor, uploading, resetting or changing the selected port.',
-    compile_sketch: 'Compile the connected Arduino sketch after explicit approval in VS Code. Runs board-package build tools and may download profile dependencies. Does not upload firmware or open a serial monitor.'
+    compile_sketch: 'Compile the connected Arduino sketch following its VS Code AI compilation approval setting. Runs board-package build tools and may download profile dependencies. Does not upload firmware or open a serial monitor.'
 };
 
 /** The complete intentionally small MCP surface. No generic command or upload tool exists. */
@@ -53,7 +53,7 @@ export function getMcpTools(includeDiscovery = false): unknown[] {
     if (includeDiscovery) {
         tools.unshift({
             name: 'list_connected_sketches',
-            description: 'List Arduino sketches explicitly connected to AI assistants in running VS Code windows. Call this first and use the selected sketchPath in other tools. A sessionCount above one means extra windows must disconnect before operating on that sketch.',
+            description: 'List Arduino sketches available through enabled AI integration in running VS Code windows. Call this first and use the selected sketchPath in other tools. A sessionCount above one means extra windows for that sketch must close before operating on it.',
             inputSchema: { type: 'object', properties: {}, additionalProperties: false },
             annotations: { title: 'List Connected Arduino Sketches', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
         });
@@ -145,8 +145,8 @@ export async function runMcpBridge(input: Readable, output: Writable, session: s
                 initializationRequested = true;
                 const version = PROTOCOL_VERSIONS.find(value => value === params.protocolVersion) ?? PROTOCOL_VERSIONS[0];
                 const instructions = globalConnection
-                    ? 'Arduino Maker Workshop connects to explicitly enabled VS Code windows. Call list_connected_sketches first, then pass the selected absolute sketchPath to other tools. Use the project requested by the user; ask if the target is unclear. If none are listed, run Connect AI Assistant in VS Code. Compilation requires approval in the target window. Interrupted operations are never replayed. Upload, reset, erase and serial tools are unavailable.'
-                    : `Connected sketch: ${connection.sketchPath}\nTools require an explicitly enabled session for this sketch in VS Code. If unavailable after a debug restart, run Connect AI Assistant again and retry. Compilation requires approval. Upload, reset, erase and serial monitor operations are unavailable.`;
+                    ? 'Arduino Maker Workshop connects to enabled, trusted VS Code sketch windows. Call list_connected_sketches first, then pass the selected absolute sketchPath to other tools. Use the project requested by the user; ask if the target is unclear. If none are listed, check the AI integration page in VS Code. Compilation follows the target window\'s approval setting. Interrupted operations are never replayed. Upload, reset, erase and serial tools are unavailable.'
+                    : `Connected sketch: ${connection.sketchPath}\nTools require enabled AI integration for this trusted sketch in VS Code. If unavailable after a debug restart, check its AI integration page. Compilation follows that window's approval setting. Interrupted operations are never replayed. Upload, reset, erase and serial monitor operations are unavailable.`;
                 result(id, { protocolVersion: version, capabilities: { tools: {} }, serverInfo: { name: 'arduino-maker-workshop-local', version: '1.0.0' }, instructions });
                 return;
             }

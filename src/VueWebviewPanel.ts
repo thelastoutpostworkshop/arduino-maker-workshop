@@ -53,6 +53,7 @@ export class VueWebviewPanel {
                         break;
                     case ARDUINO_MESSAGES.AI_GET_STATE:
                     case ARDUINO_MESSAGES.AI_SET_ENABLED:
+                    case ARDUINO_MESSAGES.AI_SET_COMPILE_APPROVAL:
                     case ARDUINO_MESSAGES.AI_SETUP_CLIENT:
                     case ARDUINO_MESSAGES.AI_SHOW_SETUP:
                         void this.handleAiIntegrationMessage(message);
@@ -431,6 +432,12 @@ export class VueWebviewPanel {
                         await commands.executeCommand('arduinoMakerWorkshop.disableAiIntegration');
                     }
                     break;
+                case ARDUINO_MESSAGES.AI_SET_COMPILE_APPROVAL:
+                    if (typeof message.payload !== 'boolean') {
+                        throw new Error('AI compile approval requires a boolean value.');
+                    }
+                    await commands.executeCommand('arduinoMakerWorkshop.setAiCompileApproval', message.payload);
+                    break;
                 case ARDUINO_MESSAGES.AI_SETUP_CLIENT:
                     if (!['codex', 'claude', 'copilot'].includes(message.payload)) {
                         throw new Error('Select Codex, Claude Code, or Copilot for AI setup.');
@@ -454,7 +461,7 @@ export class VueWebviewPanel {
             state = current;
         } catch (error) {
             errorMessage ||= error instanceof Error ? error.message : 'AI integration state is unavailable.';
-            state = { enabled: false, status: 'error', message: errorMessage, nativeMcpAvailable: false, busy: false };
+            state = { enabled: false, confirmCompile: true, status: 'error', message: errorMessage, nativeMcpAvailable: false, busy: false };
         }
         // Preserve the action command so the UI can distinguish completion from an intermediate state push.
         VueWebviewPanel.sendMessage({ command: message.command, errorMessage, payload: state });

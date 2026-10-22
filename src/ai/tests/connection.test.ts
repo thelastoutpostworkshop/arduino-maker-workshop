@@ -6,6 +6,7 @@ import { test } from 'node:test';
 import * as ts from 'typescript';
 import type { AiIntegrationState } from '../../shared/messages';
 import { AiBridgeError } from '../contracts';
+import { requiresAiCompileConfirmation } from '../compileApproval';
 
 function deferred<T>() {
     let resolve!: (value: T) => void;
@@ -14,7 +15,10 @@ function deferred<T>() {
 }
 
 function configuration(enabled = false) {
-    return { enabled, workspaceEnabled: false, listeners: new Set<() => void>(), write: async (_enabled: boolean) => {} };
+    return {
+        enabled, workspaceEnabled: false, confirmCompile: undefined as boolean | undefined, workspaceConfirmCompile: undefined as boolean | undefined,
+        listeners: new Set<(key?: string) => void>(), write: async (_enabled: boolean) => {},
+    };
 }
 
 function fixture(initial: { nativeApi?: boolean | 'throws'; settings?: ReturnType<typeof configuration>; ready?: boolean; trusted?: boolean; remote?: string; validSketch?: boolean } = {}) {
@@ -27,6 +31,7 @@ function fixture(initial: { nativeApi?: boolean | 'throws'; settings?: ReturnTyp
     const setups: string[] = [], information: string[] = [], executed: string[] = [];
     const states: AiIntegrationState[] = [];
     const preferences: { enabled: boolean; target: number }[] = [];
+    const approvals: { enabled: boolean; target: number }[] = [];
     const clientCalls: { client: string; args: string[] }[] = [];
     const sessionOptions: { sketchPath: string; isTrusted(): boolean }[] = [];
     let createSession: () => Promise<unknown> = async () => ({
@@ -55,17 +60,20 @@ function fixture(initial: { nativeApi?: boolean | 'throws'; settings?: ReturnTyp
         workspace: {
             isTrusted: initial.trusted ?? true,
             getConfiguration: () => ({
-                inspect: () => ({ globalValue: settings.enabled, workspaceValue: settings.workspaceEnabled }),
-                update: async (_key: string, enabled: boolean, target: number) => {
-                    preferences.push({ enabled, target }); await settings.write(enabled);
-                    settings.enabled = enabled; settings.listeners.forEach(listener => listener());
+                inspect: (key: string) => key === 'ai.confirmCompile'
+                    ? { globalValue: settings.confirmCompile, workspaceValue: settings.workspaceConfirmCompile }
+                    : { globalValue: settings.enabled, workspaceValue: settings.workspaceEnabled },
+                update: async (key: string, enabled: boolean, target: number) => {
+                    (key === 'ai.confirmCompile' ? approvals : preferences).push({ enabled, target }); await settings.write(enabled);
+                    if (key === 'ai.confirmCompile') { settings.confirmCompile = enabled; } else { settings.enabled = enabled; }
+                    settings.listeners.forEach(listener => listener(`arduinoMakerWorkshop.${key}`));
                 },
             }),
             openTextDocument: async (document: { content: string }) => { setups.push(document.content); return {}; },
             onDidChangeWorkspaceFolders: (handler: () => void) => { folderChange = handler; return new Disposable(); },
             onDidGrantWorkspaceTrust: (handler: () => void) => { trustChange = handler; return new Disposable(); },
             onDidChangeConfiguration: (handler: (event: { affectsConfiguration(key: string): boolean }) => void) => {
-                const listener = () => handler({ affectsConfiguration: key => key === 'arduinoMakerWorkshop.ai.enabled' });
+                const listener = (changedKey = 'arduinoMakerWorkshop.ai.enabled') => handler({ affectsConfiguration: key => key === changedKey });
                 settings.listeners.add(listener); return new Disposable(() => settings.listeners.delete(listener));
             },
         },
@@ -86,6 +94,7 @@ function fixture(initial: { nativeApi?: boolean | 'throws'; settings?: ReturnTyp
     const customRequire = (name: string) => {
         if (name === 'vscode') { return vscode; }
         if (name === './contracts') { return { AiBridgeError }; }
+        if (name === './compileApproval') { return { requiresAiCompileConfirmation }; }
         if (name === './clientSetup') { return { setupAiClient: async (client: string, args: string[]) => {
             clientCalls.push({ client, args }); return setupClient(client, args);
         } }; }
@@ -105,7 +114,7 @@ function fixture(initial: { nativeApi?: boolean | 'throws'; settings?: ReturnTyp
     return {
         connect: () => command('enableAiIntegration'), disconnect: () => command('disableAiIntegration'),
         showSetup: () => command('showAiSetup'), setup: (client?: string) => command('setupAiClient', client),
-        command, registration, vscode, settings, states, preferences, sessionOptions, clientCalls, executed, information, setups,
+        command, registration, vscode, settings, states, preferences, approvals, sessionOptions, clientCalls, executed, information, setups,
         folderChange: () => folderChange(), trustChange: () => trustChange(), counts: () => ({ created, disposed, shown, writes, warnings }),
         definitions: () => provider?.provideMcpServerDefinitions(), resolve: (definition: unknown) => provider?.resolveMcpServerDefinition(definition),
         createSession: (callback: typeof createSession) => { createSession = callback; }, setupClient: (callback: typeof setupClient) => { setupClient = callback; },
@@ -290,4 +299,72 @@ test('palette chooser and Copilot list use native setup with manual fallback', a
     const f = fixture({ settings: configuration(true) }); await f.flush(); f.pick(async () => ({ client: 'claude' })); await f.setup(); assert.equal(f.clientCalls[0].client, 'claude');
     await f.setup('copilot'); assert.deepEqual(f.executed, ['workbench.mcp.listServer']);
     f.execute(async () => { throw new Error('Command unavailable'); }); await f.setup('copilot'); assert.equal(f.counts().shown, 1); assert.equal(f.clientCalls.length, 1);
+});
+
+test('compile approval defaults on, ignores workspace values, and persists while integration is disabled', async () => {
+    const settings = configuration(); settings.workspaceConfirmCompile = false;
+    const f = fixture({ settings }); await f.flush();
+    assert.equal(f.registration.getState().confirmCompile, true);
+    await f.command('setAiCompileApproval', false);
+    assert.deepEqual(f.approvals, [{ enabled: false, target: 1 }]);
+    assert.equal(settings.confirmCompile, false);
+    assert.equal(f.registration.getState().confirmCompile, false);
+    assert.equal(f.registration.getState().status, 'disabled');
+    assert.equal(f.counts().created + f.counts().writes + f.counts().warnings, 0);
+    f.registration.dispose();
+    const reloaded = fixture({ settings }); await reloaded.flush();
+    assert.equal(reloaded.registration.getState().confirmCompile, false);
+    await reloaded.command('setAiCompileApproval', true);
+    assert.equal(settings.confirmCompile, true);
+    settings.confirmCompile = undefined;
+    settings.listeners.forEach(listener => listener('arduinoMakerWorkshop.ai.confirmCompile'));
+    assert.equal(reloaded.registration.getState().confirmCompile, true);
+});
+
+test('compile approval changes update other windows and guidance without replacing ready sessions', async () => {
+    const settings = configuration(true);
+    const first = fixture({ settings }); const second = fixture({ settings });
+    await Promise.all([first.flush(), second.flush()]);
+    assert.match(first.registration.getState().message, /ask before AI compilation/);
+    await first.command('setAiCompileApproval', false);
+    assert.equal(second.registration.getState().confirmCompile, false);
+    assert.equal(second.states.at(-1)?.confirmCompile, false);
+    assert.match(second.registration.getState().message, /without the extension confirmation/);
+    assert.equal(first.counts().created, 1); assert.equal(second.counts().created, 1);
+    assert.equal(first.counts().disposed + second.counts().disposed, 0);
+    assert.equal(first.sessionOptions[0].isTrusted(), true);
+    await first.showSetup();
+    assert.match(first.setups[0], /currently off/);
+    assert.ok(!first.setups[0].includes('Each compile still requires approval'));
+    await second.command('setAiCompileApproval', true);
+    assert.equal(first.registration.getState().confirmCompile, true);
+    assert.match(first.registration.getState().message, /ask before AI compilation/);
+});
+
+test('pending or failed approval opt-out never grants unsaved auto-approval', async () => {
+    const settings = configuration(); const f = fixture({ settings }); await f.flush();
+    const pending = deferred<void>(); settings.write = () => pending.promise;
+    const saving = f.command('setAiCompileApproval', false);
+    await waitUntil(() => f.approvals.length === 1);
+    assert.equal(f.registration.getState().confirmCompile, true);
+    assert.equal(f.registration.getState().busy, true);
+    assert.equal(requiresAiCompileConfirmation(f.vscode.workspace.getConfiguration()), true);
+    pending.resolve(); await saving;
+    assert.equal(f.registration.getState().confirmCompile, false);
+    await f.command('setAiCompileApproval', true);
+    settings.write = async () => { throw new Error('Read-only settings'); };
+    await assert.rejects(f.command('setAiCompileApproval', false), /Could not save Ask before AI compilation/);
+    assert.equal(settings.confirmCompile, true);
+    assert.equal(f.registration.getState().confirmCompile, true);
+    assert.equal(f.registration.getState().busy, false);
+    assert.match(f.registration.getState().message, /saved preference is still in effect/);
+});
+
+test('compile approval command rejects non-booleans without changing settings', async () => {
+    const f = fixture(); await f.flush();
+    for (const value of [undefined, 'false', 0, null]) {
+        await assert.rejects(f.command('setAiCompileApproval', value), /must be on or off/);
+    }
+    assert.equal(f.approvals.length, 0);
+    assert.equal(f.registration.getState().confirmCompile, true);
 });
