@@ -28,8 +28,8 @@ const descriptions: Record<AiToolName, string> = {
 };
 
 /** The complete intentionally small MCP surface. No generic command or upload tool exists. */
-export function getMcpTools(): unknown[] {
-    return (Object.keys(descriptions) as AiToolName[]).map(name => ({
+export function getMcpTools(includeDiscovery = false): unknown[] {
+    const tools: unknown[] = (Object.keys(descriptions) as AiToolName[]).map(name => ({
         name,
         description: descriptions[name],
         inputSchema: {
@@ -50,11 +50,22 @@ export function getMcpTools(): unknown[] {
             openWorldHint: name === 'compile_sketch'
         }
     }));
+    if (includeDiscovery) {
+        tools.unshift({
+            name: 'list_connected_sketches',
+            description: 'List Arduino sketches explicitly connected to AI assistants in running VS Code windows. Call this first and use the selected sketchPath in other tools. A sessionCount above one means extra windows must disconnect before operating on that sketch.',
+            inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+            annotations: { title: 'List Connected Arduino Sketches', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
+        });
+    }
+    return tools;
 }
 
 /** Newline-delimited JSON-RPC over stdio; input close immediately revokes pending operations. */
 export async function runMcpBridge(input: Readable, output: Writable, session: string | AiSessionResolver): Promise<void> {
     const connection = typeof session === 'string' ? await AiIpcClient.connect(session) : session;
+    const resolver = connection instanceof AiSessionResolver ? connection : undefined;
+    const globalConnection = resolver !== undefined && resolver.sketchPath === undefined;
     const requests = new Map<string, AbortController>();
     let initialized = false;
     let initializationRequested = false;
@@ -133,22 +144,32 @@ export async function runMcpBridge(input: Readable, output: Writable, session: s
                 }
                 initializationRequested = true;
                 const version = PROTOCOL_VERSIONS.find(value => value === params.protocolVersion) ?? PROTOCOL_VERSIONS[0];
-                result(id, { protocolVersion: version, capabilities: { tools: {} }, serverInfo: { name: 'arduino-maker-workshop-local', version: '1.0.0' }, instructions: `Connected sketch: ${connection.sketchPath}\nTools require an explicitly enabled session for this sketch in VS Code. If unavailable after a debug restart, run Connect AI Assistant again and retry. Compilation requires approval. Upload, reset, erase and serial monitor operations are unavailable.` });
+                const instructions = globalConnection
+                    ? 'Arduino Maker Workshop connects to explicitly enabled VS Code windows. Call list_connected_sketches first, then pass the selected absolute sketchPath to other tools. Use the project requested by the user; ask if the target is unclear. If none are listed, run Connect AI Assistant in VS Code. Compilation requires approval in the target window. Interrupted operations are never replayed. Upload, reset, erase and serial tools are unavailable.'
+                    : `Connected sketch: ${connection.sketchPath}\nTools require an explicitly enabled session for this sketch in VS Code. If unavailable after a debug restart, run Connect AI Assistant again and retry. Compilation requires approval. Upload, reset, erase and serial monitor operations are unavailable.`;
+                result(id, { protocolVersion: version, capabilities: { tools: {} }, serverInfo: { name: 'arduino-maker-workshop-local', version: '1.0.0' }, instructions });
                 return;
             }
             case 'ping': result(id, {}); return;
             case 'tools/list':
                 if (!initialized) { error(id, -32002, 'Client initialization is incomplete'); return; }
                 if (params.cursor !== undefined) { error(id, -32602, 'This tool list does not use pagination'); return; }
-                result(id, { tools: getMcpTools() });
+                result(id, { tools: getMcpTools(globalConnection) });
                 return;
             case 'tools/call': break;
             default: error(id, -32601, 'Method not found'); return;
         }
         if (!initialized) { error(id, -32002, 'Client initialization is incomplete'); return; }
         if (requests.size >= MAX_REQUESTS) { error(id, -32000, 'Too many active requests'); return; }
-        let call: ReturnType<typeof validateToolCall>;
-        try { call = validateToolCall(params.name, params.arguments); }
+        let call: ReturnType<typeof validateToolCall> | { name: 'list_connected_sketches' };
+        try {
+            if (globalConnection && params.name === 'list_connected_sketches') {
+                if (params.arguments !== undefined && (!record(params.arguments) || Object.keys(params.arguments).length > 0)) {
+                    throw new AiBridgeError('INVALID_ARGUMENTS', 'This tool accepts no arguments.');
+                }
+                call = { name: 'list_connected_sketches' };
+            } else { call = validateToolCall(params.name, params.arguments); }
+        }
         catch { error(id, -32602, 'Unknown tool or invalid arguments'); return; }
         const meta = params._meta;
         const progressToken = record(meta) ? meta.progressToken : undefined;
@@ -162,7 +183,12 @@ export async function runMcpBridge(input: Readable, output: Writable, session: s
         requests.set(key, controller);
         let progress = 0;
         void (async () => {
-            const client = connection instanceof AiSessionResolver ? await connection.getClient() : connection;
+            if (call.name === 'list_connected_sketches') {
+                const sketches = await resolver!.listSketches();
+                if (closed || controller.signal.aborted) { throw new AiBridgeError('CANCELED', 'The request was canceled.'); }
+                return sketches;
+            }
+            const client = resolver ? await resolver.getClient(call.input.sketchPath) : connection as AiIpcClient;
             if (closed || controller.signal.aborted) { throw new AiBridgeError('CANCELED', 'The request was canceled.'); }
             // Reconnect only before a new call. Never replay a tool after its IPC call starts.
             return client.call(call.name, call.input, controller.signal, value => {
@@ -186,6 +212,11 @@ export async function runMcpBridge(input: Readable, output: Writable, session: s
 
 /** Dedicated bundled entry calls this function; importing this module never starts a session. */
 export async function main(args: string[] = process.argv.slice(2)): Promise<void> {
+    if (args.length === 2 && args[0] === '--session-dir' && args[1]) {
+        const resolver = await AiSessionResolver.createGlobal(args[1]);
+        await runMcpBridge(process.stdin, process.stdout, resolver);
+        return;
+    }
     if (args.length === 2 && args[0] === '--session' && args[1]) {
         await runMcpBridge(process.stdin, process.stdout, args[1]);
         return;
@@ -195,5 +226,5 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
         await runMcpBridge(process.stdin, process.stdout, resolver);
         return;
     }
-    throw new Error('Usage: node launcher.cjs --sketch <sketch-path> --session-dir <session-directory>, or --session <session-file>');
+    throw new Error('Usage: node launcher.cjs --session-dir <session-directory>, or --sketch <sketch-path> --session-dir <session-directory>, or --session <session-file>');
 }

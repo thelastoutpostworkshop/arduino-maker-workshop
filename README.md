@@ -48,6 +48,11 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 Use **Arduino Maker Workshop: Connect AI Assistant (This Session)** to expose
 project context, board/port discovery, and approved compilation through a local
 MCP bridge. Access is disabled by default; upload and serial tools are not exposed.
+Connect generates setup instructions with paths from your own computer; the
+extension contains no developer-specific connection paths. Configure one server
+per computer and VS Code storage profile, then reuse it for any sketch you connect.
+After a reload or when opening another sketch, run Connect and keep the same client
+arguments. Ask the assistant to list connected sketches and inspect the one you choose.
 See [AI assistant setup and limitations](AI_ASSISTANTS.md) for Copilot, Codex, and
 Claude Code. The extension never edits client configuration automatically.
 

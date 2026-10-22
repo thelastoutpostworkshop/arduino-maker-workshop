@@ -8,29 +8,48 @@ existing compile output panel, status bar, and cancel control.
 This preview is disabled until you run **Arduino Maker Workshop: Connect AI
 Assistant (This Session)**. It does not install or configure any AI client.
 
+Each user runs Connect on their own computer. The command generates paths from
+that user's VS Code storage; the extension package contains
+no developer-specific connection paths. Copy the setup from your own generated
+document. Configure one server per computer and VS Code storage profile. That entry
+works with any sketch you explicitly connect in that profile. Reloading VS Code or
+opening another sketch only requires a new Connect approval, with no edits to the
+client arguments.
+
 ## Start and stop a session
+
+For external clients, install Node.js 20 or newer on the same computer as VS Code.
+The `node` command must work in the client's environment. The native VS Code MCP
+provider uses the editor's runtime instead.
 
 1. Open a local sketch folder in a local, trusted VS Code window. The first
    workspace folder is the active sketch and must contain a matching
    `sketchName.ino` file. Use **Add as Active Workspace Folder** when necessary.
 2. Resolve Arduino CLI setup and select a board or build profile in Arduino Home.
-3. Run **Arduino Maker Workshop: Connect AI Assistant (This Session)** and approve
-   the connection. A document opens with reusable connection snippets for this
-   sketch and VS Code storage location.
-4. Configure the chosen client once using that document. Start by requesting
-   project context. MCP initialization also identifies the exact configured sketch
-   path; clients must pass it explicitly on every tool call.
+3. Open VS Code's Command Palette, run **Arduino Maker Workshop: Connect AI
+   Assistant (This Session)**, and approve the connection. A document opens with
+   your reusable connection settings for this computer and VS Code storage profile.
+4. Configure the chosen client once using that document. Ask it to list connected
+   sketches, choose the intended sketch, then request its project context. Every
+   project operation must include that sketch's explicit `sketchPath`.
 5. Run **Arduino Maker Workshop: Disconnect AI Assistant**, close/reload this
    window, or change its workspace folders to revoke the session. Run Connect again
-   after a reload; existing client arguments remain valid for the same sketch and
-   storage location. No session is restored automatically.
+   after a reload; existing client arguments remain valid in the same storage
+   profile. No session is restored automatically.
 
-External clients select a sketch explicitly with `--sketch` and search only the
-configured `--session-dir` for its live, authorized session. After a debug restart
-and a new Connect approval, an already running client reconnects on its next tool
-call. It never retries an interrupted operation automatically. If multiple windows
-have connected that same sketch, disconnect the extra sessions; the bridge will
-not choose between them.
+When switching to another sketch, run Connect in that sketch's VS Code window and
+reuse the same client entry. Several different sketches can be connected at once.
+Repeat setup only when moving to another computer or VS Code storage profile.
+
+The global MCP server searches only the configured `--session-dir` for live,
+authorized sessions. `list_connected_sketches` returns their sketch paths and
+session counts. The assistant must choose a path from the user's request or ask
+which sketch to use when the choice is unclear. Project operations route to the
+unique live session for their explicit `sketchPath`. If a sketch has more than one
+session, disconnect its extra window sessions; the bridge will not guess between
+them. After a debug restart and a new Connect approval, an already running client
+reconnects on its next tool call. It never retries an interrupted operation
+automatically.
 
 Every assistant compile separately asks for approval in VS Code, showing sketch,
 FQBN, profile, output directory, and whether a clean build was requested. Builds
@@ -41,13 +60,18 @@ may leave that dialog visible until you dismiss it.
 
 ## Tools
 
-All tools require an absolute `sketchPath` matching the connected active sketch.
-They accept an optional existing named `profile`; compilation additionally accepts
-`clean: true|false`. Unknown properties and operations are rejected in both the
-transport and extension backend.
+`list_connected_sketches` takes no arguments and returns
+`{schemaVersion: 1, sketches: [{sketchPath, sessionCount}]}`. An empty list means
+no sketch is currently connected in this storage profile.
+
+The four project tools require an absolute `sketchPath` matching a connected
+sketch. They accept an optional existing named `profile`; compilation additionally
+accepts `clean: true|false`. Unknown properties and operations are rejected in both
+the transport and extension backend.
 
 | Tool | Behavior |
 | --- | --- |
+| `list_connected_sketches` | Lists live, explicitly connected sketches and their session counts. Does not enable sessions or select a target. |
 | `get_project_context` | Reads selected/resolved target, FQBN, build plan, CLI identity, and validation issues. Does not repair or rewrite project configuration. |
 | `list_boards` | Runs the extension's `arduino-cli board listall --json`. Does not install or select boards. |
 | `list_ports` | Runs `arduino-cli board list --json`. Does not open a monitor, select a port, or upload. |
@@ -71,19 +95,20 @@ IntelliSense is refreshed only when the compiled target still matches Home's tar
 
 ## Client setup
 
-The Connect command generates actual paths. Replace the placeholders below with
-those paths. External clients need Node.js 20 or newer on the same host as
-the extension. If `node` is an unavailable or broken shim, use the absolute path of
-a working Node executable. This preview has been tested with simulated clients;
-actual Copilot, Codex, and Claude Code onboarding remains a separate validation step.
+Use the paths in your own Connect document wherever a placeholder appears below.
+Do not copy another user's paths. If `node` is unavailable or a broken shim, use
+the absolute path of a working Node.js 20+ executable. This preview has been tested
+with simulated clients; actual Copilot, Codex, and Claude Code onboarding remains
+a separate validation step.
 
 ### Copilot / VS Code
 
-On hosts exposing `lm.registerMcpServerDefinitionProvider`, an enabled session is
-advertised by the extension's MCP provider. Select the server in VS Code's MCP/tool
-picker. The provider uses the editor's Node runtime and stays tied to that exact
-window session; it does not edit `mcp.json`. Manual client configuration uses the
-reusable sketch-scoped arguments below.
+On supported VS Code versions, Connect automatically advertises the Arduino Maker
+Workshop server through the extension's native MCP provider. Select it in VS Code's
+MCP/tool picker. It uses the editor's Node runtime and the same global tools for
+connected sketches in this storage profile. This window advertises it only while
+its own session is enabled; it does not edit `mcp.json`. Manual client configuration
+uses the reusable arguments below.
 
 The extension keeps its VS Code `^1.93.0` baseline. Provider registration is guarded
 by runtime feature detection. Older VS Code versions retain the existing extension
@@ -96,7 +121,7 @@ merge the generated entry into your user/profile MCP configuration:
     "arduino_maker_workshop": {
       "type": "stdio",
       "command": "node",
-      "args": ["<stable-launcher.cjs>", "--sketch", "<absolute-sketch-path>", "--session-dir", "<private-ai-bridge-directory>"]
+      "args": ["<stable-launcher.cjs>", "--session-dir", "<private-ai-bridge-directory>"]
     }
   }
 }
@@ -104,15 +129,50 @@ merge the generated entry into your user/profile MCP configuration:
 
 [Official VS Code MCP integration](https://code.visualstudio.com/api/extension-guides/ai/mcp).
 
-### Codex IDE / CLI
+### Codex desktop, IDE, and CLI
 
-The IDE and CLI share their host's MCP configuration. Manually add the generated
-entry to `~/.codex/config.toml` (or an intentionally trusted project configuration):
+The desktop app, IDE extension, and CLI share MCP configuration on the same Codex
+host. You do not need to add the same server separately in each one.
+
+For the desktop app, first run Connect in VS Code and keep its generated document
+open. Then:
+
+1. Open **Settings > MCP servers** and choose **Add server**, or edit an existing
+   Arduino Maker Workshop entry.
+2. Give it a name such as `arduino_maker_workshop`, choose **STDIO**, and set
+   **Command** to `node`.
+3. Add these three **Arguments** as separate entries, in this order, using the
+   values from your generated document:
+
+   | Entry | Value |
+   | --- | --- |
+   | 1 | The full path to `launcher.cjs` |
+   | 2 | `--session-dir` |
+   | 3 | The full path to your `ai-bridge` storage directory |
+
+   Paste the raw value into each argument field. Do not add surrounding quotes,
+   brackets, commas, or JSON escaping. A path containing spaces is still one
+   argument. Keep ordinary Windows backslashes as shown in the raw-value section
+   of the generated document.
+4. Select **Save**, then **Restart**.
+5. Ask: "List connected Arduino Maker Workshop sketches, then inspect the sketch
+   I choose." Select the intended path and verify its board or profile before
+   requesting a compile.
+
+For longer compilations, set `tool_timeout_sec = 900` in this server's
+`config.toml` section, as shown below. This is a separate client setting, not a
+fourth command argument. The default is 60 seconds, which can expire while waiting
+for VS Code approval or compiling. Restart the MCP server after changing its
+configuration. See [official OpenAI MCP setup](https://learn.chatgpt.com/docs/extend/mcp).
+
+You can also configure the desktop app, IDE, or CLI by adding the generated entry
+to `~/.codex/config.toml` (or an intentionally trusted project configuration).
+Use the generated TOML snippet as-is, including its quoting and escaping:
 
 ```toml
 [mcp_servers.arduino_maker_workshop]
 command = "node"
-args = ["<stable-launcher.cjs>", "--sketch", "<absolute-sketch-path>", "--session-dir", "<private-ai-bridge-directory>"]
+args = ["<stable-launcher.cjs>", "--session-dir", "<private-ai-bridge-directory>"]
 tool_timeout_sec = 900
 ```
 
@@ -120,14 +180,14 @@ Keep client-side tool approval enabled. The extension still requires its own com
 approval. Longer builds or time spent awaiting that approval can exceed a client's
 tool timeout; cancellation propagates back to the owning subprocess.
 
-[Official Codex MCP configuration](https://developers.openai.com/codex/mcp).
+[Official Codex MCP configuration](https://learn.chatgpt.com/docs/extend/mcp).
 
 ### Claude Code
 
 Use Claude Code's own MCP setup. You can add a local stdio entry using its CLI:
 
 ```text
-claude mcp add --transport stdio arduino_maker_workshop -- node <stable-launcher.cjs> --sketch <absolute-sketch-path> --session-dir <private-ai-bridge-directory>
+claude mcp add --transport stdio arduino_maker_workshop -- node <stable-launcher.cjs> --session-dir <private-ai-bridge-directory>
 ```
 
 Quote actual paths containing spaces for your shell, or use the generated JSON
@@ -139,7 +199,7 @@ with Claude Code's MCP configuration tools:
     "arduino_maker_workshop": {
       "type": "stdio",
       "command": "node",
-      "args": ["<stable-launcher.cjs>", "--sketch", "<absolute-sketch-path>", "--session-dir", "<private-ai-bridge-directory>"]
+      "args": ["<stable-launcher.cjs>", "--session-dir", "<private-ai-bridge-directory>"]
     }
   }
 }
@@ -147,22 +207,22 @@ with Claude Code's MCP configuration tools:
 
 [Official Claude Code MCP configuration](https://code.claude.com/docs/en/mcp).
 
-Existing `--session <private-session.json>` configurations remain supported and
-stay bound to that one session. To avoid updating arguments after every reload,
-replace a legacy entry with the generated sketch-scoped entry and restart that
-client's MCP server once. Regenerate setup if you change the sketch location or
-use a different VS Code storage location, such as a separate development profile.
+For an existing entry using `--sketch` or `--session`, replace all its arguments
+with the three values from the new Connect document, then save and restart the
+client's MCP server once. After that migration, the same entry works for any
+sketch you connect in this storage profile. Regenerate setup only when moving to
+another computer or VS Code storage profile, such as a separate development profile.
 
 ## Session and privacy boundary
 
 - Each enabled window has a unique session, authenticated with a random 256-bit
   secret. The descriptor is private to the OS user and is never put into a client
   argument or log as a token. Reusable client configuration contains only the
-  launcher, selected sketch, and bridge storage paths.
+  launcher and bridge storage paths.
 - Windows uses a session-specific named pipe; Unix uses a short private temporary
   directory and socket. There is no HTTP listener, remote endpoint, OAuth account,
-  persistent allow grant, or selection of an arbitrary window. Reconnection
-  requires exactly one live session for the explicitly configured sketch.
+  persistent allow grant, or selection of an arbitrary window. Each project
+  operation requires exactly one live session for its explicit `sketchPath`.
 - The launcher is copied from the package into extension global storage only on
   explicit Connect. Its path remains stable across extension upgrades. Session
   descriptors and tokens intentionally change; closed-host descriptors grant no

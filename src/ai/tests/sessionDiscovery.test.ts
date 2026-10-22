@@ -4,11 +4,11 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { setTimeout as delay } from 'node:timers/promises';
-import { AiBridgeError } from '../contracts';
+import { AiBridgeError, type AiToolHandler } from '../contracts';
 import { AiIpcClient, createAiIpcServer, readSessionDescriptor } from '../ipcServer';
 import { AiSessionResolver } from '../sessionDiscovery';
 
-async function fixture(context: TestContext) {
+async function fixture(context: TestContext, global = false) {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'amw-discovery-'));
     const sketchPath = path.join(root, 'Blink');
     const otherSketch = path.join(root, 'Other');
@@ -16,7 +16,7 @@ async function fixture(context: TestContext) {
     await fs.mkdir(sketchPath);
     await fs.mkdir(otherSketch);
     const servers: Awaited<ReturnType<typeof createAiIpcServer>>[] = [];
-    const resolver = await AiSessionResolver.create(sketchPath, sessionDirectory);
+    const resolver = global ? await AiSessionResolver.createGlobal(sessionDirectory) : await AiSessionResolver.create(sketchPath, sessionDirectory);
     context.after(async () => {
         resolver.dispose();
         await Promise.all(servers.map(server => server.dispose()));
@@ -24,8 +24,8 @@ async function fixture(context: TestContext) {
     });
     return {
         root, sketchPath, otherSketch, sessionDirectory, resolver,
-        async connect(marker: string, sketch = sketchPath) {
-            const server = await createAiIpcServer({ sessionDirectory, sketchPath: sketch, isTrusted: () => true, handler: async () => ({ marker }) });
+        async connect(marker: string, sketch = sketchPath, handler: AiToolHandler = async () => ({ marker })) {
+            const server = await createAiIpcServer({ sessionDirectory, sketchPath: sketch, isTrusted: () => true, handler });
             servers.push(server);
             return server;
         },
@@ -157,4 +157,94 @@ test('concurrent discovery is shared and disposal rejects waiters and closes lat
     await delay(0);
     assert.equal(lateClient.connected, false);
     await assert.rejects(f.resolver.getClient(), { code: 'SESSION_UNAVAILABLE' });
+});
+
+test('global discovery lists authenticated sketches without session details and requires an explicit target', async context => {
+    const f = await fixture(context, true);
+    assert.equal(f.resolver.sketchPath, undefined);
+    assert.deepEqual(await f.resolver.listSketches(), { schemaVersion: 1, sketches: [] });
+    await assert.rejects(f.resolver.getClient(), { code: 'INVALID_ARGUMENTS' });
+    await assert.rejects(f.resolver.getClient('Blink'), { code: 'INVALID_ARGUMENTS' });
+    const first = await f.connect('first');
+    const other = await f.connect('other', f.otherSketch);
+    const listed = await f.resolver.listSketches();
+    assert.deepEqual(listed, { schemaVersion: 1, sketches: [
+        { sketchPath: await fs.realpath(f.sketchPath), sessionCount: 1 },
+        { sketchPath: await fs.realpath(f.otherSketch), sessionCount: 1 },
+    ] });
+    const serialized = JSON.stringify(listed);
+    for (const server of [first, other]) {
+        const descriptor = await readSessionDescriptor(server.sessionFile);
+        for (const secret of [descriptor.token, descriptor.sessionId, descriptor.endpoint, server.sessionFile]) {
+            assert.equal(serialized.includes(secret), false);
+        }
+    }
+    const [left, right] = await Promise.all([f.resolver.getClient(f.sketchPath), f.resolver.getClient(f.otherSketch)]);
+    assert.deepEqual(await marker(left, f.sketchPath), { marker: 'first' });
+    assert.deepEqual(await marker(right, f.otherSketch), { marker: 'other' });
+    await first.dispose();
+    await f.connect('restarted');
+    assert.deepEqual(await marker(await f.resolver.getClient(f.sketchPath), f.sketchPath), { marker: 'restarted' });
+    assert.equal(right.connected, true, 'reconnecting one sketch must preserve the other sketch connection');
+});
+
+test('global listing exposes duplicate counts and routing another sketch preserves in-flight work', async context => {
+    const f = await fixture(context, true);
+    let started!: () => void;
+    let release!: () => void;
+    const running = new Promise<void>(resolve => { started = resolve; });
+    await f.connect('first', f.sketchPath, async (_name, _input, signal) => {
+        await new Promise<void>((resolve, reject) => {
+            release = resolve;
+            signal.addEventListener('abort', () => reject(new Error('The first sketch operation was canceled')), { once: true });
+            started();
+        });
+        return { marker: 'first' };
+    });
+    await f.connect('other', f.otherSketch);
+    const current = await f.resolver.getClient(f.sketchPath);
+    const outcome = marker(current, f.sketchPath).then(value => ({ value }), error => ({ error }));
+    await running;
+    try {
+        const other = await f.resolver.getClient(f.otherSketch);
+        await f.connect('duplicate');
+        const listed = await f.resolver.listSketches();
+        assert.equal(listed.sketches.find(sketch => sketch.sketchPath === current.sketchPath)?.sessionCount, 2);
+        await assert.rejects(f.resolver.getClient(f.sketchPath), { code: 'AMBIGUOUS_SESSION' });
+        assert.equal(current.connected, true);
+        assert.equal(other.connected, true);
+        assert.deepEqual(await marker(other, f.otherSketch), { marker: 'other' });
+    } finally { release(); }
+    assert.deepEqual(await outcome, { value: { marker: 'first' } });
+});
+
+test('global routing ignores an inconclusive other-sketch session and listing failure preserves cached work', async context => {
+    const f = await fixture(context, true);
+    const first = await f.connect('first');
+    const other = await f.connect('other', f.otherSketch);
+    const original = AiIpcClient.connect;
+    const probed: string[] = [];
+    context.mock.method(AiIpcClient, 'connect', async (file: string, signal?: AbortSignal) => {
+        probed.push(file);
+        if (file === other.sessionFile) {
+            throw Object.assign(new AiBridgeError('SESSION_UNAVAILABLE', 'Connection reset'), { cause: { code: 'ECONNRESET' } });
+        }
+        return original.call(AiIpcClient, file, signal);
+    });
+    const current = await f.resolver.getClient(f.sketchPath);
+    assert.deepEqual(probed, [first.sessionFile]);
+    await assert.rejects(f.resolver.listSketches(), { code: 'SESSION_UNAVAILABLE' });
+    assert.equal(current.connected, true);
+    assert.equal(await f.resolver.getClient(f.sketchPath), current);
+    await assert.rejects(f.resolver.getClient(f.otherSketch), { code: 'SESSION_UNAVAILABLE' });
+});
+
+test('scoped discovery rejects an explicit different sketch and keeps its listing scoped', async context => {
+    const f = await fixture(context);
+    await f.connect('first');
+    await f.connect('other', f.otherSketch);
+    await assert.rejects(f.resolver.getClient(f.otherSketch), { code: 'WRONG_WORKSPACE' });
+    assert.deepEqual(await f.resolver.listSketches(), { schemaVersion: 1, sketches: [
+        { sketchPath: await fs.realpath(f.sketchPath), sessionCount: 1 },
+    ] });
 });

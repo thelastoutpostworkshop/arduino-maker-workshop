@@ -159,39 +159,41 @@ test('provider advertises only an enabled session and drops it immediately on di
     assert.equal(f.counts().disposed, 1);
 });
 
-test('external setup survives session replacement while native definitions retain their exact session', async () => {
+test('external and native setup remain stable across session replacement', async () => {
     const f = fixture();
     await f.connect();
     const initialDefinition = f.definitions()![0];
     const directory = path.join('C:\\private', 'ai-bridge');
     const launcher = path.join(directory, 'launcher.cjs');
-    const expectedArgs = [launcher, '--sketch', 'C:\\sketch', '--session-dir', directory];
+    const expectedArgs = [launcher, '--session-dir', directory];
     assert.deepEqual(setupArguments(f.setups[0]), [expectedArgs, expectedArgs, expectedArgs]);
-    assert.deepEqual(initialDefinition.args, [launcher, '--session', 'C:\\private\\session.json']);
-    assert.equal(initialDefinition.version, 'test:test-session');
+    const rawArguments = [...f.setups[0].matchAll(/Argument \d+:\n\n```text\n([^\n]+)\n```/g)].map(match => match[1]);
+    assert.deepEqual(rawArguments, expectedArgs, 'Desktop setup must provide exactly three raw arguments');
+    assert.deepEqual(initialDefinition.args, expectedArgs);
+    assert.equal(initialDefinition.label, 'Arduino Maker Workshop');
+    assert.equal(initialDefinition.version, 'test');
 
     await f.disconnect();
     f.createSession(async () => ({ sessionFile: 'C:\\private\\new-session.json', sessionId: 'new-session', dispose: async () => {} }));
     await f.connect();
     assert.equal(f.setups[1], f.setups[0], 'Client setup must not depend on an ephemeral session ID or descriptor path');
     const replacementDefinition = f.definitions()![0];
-    assert.deepEqual(replacementDefinition.args, [launcher, '--session', 'C:\\private\\new-session.json']);
-    assert.equal(replacementDefinition.version, 'test:new-session');
+    assert.deepEqual(replacementDefinition, initialDefinition, 'Native server identity must not include an ephemeral session');
     await f.disconnect();
 });
 
-test('external setup explicitly selects the connected sketch instead of discovering any window', async () => {
+test('external and native setup remain stable when connecting a different sketch', async () => {
     const f = fixture();
     await f.connect();
+    const originalDefinition = f.definitions()![0];
     await f.disconnect();
     f.changeSketch();
     await f.connect();
     const oldArguments = setupArguments(f.setups[0]);
     const newArguments = setupArguments(f.setups[1]);
     assert.equal(newArguments.length, 3);
-    for (let index = 0; index < newArguments.length; index++) {
-        assert.deepEqual(newArguments[index], [oldArguments[index][0], '--sketch', 'C:\\other', '--session-dir', oldArguments[index][4]]);
-        assert.equal(oldArguments[index][2], 'C:\\sketch');
-    }
+    assert.deepEqual(newArguments, oldArguments, 'A different sketch must reuse the same client configuration');
+    assert.deepEqual(f.definitions()![0], originalDefinition, 'Native server identity must not include the current sketch');
+    assert.ok(f.setups[1].includes('C:\\other'), 'The guide should still identify the sketch this window enabled');
     await f.disconnect();
 });

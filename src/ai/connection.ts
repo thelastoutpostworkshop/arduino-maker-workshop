@@ -19,6 +19,7 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
     let generation = 0;
     let disposed = false;
     let launcherPath = '';
+    const launcherArguments = () => [launcherPath, '--session-dir', path.dirname(launcherPath)];
     const changes = new vscode.EventEmitter<void>();
     const subscriptions: vscode.Disposable[] = [changes];
     const disconnect = async () => {
@@ -38,11 +39,11 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
         subscriptions.push(api.lm.registerMcpServerDefinitionProvider(providerId, {
             onDidChangeMcpServerDefinitions: changes.event,
             provideMcpServerDefinitions: () => session ? [new api.McpStdioServerDefinition!(
-                `Arduino Maker Workshop (${path.basename(options.activeSketchPath() ?? '')})`,
+                'Arduino Maker Workshop',
                 process.execPath,
-                [launcherPath, '--session', session.sessionFile],
+                launcherArguments(),
                 { ELECTRON_RUN_AS_NODE: '1' },
-                `${context.extension.packageJSON.version}:${session.sessionId}`
+                context.extension.packageJSON.version
             )] : [],
             resolveMcpServerDefinition: (definition: unknown) => session && vscode.workspace.isTrusted ? definition : undefined,
         }));
@@ -53,33 +54,63 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
         if (!session || !sketchPath) {
             throw new AiBridgeError('BRIDGE_DISABLED', 'Connect an AI assistant from the selected VS Code window first.');
         }
-        const args = [launcherPath, '--sketch', sketchPath, '--session-dir', path.dirname(launcherPath)];
+        const args = launcherArguments();
         const codex = `[mcp_servers.arduino_maker_workshop]\ncommand = "node"\nargs = ${JSON.stringify(args)}\ntool_timeout_sec = 900\n`;
         const claude = JSON.stringify({ mcpServers: { arduino_maker_workshop: { type: 'stdio', command: 'node', args } } }, null, 2);
         const copilot = JSON.stringify({ servers: { arduino_maker_workshop: { type: 'stdio', command: 'node', args } } }, null, 2);
         const markdown = [
             '# Arduino Maker Workshop - AI connection',
             '',
-            `Selected sketch: ${sketchPath}`,
+            'Sketch enabled by this window:',
+            '', '```text', sketchPath, '```',
             '',
-            'This session is enabled only in this window until Disconnect, reload, or close. Each compile asks for approval here. No upload or serial tools are available.',
+            'These settings were generated for your computer and VS Code storage profile. Every user gets their own paths by running Connect AI Assistant in their VS Code window. You do not need to find or type these paths yourself.',
             '',
-            'These snippets stay valid across reloads for this sketch and VS Code storage location. After each reload, run Connect AI Assistant again; the client reconnects on its next tool call. A failed or interrupted compile is never retried automatically.',
+            'Configure one Arduino Maker Workshop server for this computer and VS Code storage profile. The same entry works with any sketch you explicitly connect here. Choose your client below. To reopen this guide, run Connect AI Assistant again while connected.',
             '',
-            'The snippets contain the selected sketch and bridge storage paths, not authentication tokens. Keep session descriptors private and do not commit machine-specific client configuration. Node.js 20 or newer must be available to external clients on this same machine.',
+            'External clients need Node.js 20 or newer on this same computer. If the client cannot find node, use the full path to your Node executable in its Command field.',
+            '',
+            '## Codex desktop app',
+            '',
+            '1. In the app, open Settings > MCP servers > Add server. If you already added Arduino Maker Workshop, edit that existing entry.',
+            '2. Enter the following values:',
+            '',
+            '- Name: arduino_maker_workshop',
+            '- Transport: STDIO (local command)',
+            '- Command: node',
+            '',
+            'Arguments: add each value below as a separate argument, in order. Copy the text exactly, without surrounding quotes, commas, brackets, or args =. Windows paths here use single backslashes.',
+            '',
+            ...args.flatMap((argument, index) => [`Argument ${index + 1}:`, '', '```text', argument, '```', '']),
+            '3. Save the server, then select Restart. When migrating an older entry using --sketch or --session, replace all its old arguments with the three above.',
+            '4. Ask the assistant: "List connected Arduino Maker Workshop sketches, then inspect the sketch I choose and report its selected board or profile." Every project operation must include that sketch\'s explicit path. Once that works, ask it to compile and approve the request in VS Code.',
+            '',
+            'For compilation, set tool_timeout_sec = 900 in this server\'s config.toml section, as shown below. This is a separate setting, not an argument.',
+            '',
+            '### Alternative: Codex configuration file / IDE / CLI',
+            '',
+            'If you prefer editing configuration, merge the block below into ~/.codex/config.toml on this computer (on Windows, the .codex folder inside your user folder). The desktop app, IDE extension, and CLI share that configuration. Update an existing arduino_maker_workshop section instead of adding a duplicate. You only need one setup method.',
+            '', '```toml', codex, '```',
+            '',
+            'The doubled Windows backslashes in this TOML block are required for file syntax. Use the plain values above when filling in the app\'s Arguments fields.',
+            '',
+            '[Official OpenAI MCP setup instructions](https://learn.chatgpt.com/docs/extend/mcp#connect-an-existing-mcp-server)',
             '',
             '## Copilot / VS Code',
             '',
-            'On versions supporting the MCP definition API, select the Arduino Maker Workshop server in the MCP tools picker. On older versions, MCP itself may be unavailable; otherwise manually add this user/profile MCP configuration:',
+            'On VS Code versions supporting extension MCP providers, this enabled connection is advertised automatically. Select the Arduino Maker Workshop server in the MCP tools picker; no paths need to be entered. Otherwise, if your version supports manual MCP configuration, merge this into your user/profile MCP configuration:',
             '', '```json', copilot, '```',
-            '', '## Codex IDE and CLI',
-            '', 'Manually add this to your host\'s ~/.codex/config.toml. These clients share that MCP configuration:',
-            '', '```toml', codex, '```',
             '', '## Claude Code',
             '', 'Use Claude Code\'s MCP setup or manually merge this into your chosen local/project MCP configuration:',
             '', '```json', claude, '```',
-            '', 'The launcher requires exactly one connected session for the specified sketch. If that sketch is connected in multiple windows, disconnect the extra sessions. Session descriptors and tokens still change after every reconnect; no session is enabled automatically. The native VS Code MCP provider stays tied to its specific window session.',
-            '', 'This command has not edited any client configuration. Actual client interoperability must be tested separately.',
+            '', '## Next time you open a sketch',
+            '', 'Run Connect AI Assistant in VS Code again and approve the connection. Your saved client settings remain valid; its next tool call reconnects. No argument edits are needed after a reload or debug restart. An interrupted compile must be requested again.',
+            '', 'This connection is enabled only until Disconnect, reload, or close. Each compile asks for approval here. No upload or serial tools are available.',
+            '', '## Using another sketch or computer',
+            '', 'For another sketch, run Connect from its VS Code window and keep the same saved server entry. Multiple different sketches may be connected at once. The assistant lists connected sketches and sends the chosen sketchPath with each project operation. Only moving to another computer or VS Code storage profile requires new setup paths. Do not distribute this document as a configuration for other users.',
+            '', 'If several sketches are listed, choose the intended sketch instead of guessing. If a sketch has sessionCount greater than one, disconnect its extra window sessions before requesting project operations. The native VS Code provider uses the same global tools and is advertised in this window only while its session is enabled.',
+            '', 'During extension development, if the standalone bridge code changes, run Connect after rebuilding and restart the client\'s MCP server to load the new launcher. Its arguments stay the same.',
+            '', 'Your AI client\'s settings have not been changed by this command. Save the entry in that client to finish setup. Keep these local settings out of version control; they contain local paths but no authentication tokens.',
         ].join('\n');
         const document = await vscode.workspace.openTextDocument({ language: 'markdown', content: markdown });
         await vscode.window.showTextDocument(document, { preview: false });
