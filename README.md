@@ -45,17 +45,23 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 
 ### AI Assistant Bridge (Preview)
 
-Use **Arduino Maker Workshop: Connect AI Assistant (This Session)** to expose
-project context, board/port discovery, and approved compilation through a local
-MCP bridge. Access is disabled by default; upload and serial tools are not exposed.
-Connect generates setup instructions with paths from your own computer; the
-extension contains no developer-specific connection paths. Configure one server
-per computer and VS Code storage profile, then reuse it for any sketch you connect.
-After a reload or when opening another sketch, run Connect and keep the same client
-arguments. Ask the assistant to list connected sketches and inspect the one you choose.
-See [AI assistant setup and limitations](AI_ASSISTANTS.md) for copy/paste Codex
-TOML, Claude Code JSON, and Copilot's automatic provider or manual JSON setup.
-The extension never edits client configuration automatically.
+In **Arduino Home > AI integration**, enable the bridge, then choose **Set up
+Codex**, **Set up Claude Code**, or **Use with Copilot**. Codex and Claude Code
+setup saves a user configuration entry with paths generated for your computer;
+Copilot uses VS Code's automatic registration where supported. Other client
+settings are preserved. Restart the selected client if requested.
+
+Enablement is off by default and remembered for this computer and VS Code profile.
+Once enabled, trusted local sketches become available automatically after reloads
+and restarts. There is no Connect command to repeat or argument list to update.
+The Home status shows whether the bridge is available. Turn the switch off to
+revoke access across windows in the same profile; saved client entries stay intact.
+
+Assistants can inspect projects, discover boards/ports, and request compilation.
+Each compile still asks for approval in VS Code; upload and serial tools are not
+exposed. Ask the assistant to list available sketches and inspect the one you choose.
+See [AI assistant setup and limitations](AI_ASSISTANTS.md) for details and manual
+configuration alternatives.
 
 ### Profiles Manager (Reproducible build profiles)
 

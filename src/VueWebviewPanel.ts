@@ -2,7 +2,7 @@ import { commands, ConfigurationTarget, Disposable, Webview, WebviewPanel, windo
 import { getUri } from "./utilities/getUri";
 import { getNonce } from "./utilities/getNonce";
 import { WebviewConnectionHeartbeat } from "./webviewConnectionHeartbeat";
-import { ARDUINO_ERRORS, ARDUINO_MESSAGES, BacktraceDecodeFrame, BacktraceDecodeResult, ESP32_PARTITION_BUILDER_BASE_URL, PROFILES_STATUS, SketchProjectFile, WebviewToExtensionMessage } from './shared/messages';
+import { AiIntegrationState, ARDUINO_ERRORS, ARDUINO_MESSAGES, BacktraceDecodeFrame, BacktraceDecodeResult, ESP32_PARTITION_BUILDER_BASE_URL, PROFILES_STATUS, SketchProjectFile, WebviewToExtensionMessage } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, changeTheme, compile, loadArduinoConfiguration, openExample, shouldCheckForUpdates, shouldDetectPorts, updateStateCompileUpload } from "./extension";
 
 const path = require('path');
@@ -49,6 +49,13 @@ export class VueWebviewPanel {
                         }
                         this._pendingMessages = [];
                         arduinoExtensionChannel.appendLine("Arduino Web view ready");
+                        void this.handleAiIntegrationMessage({ command: ARDUINO_MESSAGES.AI_GET_STATE, errorMessage: '', payload: '' });
+                        break;
+                    case ARDUINO_MESSAGES.AI_GET_STATE:
+                    case ARDUINO_MESSAGES.AI_SET_ENABLED:
+                    case ARDUINO_MESSAGES.AI_SETUP_CLIENT:
+                    case ARDUINO_MESSAGES.AI_SHOW_SETUP:
+                        void this.handleAiIntegrationMessage(message);
                         break;
                     case ARDUINO_MESSAGES.CLI_CREATE_NEW_SKETCH:
                         arduinoCLI.createNewSketch(message.payload);
@@ -406,6 +413,51 @@ export class VueWebviewPanel {
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
         this._disposables.push(new WebviewConnectionHeartbeat(this._panel.webview));
         this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
+    }
+
+    private async handleAiIntegrationMessage(message: WebviewToExtensionMessage): Promise<void> {
+        let errorMessage = '';
+        try {
+            switch (message.command) {
+                case ARDUINO_MESSAGES.AI_GET_STATE:
+                    break;
+                case ARDUINO_MESSAGES.AI_SET_ENABLED:
+                    if (typeof message.payload !== 'boolean') {
+                        throw new Error('Enable AI integration requires a boolean value.');
+                    }
+                    if (message.payload) {
+                        await commands.executeCommand('arduinoMakerWorkshop.enableAiIntegration');
+                    } else {
+                        await commands.executeCommand('arduinoMakerWorkshop.disableAiIntegration');
+                    }
+                    break;
+                case ARDUINO_MESSAGES.AI_SETUP_CLIENT:
+                    if (!['codex', 'claude', 'copilot'].includes(message.payload)) {
+                        throw new Error('Select Codex, Claude Code, or Copilot for AI setup.');
+                    }
+                    await commands.executeCommand('arduinoMakerWorkshop.setupAiClient', message.payload);
+                    break;
+                case ARDUINO_MESSAGES.AI_SHOW_SETUP:
+                    await commands.executeCommand('arduinoMakerWorkshop.showAiSetup');
+                    break;
+                default:
+                    throw new Error('This AI integration action is unavailable.');
+            }
+        } catch (error) {
+            errorMessage = error instanceof Error ? error.message : 'The AI integration action failed.';
+        }
+
+        let state: AiIntegrationState;
+        try {
+            const current = await commands.executeCommand<AiIntegrationState>('arduinoMakerWorkshop.getAiIntegrationState');
+            if (!current) { throw new Error('AI integration state is unavailable. Reload the VS Code window and try again.'); }
+            state = current;
+        } catch (error) {
+            errorMessage ||= error instanceof Error ? error.message : 'AI integration state is unavailable.';
+            state = { enabled: false, status: 'error', message: errorMessage, nativeMcpAvailable: false, busy: false };
+        }
+        // Preserve the action command so the UI can distinguish completion from an intermediate state push.
+        VueWebviewPanel.sendMessage({ command: message.command, errorMessage, payload: state });
     }
 
     private createBuildProfile(message: WebviewToExtensionMessage) {

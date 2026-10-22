@@ -38,6 +38,10 @@
     }
   },
   "activationEvents": [
+    "workspaceContains:*.ino",
+    "workspaceContains:*.pde",
+    "workspaceContains:sketch.yaml",
+    "workspaceContains:.vscode/arduino.json",
     "onView:quickAccessView",
     "onView:arduinoMakerWorkshop.compileOutput",
     "onWebviewPanel:vueWebview",
@@ -79,13 +83,23 @@
     },
     "commands": [
       {
-        "command": "arduinoMakerWorkshop.connectAiAssistant",
-        "title": "Connect AI Assistant (This Session)",
+        "command": "arduinoMakerWorkshop.enableAiIntegration",
+        "title": "Enable AI Integration",
         "category": "Arduino Maker Workshop"
       },
       {
-        "command": "arduinoMakerWorkshop.disconnectAiAssistant",
-        "title": "Disconnect AI Assistant",
+        "command": "arduinoMakerWorkshop.disableAiIntegration",
+        "title": "Disable AI Integration",
+        "category": "Arduino Maker Workshop"
+      },
+      {
+        "command": "arduinoMakerWorkshop.setupAiClient",
+        "title": "Set Up AI Client",
+        "category": "Arduino Maker Workshop"
+      },
+      {
+        "command": "arduinoMakerWorkshop.showAiSetup",
+        "title": "AI Setup Instructions",
         "category": "Arduino Maker Workshop"
       },
       {
@@ -157,6 +171,12 @@
     "configuration": {
       "title": "Arduino Maker Workshop",
       "properties": {
+        "arduinoMakerWorkshop.ai.enabled": {
+          "type": "boolean",
+          "scope": "machine",
+          "default": false,
+          "markdownDescription": "Enable the local AI assistant bridge in trusted Arduino workspaces on this computer and VS Code profile. Remembers your choice across reloads and restarts. Configure your AI client once from Arduino Home. Every AI compile still requires approval."
+        },
         "arduinoMakerWorkshop.arduinoCLI.executable": {
           "type": "string",
           "scope": "machine",
@@ -262,6 +282,7 @@
   "dependencies": {
     "@microsoft/vscode-serial-monitor-api": "^0.1.7",
     "ansi_up": "^6.0.6",
+    "toml-eslint-parser": "^0.10.0",
     "usb": "^2.14.0",
     "which": "^4.0.0",
     "yaml": "^2.8.0"

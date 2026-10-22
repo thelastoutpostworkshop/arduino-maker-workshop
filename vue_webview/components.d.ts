@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AiIntegration: typeof import('./src/components/AiIntegration.vue')['default']
     BoardConfiguration: typeof import('./src/components/BoardConfiguration.vue')['default']
     BoardConfigurationForm: typeof import('./src/components/BoardConfigurationForm.vue')['default']
     BoardExamples: typeof import('./src/components/BoardExamples.vue')['default']

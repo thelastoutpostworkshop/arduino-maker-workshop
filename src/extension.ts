@@ -151,7 +151,15 @@ export async function activate(context: ExtensionContext) {
 		discover: (kind, signal) => arduinoCLI.discoverForAssistant(kind, signal),
 		invalidateBuild: invalidateAssistantBuild,
 	});
-	context.subscriptions.push(registerAiConnection(context, { handler: aiHandler, ready: () => aiReady, activeSketchPath }));
+	const aiConnection = registerAiConnection(context, {
+		handler: aiHandler,
+		ready: () => aiReady,
+		activeSketchPath,
+		onStateChanged: (state) => VueWebviewPanel.sendMessage({
+			command: ARDUINO_MESSAGES.AI_GET_STATE, payload: state, errorMessage: '',
+		}),
+	});
+	context.subscriptions.push(aiConnection);
 	const aiInputWatcher = workspace.createFileSystemWatcher(AI_INPUT_GLOB);
 	const onAiInputChanged = (uri: Uri) => { if (affectsAiInput(uri.fsPath)) { aiRevision++; } };
 	context.subscriptions.push(aiInputWatcher, aiInputWatcher.onDidChange(onAiInputChanged), aiInputWatcher.onDidCreate(onAiInputChanged), aiInputWatcher.onDidDelete(onAiInputChanged));
@@ -345,6 +353,7 @@ export async function activate(context: ExtensionContext) {
 			context.subscriptions.push(sourceWatcher);
 
 			aiReady = true;
+			await aiConnection.refresh();
 			resolveExtensionReady(true);
 		} else {
 			arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);

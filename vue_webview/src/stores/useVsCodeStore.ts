@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ARDUINO_MESSAGES, ArduinoCLIStatus, ArduinoProjectConfiguration, BacktraceDecodeResult, BoardConfiguration, WebviewToExtensionMessage, PlatformsList, CorePlatforms, Libsearch, Liblist, BoardConnected, ArduinoProjectStatus, Outdated, ArduinoConfig, LibraryInformation, THEME_COLOR, SketchProjectFile, PROFILES_STATUS, ESP32_PARTITION_BUILDER_BASE_URL } from '@shared/messages';
 import { vscode } from '@/utilities/vscode';
 import * as yaml from 'yaml';
+import type { AiIntegrationState } from '@shared/messages';
 
 async function loadMockData(
     mockFile: string,
@@ -65,6 +66,9 @@ export const useVsCodeStore = defineStore('vsCode', {
         partitionBuilderError: "" as string,
         backtraceDecodeResult: null as BacktraceDecodeResult | null,
         backtraceDecodeError: "" as string,
+        aiIntegration: null as AiIntegrationState | null,
+        aiActionPending: false,
+        aiIntegrationError: '',
     }),
     actions: {
         refreshBoardExamples() {
@@ -93,6 +97,27 @@ export const useVsCodeStore = defineStore('vsCode', {
             if (import.meta.env.DEV) {
                 await sleep(1000);  // Simulate delay
                 switch (message.command) {
+                    case ARDUINO_MESSAGES.AI_GET_STATE:
+                    case ARDUINO_MESSAGES.AI_SET_ENABLED:
+                    case ARDUINO_MESSAGES.AI_SETUP_CLIENT:
+                    case ARDUINO_MESSAGES.AI_SHOW_SETUP: {
+                        const enabled = message.command === ARDUINO_MESSAGES.AI_SET_ENABLED
+                            ? message.payload === true : this.aiIntegration?.enabled ?? false;
+                        let description = enabled
+                            ? 'Development preview: this sketch is available to assistants.'
+                            : 'Enable AI integration to make trusted local sketches available to assistants.';
+                        if (message.command === ARDUINO_MESSAGES.AI_SETUP_CLIENT) {
+                            const client = message.payload === 'claude' ? 'Claude Code' : message.payload === 'copilot' ? 'Copilot' : 'Codex';
+                            description = `Development preview: ${client} setup completed. No configuration files were changed.`;
+                        } else if (message.command === ARDUINO_MESSAGES.AI_SHOW_SETUP) {
+                            description = 'Development preview: VS Code opens manual setup instructions with the generated paths.';
+                        }
+                        this.handleMessage({
+                            command: message.command, errorMessage: '',
+                            payload: { enabled, status: enabled ? 'ready' : 'disabled', message: description, nativeMcpAvailable: true, busy: false } satisfies AiIntegrationState
+                        });
+                        break;
+                    }
                     case ARDUINO_MESSAGES.CLI_CORE_SEARCH:
                         loadMockData('coresearch.json').then((mockPayload) => {
                             message.payload = mockPayload;
@@ -252,6 +277,18 @@ export const useVsCodeStore = defineStore('vsCode', {
         },
         sendMessage(message: WebviewToExtensionMessage) {
             switch (message.command) {
+                case ARDUINO_MESSAGES.AI_SET_ENABLED:
+                case ARDUINO_MESSAGES.AI_SETUP_CLIENT:
+                case ARDUINO_MESSAGES.AI_SHOW_SETUP:
+                    if (this.aiActionPending || this.aiIntegration?.busy) { return; }
+                    this.aiActionPending = true;
+                    this.aiIntegrationError = '';
+                    try { vscode.postMessage(message); }
+                    catch (error) {
+                        this.aiActionPending = false;
+                        this.aiIntegrationError = error instanceof Error ? error.message : 'Could not contact the extension. Try again.';
+                    }
+                    break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_STATUS:
                     if (this.projectStatus === null) {
                         vscode.postMessage(message);
@@ -316,6 +353,17 @@ export const useVsCodeStore = defineStore('vsCode', {
         },
         handleMessage(message: WebviewToExtensionMessage) {
             switch (message.command) {
+                case ARDUINO_MESSAGES.AI_GET_STATE:
+                    this.aiIntegration = message.payload;
+                    if (message.errorMessage) { this.aiIntegrationError = message.errorMessage; }
+                    break;
+                case ARDUINO_MESSAGES.AI_SET_ENABLED:
+                case ARDUINO_MESSAGES.AI_SETUP_CLIENT:
+                case ARDUINO_MESSAGES.AI_SHOW_SETUP:
+                    this.aiIntegration = message.payload;
+                    this.aiActionPending = false;
+                    this.aiIntegrationError = message.errorMessage || '';
+                    break;
                 case ARDUINO_MESSAGES.ARDUINO_PROJECT_INFO:
                     const previousBoard = this.projectInfo?.board ?? "";
                     const previousCompileProfile = this.projectInfo?.compile_profile ?? "";

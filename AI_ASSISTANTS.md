@@ -5,29 +5,33 @@ stdio bridge. The bridge forwards requests to the running extension through
 authenticated local IPC. Arduino CLI runs only in the extension host, with the
 existing compile output panel, status bar, and cancel control.
 
-This preview is disabled until you run **Arduino Maker Workshop: Connect AI
-Assistant (This Session)**. It does not install or configure any AI client.
+This preview is disabled by default. Open **Arduino Home > AI integration** and
+turn on **Enable AI integration**. The choice is saved for this computer and VS
+Code profile. Trusted local sketch windows restore their bridge automatically
+after reloads and restarts, including **Run and Debug** restarts.
 
-Choose your client, then copy its matching configuration from the Connect document:
+Choose a setup button once for each client you want to use:
 
 | Client | Primary setup | Destination |
 | --- | --- | --- |
-| Codex desktop, IDE, or CLI | TOML | `~/.codex/config.toml`; Windows: `%USERPROFILE%\.codex\config.toml` |
-| Claude Code | JSON with a `mcpServers` object | `~/.claude.json`; Windows: `%USERPROFILE%\.claude.json` |
-| Copilot / VS Code | Automatic extension provider, where supported | Select Arduino Maker Workshop in the MCP tools picker. For manual JSON with a `servers` object, run **MCP: Open User Configuration** to open the profile's `mcp.json`. |
+| Codex desktop, IDE, or CLI | **Set up Codex** saves the server entry and compile timeout | `~/.codex/config.toml`, or `$CODEX_HOME/config.toml` when set |
+| Claude Code | **Set up Claude Code** saves a user-level server entry | `~/.claude.json`, or `$CLAUDE_CONFIG_DIR/.claude.json` when set |
+| Copilot / VS Code | **Use with Copilot** explains selecting the automatically registered server | VS Code MCP tools picker; no configuration file is edited |
 
-These clients use different configuration formats. Use the matching block below;
-there is no universal JSON import step.
+The buttons generate paths and arguments for you. They do not require the Codex
+or Claude CLI to be installed and do not install an AI client. Codex uses TOML;
+Claude Code uses JSON. Only the chosen client's Arduino Maker Workshop entry is
+configured. Other servers, client settings, and tool approval preferences are
+preserved. Existing files are backed up alongside the original with an
+`.amw-backup-...` suffix before changes, and invalid configuration is left intact
+with an error. Setup can be run again to update an old entry.
 
-Each user runs Connect on their own computer. The command generates paths from
-that user's VS Code storage; the extension package contains
-no developer-specific connection paths. Copy the setup from your own generated
-document. Configure one server per computer and VS Code storage profile. That entry
-works with any sketch you explicitly connect in that profile. Reloading VS Code or
-opening another sketch only requires a new Connect approval, with no edits to the
-client arguments.
+Configure one server per computer and VS Code storage profile. That entry works
+across sketches in the same profile. Each user runs setup on their own computer;
+the extension contains no developer-specific paths. **Manual setup instructions**
+opens matching configuration blocks if you prefer to edit the files yourself.
 
-## Start and stop a session
+## Enable, use, and disable
 
 For external clients, install Node.js 20 or newer on the same computer as VS Code.
 The `node` command must work in the client's environment. The native VS Code MCP
@@ -35,21 +39,28 @@ provider uses the editor's runtime instead.
 
 1. Open a local sketch folder in a local, trusted VS Code window. The first
    workspace folder is the active sketch and must contain a matching
-   `sketchName.ino` file. Use **Add as Active Workspace Folder** when necessary.
+   `sketchName.ino` or `sketchName.pde` file. Use **Add as Active Workspace Folder**
+   when necessary.
 2. Resolve Arduino CLI setup and select a board or build profile in Arduino Home.
-3. Open VS Code's Command Palette, run **Arduino Maker Workshop: Connect AI
-   Assistant (This Session)**, and approve the connection. A document opens with
-   your reusable connection settings for this computer and VS Code storage profile.
-4. Configure the chosen client once using that document. Ask it to list connected
+3. In **Arduino Home > AI integration**, enable the integration and use the setup
+   button for your client. Restart the client's MCP server or open a new client
+   session as directed. Copilot may ask you to enable the registered server's tools.
+4. Once Home shows **Available to assistants**, ask your client to list connected
    sketches, choose the intended sketch, then request its project context. Every
    project operation must include that sketch's explicit `sketchPath`.
-5. Run **Arduino Maker Workshop: Disconnect AI Assistant**, close/reload this
-   window, or change its workspace folders to revoke the session. Run Connect again
-   after a reload; existing client arguments remain valid in the same storage
-   profile. No session is restored automatically.
+5. Turn off **Enable AI integration** to revoke access and prevent automatic
+   reconnection in all windows sharing this VS Code profile. Closing one sketch
+   window ends only that window's session. Reopening a trusted sketch restores its
+   availability while the integration is enabled. Saved client entries remain.
 
-When switching to another sketch, run Connect in that sketch's VS Code window and
-reuse the same client entry. Several different sketches can be connected at once.
+The same actions are exposed in the Command Palette as **Arduino Maker Workshop:
+Enable AI Integration**, **Disable AI Integration**, **Set Up AI Client**, and
+**AI Setup Instructions**. The user setting is `arduinoMakerWorkshop.ai.enabled`;
+a workspace cannot opt itself in. Availability means the bridge is ready, not that
+an assistant has already connected.
+
+When switching to another trusted local sketch, reuse the same client entry.
+Several different sketches can be available at once.
 Repeat setup only when moving to another computer or VS Code storage profile.
 
 The global MCP server searches only the configured `--session-dir` for live,
@@ -57,9 +68,9 @@ authorized sessions. `list_connected_sketches` returns their sketch paths and
 session counts. The assistant must choose a path from the user's request or ask
 which sketch to use when the choice is unclear. Project operations route to the
 unique live session for their explicit `sketchPath`. If a sketch has more than one
-session, disconnect its extra window sessions; the bridge will not guess between
-them. After a debug restart and a new Connect approval, an already running client
-reconnects on its next tool call. It never retries an interrupted operation
+session, close its extra sketch windows; the bridge will not guess between
+them. After a debug restart, an already running client reconnects on its next tool
+call once the extension is ready. It never retries an interrupted operation
 automatically.
 
 Every assistant compile separately asks for approval in VS Code, showing sketch,
@@ -82,7 +93,7 @@ the transport and extension backend.
 
 | Tool | Behavior |
 | --- | --- |
-| `list_connected_sketches` | Lists live, explicitly connected sketches and their session counts. Does not enable sessions or select a target. |
+| `list_connected_sketches` | Lists live sketches available through the enabled integration and their session counts. Does not enable the integration or select a target. |
 | `get_project_context` | Reads selected/resolved target, FQBN, build plan, CLI identity, and validation issues. Does not repair or rewrite project configuration. |
 | `list_boards` | Runs the extension's `arduino-cli board listall --json`. Does not install or select boards. |
 | `list_ports` | Runs `arduino-cli board list --json`. Does not open a monitor, select a port, or upload. |
@@ -106,8 +117,9 @@ IntelliSense is refreshed only when the compiled target still matches Home's tar
 
 ## Client setup
 
-The simplest manual setup is to copy the complete matching TOML or JSON example
-from your generated Connect document. Copy its contents without the Markdown
+Use the Home setup buttons for automatic configuration. These manual alternatives
+are also available through **Manual setup instructions**. Copy the matching TOML
+or JSON example from your generated document, without the Markdown
 code fences. If the destination file already contains settings, preserve them
 and merge only the `arduino_maker_workshop` server entry. Replace an existing entry
 with that same name; do not add duplicate TOML tables, JSON keys, or root objects.
@@ -115,7 +127,7 @@ Keep the generated quoting and escaping when editing a configuration file,
 including doubled Windows backslashes. The optional form fields described below
 use raw values instead.
 
-Use the paths in your own Connect document wherever a placeholder appears below.
+Use the paths in your own setup document wherever a placeholder appears below.
 Do not copy another user's paths. If `node` is unavailable or a broken shim, use
 the absolute path of a working Node.js 20+ executable. This preview has been tested
 with simulated clients; actual Copilot, Codex, and Claude Code onboarding remains
@@ -123,7 +135,7 @@ a separate validation step.
 
 ### Copilot / VS Code
 
-On supported VS Code versions, Connect automatically advertises the Arduino Maker
+On supported VS Code versions, enabling the integration advertises the Arduino Maker
 Workshop server through the extension's native MCP provider. Select it in VS Code's
 MCP/tool picker. It uses the editor's Node runtime and the same global tools for
 connected sketches in this storage profile. This window advertises it only while
@@ -158,10 +170,11 @@ the sketch you choose. See [official VS Code MCP configuration](https://code.vis
 The desktop app, IDE extension, and CLI share MCP configuration on the same Codex
 host. You do not need to add the same server separately in each one.
 
-Open `~/.codex/config.toml` (`%USERPROFILE%\.codex\config.toml` on Windows) and
+**Set up Codex** handles this file for you, including `tool_timeout_sec = 900`.
+For manual setup, open `~/.codex/config.toml` (`%USERPROFILE%\.codex\config.toml` on Windows) and
 paste the generated TOML block. If `[mcp_servers.arduino_maker_workshop]` already
 exists, replace that table instead of adding another one. Preserve unrelated
-settings and server tables. The example below contains placeholders; the Connect
+settings and server tables. The example below contains placeholders; the setup
 document supplies your actual paths:
 
 ```toml
@@ -183,7 +196,7 @@ approval. See [official OpenAI MCP setup](https://learn.chatgpt.com/docs/extend/
 #### Optional alternative: Codex desktop form
 
 Use this form instead of editing TOML if you prefer entering individual fields.
-First run Connect in VS Code and keep its generated document open. Then:
+First enable AI integration in VS Code and open **Manual setup instructions**. Then:
 
 1. Open **Settings > MCP servers** and choose **Add server**, or edit an existing
    Arduino Maker Workshop entry.
@@ -212,7 +225,12 @@ table and restart it. Do not enter that setting as a fourth argument.
 
 ### Claude Code
 
-Close Claude Code, then open its user configuration, `~/.claude.json`
+**Set up Claude Code** handles its user configuration for you. Start a new Claude
+conversation or restart the client after setup. Project-specific overrides and
+disabled-server choices are preserved and can take precedence over this user entry.
+Use `/mcp` to check them if the server is missing or disabled.
+
+For manual setup, close Claude Code, then open its user configuration, `~/.claude.json`
 (`%USERPROFILE%\.claude.json` on Windows). This file applies across projects.
 Merge the generated `arduino_maker_workshop` entry into its top-level `mcpServers`
 object, replacing an existing entry with the same name. Preserve all other
@@ -240,11 +258,12 @@ and [JSON configuration](https://code.claude.com/docs/en/mcp#add-mcp-servers-fro
 
 ### Updating an existing AI connection
 
-For an existing entry using `--sketch` or `--session`, update that entry with the
-matching TOML or JSON block from the new Connect document. Save and restart the
-client's MCP server once. The new arguments contain only the launcher path,
-`--session-dir`, and the bridge storage folder. After that migration, the same entry works for any
-sketch you connect in this storage profile. Regenerate setup only when moving to
+For an existing entry using `--sketch` or `--session`, run the matching setup button
+again, or update the entry with the matching TOML or JSON block from the setup
+document. Restart the client's MCP server once. The new arguments contain only
+the launcher path, `--session-dir`, and the bridge storage folder. After that
+migration, the same entry works for any sketch available in this storage profile.
+Regenerate setup only when moving to
 another computer or VS Code storage profile, such as a separate development profile.
 
 ## Session and privacy boundary
@@ -255,10 +274,11 @@ another computer or VS Code storage profile, such as a separate development prof
   launcher and bridge storage paths.
 - Windows uses a session-specific named pipe; Unix uses a short private temporary
   directory and socket. There is no HTTP listener, remote endpoint, OAuth account,
-  persistent allow grant, or selection of an arbitrary window. Each project
-  operation requires exactly one live session for its explicit `sketchPath`.
+  or selection of an arbitrary window. Enablement is persistent user consent;
+  each compile still requires separate approval. Each project operation requires
+  exactly one live session for its explicit `sketchPath`.
 - The launcher is copied from the package into extension global storage only on
-  explicit Connect. Its path remains stable across extension upgrades. Session
+  enabled startup. Its path remains stable across extension upgrades. Session
   descriptors and tokens intentionally change; closed-host descriptors grant no
   access even if an abrupt crash leaves an inert file behind.
 - The boundary trusts the OS user and installed extension/package recipes. It does
@@ -297,10 +317,11 @@ or hardware. Filesystem-link tests require permission to create test junctions.
 
 For development, `npm run watch` watches both the extension and the standalone
 AI bridge. Each watcher preserves the other bundle in `build/`. After restarting
-the Extension Development Host, run Connect again and reuse the existing client
-configuration. If the standalone bridge code itself changed, restart the client's
-MCP server after Connect so it loads the rebuilt launcher. Production builds still
-clear extension output before building both bundles.
+the Extension Development Host, enabled integration restores itself; reuse the
+existing client configuration. If the standalone bridge code itself changed,
+restart the client's MCP server once the bridge is available so it loads the
+rebuilt launcher. Production builds still clear extension output before building
+both bundles.
 
 Package the extension with `vsce package` after builds. Confirm that
 `build/extension.js`, `build/aiBridge.cjs`, webview assets, and existing native USB

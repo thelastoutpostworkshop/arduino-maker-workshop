@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 import { routerBoardSelectionName } from '@/router';
 import arduinoImage from '@/assets/extension_icon.png';
 import { getAvailablePorts, resolvePortValue } from '@/utilities/utils';
+import AiIntegration from './AiIntegration.vue';
 
 // Keep the URL in script to avoid vue-tsc treating its // as a template comment.
 const buildProfilesTutorialUrl = 'https://youtu.be/i0gzop0k6yY';
@@ -354,6 +355,7 @@ onMounted(() => {
               </div>
             </template>
           </v-alert>
+          <AiIntegration class="mb-4" />
           <v-row class="mb-2" v-if="store.projectStatus?.status == ARDUINO_ERRORS.NO_ERRORS">
             <v-col cols="12" v-if="profileStatusInformation">
               <v-card color="primary" prepend-icon="mdi-application-array-outline" rounded="lg" class="pa-4">

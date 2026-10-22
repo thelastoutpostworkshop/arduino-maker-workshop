@@ -492,8 +492,24 @@ export interface BuildProfileUpdate {
   programmer?: string;
 }
 
+export interface AiIntegrationState {
+  enabled: boolean;
+  status: 'disabled' | 'waiting' | 'connecting' | 'ready' | 'error';
+  message: string;
+  nativeMcpAvailable: boolean;
+  busy?: boolean;
+}
+
+export type AiSetupClient = 'codex' | 'claude' | 'copilot';
+
 // Messages exchanged between the extension and the webview
 export const ARDUINO_MESSAGES = {
+  // AI integration requests and state updates
+  AI_GET_STATE: 'aiGetState',
+  AI_SET_ENABLED: 'aiSetEnabled',
+  AI_SETUP_CLIENT: 'aiSetupClient',
+  AI_SHOW_SETUP: 'aiShowSetup',
+
   // arduino-cli commands
   CLI_BOARD_OPTIONS: 'cli_getArduinoBoardOptions',
   CLI_BOARD_OPTIONS_PROFILE: 'cli_getProfileBoardOptions',
