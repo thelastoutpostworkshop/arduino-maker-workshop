@@ -21,6 +21,9 @@ Complete each step with tests, user documentation, and a separate commit.
 - Keep tool inputs validated and results structured, bounded, and redacted.
 - Keep existing MCP tools and manual extension workflows working.
 - Leave the AI client's own tool approval preferences unchanged.
+- Update the tool list, limitations, and [prompt examples](AI_ASSISTANTS.md#prompt-examples) whenever an MCP tool is added, changed, or removed.
+- Keep a copyable prompt and an expected user-visible result for every available tool. State any example values to replace and prerequisites; keep future tools out of the user guide until implemented.
+- Use these prompts for manual checks in an AI client. Track those checks separately from automated tests and leave them pending until actually performed.
 
 ## 1. Project context and dependencies
 
@@ -29,6 +32,8 @@ Complete each step with tests, user documentation, and a separate commit.
 - [x] Distinguish declared requirements, installed packages, and dependencies resolved by a build.
 - [x] Test missing dependencies, version differences, and projects with and without profiles.
 - [x] Update `AI_ASSISTANTS.md`.
+- [x] Provide prompt examples with expected results for project context and dependency inspection.
+- [ ] Verify the project context and dependency prompts in an AI client.
 - [ ] Commit this step.
 
 Suggested commit: `Expose MCP profiles and dependencies`
@@ -39,6 +44,7 @@ Suggested commit: `Expose MCP profiles and dependencies`
 - [ ] Add `search_libraries` with bounded search results and available versions.
 - [ ] Add `list_examples` for the selected board and installed libraries.
 - [ ] Test profile-specific boards, empty results, invalid inputs, and result limits.
+- [ ] Add or update prompt examples with expected results, then verify them in an AI client.
 - [ ] Update `AI_ASSISTANTS.md` and commit.
 
 Suggested commit: `Add MCP board and library discovery`
@@ -49,6 +55,7 @@ Suggested commit: `Add MCP board and library discovery`
 - [ ] Include flash/RAM usage and build artifact paths when available.
 - [ ] Preserve existing logs and report when structured details are unavailable.
 - [ ] Test successful and failed builds, different output formats, truncation, and stale artifacts.
+- [ ] Update the compilation prompts and expected results, then verify them in an AI client.
 - [ ] Update `AI_ASSISTANTS.md` and commit.
 
 Suggested commit: `Return richer MCP compile results`
@@ -59,6 +66,7 @@ Suggested commit: `Return richer MCP compile results`
 - [ ] Add `decode_esp32_backtrace` using the specified sketch/profile and matching ELF build.
 - [ ] Return decoded functions, files, and line numbers.
 - [ ] Test missing or mismatched builds, unsupported targets, invalid logs, and cancellation.
+- [ ] Add a crash decoding prompt with prerequisites and expected results, then verify it in an AI client.
 - [ ] Verify the existing webview decoder still works, update documentation, and commit.
 
 Suggested commit: `Expose ESP32 backtrace decoding through MCP`
@@ -69,6 +77,7 @@ Suggested commit: `Expose ESP32 backtrace decoding through MCP`
 - [ ] Respect profile dependency declarations and clearly report the installation scope.
 - [ ] Return installation progress and a structured result; refresh relevant caches.
 - [ ] Test already-installed versions, profile behavior, download failures, and cancellation.
+- [ ] Add a library installation prompt with explicit package/version and expected results, then verify it in an AI client.
 - [ ] Update `AI_ASSISTANTS.md` and commit.
 
 Suggested commit: `Add MCP library installation`
@@ -79,6 +88,7 @@ Suggested commit: `Add MCP library installation`
 - [ ] Require a successful current build matching the requested target.
 - [ ] Coordinate with compilation and serial operations; return progress and structured results.
 - [ ] Test stale builds, target mismatches, unavailable ports, upload failures, and cancellation.
+- [ ] Add an upload prompt with explicit sketch/profile/port, prerequisites, and expected results; use it for the hardware validation below.
 - [ ] Validate a hardware upload, update documentation, and commit.
 
 Suggested commit: `Add MCP firmware upload`
@@ -89,6 +99,7 @@ Suggested commit: `Add MCP firmware upload`
 - [ ] Coordinate port ownership with uploads and the existing Serial Monitor.
 - [ ] Return captured output with timing and truncation information.
 - [ ] Release resources on completion, cancellation, client disconnect, and device removal.
+- [ ] Add a serial capture prompt with explicit port/baud/duration, prerequisites, and expected results; use it for the hardware validation below.
 - [ ] Test capture limits and lifecycle handling, then validate with a physical board.
 - [ ] Update `AI_ASSISTANTS.md` and commit.
 

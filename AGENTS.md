@@ -59,6 +59,13 @@
 - `VueWebviewPanel` resolves `partitions.csv`, flash size, and builds the URL.
 - Webview mock data should use the same base URL constant.
 
+## AI Bridge Documentation and Prompts
+
+- When adding, changing, or removing an MCP tool, update the tool list, limitations, and prompt examples in `AI_ASSISTANTS.md` in the same change.
+- Keep `AI_ASSISTANTS.md` user-facing. Include copyable prompts that explicitly use Arduino Maker Workshop, cover every available tool, and explain the expected user-visible result.
+- Explain which sketch/profile names or other inputs users must replace and any prerequisites needed to try a prompt. Document only implemented capabilities.
+- Keep the corresponding step in `MCP_TODO.md` updated. Track prompt-based manual checks separately from automated tests; leave manual checks pending until actually exercised with an AI client and any required hardware.
+
 ## Common Pitfalls
 - If you add new settings or message types, update both the extension and webview.
 - Keep ASCII when editing files unless the file already contains Unicode.
