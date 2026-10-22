@@ -50,7 +50,7 @@ workspaces, and clients running on another computer are not supported by this pr
    session as directed. Copilot may ask you to enable the registered server's tools.
 4. Once the status shows **Available to assistants**, ask your client to list connected
    sketches, choose the intended sketch, then inspect it. For example: "List my
-   connected Arduino sketches, then show the board and profiles for Blink."
+   connected Arduino sketches, then show the board and profiles for the one I choose."
 5. Turn off **Enable AI integration** to revoke access and prevent automatic
    reconnection in all windows sharing this VS Code profile. Closing one sketch
    window ends only that window's session. Reopening a trusted sketch restores its
@@ -86,9 +86,10 @@ clear the output directory. Save your sketch files before asking for compilation
 If the sketch or selected target changes during a
 build, request another compile before using its output.
 
-To use a particular profile, include its name in your request, for example:
-"Compile Blink using the release profile." This applies to that request and does
-not change the profile selected in Home. You can cancel compilation in VS Code.
+To use a particular profile, replace `[profile name]` with one of your profile names
+in this example: "Compile my current sketch using the [profile name] profile."
+This applies to that request and does not change the profile selected in Home.
+You can cancel compilation in VS Code.
 
 ## What you can ask your assistant to do
 
@@ -109,25 +110,26 @@ bootloader flashing, serial monitoring, or package installation tools.
 
 ### Prompt examples
 
-Start by listing connected sketches. Then copy a prompt below, replacing `Blink`
-and `release` with your sketch and profile names.
+Start by listing connected sketches. If more than one is listed, tell the assistant
+which one to use as "my current sketch." Replace `[profile name]` with one of that
+sketch's profile names.
 
 Compare the response with the expected result; for compilation, also check the
 Arduino CLI Output panel in VS Code.
 
 | Task | Prompt | Expected result |
 | --- | --- | --- |
-| Find sketches | Use Arduino Maker Workshop to list my connected sketches. | Names and paths match the sketches available in your running VS Code windows. |
-| Inspect a project | Use Arduino Maker Workshop to inspect Blink, list its profiles, and check the dependencies for its release profile. | Shows the board, profiles, and declared requirements compared with installed versions, without changing the selected profile. |
-| Find boards and ports | Use Arduino Maker Workshop to show available boards and connected ports for Blink. | Lists boards and detected ports without changing your selections or opening a serial monitor. |
-| Compile | Use Arduino Maker Workshop to compile Blink with its current board or profile and summarize the result. | Uses the current target and reports success or build errors consistent with Arduino CLI Output. |
-| Compile a profile | Use Arduino Maker Workshop to compile Blink using the release profile. | Builds with `release` and reports the outcome; the profile selected in Home stays unchanged. |
-| Clean compilation | Use Arduino Maker Workshop to perform a clean compilation of Blink using the release profile. | Runs a clean build with `release` and reports the outcome in the response and Arduino CLI Output. |
+| Find sketches | List my connected sketches. | Names and paths match the sketches available in your running VS Code windows. |
+| Inspect a project | Inspect my current sketch, list its profiles, and check the dependencies for its selected profile. | Shows the board, profiles, and declared requirements compared with installed versions, without changing the selected profile. |
+| Find boards and ports | Show available boards and connected ports for my current sketch. | Lists boards and detected ports without changing your selections or opening a serial monitor. |
+| Compile | Compile my current sketch with its current board or profile and summarize the result. | Uses the current target and reports success or build errors consistent with Arduino CLI Output. |
+| Compile a profile | Compile my current sketch using the [profile name] profile. | Builds with the specified profile and reports the outcome; the profile selected in Home stays unchanged. |
+| Clean compilation | Perform a clean compilation of my current sketch with its current board or profile. | Runs a clean build with the current target and reports the outcome in the response and Arduino CLI Output. |
 
 ### Profiles and dependencies
 
-Ask the assistant: "Show the available profiles and check the dependencies for
-the release profile." This does not change the profile selected in Home.
+Ask the assistant: "Show my current sketch's profiles and check its selected
+profile's dependencies." This does not change the profile selected in Home.
 
 The assistant can show default and selected profiles, required core and library
 versions, and whether matching versions are installed. Without a selected profile,
@@ -239,8 +241,8 @@ First enable AI integration in VS Code and open **Manual setup instructions**. T
    argument. Keep ordinary Windows backslashes as shown in the raw-value section
    of the generated document.
 4. Select **Save**, then **Restart**.
-5. Ask: "List connected Arduino Maker Workshop sketches, then inspect the sketch
-   I choose." Select the intended path and verify its board or profile before
+5. Ask: "List my connected sketches, then inspect the sketch I choose."
+   Select the intended path and verify its board or profile before
    requesting a compile.
 
 For compilation, also set `tool_timeout_sec = 900` in this server's `config.toml`

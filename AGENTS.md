@@ -62,7 +62,7 @@
 ## AI Bridge Documentation and Prompts
 
 - When adding, changing, or removing an MCP tool, update the tool list, limitations, and prompt examples in `AI_ASSISTANTS.md` in the same change.
-- Keep `AI_ASSISTANTS.md` user-facing. Include copyable prompts that explicitly use Arduino Maker Workshop, cover every available tool, and explain the expected user-visible result.
+- Keep `AI_ASSISTANTS.md` user-facing. Include natural, copyable prompts that cover every available tool and explain the expected user-visible result. Do not prefix each prompt with "Use Arduino Maker Workshop" or use fictional sketch names; refer to the user's current sketch and explain how to choose it when several are connected.
 - Explain which sketch/profile names or other inputs users must replace and any prerequisites needed to try a prompt. Document only implemented capabilities.
 - Keep the corresponding step in `MCP_TODO.md` updated. Track prompt-based manual checks separately from automated tests; leave manual checks pending until actually exercised with an AI client and any required hardware.
 
