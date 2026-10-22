@@ -31,28 +31,62 @@ const MAX_PENDING_LINE_BYTES = 8 * 1024 * 1024;
 const OMITTED_LINE = '[Arduino output line omitted: exceeds bounded line limit]\n';
 
 class BoundedText {
-    private value = '';
+    private bytes: Buffer = Buffer.alloc(0);
+    private start = 0;
+    private length = 0;
     public truncated = false;
 
     public constructor(private readonly limit: number) {}
 
     public append(text: string): void {
-        const combined = this.value + text;
-        const bytes = Buffer.from(combined, 'utf8');
-        if (bytes.length <= this.limit) {
-            this.value = combined;
+        const incoming = Buffer.from(text, 'utf8');
+        if (!incoming.length) { return; }
+        if (this.length + incoming.length > this.limit) { this.truncated = true; }
+
+        // A byte ring avoids repeatedly encoding/copying all retained lines. CLI
+        // inventories can contain hundreds of thousands of short JSON lines.
+        if (incoming.length >= this.limit) {
+            this.reserve(this.limit);
+            incoming.copy(this.bytes, 0, incoming.length - this.limit);
+            this.start = 0;
+            this.length = this.limit;
             return;
         }
-        this.truncated = true;
-        // Keep the tail, where compiler failures and final summaries normally appear.
-        let start = bytes.length - this.limit;
-        while (start < bytes.length && (bytes[start] & 0xc0) === 0x80) {
-            start++;
-        }
-        this.value = bytes.subarray(start).toString('utf8');
+
+        this.reserve(Math.min(this.limit, this.length + incoming.length));
+        const discarded = Math.max(0, this.length + incoming.length - this.limit);
+        this.start = (this.start + discarded) % this.bytes.length;
+        this.length -= discarded;
+        const end = (this.start + this.length) % this.bytes.length;
+        const firstLength = Math.min(incoming.length, this.bytes.length - end);
+        incoming.copy(this.bytes, end, 0, firstLength);
+        incoming.copy(this.bytes, 0, firstLength);
+        this.length += incoming.length;
     }
 
-    public text(): string { return this.value; }
+    private reserve(required: number): void {
+        if (required <= this.bytes.length) { return; }
+        const replacement = Buffer.allocUnsafe(Math.min(this.limit, Math.max(required, this.bytes.length * 2, 1024)));
+        const firstLength = Math.min(this.length, this.bytes.length - this.start);
+        this.bytes.copy(replacement, 0, this.start, this.start + firstLength);
+        this.bytes.copy(replacement, firstLength, 0, this.length - firstLength);
+        this.bytes = replacement;
+        this.start = 0;
+    }
+
+    public text(): string {
+        if (!this.length) { return ''; }
+        const end = this.start + this.length;
+        const retained = end <= this.bytes.length
+            ? this.bytes.subarray(this.start, end)
+            : Buffer.concat([this.bytes.subarray(this.start), this.bytes.subarray(0, end - this.bytes.length)], this.length);
+        // Keep a valid UTF-8 tail when the byte budget splits its first character.
+        let start = 0;
+        while (start < retained.length && (retained[start] & 0xc0) === 0x80) {
+            start++;
+        }
+        return retained.subarray(start).toString('utf8');
+    }
 }
 
 export function redactProcessText(text: string, sensitiveValues: readonly string[] = []): string {

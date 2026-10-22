@@ -25,6 +25,8 @@ interface TestedCli {
     installLibraryForAssistant(target: ProjectInspection, library: string, version: string, signal: AbortSignal,
         progress: (value: OperationProgress) => void, assertCurrent: () => void, onInventory: (value: unknown, outdated?: unknown) => void): Promise<libraryInstallation.LibraryInstallationResult>;
     runArduinoCommand(args: () => string[], prefix: string, cache: { caching: number; ttl: number }): Promise<string>;
+    searchLibrary(): Promise<string>;
+    searchCore(): Promise<string>;
 }
 
 const filename = path.resolve(__dirname, '../../../src/cli.ts');
@@ -59,6 +61,7 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
     const commands: string[][] = [];
     const calls: { executable: string; args: string[]; options: ProcessOptions }[] = [];
     const cacheDeletes: string[] = [];
+    const cache = new Map<string, string>();
     const inventories: unknown[] = [];
     const outdatedInventories: unknown[] = [];
     const cancelListeners = new Set<() => void>();
@@ -102,6 +105,7 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
         getVerboseOption() { return verboseCompile ?? true; }
         getLibraryInstalledArguments() { return ['lib', 'list', '--json']; }
         getLibrarySearchArguments() { return ['lib', 'search', '--omit-releases-details', '--json']; }
+        getCoreSearchArguments() { return ['core', 'search', '-a', '--json']; }
     }
     const dependencies: Record<string, unknown> = {
         vscode: {
@@ -125,7 +129,9 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
         './cliArgs': { CLIArguments }, './config': { ArduinoConfiguration: class {} },
         './cliCache': { CliCache: class {
             getCacheKeyFromArguments(args: string[]) { return args.slice(0, 2).join(''); }
-            delete(key: string) { cacheDeletes.push(key); }
+            get(key: string) { return cache.get(key); }
+            set(key: string, value: string) { cache.set(key, value); }
+            delete(key: string) { cacheDeletes.push(key); cache.delete(key); }
         } }, './debugConfiguration': {},
         './ai/contracts': { AiBridgeError }, './ai/redaction': redaction,
         './ai/compileOutput': compileOutput, './ai/compileArtifacts': compileArtifacts,
@@ -180,6 +186,35 @@ const libraryProcessResult = (value: unknown, overrides: Partial<ProcessResult> 
     truncated: false, canceled: false, durationMs: 1, ...overrides,
 });
 const indexedLibrary = { status: 'success', libraries: [{ name: 'ArduinoJson', available_versions: ['7.3.0'], latest: { version: '7.3.0' } }] };
+
+test('manual library and board managers retain full JSON indexes and cache stdout without diagnostics', async t => {
+    const f = host(t);
+    const entries = Array.from({ length: 14000 }, (_, index) => ({ name: `Library ${index}`, description: 'x'.repeat(700) }));
+    const largeIndex = JSON.stringify({ libraries: entries }, null, 2);
+    assert.ok(Buffer.byteLength(largeIndex) > 8 * 1024 * 1024);
+    f.onProcess(async (args, options) => {
+        assert.ok((options.maxOutputBytes ?? 0) >= Buffer.byteLength(largeIndex));
+        const stdout = args[0] === 'lib' ? largeIndex : '{"platforms":[{"id":"esp32:esp32"}]}';
+        return libraryProcessResult(null, { stdout, stderr: 'Index warning\n', output: `Index warning\n${stdout}` });
+    });
+    const libraries = await f.cli.searchLibrary();
+    assert.equal(JSON.parse(libraries).libraries.length, 14000);
+    assert.equal(libraries, largeIndex);
+    assert.deepEqual(JSON.parse(await f.cli.searchCore()), { platforms: [{ id: 'esp32:esp32' }] });
+    assert.equal(await f.cli.searchLibrary(), libraries);
+    await f.cli.searchCore();
+    assert.equal(f.calls.length, 2, 'complete JSON results remain reusable from the normal manager caches');
+    assert.equal(f.cli.compileOrUploadRunning, false);
+});
+
+test('manual JSON queries reject truncated responses instead of caching partial indexes', async t => {
+    const f = host(t);
+    f.onProcess(async () => libraryProcessResult(null, { stdout: '{"libraries":[]}', truncated: true }));
+    await assert.rejects(f.cli.searchLibrary(), { code: 'OUTPUT_LIMIT' });
+    f.onProcess(async () => libraryProcessResult({ libraries: [] }));
+    assert.deepEqual(JSON.parse(await f.cli.searchLibrary()), { libraries: [] });
+    assert.equal(f.calls.length, 2);
+});
 
 test('assistant library installation uses fixed argv, refreshes inventory and invalidates the ordinary build', async t => {
     const f = host(t);

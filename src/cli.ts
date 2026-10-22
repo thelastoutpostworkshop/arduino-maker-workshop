@@ -1658,8 +1658,11 @@ export class ArduinoCLI {
 			if (showOutput) { channel.append(text); }
 			coloredOutputView?.append(text);
 		};
+		// Manager queries return the full index (the library index exceeds 8 MiB).
+		// Keep diagnostic stderr out of JSON consumed by the webview and its caches.
+		const jsonOutput = returnOutput && args.includes('--json');
 		const result = await runProcess(command, args, {
-			signal, sensitiveValues, maxOutputBytes: 8 * 1024 * 1024,
+			signal, sensitiveValues, maxOutputBytes: (jsonOutput ? 64 : 8) * 1024 * 1024,
 			onStdout: append, onStderr: append
 		});
 		this.arduinoCLIChannel.appendLine('');
@@ -1681,7 +1684,7 @@ export class ArduinoCLI {
 		coloredOutputView?.append('Command executed successfully.\n');
 		coloredOutputView?.setStatus('success', successMsg || 'Command executed successfully.');
 		if (successMsg) { window.showInformationMessage(successMsg); }
-		return returnOutput ? result.output : undefined;
+		return returnOutput ? (jsonOutput ? result.stdout : result.output) : undefined;
 	}
 
 	private getSensitiveValues(args: string[]): string[] {
