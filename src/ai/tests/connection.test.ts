@@ -4,7 +4,9 @@ import * as path from 'node:path';
 import * as vm from 'node:vm';
 import { test } from 'node:test';
 import * as ts from 'typescript';
+import { parseTOML, getStaticTOMLValue } from 'toml-eslint-parser';
 import type { AiIntegrationState } from '../../shared/messages';
+import type { AiClientLaunch } from '../clientSetup';
 import { AiBridgeError } from '../contracts';
 
 function deferred<T>() {
@@ -20,7 +22,7 @@ function configuration(enabled = false) {
     };
 }
 
-function fixture(initial: { nativeApi?: boolean | 'throws'; settings?: ReturnType<typeof configuration>; ready?: boolean; trusted?: boolean; remote?: string; validSketch?: boolean } = {}) {
+function fixture(initial: { nativeApi?: boolean | 'throws'; settings?: ReturnType<typeof configuration>; ready?: boolean; trusted?: boolean; remote?: string; validSketch?: boolean; execPath?: string } = {}) {
     const commands = new Map<string, (...args: unknown[]) => unknown>();
     const settings = initial.settings ?? configuration();
     let created = 0, disposed = 0, shown = 0, writes = 0, warnings = 0;
@@ -30,12 +32,12 @@ function fixture(initial: { nativeApi?: boolean | 'throws'; settings?: ReturnTyp
     const setups: string[] = [], information: string[] = [], executed: string[] = [];
     const states: AiIntegrationState[] = [];
     const preferences: { enabled: boolean; target: number }[] = [];
-    const clientCalls: { client: string; args: string[] }[] = [];
+    const clientCalls: { client: string; launch: AiClientLaunch }[] = [];
     const sessionOptions: { sketchPath: string; isTrusted(): boolean }[] = [];
     let createSession: () => Promise<unknown> = async () => ({
         sessionFile: 'private/session.json', sessionId: 'test-session', dispose: async () => { disposed++; },
     });
-    let setupClient = async (_client: string, _args: string[]) => ({ configPath: '/private/client-config', changed: true });
+    let setupClient = async (_client: string, _launch: AiClientLaunch) => ({ configPath: '/private/client-config', changed: true });
     let execute = async (_command: string) => {};
     let notify = async (_message: string) => {};
     let picker = async () => ({ client: 'codex' });
@@ -94,8 +96,8 @@ function fixture(initial: { nativeApi?: boolean | 'throws'; settings?: ReturnTyp
     const customRequire = (name: string) => {
         if (name === 'vscode') { return vscode; }
         if (name === './contracts') { return { AiBridgeError }; }
-        if (name === './clientSetup') { return { setupAiClient: async (client: string, args: string[]) => {
-            clientCalls.push({ client, args }); return setupClient(client, args);
+        if (name === './clientSetup') { return { setupAiClient: async (client: string, launch: AiClientLaunch) => {
+            clientCalls.push({ client, launch }); return setupClient(client, launch);
         } }; }
         if (name === './ipcServer') { return { createAiIpcServer: async (options: typeof sessionOptions[number]) => {
             created++; sessionOptions.push(options); return createSession();
@@ -104,7 +106,9 @@ function fixture(initial: { nativeApi?: boolean | 'throws'; settings?: ReturnTyp
         if (name === 'node:path') { return path; }
         throw new Error(`Unexpected module ${name}`);
     };
-    vm.runInThisContext(`(function(require,module,exports){${source}\n})`, { filename })(customRequire, module, module.exports);
+    vm.runInThisContext(`(function(require,module,exports,process){${source}\n})`, { filename })(customRequire, module, module.exports, {
+        pid: process.pid, execPath: initial.execPath ?? process.execPath,
+    });
     const registration = module.exports.registerAiConnection(
         { globalStorageUri: { fsPath: path.resolve('private') }, extensionPath: path.resolve('extension'), extension: { packageJSON: { version: 'test' } } },
         { handler: async () => ({}), ready: () => ready, activeSketchPath: () => sketch, onStateChanged: (state: AiIntegrationState) => { states.push(state); observe(state); } },
@@ -131,10 +135,11 @@ async function waitUntil(predicate: () => boolean) {
     assert.ok(predicate(), 'Expected the asynchronous operation to start');
 }
 
-function setupArguments(markdown: string): string[][] {
+function setupDefinitions(markdown: string): AiClientLaunch[] {
     return [...markdown.matchAll(/```(json|toml)\n([\s\S]*?)\n```/g)].map(([, language, content]) => {
-        if (language === 'toml') { return JSON.parse(/^args = (.+)$/m.exec(content)![1]); }
-        const config = JSON.parse(content); return (config.servers ?? config.mcpServers).arduino_maker_workshop.args;
+        const config = (language === 'toml' ? getStaticTOMLValue(parseTOML(content)) : JSON.parse(content)) as Record<string, Record<string, AiClientLaunch>>;
+        const { command, args, env } = (config.servers ?? config.mcpServers ?? config.mcp_servers).arduino_maker_workshop;
+        return { command, args, env };
     });
 }
 
@@ -146,11 +151,13 @@ test('disabled by default, workspace settings cannot opt in, and manual guide st
 });
 
 test('enable persists globally without a modal and reload restores a fresh session', async () => {
-    const settings = configuration(); const first = fixture({ settings }); await first.command('connectAiAssistant');
+    const settings = configuration(); const first = fixture({ settings }); await first.connect();
     assert.deepEqual(first.preferences, [{ enabled: true, target: 1 }]); assert.equal(first.counts().created, 1); assert.equal(first.counts().warnings, 0);
     first.registration.dispose(); const reloaded = fixture({ settings }); await reloaded.flush();
     assert.equal(reloaded.counts().created, 1); assert.equal(reloaded.registration.getState().status, 'ready'); assert.equal(reloaded.preferences.length, 0);
-    await reloaded.command('disconnectAiAssistant'); assert.equal(settings.enabled, false); assert.equal(reloaded.counts().disposed, 1);
+    await reloaded.disconnect(); assert.equal(settings.enabled, false); assert.equal(reloaded.counts().disposed, 1);
+    assert.equal(first.hasCommand('connectAiAssistant'), false);
+    assert.equal(first.hasCommand('disconnectAiAssistant'), false);
 });
 
 test('remembered integration waits for Arduino CLI and workspace trust', async () => {
@@ -262,19 +269,46 @@ test('startup failure is visible and an explicit refresh can retry', async () =>
 test('external and native config stay stable across reloads and different sketches', async () => {
     const settings = configuration(true); const f = fixture({ settings }); await f.flush(); await f.showSetup(); const initial = f.definitions()![0];
     const directory = path.join(path.resolve('private'), 'ai-bridge'); const args = [path.join(directory, 'launcher.cjs'), '--session-dir', directory];
-    assert.deepEqual(setupArguments(f.setups[0]), [args, args, args]);
+    const launch = { command: process.execPath, args, env: { ELECTRON_RUN_AS_NODE: '1' } };
+    assert.deepEqual(setupDefinitions(f.setups[0]), [launch, launch, launch]);
     const raw = [...f.setups[0].matchAll(/Argument \d+:\n\n```text\n([^\n]+)\n```/g)].map(match => match[1]); assert.deepEqual(raw, args);
     assert.equal(initial.label, 'Arduino Maker Workshop'); assert.equal(initial.version, 'test'); f.registration.dispose();
     const restarted = fixture({ settings }); restarted.changeSketch(); await restarted.flush(); await restarted.showSetup();
-    assert.deepEqual(setupArguments(restarted.setups[0]), [args, args, args]); assert.deepEqual({ ...restarted.definitions()![0] }, { ...initial });
+    assert.deepEqual(setupDefinitions(restarted.setups[0]), [launch, launch, launch]); assert.deepEqual({ ...restarted.definitions()![0] }, { ...initial });
     assert.match(restarted.setups[0], /automatically.*trusted local sketch/);
 });
 
-test('client setup uses stable generated args and makes restart guidance visible', async () => {
+test('client setup uses the same bundled runtime as Copilot and makes restart guidance visible', async () => {
     const f = fixture({ settings: configuration(true) }); await f.flush(); await f.setup('codex'); await f.setup('claude');
-    assert.deepEqual(f.clientCalls.map(call => call.client), ['codex', 'claude']); assert.deepEqual(f.clientCalls[0].args, f.definitions()![0].args); assert.deepEqual(f.clientCalls[1].args, f.clientCalls[0].args);
+    const { command, args, env } = f.definitions()![0];
+    assert.deepEqual(f.clientCalls.map(call => call.client), ['codex', 'claude']);
+    assert.deepEqual(f.clientCalls[0].launch, { command, args, env });
+    assert.deepEqual(f.clientCalls[1].launch, f.clientCalls[0].launch);
+    assert.equal(command, process.execPath);
+    assert.deepEqual(env, { ELECTRON_RUN_AS_NODE: '1' });
     assert.match(f.information[0], /Restart/); assert.match(f.registration.getState().message, /new Claude Code conversation/); assert.equal(f.registration.getState().busy, false);
     const state = await f.command('getAiIntegrationState') as AiIntegrationState; state.message = 'changed by caller'; assert.notEqual(f.registration.getState().message, state.message);
+});
+
+test('manual and automatic setup preserve exact runtime paths and required environment', async () => {
+    for (const execPath of [
+        'C:\\Program Files\\Microsoft VS Code\\Code.exe',
+        '/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Plugin).app/Contents/MacOS/Code Helper (Plugin)',
+        '/opt/VS Code "test"/code',
+    ]) {
+        const f = fixture({ settings: configuration(true), execPath });
+        await f.flush(); await f.showSetup(); await f.setup('codex'); await f.setup('claude');
+        const { command, args, env } = f.definitions()![0];
+        const launch = { command, args, env };
+        assert.equal(command, execPath);
+        assert.deepEqual(env, { ELECTRON_RUN_AS_NODE: '1' });
+        assert.deepEqual(setupDefinitions(f.setups[0]), [launch, launch, launch]);
+        assert.deepEqual(f.clientCalls.map(call => call.launch), [launch, launch]);
+        assert.ok(f.setups[0].includes(`\n\n\`\`\`text\n${execPath}\n\`\`\``));
+        assert.match(f.setups[0], /No separate Node\.js installation is needed/);
+        assert.match(f.setups[0], /Environment variable: set ELECTRON_RUN_AS_NODE to 1/);
+        f.registration.dispose();
+    }
 });
 
 test('a successful setup does not wait for its notification to be dismissed', async () => {

@@ -1,6 +1,6 @@
 import { Readable, Writable } from 'node:stream';
 import { AiBridgeError, AiToolName } from './contracts';
-import { AiIpcClient, receiveLines, validateToolCall } from './ipcServer';
+import { receiveLines, validateToolCall } from './ipcServer';
 import { AiSessionResolver } from './sessionDiscovery';
 
 const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'] as const;
@@ -29,7 +29,7 @@ const descriptions: Record<AiToolName, string> = {
 };
 
 /** The complete intentionally small MCP surface. No generic command or upload tool exists. */
-export function getMcpTools(includeDiscovery = false): unknown[] {
+export function getMcpTools(): unknown[] {
     const tools: unknown[] = (Object.keys(descriptions) as AiToolName[]).map(name => ({
         name,
         description: descriptions[name],
@@ -52,22 +52,17 @@ export function getMcpTools(includeDiscovery = false): unknown[] {
             openWorldHint: name === 'compile_sketch' || name === 'list_dependencies'
         }
     }));
-    if (includeDiscovery) {
-        tools.unshift({
-            name: 'list_connected_sketches',
-            description: 'List Arduino sketches available through enabled AI integration in running VS Code windows. Call this first and use the selected sketchPath in other tools. A sessionCount above one means extra windows for that sketch must close before operating on it.',
-            inputSchema: { type: 'object', properties: {}, additionalProperties: false },
-            annotations: { title: 'List Connected Arduino Sketches', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
-        });
-    }
+    tools.unshift({
+        name: 'list_connected_sketches',
+        description: 'List Arduino sketches available through enabled AI integration in running VS Code windows. Call this first and use the selected sketchPath in other tools. A sessionCount above one means extra windows for that sketch must close before operating on it.',
+        inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+        annotations: { title: 'List Connected Arduino Sketches', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
+    });
     return tools;
 }
 
 /** Newline-delimited JSON-RPC over stdio; input close immediately revokes pending operations. */
-export async function runMcpBridge(input: Readable, output: Writable, session: string | AiSessionResolver): Promise<void> {
-    const connection = typeof session === 'string' ? await AiIpcClient.connect(session) : session;
-    const resolver = connection instanceof AiSessionResolver ? connection : undefined;
-    const globalConnection = resolver !== undefined && resolver.sketchPath === undefined;
+export async function runMcpBridge(input: Readable, output: Writable, resolver: AiSessionResolver): Promise<void> {
     const requests = new Map<string, AbortController>();
     let initialized = false;
     let initializationRequested = false;
@@ -83,7 +78,7 @@ export async function runMcpBridge(input: Readable, output: Writable, session: s
         stopLines?.();
         for (const controller of requests.values()) { controller.abort(); }
         requests.clear();
-        connection.dispose();
+        resolver.dispose();
         input.removeListener('end', close);
         input.removeListener('close', close);
         input.removeListener('error', close);
@@ -146,9 +141,7 @@ export async function runMcpBridge(input: Readable, output: Writable, session: s
                 }
                 initializationRequested = true;
                 const version = PROTOCOL_VERSIONS.find(value => value === params.protocolVersion) ?? PROTOCOL_VERSIONS[0];
-                const instructions = globalConnection
-                    ? 'Arduino Maker Workshop connects to enabled, trusted VS Code sketch windows. Call list_connected_sketches first, then pass the selected absolute sketchPath to other tools. Use the project requested by the user; ask if the target is unclear. If none are listed, check the AI integration page in VS Code. AI operations run without extension approval dialogs. Interrupted operations are never replayed. Upload, reset, erase and serial tools are unavailable.'
-                    : `Connected sketch: ${connection.sketchPath}\nTools require enabled AI integration for this trusted sketch in VS Code. If unavailable after a debug restart, check its AI integration page. AI operations run without extension approval dialogs. Interrupted operations are never replayed. Upload, reset, erase and serial monitor operations are unavailable.`;
+                const instructions = 'Arduino Maker Workshop connects to enabled, trusted VS Code sketch windows. Call list_connected_sketches first, then pass the selected absolute sketchPath to other tools. Use the project requested by the user; ask if the target is unclear. If none are listed, enable AI integration in VS Code. AI operations run without extension approval dialogs. Interrupted operations are never replayed. Upload, reset, erase and serial tools are unavailable.';
                 result(id, { protocolVersion: version, capabilities: { tools: {} }, serverInfo: { name: 'arduino-maker-workshop-local', version: '1.0.0' }, instructions });
                 return;
             }
@@ -156,7 +149,7 @@ export async function runMcpBridge(input: Readable, output: Writable, session: s
             case 'tools/list':
                 if (!initialized) { error(id, -32002, 'Client initialization is incomplete'); return; }
                 if (params.cursor !== undefined) { error(id, -32602, 'This tool list does not use pagination'); return; }
-                result(id, { tools: getMcpTools(globalConnection) });
+                result(id, { tools: getMcpTools() });
                 return;
             case 'tools/call': break;
             default: error(id, -32601, 'Method not found'); return;
@@ -165,7 +158,7 @@ export async function runMcpBridge(input: Readable, output: Writable, session: s
         if (requests.size >= MAX_REQUESTS) { error(id, -32000, 'Too many active requests'); return; }
         let call: ReturnType<typeof validateToolCall> | { name: 'list_connected_sketches' };
         try {
-            if (globalConnection && params.name === 'list_connected_sketches') {
+            if (params.name === 'list_connected_sketches') {
                 if (params.arguments !== undefined && (!record(params.arguments) || Object.keys(params.arguments).length > 0)) {
                     throw new AiBridgeError('INVALID_ARGUMENTS', 'This tool accepts no arguments.');
                 }
@@ -186,11 +179,11 @@ export async function runMcpBridge(input: Readable, output: Writable, session: s
         let progress = 0;
         void (async () => {
             if (call.name === 'list_connected_sketches') {
-                const sketches = await resolver!.listSketches();
+                const sketches = await resolver.listSketches();
                 if (closed || controller.signal.aborted) { throw new AiBridgeError('CANCELED', 'The request was canceled.'); }
                 return sketches;
             }
-            const client = resolver ? await resolver.getClient(call.input.sketchPath) : connection as AiIpcClient;
+            const client = await resolver.getClient(call.input.sketchPath);
             if (closed || controller.signal.aborted) { throw new AiBridgeError('CANCELED', 'The request was canceled.'); }
             // Reconnect only before a new call. Never replay a tool after its IPC call starts.
             return client.call(call.name, call.input, controller.signal, value => {
@@ -219,14 +212,5 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
         await runMcpBridge(process.stdin, process.stdout, resolver);
         return;
     }
-    if (args.length === 2 && args[0] === '--session' && args[1]) {
-        await runMcpBridge(process.stdin, process.stdout, args[1]);
-        return;
-    }
-    if (args.length === 4 && args[0] === '--sketch' && args[1] && args[2] === '--session-dir' && args[3]) {
-        const resolver = await AiSessionResolver.create(args[1], args[3]);
-        await runMcpBridge(process.stdin, process.stdout, resolver);
-        return;
-    }
-    throw new Error('Usage: node launcher.cjs --session-dir <session-directory>, or --sketch <sketch-path> --session-dir <session-directory>, or --session <session-file>');
+    throw new Error('Usage: launcher.cjs --session-dir <session-directory>');
 }

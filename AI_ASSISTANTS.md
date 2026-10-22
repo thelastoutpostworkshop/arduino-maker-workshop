@@ -18,13 +18,14 @@ Choose a setup button once for each client you want to use:
 | Claude Code | **Set up Claude Code** saves a user-level server entry | `~/.claude.json`, or `$CLAUDE_CONFIG_DIR/.claude.json` when set |
 | Copilot / VS Code | **Use with Copilot** explains selecting the automatically registered server | VS Code MCP tools picker; no configuration file is edited |
 
-The buttons generate paths and arguments for you. They do not require the Codex
-or Claude CLI to be installed and do not install an AI client. Codex uses TOML;
-Claude Code uses JSON. Only the chosen client's Arduino Maker Workshop entry is
-configured. Other servers, client settings, and tool approval preferences are
+The buttons configure the runtime included with VS Code, its paths, and the required
+environment setting for you. You do not need to install Node.js separately.
+They do not require the Codex or Claude CLI to be installed and do not install an
+AI client. Codex uses TOML; Claude Code uses JSON. Only the chosen client's
+Arduino Maker Workshop entry is configured. Other servers, client settings, and tool approval preferences are
 preserved. Existing files are backed up alongside the original with an
 `.amw-backup-...` suffix before changes, and invalid configuration is left intact
-with an error. Setup can be run again to update an old entry.
+with an error.
 
 Configure one server per computer and VS Code storage profile. That entry works
 across sketches in the same profile. Each user runs setup on their own computer.
@@ -32,10 +33,6 @@ across sketches in the same profile. Each user runs setup on their own computer.
 to edit the files yourself.
 
 ## Enable, use, and disable
-
-For external clients, install Node.js 20 or newer on the same computer as VS Code.
-The `node` command must work in the client's environment. Copilot's automatic
-integration uses VS Code's included runtime.
 
 Use a local VS Code window and local sketch files. Remote SSH, WSL, container
 workspaces, and clients running on another computer are not supported by this preview.
@@ -63,7 +60,8 @@ Enable AI Integration**, **Disable AI Integration**, **Set Up AI Client**, and
 
 When switching to another trusted local sketch, reuse the same client entry.
 Several different sketches can be available at once.
-Repeat setup only when moving to another computer or VS Code storage profile.
+Repeat setup if you move to another computer or VS Code storage profile, or if
+your VS Code installation path changes.
 
 When several sketches are available, tell your assistant which one to use. If the
 same sketch is connected in more than one VS Code window, close its extra windows
@@ -160,8 +158,9 @@ including doubled Windows backslashes. The optional form fields described below
 use raw values instead.
 
 Use the paths in your own setup document wherever a placeholder appears below.
-Do not copy another user's paths. If the `node` command is not working, use
-the absolute path of a working Node.js 20+ executable.
+Do not copy another user's paths. Keep the generated `command`, `args`, and `env`
+together: the environment setting lets the included VS Code runtime run the
+connector without opening another VS Code window.
 
 ### Copilot / VS Code
 
@@ -179,8 +178,9 @@ with the same name if present. If the file is empty, paste the full JSON block:
   "servers": {
     "arduino_maker_workshop": {
       "type": "stdio",
-      "command": "node",
-      "args": ["<stable-launcher.cjs>", "--session-dir", "<private-ai-bridge-directory>"]
+      "command": "<VS Code runtime executable>",
+      "args": ["<stable-launcher.cjs>", "--session-dir", "<private-ai-bridge-directory>"],
+      "env": { "ELECTRON_RUN_AS_NODE": "1" }
     }
   }
 }
@@ -199,14 +199,17 @@ the same server separately in each one.
 **Set up Codex** handles this file for you, including `tool_timeout_sec = 900`.
 For manual setup, open `~/.codex/config.toml` (`%USERPROFILE%\.codex\config.toml` on Windows) and
 paste the generated TOML block. If `[mcp_servers.arduino_maker_workshop]` already
-exists, replace that table instead of adding another one. Preserve unrelated
-settings and server tables. The example below contains placeholders; the setup
+exists, update its `command`, `args`, `env`, and `tool_timeout_sec` instead of
+adding another table. Merge `ELECTRON_RUN_AS_NODE` into any existing environment
+settings, preserving unrelated variables, tool permissions, and server tables.
+The example below contains placeholders; the setup
 document supplies your actual paths:
 
 ```toml
 [mcp_servers.arduino_maker_workshop]
-command = "node"
+command = "<VS Code runtime executable>"
 args = ["<stable-launcher.cjs>", "--session-dir", "<private-ai-bridge-directory>"]
+env = { ELECTRON_RUN_AS_NODE = "1" }
 tool_timeout_sec = 900
 ```
 
@@ -226,7 +229,8 @@ First enable AI integration in VS Code and open **Manual setup instructions**. T
 1. Open **Settings > MCP servers** and choose **Add server**, or edit an existing
    Arduino Maker Workshop entry.
 2. Give it a name such as `arduino_maker_workshop`, choose **STDIO**, and set
-   **Command** to `node`.
+   **Command** to the full VS Code runtime executable path from your generated
+   setup document, without surrounding quotes.
 3. Add these three **Arguments** as separate entries, in this order, using the
    values from your generated document:
 
@@ -240,8 +244,11 @@ First enable AI integration in VS Code and open **Manual setup instructions**. T
    brackets, commas, or JSON escaping. A path containing spaces is still one
    argument. Keep ordinary Windows backslashes as shown in the raw-value section
    of the generated document.
-4. Select **Save**, then **Restart**.
-5. Ask: "List my connected sketches, then inspect the sketch I choose."
+4. Add the environment variable `ELECTRON_RUN_AS_NODE` with value `1`. If the form
+   does not provide an environment field, use the complete generated TOML block
+   in `config.toml` instead.
+5. Save the configuration, then restart the MCP server or your Codex client.
+6. Ask: "List my connected sketches, then inspect the sketch I choose."
    Select the intended path and verify its board or profile before
    requesting a compile.
 
@@ -267,8 +274,9 @@ block. This is Claude Code's configuration, not Claude Desktop's settings file:
   "mcpServers": {
     "arduino_maker_workshop": {
       "type": "stdio",
-      "command": "node",
-      "args": ["<stable-launcher.cjs>", "--session-dir", "<private-ai-bridge-directory>"]
+      "command": "<VS Code runtime executable>",
+      "args": ["<stable-launcher.cjs>", "--session-dir", "<private-ai-bridge-directory>"],
+      "env": { "ELECTRON_RUN_AS_NODE": "1" }
     }
   }
 }
@@ -281,14 +289,12 @@ one server's JSON object without the `mcpServers` wrapper and requires shell
 quoting. See [official Claude Code user configuration](https://code.claude.com/docs/en/mcp#user-scope)
 and [JSON configuration](https://code.claude.com/docs/en/mcp#add-mcp-servers-from-json-configuration).
 
-### Updating an existing AI connection
+### Changing computers or VS Code location
 
-For an existing entry using `--sketch` or `--session`, run the matching setup button
-again, or update the entry with the matching TOML or JSON block from the setup
-document. Restart the client's MCP server once. The new arguments contain only
-the launcher path, `--session-dir`, and the bridge storage folder. After that
-migration, the same entry works for any sketch available in this storage profile.
-Regenerate setup only when moving to another computer or VS Code storage profile.
+Run your client's setup button again if you move to another computer or VS Code
+storage profile, or if your VS Code installation path changes. Restart the client
+after setup. For manual configuration, copy the complete matching block from the
+newly generated setup document, including `command`, `args`, and `env`.
 
 ## Troubleshooting
 
@@ -297,11 +303,13 @@ Regenerate setup only when moving to another computer or VS Code storage profile
 - **The same sketch is connected more than once:** Close its extra VS Code
   windows and retry.
 - **Two Arduino Maker Workshop servers appear in your client:** Use the
-  `arduino_maker_workshop` entry created by automatic setup. Disable an older
-  manually named entry, test the current one, then remove the old entry if it is
-  no longer needed.
-- **The client still shows old tools after an update:** Restart its MCP server or
+  `arduino_maker_workshop` entry created by automatic setup. Disable duplicate
+  entries, test the connection, then remove the duplicates.
+- **The client's tool list differs from this guide:** Restart its MCP server or
   fully quit and reopen the client while the sketch remains open in VS Code.
+- **The server cannot start after moving or reinstalling VS Code:** Run the
+  matching client setup button again, then restart the client to use the current
+  runtime path.
 - **Compilation cannot start:** Save your sketch files, check the selected board
   or profile, and wait for any other compilation or upload to finish. Build output
   must stay inside the sketch folder. Linked source folders and very large source

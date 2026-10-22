@@ -50,8 +50,9 @@ async function fixture() {
             };
         },
     });
-    const server = await createAiIpcServer({ sessionDirectory: directory, sketchPath, handler, isTrusted: () => true });
-    const child = spawn(process.execPath, [launcher, '--session', server.sessionFile], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
+    const sessionDirectory = path.join(directory, 'ai-bridge');
+    const server = await createAiIpcServer({ sessionDirectory, sketchPath, handler, isTrusted: () => true });
+    const child = spawn(process.execPath, [launcher, '--session-dir', sessionDirectory], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
     const exited = new Promise<{ code: number | null; signal: NodeJS.Signals | null }>(resolve => {
         child.once('close', (code, signal) => resolve({ code, signal }));
     });
@@ -103,7 +104,7 @@ test('standalone packaged bridge reaches extension operations and reports compil
     const f = await fixture();
     try {
         const tools = await f.request(2, 'tools/list');
-        assert.equal(tools.result.tools.length, 5);
+        assert.equal(tools.result.tools.length, 6);
         const context = await f.request(3, 'tools/call', { name: 'get_project_context', arguments: { sketchPath: f.sketchPath } });
         assert.equal(context.result.structuredContent.fqbn, 'arduino:avr:uno');
         const compile = await f.request(4, 'tools/call', { name: 'compile_sketch', arguments: { sketchPath: f.sketchPath }, _meta: { progressToken: 'compile-progress' } });

@@ -61,6 +61,7 @@
 
 ## AI Bridge Documentation and Prompts
 
+- The AI bridge and its user documentation are unreleased. Keep only the current launch modes and commands; do not add compatibility aliases or migration instructions for earlier branch implementations.
 - When adding, changing, or removing an MCP tool, update the tool list, limitations, and prompt examples in `AI_ASSISTANTS.md` in the same change.
 - Keep `AI_ASSISTANTS.md` user-facing. Include natural, copyable prompts that cover every available tool and explain the expected user-visible result. Do not prefix each prompt with "Use Arduino Maker Workshop" or use fictional sketch names; refer to the user's current sketch and explain how to choose it when several are connected.
 - Explain which sketch/profile names or other inputs users must replace and any prerequisites needed to try a prompt. Document only implemented capabilities.

@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { AiIntegrationState, AiSetupClient } from '../shared/messages';
-import { setupAiClient } from './clientSetup';
+import { setupAiClient, type AiClientLaunch } from './clientSetup';
 import { AiBridgeError, AiToolHandler } from './contracts';
 import { createAiIpcServer } from './ipcServer';
 
@@ -34,7 +34,13 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
     let preferenceWrites = Promise.resolve();
     const directory = path.join(context.globalStorageUri.fsPath, 'ai-bridge');
     const launcherPath = path.join(directory, 'launcher.cjs');
-    const launcherArguments = () => [launcherPath, '--session-dir', path.dirname(launcherPath)];
+    // Use the extension host's bundled runtime for every client; no Node executable
+    // needs to be installed or discoverable on the external client's PATH.
+    const launcherDefinition = (): AiClientLaunch => ({
+        command: process.execPath,
+        args: [launcherPath, '--session-dir', directory],
+        env: { ELECTRON_RUN_AS_NODE: '1' },
+    });
     const changes = new vscode.EventEmitter<void>();
     const subscriptions: vscode.Disposable[] = [changes];
     const readyMessage = 'AI integration is ready. AI operations run without extension approval prompts.';
@@ -159,13 +165,14 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
         try {
             subscriptions.push(api.lm.registerMcpServerDefinitionProvider(providerId, {
             onDidChangeMcpServerDefinitions: changes.event,
-            provideMcpServerDefinitions: () => session && target().sketchPath === sessionSketch ? [new api.McpStdioServerDefinition!(
-                'Arduino Maker Workshop',
-                process.execPath,
-                launcherArguments(),
-                { ELECTRON_RUN_AS_NODE: '1' },
-                context.extension.packageJSON.version
-            )] : [],
+            provideMcpServerDefinitions: () => {
+                if (!session || target().sketchPath !== sessionSketch) { return []; }
+                const launch = launcherDefinition();
+                return [new api.McpStdioServerDefinition!(
+                    'Arduino Maker Workshop', launch.command, launch.args, launch.env,
+                    context.extension.packageJSON.version
+                )];
+            },
             resolveMcpServerDefinition: (definition: unknown) => session && target().sketchPath === sessionSketch ? definition : undefined,
             }));
             nativeMcpAvailable = true;
@@ -177,10 +184,11 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
 
     const showSetup = async () => {
         const sketchPath = options.activeSketchPath();
-        const args = launcherArguments();
-        const codex = `[mcp_servers.arduino_maker_workshop]\ncommand = "node"\nargs = ${JSON.stringify(args)}\ntool_timeout_sec = 900\n`;
-        const claude = JSON.stringify({ mcpServers: { arduino_maker_workshop: { type: 'stdio', command: 'node', args } } }, null, 2);
-        const copilot = JSON.stringify({ servers: { arduino_maker_workshop: { type: 'stdio', command: 'node', args } } }, null, 2);
+        const launch = launcherDefinition();
+        const environment = Object.entries(launch.env).map(([key, value]) => `${JSON.stringify(key)} = ${JSON.stringify(value)}`).join(', ');
+        const codex = `[mcp_servers.arduino_maker_workshop]\ncommand = ${JSON.stringify(launch.command)}\nargs = ${JSON.stringify(launch.args)}\nenv = { ${environment} }\ntool_timeout_sec = 900\n`;
+        const claude = JSON.stringify({ mcpServers: { arduino_maker_workshop: { type: 'stdio', ...launch } } }, null, 2);
+        const copilot = JSON.stringify({ servers: { arduino_maker_workshop: { type: 'stdio', ...launch } } }, null, 2);
         const markdown = [
             '# Arduino Maker Workshop - AI connection',
             '',
@@ -205,7 +213,7 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
             '',
             'Opening this guide does not edit client settings. Reopen it with Arduino Maker Workshop: AI Setup Instructions. Keep these local settings out of version control; they contain local paths but no authentication tokens.',
             '',
-            'External clients need Node.js 20 or newer on this same computer. If the client cannot find node, set command to the full path of your Node executable using the file format\'s quoting rules.',
+            'No separate Node.js installation is needed. The generated command uses the runtime included with this VS Code installation. Keep the supplied command, args, and env values together; ELECTRON_RUN_AS_NODE=1 lets the runtime run the AI connection without opening another VS Code window.',
             '',
             '## Manual Codex setup - paste TOML',
             '',
@@ -213,7 +221,7 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
             '',
             '1. Open your user configuration file in an editor. The default location is ~/.codex/config.toml on macOS/Linux or %USERPROFILE%\\.codex\\config.toml on Windows. Create the file if needed.',
             '   If CODEX_HOME is set, use config.toml inside that folder. Automatic setup also respects this override.',
-            '2. Paste the block below. If [mcp_servers.arduino_maker_workshop] already exists, update its command, args, and tool_timeout_sec values instead of adding a second table with the same name.',
+            '2. Paste the block below. If [mcp_servers.arduino_maker_workshop] already exists, update its command, args, env, and tool_timeout_sec values instead of adding a second table with the same name. Merge ELECTRON_RUN_AS_NODE into any existing env settings, keeping unrelated variables.',
             '', '```toml', codex, '```',
             '',
             '3. Save the file. In the desktop app, open Settings > MCP servers and restart Arduino Maker Workshop. Restart the IDE extension or CLI session if using those clients.',
@@ -246,23 +254,21 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
             '', 'In Settings > MCP servers, add a server or edit the existing Arduino Maker Workshop entry:',
             '', '- Name: arduino_maker_workshop',
             '- Transport: STDIO (local command)',
-            '- Command: node',
+            '', 'Command (copy this full path without surrounding quotes):',
+            '', '```text', launch.command, '```',
+            '', 'Environment variable: set ELECTRON_RUN_AS_NODE to 1. If the form does not offer environment variables, use the complete TOML block above instead.',
             '', 'Add the following three arguments separately, in order. Copy these raw values without quotes, commas, brackets, or args =. A path containing spaces is still one argument. Windows paths in these fields use single backslashes.',
             '',
-            ...args.flatMap((argument, index) => [`Argument ${index + 1}:`, '', '```text', argument, '```', '']),
+            ...launch.args.flatMap((argument, index) => [`Argument ${index + 1}:`, '', '```text', argument, '```', '']),
             'Save and restart the server. Set tool_timeout_sec = 900 separately in its config.toml table as shown in the Codex section; it is not a fourth argument.',
             '', '## Check the connection',
-            '', 'Ask the assistant: "List connected Arduino Maker Workshop sketches, then inspect the sketch I choose and report its selected board or profile." Once that works, ask it to compile. Compilation starts without an extension approval prompt.',
-            '', '## Updating an existing AI connection',
-            '', 'If your saved entry uses --sketch or --session, update that entry using the matching configuration block above, then restart its MCP server once. The new args contain only the launcher path, --session-dir, and the bridge storage folder. Future sketch changes reuse this entry.',
+            '', 'Ask the assistant: "List my connected sketches, then inspect the sketch I choose and report its selected board or profile." Once that works, ask it to compile. Compilation starts without an extension approval prompt.',
             '', '## Next time you open a sketch',
-            '', 'Leave AI Integration enabled. A trusted local sketch window reconnects automatically after Arduino CLI is ready, including after a reload or debug restart. Your saved client settings remain valid; the next tool call finds the new session. An interrupted compile must be requested again.',
+            '', 'Leave AI Integration enabled. A trusted local sketch window reconnects automatically after Arduino CLI is ready, including after a reload or restart. Your saved client settings remain valid; the next tool call finds the new session. An interrupted compile must be requested again.',
             '', 'Disable AI Integration on the AI Integration page to disconnect enabled windows and stop automatic reconnection for this VS Code user profile on this computer. Closing a window still destroys its temporary session and credentials. No upload or serial tools are available.',
             '', '## Using another sketch or computer',
-            '', 'For another sketch, open its trusted local VS Code window and keep the same saved server entry. Multiple different sketches may be connected at once. The assistant lists connected sketches and sends the chosen sketchPath with each project operation. Only moving to another computer or VS Code storage profile requires new setup paths. Do not distribute this document as a configuration for other users.',
+            '', 'For another sketch, open its trusted local VS Code window and keep the same saved server entry. Multiple different sketches may be connected at once. Run setup again if you move to another computer or VS Code storage profile, or move or reinstall VS Code at a different location. Do not distribute this document as a configuration for other users.',
             '', 'If several sketches are listed, choose the intended sketch instead of guessing. If a sketch has sessionCount greater than one, close its extra window before requesting project operations. The native VS Code provider uses the same global tools and is advertised in this window only while its session is ready.',
-            '', '## Extension developers',
-            '', 'When testing changes to the extension, restart Run and Debug. An enabled Extension Development Host reconnects when Arduino CLI is ready. If the standalone bridge code changed, also restart the client\'s MCP server to load the rebuilt launcher. Its arguments stay the same.',
         ].join('\n');
         const document = await vscode.workspace.openTextDocument({ language: 'markdown', content: markdown });
         await vscode.window.showTextDocument(document, { preview: false });
@@ -336,7 +342,7 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
                     publish({ ...state, message: 'This VS Code version has no native MCP provider. Use the manual Copilot instructions or update VS Code.' });
                 }
             } else {
-                const result = await setupAiClient(client, launcherArguments());
+                const result = await setupAiClient(client, launcherDefinition());
                 const message = `${client === 'codex' ? 'Codex' : 'Claude Code'} configuration ${result.changed ? 'updated' : 'already configured'} at ${result.configPath}. ${client === 'codex' ? 'Restart the MCP server or Codex session.' : 'Start a new Claude Code conversation.'} Ask it to list connected Arduino sketches first.`;
                 if (!disposed) {
                     publish({ ...state, message });
@@ -357,8 +363,6 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
     register('getAiIntegrationState', getState);
     register('enableAiIntegration', () => setEnabled(true));
     register('disableAiIntegration', () => setEnabled(false));
-    register('connectAiAssistant', () => setEnabled(true));
-    register('disconnectAiAssistant', () => setEnabled(false));
     register('setupAiClient', setupClient);
     register('showAiSetup', async () => { await showSetup(); return getState(); });
     subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {

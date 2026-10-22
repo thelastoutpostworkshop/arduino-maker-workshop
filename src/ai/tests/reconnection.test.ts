@@ -33,7 +33,7 @@ async function fixture(t: TestContext) {
     const sessionDirectory = path.join(directory, 'ai-bridge');
     const launcher = path.join(directory, 'standalone-launcher.cjs');
     await fs.copyFile(path.join(process.cwd(), 'build', 'aiBridge.cjs'), launcher);
-    const args = [launcher, '--sketch', sketchPath, '--session-dir', sessionDirectory];
+    const args = [launcher, '--session-dir', sessionDirectory];
     const child = spawn(process.execPath, args, { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
     const servers: AiIpcServer[] = [];
     const replies = new Map<number, { resolve(value: any): void; reject(error: Error): void }>();
@@ -85,7 +85,8 @@ async function fixture(t: TestContext) {
         protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'reconnection-test', version: 'test' }
     });
     assert.equal(initialize.error, undefined, JSON.stringify(initialize));
-    assert.ok(initialize.result.instructions.includes(sketchPath), 'Initialization identifies the configured sketch without a live session');
+    assert.ok(initialize.result.instructions.includes('list_connected_sketches'), 'Initialization explains how to select a sketch without requiring a live session');
+    assert.equal(initialize.result.instructions.includes(sketchPath), false, 'The global launcher is not bound to one sketch');
     send({ jsonrpc: '2.0', method: 'notifications/initialized' });
 
     const connect = async (label: string, options: { sketchPath?: string; waitForAbort?: boolean } = {}) => {
@@ -125,7 +126,7 @@ function assertToolError(frame: any, code: string) {
 test('packaged bridge starts disconnected, reconnects on later calls, and never replays interrupted compilation', { timeout: 25000 }, async t => {
     const f = await fixture(t);
     const listed = await f.request('tools/list');
-    assert.deepEqual(listed.result.tools.map((tool: any) => tool.name).sort(), ['compile_sketch', 'get_project_context', 'list_boards', 'list_dependencies', 'list_ports']);
+    assert.deepEqual(listed.result.tools.map((tool: any) => tool.name).sort(), ['compile_sketch', 'get_project_context', 'list_boards', 'list_connected_sketches', 'list_dependencies', 'list_ports']);
     const unavailable = await f.call();
     assertToolError(unavailable, 'SESSION_UNAVAILABLE');
     assert.match(unavailable.result.structuredContent.error.message, /VS Code|connect/i);
@@ -146,10 +147,10 @@ test('packaged bridge starts disconnected, reconnects on later calls, and never 
     assert.deepEqual(replacement.calls, ['get_project_context']);
     await replacement.server.dispose();
     assertToolError(await f.call(), 'SESSION_UNAVAILABLE');
-    assert.equal((await f.request('tools/list')).result.tools.length, 5, 'Session loss does not terminate the MCP process');
+    assert.equal((await f.request('tools/list')).result.tools.length, 6, 'Session loss does not terminate the MCP process');
 });
 
-test('packaged bridge ignores sessions connected to a different sketch', { timeout: 20000 }, async t => {
+test('packaged bridge does not send operations to a different sketch than requested', { timeout: 20000 }, async t => {
     const f = await fixture(t);
     const foreign = await f.connect('foreign', { sketchPath: f.foreignSketchPath });
     assertToolError(await f.call(), 'SESSION_UNAVAILABLE');

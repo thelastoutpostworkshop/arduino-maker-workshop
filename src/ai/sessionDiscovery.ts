@@ -13,7 +13,7 @@ function samePath(left: string, right: string): boolean {
 
 function pathKey(value: string): string { return process.platform === 'win32' ? value.toLowerCase() : value; }
 
-function unavailable(message = 'No live AI session is connected for this sketch. Run Connect AI Assistant in its VS Code window and retry.'): AiBridgeError {
+function unavailable(message = 'No live AI session is connected for this sketch. Enable AI integration in its VS Code window and retry.'): AiBridgeError {
     return new AiBridgeError('SESSION_UNAVAILABLE', message);
 }
 
@@ -27,27 +27,20 @@ export interface AiSketchList {
     sketches: Array<{ sketchPath: string; sessionCount: number }>;
 }
 
-/** Authenticated discovery of explicitly enabled sessions, optionally fixed to one sketch. */
+/** Authenticated discovery of enabled sessions, with an explicit sketch target for each operation. */
 export class AiSessionResolver {
     private readonly current = new Map<string, AiIpcClient>();
     private readonly pending = new Map<string, Promise<unknown>>();
     private readonly discoveryAborts = new Set<AbortController>();
     private disposed = false;
 
-    private constructor(public readonly sketchPath: string | undefined, private readonly sessionDirectory: string) {}
-
-    static async create(sketchPath: string, sessionDirectory: string): Promise<AiSessionResolver> {
-        if (!path.isAbsolute(sketchPath) || !path.isAbsolute(sessionDirectory)) {
-            throw new AiBridgeError('INVALID_ARGUMENTS', 'Absolute sketch and session-directory paths are required.');
-        }
-        return new AiSessionResolver(await AiSessionResolver.canonicalSketch(sketchPath), path.resolve(sessionDirectory));
-    }
+    private constructor(private readonly sessionDirectory: string) {}
 
     static async createGlobal(sessionDirectory: string): Promise<AiSessionResolver> {
         if (!path.isAbsolute(sessionDirectory)) {
             throw new AiBridgeError('INVALID_ARGUMENTS', 'An absolute session-directory path is required.');
         }
-        return new AiSessionResolver(undefined, path.resolve(sessionDirectory));
+        return new AiSessionResolver(path.resolve(sessionDirectory));
     }
 
     private static async canonicalSketch(sketchPath: string): Promise<string> {
@@ -58,18 +51,12 @@ export class AiSessionResolver {
         } catch { throw unavailable('The requested sketch folder is unavailable. Check its absolute path and retry.'); }
     }
 
-    getClient(requestedSketchPath?: string): Promise<AiIpcClient> {
+    getClient(requestedSketchPath: string): Promise<AiIpcClient> {
         if (this.disposed) { return Promise.reject(unavailable('The AI session resolver is closed.')); }
-        if (requestedSketchPath === undefined && this.sketchPath) { return this.getSketchClient(this.sketchPath); }
         if (typeof requestedSketchPath !== 'string' || !path.isAbsolute(requestedSketchPath)) {
             return Promise.reject(new AiBridgeError('INVALID_ARGUMENTS', 'An explicit absolute sketchPath is required. List connected sketches before choosing a target.'));
         }
-        return AiSessionResolver.canonicalSketch(requestedSketchPath).then(canonical => {
-            if (this.sketchPath && !samePath(canonical, this.sketchPath)) {
-                throw new AiBridgeError('WRONG_WORKSPACE', 'This bridge is limited to its configured sketch.');
-            }
-            return this.getSketchClient(canonical);
-        });
+        return AiSessionResolver.canonicalSketch(requestedSketchPath).then(canonical => this.getSketchClient(canonical));
     }
 
     listSketches(): Promise<AiSketchList> {
@@ -174,7 +161,7 @@ export class AiSessionResolver {
     private async discoverSketches(signal: AbortSignal): Promise<AiSketchList> {
         const probes = new Set<AiIpcClient>();
         try {
-            const clients = await this.scan(signal, probes, this.sketchPath);
+            const clients = await this.scan(signal, probes);
             this.assertActive(signal);
             const sketches = new Map<string, { sketchPath: string; sessionCount: number }>();
             for (const client of clients) {

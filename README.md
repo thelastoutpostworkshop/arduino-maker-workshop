@@ -51,10 +51,11 @@ enable the bridge, then choose **Set up Codex**, **Set up Claude Code**, or
 setup saves a user configuration entry with paths generated for your computer;
 Copilot uses VS Code's automatic registration where supported. Other client
 settings are preserved. Restart the selected client if requested.
+Setup uses the runtime included with VS Code; no separate Node.js installation is needed.
 
 Enablement is off by default and remembered for this computer and VS Code profile.
 Once enabled, trusted local sketches become available automatically after reloads
-and restarts. There is no Connect command to repeat or argument list to update.
+and restarts.
 Home shows a short status summary and a link to the AI integration page. Turn
 **Enable AI integration** off on that page to
 revoke access across windows in the same profile; saved client entries stay intact.

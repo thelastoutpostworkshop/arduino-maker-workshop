@@ -9,7 +9,8 @@ import { test, TestContext } from 'node:test';
 import { setTimeout as delay } from 'node:timers/promises';
 import { AiBridgeError, AiToolHandler, AiToolName } from '../contracts';
 import { AiIpcClient, AiIpcServer, createAiIpcServer, readSessionDescriptor, receiveLines } from '../ipcServer';
-import { getMcpTools, runMcpBridge } from '../mcpBridge';
+import { getMcpTools, main, runMcpBridge } from '../mcpBridge';
+import { AiSessionResolver } from '../sessionDiscovery';
 
 function deferred<T>() {
     let resolve!: (value: T) => void;
@@ -32,10 +33,11 @@ async function fixture(handler: AiToolHandler, trusted: () => boolean = () => tr
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'amw-bridge-test-'));
     const sketchPath = path.join(root, 'Blink');
     await fs.mkdir(sketchPath);
+    const sessionDirectory = path.join(root, 'sessions');
     let server: AiIpcServer;
-    try { server = await createAiIpcServer({ sessionDirectory: path.join(root, 'sessions'), sketchPath, handler, isTrusted: trusted }); }
+    try { server = await createAiIpcServer({ sessionDirectory, sketchPath, handler, isTrusted: trusted }); }
     catch (error) { await fs.rm(root, { recursive: true, force: true }); throw error; }
-    return { root, sketchPath: await fs.realpath(sketchPath), server, async dispose() { await server.dispose(); await fs.rm(root, { recursive: true, force: true }); } };
+    return { root, sessionDirectory, sketchPath: await fs.realpath(sketchPath), server, async dispose() { await server.dispose(); await fs.rm(root, { recursive: true, force: true }); } };
 }
 
 async function rawFrame(endpoint: string, frame: unknown): Promise<Record<string, unknown>> {
@@ -52,7 +54,8 @@ async function rawFrame(endpoint: string, frame: unknown): Promise<Record<string
     });
 }
 
-function harness(sessionFile: string) {
+async function harness(sessionDirectory: string) {
+    const resolver = await AiSessionResolver.createGlobal(sessionDirectory);
     const input = new PassThrough();
     const output = new PassThrough();
     const events = new EventEmitter();
@@ -62,7 +65,7 @@ function harness(sessionFile: string) {
         messages.push(message);
         events.emit('message', message);
     }, () => { throw new Error('Oversized MCP response'); });
-    const running = runMcpBridge(input, output, sessionFile);
+    const running = runMcpBridge(input, output, resolver);
     const send = (value: unknown) => input.write(JSON.stringify(value) + '\n');
     const waitFor = (predicate: (value: Record<string, any>) => boolean): Promise<Record<string, any>> => {
         const existing = messages.find(predicate);
@@ -185,20 +188,21 @@ test('descriptor validation refuses endpoint substitution without revealing its 
     } finally { await context.dispose(); }
 });
 
-test('MCP negotiates supported versions and offers exactly five explicit scoped tools', async () => {
+test('MCP negotiates supported versions and offers discovery plus five explicitly targeted tools', async () => {
     const context = await fixture(async () => ({}));
     try {
         for (const version of ['2024-11-05', '2025-03-26', '2025-06-18', 'unsupported-version']) {
-            const bridge = harness(context.server.sessionFile);
+            const bridge = await harness(context.sessionDirectory);
             try {
                 const response = await bridge.initialize(version);
                 assert.equal(response.result.protocolVersion, version === 'unsupported-version' ? '2025-06-18' : version);
-                assert.ok(response.result.instructions.includes(`Connected sketch: ${context.sketchPath}`));
+                assert.ok(response.result.instructions.includes('Call list_connected_sketches first'));
+                assert.equal(response.result.instructions.includes(context.sketchPath), false);
                 bridge.send({ jsonrpc: '2.0', id: 1, method: 'tools/list' });
                 const listed = await bridge.waitFor(message => message.id === 1);
-                assert.deepEqual(listed.result.tools.map((tool: Record<string, unknown>) => tool.name), ['get_project_context', 'list_dependencies', 'list_boards', 'list_ports', 'compile_sketch']);
+                assert.deepEqual(listed.result.tools.map((tool: Record<string, unknown>) => tool.name), ['list_connected_sketches', 'get_project_context', 'list_dependencies', 'list_boards', 'list_ports', 'compile_sketch']);
                 for (const tool of listed.result.tools) {
-                    assert.deepEqual(tool.inputSchema.required, ['sketchPath']);
+                    assert.deepEqual(tool.inputSchema.required, tool.name === 'list_connected_sketches' ? undefined : ['sketchPath']);
                     assert.equal(tool.inputSchema.additionalProperties, false);
                     const initializesCli = tool.name === 'compile_sketch' || tool.name === 'list_dependencies';
                     assert.equal(tool.annotations.readOnlyHint, !initializesCli);
@@ -209,14 +213,28 @@ test('MCP negotiates supported versions and offers exactly five explicit scoped 
                 }
             } finally { await bridge.dispose(); }
         }
-        assert.equal(getMcpTools().length, 5);
+        assert.equal(getMcpTools().length, 6);
     } finally { await context.dispose(); }
+});
+
+test('launcher rejects unsupported per-session and per-sketch arguments', async () => {
+    const directory = path.resolve('private-ai-sessions');
+    for (const args of [
+        ['--session', path.join(directory, 'session.json')],
+        ['--sketch', path.resolve('current-sketch'), '--session-dir', directory],
+        ['--session-dir', directory, '--session', path.join(directory, 'session.json')],
+        ['--session-dir'],
+        [],
+    ]) {
+        await assert.rejects(main(args), /^Error: Usage: launcher\.cjs --session-dir <session-directory>$/);
+    }
+    await assert.rejects(main(['--session-dir', 'relative']), { code: 'INVALID_ARGUMENTS' });
 });
 
 test('MCP validates initialization, malformed input, unknown methods and tool schemas', async () => {
     let calls = 0;
     const context = await fixture(async () => { calls++; return {}; });
-    const bridge = harness(context.server.sessionFile);
+    const bridge = await harness(context.sessionDirectory);
     try {
         bridge.input.write('{malformed\n');
         assert.equal((await bridge.waitFor(message => message.error?.code === -32700)).id, null);
@@ -241,7 +259,7 @@ test('MCP routes dependency inventory with an explicit profile through authentic
         calls.push({ name, input });
         return { schemaVersion: 1, sketchPath: input.sketchPath, resolvedProfile: input.profile };
     });
-    const bridge = harness(context.server.sessionFile);
+    const bridge = await harness(context.sessionDirectory);
     try {
         await bridge.initialize();
         bridge.send({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: {
@@ -261,7 +279,7 @@ test('MCP returns structured and text results with progress and operation failur
         if (failed) { throw new AiBridgeError('MISSING_CORE', 'Install the selected board package in VS Code.'); }
         return { schemaVersion: 1, sketchPath: input.sketchPath, status: 'success' };
     });
-    const bridge = harness(context.server.sessionFile);
+    const bridge = await harness(context.sessionDirectory);
     try {
         await bridge.initialize();
         bridge.send({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'compile_sketch', arguments: { sketchPath: context.sketchPath, clean: false }, _meta: { progressToken: 'build-progress' } } });
@@ -286,7 +304,7 @@ test('MCP rejects duplicate active IDs, forwards cancellation and aborts work on
             started.resolve();
             await new Promise<void>((_resolve, reject) => signal.addEventListener('abort', () => { aborted.resolve(); reject(new AiBridgeError('CANCELED', 'Canceled')); }, { once: true }));
         });
-        const bridge = harness(context.server.sessionFile);
+        const bridge = await harness(context.sessionDirectory);
         try {
             await bridge.initialize();
             const request = { jsonrpc: '2.0', id: 7, method: 'tools/call', params: { name: 'compile_sketch', arguments: { sketchPath: context.sketchPath } } };
@@ -306,7 +324,7 @@ test('MCP rejects duplicate active IDs, forwards cancellation and aborts work on
 test('MCP bounds oversized input and never executes truncated frames', async () => {
     let calls = 0;
     const context = await fixture(async () => { calls++; return {}; });
-    const bridge = harness(context.server.sessionFile);
+    const bridge = await harness(context.sessionDirectory);
     try {
         await bridge.initialize();
         bridge.input.write('x'.repeat(65537));
@@ -318,7 +336,7 @@ test('MCP bounds oversized input and never executes truncated frames', async () 
 test('MCP stdin ending with a partial tool frame never starts that operation', async () => {
     let calls = 0;
     const context = await fixture(async () => { calls++; return {}; });
-    const bridge = harness(context.server.sessionFile);
+    const bridge = await harness(context.sessionDirectory);
     try {
         await bridge.initialize();
         bridge.input.write(JSON.stringify({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'compile_sketch', arguments: { sketchPath: context.sketchPath } } }));

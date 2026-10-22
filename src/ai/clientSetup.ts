@@ -12,6 +12,12 @@ const TOML_PREFIX = ['mcp_servers', SERVER];
 const CODEX_REMOTE_FIELDS = new Set(['url', 'auth', 'bearer_token_env_var', 'http_headers', 'env_http_headers', 'http_headers_helper', 'oauth', 'experimental_environment', 'type', 'transport']);
 const CLAUDE_REMOTE_FIELDS = ['url', 'headers', 'headersHelper', 'oauth', 'auth', 'bearerToken', 'transport'];
 
+export interface AiClientLaunch {
+    command: string;
+    args: string[];
+    env: Record<string, string>;
+}
+
 export interface AiClientSetupOptions {
     homeDirectory?: string;
     environment?: NodeJS.ProcessEnv;
@@ -27,6 +33,16 @@ function invalidConfig(): AiBridgeError {
     return new AiBridgeError('INVALID_CLIENT_CONFIG', 'The client configuration is invalid or has a conflicting server structure. Fix it before running setup; its contents were not replaced.');
 }
 
+function validEnvironment(value: unknown): value is Record<string, string> {
+    return record(value) && Object.entries(value).every(([key, entry]) => key.length > 0 && !/[=\0]/.test(key) &&
+        typeof entry === 'string' && !entry.includes('\0'));
+}
+
+function mergeEnvironment(previous: unknown, required: Record<string, string>): Record<string, string> {
+    if (previous !== undefined && !validEnvironment(previous)) { throw invalidConfig(); }
+    return { ...(previous as Record<string, string> | undefined), ...required };
+}
+
 function serverMap(config: Record<string, unknown>, key: string): Record<string, unknown> {
     if (config[key] === undefined) { config[key] = {}; }
     if (!record(config[key])) { throw invalidConfig(); }
@@ -35,13 +51,14 @@ function serverMap(config: Record<string, unknown>, key: string): Record<string,
     return servers;
 }
 
-function mergeClaude(text: string, args: string[]): string {
+function mergeClaude(text: string, launch: AiClientLaunch): string {
     let config: unknown;
     try { config = text.trim() ? JSON.parse(text) : {}; } catch { throw invalidConfig(); }
     if (!record(config)) { throw invalidConfig(); }
     const before = JSON.stringify(config);
     const servers = serverMap(config, 'mcpServers');
-    const server = { ...(servers[SERVER] as Record<string, unknown> | undefined), type: 'stdio', command: 'node', args } as Record<string, unknown>;
+    const previous = servers[SERVER] as Record<string, unknown> | undefined;
+    const server = { ...previous, type: 'stdio', command: launch.command, args: launch.args, env: mergeEnvironment(previous?.env, launch.env) } as Record<string, unknown>;
     for (const key of CLAUDE_REMOTE_FIELDS) { delete server[key]; }
     if ('disabled' in server) { server.disabled = false; }
     if ('enabled' in server) { server.enabled = true; }
@@ -70,15 +87,16 @@ function prefix(value: readonly (string | number)[], expected: readonly string[]
 function tomlKey(parts: string[]): string { return parts.map(part => JSON.stringify(part)).join('.'); }
 
 /** AST ranges preserve unrelated TOML, including quoted/dotted keys and multiline strings. */
-function mergeCodex(text: string, args: string[]): string {
+function mergeCodex(text: string, launch: AiClientLaunch): string {
     let ast: AST.TOMLProgram;
     let config: unknown;
     try { ast = parseTOML(text); config = getStaticTOMLValue(ast); } catch { throw invalidConfig(); }
     if (!record(config)) { throw invalidConfig(); }
     const servers = serverMap(config, 'mcp_servers');
     const previous = servers[SERVER] as Record<string, unknown> | undefined;
-    const desired = new Map<string, unknown>([['command', 'node'], ['args', args], ['tool_timeout_sec', 900], ['enabled', true]]);
-    const expected = { ...previous, ...Object.fromEntries(desired) };
+    const environment = mergeEnvironment(previous?.env, launch.env);
+    const desired = new Map<string, unknown>([['command', launch.command], ['args', launch.args], ['tool_timeout_sec', 900], ['enabled', true]]);
+    const expected: Record<string, unknown> = { ...previous, ...Object.fromEntries(desired), env: environment };
     for (const key of CODEX_REMOTE_FIELDS) { delete expected[key]; }
     if (isDeepStrictEqual(previous, expected)) { return text; }
     servers[SERVER] = expected;
@@ -87,22 +105,74 @@ function mergeCodex(text: string, args: string[]): string {
     const top = ast.body[0];
     const eol = text.includes('\r\n') ? '\r\n' : '\n';
 
-    const inlineServer = (table?: AST.TOMLInlineTable): string => {
+    const inlineEnvironment = (table?: AST.TOMLInlineTable): string => {
+        const done = new Set<string>();
+        const parts = (table?.body ?? []).map(item => {
+            const key = keys(item.key)[0];
+            done.add(key);
+            return Object.hasOwn(launch.env, key) ? `${text.slice(item.key.range[0], item.key.range[1])} = ${JSON.stringify(launch.env[key])}` :
+                text.slice(item.range[0], item.range[1]);
+        });
+        for (const [key, value] of Object.entries(launch.env)) {
+            if (!done.has(key)) { parts.push(`${JSON.stringify(key)} = ${JSON.stringify(value)}`); }
+        }
+        return `{ ${parts.join(', ')} }`;
+    };
+
+    const inlineServer = (items: AST.TOMLKeyValue[] = [], keyOffset = 0): string => {
         const parts: string[] = [];
         const done = new Set<string>();
-        for (const item of table?.body ?? []) {
-            const key = keys(item.key);
+        const envDone = new Set<string>();
+        let hasEnvironment = false;
+        for (const item of items) {
+            const key = keys(item.key).slice(keyOffset);
+            const keyStart = item.key.keys[keyOffset].range[0];
+            const keyText = text.slice(keyStart, item.key.range[1]);
             if (CODEX_REMOTE_FIELDS.has(key[0])) { continue; }
-            if (rendered.has(key[0])) {
+            if (key[0] === 'env') {
+                hasEnvironment = true;
+                if (key.length === 1) {
+                    if (item.value.type !== 'TOMLInlineTable') { throw invalidConfig(); }
+                    parts.push(`${keyText} = ${inlineEnvironment(item.value)}`);
+                    Object.keys(launch.env).forEach(name => envDone.add(name));
+                } else {
+                    const name = key[1];
+                    envDone.add(name);
+                    parts.push(Object.hasOwn(launch.env, name) ? `${keyText} = ${JSON.stringify(launch.env[name])}` :
+                        text.slice(keyStart, item.range[1]));
+                }
+            } else if (rendered.has(key[0])) {
                 if (!done.has(key[0])) { parts.push(`${JSON.stringify(key[0])} = ${rendered.get(key[0])}`); done.add(key[0]); }
-            } else { parts.push(text.slice(item.range[0], item.range[1])); }
+            } else { parts.push(text.slice(keyStart, item.range[1])); }
         }
         for (const [key, value] of rendered) { if (!done.has(key)) { parts.push(`${JSON.stringify(key)} = ${value}`); } }
+        if (!hasEnvironment) { parts.push(`env = ${inlineEnvironment()}`); }
+        else {
+            for (const [key, value] of Object.entries(launch.env)) {
+                if (!envDone.has(key)) { parts.push(`${tomlKey(['env', key])} = ${JSON.stringify(value)}`); }
+            }
+        }
         return `{ ${parts.join(', ')} }`;
     };
 
     const rewriteAncestor = (table: AST.TOMLInlineTable, base: string[]): string => {
-        if (base.length === TOML_PREFIX.length) { return inlineServer(table); }
+        if (base.length === TOML_PREFIX.length) { return inlineServer(table.body); }
+        const descendants = table.body.filter(item => {
+            const full = [...base, ...keys(item.key)];
+            return full.length > TOML_PREFIX.length && prefix(full, TOML_PREFIX);
+        });
+        if (descendants.length) {
+            // Dotted entries can define the server implicitly inside a closed ancestor.
+            // Collect only this server's entries and retain the other inline settings.
+            let inserted = false;
+            const parts = table.body.flatMap(item => {
+                if (!descendants.includes(item)) { return [text.slice(item.range[0], item.range[1])]; }
+                if (inserted) { return []; }
+                inserted = true;
+                return [`${tomlKey(TOML_PREFIX.slice(base.length))} = ${inlineServer(descendants, TOML_PREFIX.length - base.length)}`];
+            });
+            return `{ ${parts.join(', ')} }`;
+        }
         let found = false;
         const parts = table.body.map(item => {
             const full = [...base, ...keys(item.key)];
@@ -131,6 +201,8 @@ function mergeCodex(text: string, args: string[]): string {
 
     if (!inline) {
         const done = new Set<string>();
+        const envDone = new Set<string>();
+        let envInsertion: AST.TOMLTable | undefined;
         let insertion: AST.TOMLTopLevelTable | AST.TOMLTable | undefined;
         for (const container of [top, ...top.body.filter((node): node is AST.TOMLTable => node.type === 'TOMLTable')]) {
             const base = container.type === 'TOMLTable' ? container.resolvedKey : [];
@@ -140,13 +212,24 @@ function mergeCodex(text: string, args: string[]): string {
                 continue;
             }
             if (container.type === 'TOMLTable' && base.length === 2 && prefix(base, TOML_PREFIX)) { insertion = container; }
+            if (container.type === 'TOMLTable' && base.length === 3 && prefix(base, [...TOML_PREFIX, 'env'])) { envInsertion = container; }
             for (const item of container.body) {
                 if (item.type !== 'TOMLKeyValue') { continue; }
                 const full = [...base, ...keys(item.key)];
                 if (!prefix(full, TOML_PREFIX) || full.length < 3) { continue; }
                 if (prefix(TOML_PREFIX, base as string[]) && base.length < 2) { insertion ??= container; }
                 const field = String(full[2]);
-                if (CODEX_REMOTE_FIELDS.has(field) || (rendered.has(field) && full.length !== 3)) {
+                if (field === 'env') {
+                    if (full.length === 3) {
+                        if (item.value.type !== 'TOMLInlineTable') { throw invalidConfig(); }
+                        edits.push({ start: item.value.range[0], end: item.value.range[1], text: inlineEnvironment(item.value) });
+                        Object.keys(launch.env).forEach(name => envDone.add(name));
+                    } else if (full.length === 4 && Object.hasOwn(launch.env, String(full[3]))) {
+                        const name = String(full[3]);
+                        edits.push({ start: item.value.range[0], end: item.value.range[1], text: JSON.stringify(launch.env[name]) });
+                        envDone.add(name);
+                    }
+                } else if (CODEX_REMOTE_FIELDS.has(field) || (rendered.has(field) && full.length !== 3)) {
                     edits.push({ start: item.range[0], end: item.range[1], text: '' });
                 } else if (rendered.has(field)) {
                     edits.push({ start: item.value.range[0], end: item.value.range[1], text: rendered.get(field)! });
@@ -154,22 +237,32 @@ function mergeCodex(text: string, args: string[]): string {
                 }
             }
         }
-        const missing = [...rendered].filter(([key]) => !done.has(key));
+        const missing: [string[], string][] = [...rendered].filter(([key]) => !done.has(key)).map(([key, value]) => [[key], value]);
+        const envMissing = Object.entries(launch.env).filter(([key]) => !envDone.has(key));
+        if (previous?.env === undefined) { missing.push([['env'], inlineEnvironment()]); }
+        else if (envInsertion && envMissing.length) {
+            const newline = text.indexOf('\n', envInsertion.key.range[1]);
+            const at = newline === -1 ? text.length : newline + 1;
+            const lines = envMissing.map(([key, value]) => `${JSON.stringify(key)} = ${JSON.stringify(value)}`).join(eol) + eol;
+            edits.push({ start: at, end: at, text: (at > 0 && text[at - 1] !== '\n' ? eol : '') + lines });
+        } else { missing.push(...envMissing.map(([key, value]): [string[], string] => [['env', key], JSON.stringify(value)])); }
         if (missing.length) {
             const base = insertion?.type === 'TOMLTable' ? insertion.resolvedKey.length : 0;
             if (insertion) {
                 const newline = insertion.type === 'TOMLTable' ? text.indexOf('\n', insertion.key.range[1]) : -1;
                 const at = insertion.type === 'TOMLTopLevelTable' ? 0 : newline === -1 ? text.length : newline + 1;
-                const lines = missing.map(([key, value]) => `${tomlKey([...TOML_PREFIX.slice(base), key])} = ${value}`).join(eol) + eol;
+                const lines = missing.map(([key, value]) => `${tomlKey([...TOML_PREFIX.slice(base), ...key])} = ${value}`).join(eol) + eol;
                 edits.push({ start: at, end: at, text: (at > 0 && text[at - 1] !== '\n' ? eol : '') + lines });
             } else {
-                const block = `[mcp_servers.${SERVER}]${eol}${missing.map(([key, value]) => `${key} = ${value}`).join(eol)}${eol}`;
+                const block = `[mcp_servers.${SERVER}]${eol}${missing.map(([key, value]) => `${tomlKey(key)} = ${value}`).join(eol)}${eol}`;
                 edits.push({ start: text.length, end: text.length, text: (text && !text.endsWith('\n') ? eol : '') + eol + block });
             }
         }
     }
     let next = text;
-    for (const edit of edits.sort((left, right) => right.start - left.start || right.end - left.end)) {
+    // Apply same-position insertions in reverse order so their final text keeps
+    // declaration order (environment entries must precede a following table).
+    for (const edit of edits.map((edit, order) => ({ ...edit, order })).sort((left, right) => right.start - left.start || right.end - left.end || right.order - left.order)) {
         next = next.slice(0, edit.start) + edit.text + next.slice(edit.end);
     }
     try {
@@ -199,9 +292,10 @@ function sameSnapshot(left: Snapshot | undefined, right: Snapshot | undefined): 
         left.stat.mtimeMs === right.stat.mtimeMs && left.stat.ctimeMs === right.stat.ctimeMs;
 }
 
-export async function setupAiClient(client: 'codex' | 'claude', args: string[], options: AiClientSetupOptions = {}): Promise<{ configPath: string; changed: boolean }> {
-    if ((client !== 'codex' && client !== 'claude') || !Array.isArray(args) || !args.length || args.some(arg => typeof arg !== 'string' || arg.includes('\0'))) {
-        throw new AiBridgeError('INVALID_ARGUMENTS', 'A supported AI client and valid launcher arguments are required.');
+export async function setupAiClient(client: 'codex' | 'claude', launch: AiClientLaunch, options: AiClientSetupOptions = {}): Promise<{ configPath: string; changed: boolean }> {
+    if ((client !== 'codex' && client !== 'claude') || !record(launch) || typeof launch.command !== 'string' || !path.isAbsolute(launch.command) || launch.command.includes('\0') ||
+        !Array.isArray(launch.args) || !launch.args.length || launch.args.some(arg => typeof arg !== 'string' || arg.includes('\0')) || !validEnvironment(launch.env)) {
+        throw new AiBridgeError('INVALID_ARGUMENTS', 'A supported AI client, absolute runtime path, valid launcher arguments and environment are required.');
     }
     const environment = options.environment ?? process.env;
     const home = options.homeDirectory ?? os.homedir();
@@ -225,7 +319,7 @@ export async function setupAiClient(client: 'codex' | 'claude', args: string[], 
         const original = await snapshot(configPath);
         const text = original?.bytes.toString('utf8') ?? '';
         if (original && !Buffer.from(text, 'utf8').equals(original.bytes)) { throw invalidConfig(); }
-        const next = client === 'codex' ? mergeCodex(text, args) : mergeClaude(text, args);
+        const next = client === 'codex' ? mergeCodex(text, launch) : mergeClaude(text, launch);
         if (next === text) { return { configPath, changed: false }; }
         const output = await fs.open(temporary, 'wx', original ? Number(original.stat.mode) & 0o777 : 0o600);
         try { await output.writeFile(next, 'utf8'); await output.sync(); } finally { await output.close(); }
