@@ -8,7 +8,7 @@ Complete each step with tests, user documentation, and a separate commit.
 - [x] 1. Project context and dependencies (completed)
 - [x] 2. Board and library discovery (completed)
 - [x] 3. Better compile results (completed)
-- [ ] 4. ESP32 crash decoding (implemented; manual checks pending)
+- [x] 4. ESP32 crash decoding (completed)
 - [ ] 5. Library installation
 - [ ] 6. Firmware upload
 - [ ] 7. Serial capture
@@ -73,9 +73,9 @@ Suggested commit: `Return richer MCP compile results`
 - [x] Return decoded functions, files, and line numbers.
 - [x] Test missing or mismatched builds, unsupported targets, invalid logs, cancellation, standard/profile toolchains, and the shared webview service (303 AI bridge tests passing).
 - [x] Add crash decoding prompts with prerequisites and expected results, and update `AI_ASSISTANTS.md`.
-- [ ] Verify crash decoding prompts in an AI client against a matching ESP32 firmware build, including profile selection and unavailable or stale builds.
-- [ ] Verify the existing webview decoder still works in VS Code.
-- [ ] Commit this step.
+- [x] Verify crash decoding prompts in an AI client against a matching ESP32 firmware build, including profile selection and unavailable or stale builds (confirmed by the user).
+- [x] Verify the existing webview decoder still works in VS Code (confirmed by the user).
+- [x] Commit this step (`47ade45`).
 
 Suggested commit: `Expose ESP32 backtrace decoding through MCP`
 
