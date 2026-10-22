@@ -125,7 +125,7 @@ function assertToolError(frame: any, code: string) {
 test('packaged bridge starts disconnected, reconnects on later calls, and never replays interrupted compilation', { timeout: 25000 }, async t => {
     const f = await fixture(t);
     const listed = await f.request('tools/list');
-    assert.deepEqual(listed.result.tools.map((tool: any) => tool.name).sort(), ['compile_sketch', 'get_project_context', 'list_boards', 'list_ports']);
+    assert.deepEqual(listed.result.tools.map((tool: any) => tool.name).sort(), ['compile_sketch', 'get_project_context', 'list_boards', 'list_dependencies', 'list_ports']);
     const unavailable = await f.call();
     assertToolError(unavailable, 'SESSION_UNAVAILABLE');
     assert.match(unavailable.result.structuredContent.error.message, /VS Code|connect/i);
@@ -146,7 +146,7 @@ test('packaged bridge starts disconnected, reconnects on later calls, and never 
     assert.deepEqual(replacement.calls, ['get_project_context']);
     await replacement.server.dispose();
     assertToolError(await f.call(), 'SESSION_UNAVAILABLE');
-    assert.equal((await f.request('tools/list')).result.tools.length, 4, 'Session loss does not terminate the MCP process');
+    assert.equal((await f.request('tools/list')).result.tools.length, 5, 'Session loss does not terminate the MCP process');
 });
 
 test('packaged bridge ignores sessions connected to a different sketch', { timeout: 20000 }, async t => {

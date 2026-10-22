@@ -360,3 +360,160 @@ test('source directory links are not followed and produce a generic incomplete-s
     assert.ok(result.issues.some((issue) => issue.code === 'SOURCE_SCAN_INCOMPLETE'));
     assert.ok(!JSON.stringify(result).includes('private-source-content'));
 });
+
+test('profile summaries expose sorted names, selection and dependency declarations only', (t) => {
+    const f = fixture(t);
+    f.yaml(`profiles:
+  release:
+    fqbn: esp32:esp32:esp32
+    notes: do-not-export-profile-notes
+    build_properties: [build.secret=do-not-export-other-profile-property]
+    platforms:
+      - platform: esp32:esp32 (3.2.0)
+        platform_index_url: https://example.test/package.json
+      - platform: arduino:avr
+    libraries:
+      - Adafruit NeoPixel (1.12.3)
+      - dependency: Adafruit BusIO (1.17.0)
+      - dir: ../external-library
+  debug:
+    fqbn: arduino:avr:uno
+default_profile: release
+`);
+    const result = inspectProject({ sketchPath: f.sketch, profile: 'debug' }, f.sketch);
+    assert.equal(result.canCompile, true);
+    assert.equal(result.defaultProfile, 'release');
+    assert.deepEqual(result.availableProfiles, [
+        { name: 'debug', fqbn: 'arduino:avr:uno', isDefault: false, isSelected: true,
+            dependencies: { platforms: [], libraries: [], issues: [] }, issues: [] },
+        { name: 'release', fqbn: 'esp32:esp32:esp32', isDefault: true, isSelected: false,
+            dependencies: {
+                platforms: [{ id: 'esp32:esp32', version: '3.2.0', indexUrl: 'https://example.test/package.json' }, { id: 'arduino:avr' }],
+                libraries: [{ kind: 'index', name: 'Adafruit NeoPixel', version: '1.12.3' },
+                    { kind: 'index', name: 'Adafruit BusIO', version: '1.17.0', transitive: true },
+                    { kind: 'local', directory: '../external-library' }], issues: [],
+            }, issues: [] },
+    ]);
+    assert.deepEqual(result.declaredDependencies, { platforms: [], libraries: [], issues: [] });
+    assert.ok(!JSON.stringify(result).includes('do-not-export'));
+    const defaultResult = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.deepEqual(defaultResult.declaredDependencies, result.availableProfiles[1].dependencies);
+    assert.deepEqual(defaultResult.availableProfiles.map(profile => profile.isSelected), [false, true]);
+});
+
+test('missing metadata, missing profile selection and explicit unknown profile still expose declarations predictably', (t) => {
+    const f = fixture(t);
+    const missing = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.deepEqual(missing.availableProfiles, []);
+    assert.deepEqual(missing.declaredDependencies, { platforms: [], libraries: [], issues: [] });
+    assert.equal(missing.defaultProfile, undefined);
+    f.yaml('profiles:\n  one:\n    fqbn: arduino:avr:uno\n    libraries: [Servo (1.2.2)]\n');
+    for (const profile of [undefined, 'missing']) {
+        const result = inspectProject({ sketchPath: f.sketch, ...(profile ? { profile } : {}) }, f.sketch);
+        assert.equal(result.availableProfiles.length, 1);
+        assert.equal(result.availableProfiles[0].isSelected, false);
+        assert.deepEqual(result.declaredDependencies, { platforms: [], libraries: [], issues: [] });
+        assert.equal(result.canCompile, false);
+    }
+});
+
+test('dependency parsing is bounded, reports generic malformed declarations and never resolves local paths', (t) => {
+    const f = fixture(t);
+    const outside = path.join(f.temporary, 'missing-private-library');
+    const profiles = {
+        selected: { fqbn: 'arduino:avr:uno', libraries: [{ dir: outside }, 'Servo'], platforms: [{ platform: 'arduino:avr' }] },
+        malformed: {
+            fqbn: 'private-invalid-fqbn', platforms: [{ platform: 'private-invalid-platform' }, { platform: 'esp32:esp32', platform_index_url: 42 }],
+            libraries: [42, { dependency: 42 }, { dir: 42 }, { dir: outside, dependency: 'private-ambiguous-library' }, 'private-malformed ('],
+        },
+        invalid: 'private-profile-contents',
+    };
+    f.yaml(JSON.stringify({ profiles, default_profile: 'selected' }));
+    const result = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.equal(result.canCompile, true, 'unrelated malformed dependency metadata must not block the selected compile');
+    assert.deepEqual(result.declaredDependencies, {
+        platforms: [{ id: 'arduino:avr' }], libraries: [{ kind: 'local', directory: outside }, { kind: 'index', name: 'Servo' }], issues: [],
+    });
+    assert.equal(fs.existsSync(outside), false);
+    const malformed = result.availableProfiles.find(profile => profile.name === 'malformed')!;
+    assert.deepEqual(malformed.dependencies.issues.map(issue => issue.code), ['INVALID_PLATFORM_DEPENDENCY', 'INVALID_LIBRARY_DEPENDENCY']);
+    assert.ok(malformed.issues.some(issue => issue.code === 'INVALID_FQBN'));
+    assert.ok(result.availableProfiles.find(profile => profile.name === 'invalid')!.issues.some(issue => issue.code === 'INVALID_PROFILE'));
+    for (const text of ['private-invalid', 'private-ambiguous', 'private-malformed', 'private-profile-contents']) {
+        assert.ok(!JSON.stringify(result).includes(text));
+    }
+    f.yaml(JSON.stringify({ profiles: { selected: { fqbn: 'arduino:avr:uno', platforms: 'private-not-a-list', libraries: [{ dependency: 'Library ()' }] } }, default_profile: 'selected' }));
+    const invalid = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.equal(invalid.canCompile, true, 'dependency reporting does not alter existing compilation validation');
+    assert.deepEqual(invalid.declaredDependencies.issues.map(issue => issue.code), ['INVALID_DEPENDENCIES', 'INVALID_LIBRARY_DEPENDENCY']);
+    assert.ok(!JSON.stringify(invalid).includes('private-not-a-list'));
+});
+
+test('profile and dependency limits retain selected/default summaries and report truncation', (t) => {
+    const f = fixture(t);
+    const profiles: Record<string, unknown> = {};
+    for (let index = 0; index < 105; index++) { profiles[`p${String(index).padStart(3, '0')}`] = { fqbn: 'arduino:avr:uno' }; }
+    profiles.zSelected = { fqbn: 'arduino:avr:uno', libraries: Array.from({ length: 205 }, (_, index) => `Library ${index} (1.0.0)`) };
+    profiles.zDefault = { fqbn: 'arduino:avr:uno' };
+    profiles['invalid/name'] = { fqbn: 'arduino:avr:uno' };
+    f.yaml(JSON.stringify({ profiles, default_profile: 'zDefault' }));
+    const result = inspectProject({ sketchPath: f.sketch, profile: 'zSelected' }, f.sketch);
+    assert.equal(result.canCompile, true);
+    assert.equal(result.availableProfiles.length, 100);
+    assert.equal(result.availableProfiles.find(profile => profile.isSelected)?.name, 'zSelected');
+    assert.equal(result.availableProfiles.find(profile => profile.isDefault)?.name, 'zDefault');
+    assert.deepEqual(result.availableProfiles.map(profile => profile.name), result.availableProfiles.map(profile => profile.name).sort());
+    assert.equal(result.declaredDependencies.libraries.length, 200);
+    assert.ok(result.declaredDependencies.issues.some(issue => issue.code === 'DEPENDENCY_LIST_TRUNCATED'));
+    assert.equal(result.availableProfilesTruncated, true);
+    assert.deepEqual(result.issues, []);
+});
+
+test('YAML alias expansion and cyclic declarations remain bounded without exporting parser contents', (t) => {
+    const f = fixture(t);
+    f.yaml('profiles:\n  one: &one\n    fqbn: arduino:avr:uno\n    libraries: [*one]\ndefault_profile: one\n');
+    const cyclic = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.equal(cyclic.canCompile, true);
+    assert.ok(cyclic.declaredDependencies.issues.some(issue => issue.code === 'INVALID_LIBRARY_DEPENDENCY'));
+    f.yaml(`private: &private [private-parser-content]\na: &a [${Array(20).fill('*private').join(', ')}]\nb: &b [${Array(20).fill('*a').join(', ')}]\nprofiles:\n  one:\n    fqbn: arduino:avr:uno\n    libraries: *b\ndefault_profile: one\n`);
+    const expanded = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.ok(expanded.issues.some(issue => issue.code === 'INVALID_YAML'));
+    assert.ok(!JSON.stringify(expanded).includes('private-parser-content'));
+});
+
+test('platform index URLs omit credentials and invalid URL metadata', (t) => {
+    const f = fixture(t);
+    f.yaml(JSON.stringify({ profiles: { selected: { fqbn: 'arduino:avr:uno', platforms: [
+        { platform: 'arduino:avr', platform_index_url: 'https://private-user:private-password@example.test/package.json' },
+        { platform: 'esp32:esp32', platform_index_url: 'private-invalid-url' },
+    ] } }, default_profile: 'selected' }));
+    const result = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.deepEqual(result.declaredDependencies.platforms, [
+        { id: 'arduino:avr', indexUrl: 'https://example.test/package.json' }, { id: 'esp32:esp32' },
+    ]);
+    assert.ok(result.declaredDependencies.issues.some(issue => issue.code === 'INVALID_PLATFORM_DEPENDENCY'));
+    assert.ok(!JSON.stringify(result).includes('private-'));
+});
+
+test('aggregate profile dependency metadata has a shared byte budget with explicit truncation', (t) => {
+    const f = fixture(t);
+    const profiles: Record<string, unknown> = {};
+    const libraries = Array.from({ length: 200 }, (_, index) => `Library${index}`);
+    const platforms = Array.from({ length: 200 }, () => ({ platform: 'arduino:avr' }));
+    for (let index = 0; index < 100; index++) { profiles[`p${String(index).padStart(3, '0')}`] = { fqbn: 'arduino:avr:uno', libraries, platforms }; }
+    const yaml = JSON.stringify({ profiles, default_profile: 'p099' });
+    assert.ok(Buffer.byteLength(yaml) < 1024 * 1024, 'fixture must fit the existing metadata input limit');
+    f.yaml(yaml);
+    const result = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.equal(result.canCompile, true);
+    assert.equal(result.availableProfiles.length, 100);
+    assert.deepEqual(result.availableProfiles.find(profile => profile.isSelected)?.dependencies, result.declaredDependencies,
+        'selected profile receives the dependency budget first');
+    assert.ok(result.availableProfiles.some(profile => profile.dependencies.issues.some(issue => issue.code === 'DEPENDENCY_METADATA_TRUNCATED')));
+    assert.ok(Buffer.byteLength(JSON.stringify(result)) < 512 * 1024, 'bounded summaries must fit comfortably inside the IPC response limit');
+
+    f.yaml(JSON.stringify({ profiles: { selected: { fqbn: 'arduino:avr:uno', libraries: Array(200).fill('L'.repeat(4000)) } }, default_profile: 'selected' }));
+    const longValues = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.ok(longValues.declaredDependencies.issues.some(issue => issue.code === 'DEPENDENCY_METADATA_TRUNCATED'));
+    assert.ok(Buffer.byteLength(JSON.stringify(longValues)) < 512 * 1024, 'individual profile declarations also have a byte budget');
+});

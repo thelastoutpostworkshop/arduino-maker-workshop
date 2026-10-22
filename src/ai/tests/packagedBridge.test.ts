@@ -28,7 +28,9 @@ async function fixture() {
         isTrusted: () => true, activeSketchPath: () => sketchPath, isReady: () => true,
         inspect: inspectProject, cliInfo: () => ({ executable: 'simulated-arduino-cli', version: 'test' }),
         hasUnsavedSketchDocuments: () => false, revision: () => 0,
-        discover: async kind => ({ kind, entries: [] }), invalidateBuild: () => {},
+        discover: async kind => kind === 'cores'
+            ? { platforms: [{ id: 'arduino:avr', installed_version: '1.8.6' }] }
+            : kind === 'libraries' ? { installed_libraries: [] } : { kind, entries: [] }, invalidateBuild: () => {},
         compile: async (target, signal, progress) => {
             compiles++;
             progress({ message: 'Simulated extension compiler starting.' });
@@ -73,6 +75,7 @@ async function fixture() {
     send({ jsonrpc: '2.0', method: 'notifications/initialized' });
     return {
         sketchPath, request, send, notifications, startedPromise, input: child.stdin,
+        addProfile: () => fs.writeFile(path.join(sketchPath, 'sketch.yaml'), 'profiles:\n  release:\n    fqbn: arduino:avr:uno\n    platforms:\n      - platform: arduino:avr (1.8.6)\n    libraries:\n      - Missing (1.0.0)\n'),
         mode: (value: typeof mode) => { mode = value; },
         compiles: () => compiles,
         compileResult: () => activeCompile,
@@ -100,7 +103,7 @@ test('standalone packaged bridge reaches extension operations and reports compil
     const f = await fixture();
     try {
         const tools = await f.request(2, 'tools/list');
-        assert.equal(tools.result.tools.length, 4);
+        assert.equal(tools.result.tools.length, 5);
         const context = await f.request(3, 'tools/call', { name: 'get_project_context', arguments: { sketchPath: f.sketchPath } });
         assert.equal(context.result.structuredContent.fqbn, 'arduino:avr:uno');
         const compile = await f.request(4, 'tools/call', { name: 'compile_sketch', arguments: { sketchPath: f.sketchPath }, _meta: { progressToken: 'compile-progress' } });
@@ -118,6 +121,27 @@ test('standalone packaged bridge reaches extension operations and reports compil
         assert.ok(clean.result.structuredContent.target.compileArgs.includes('--clean'));
         assert.equal(f.compiles(), 3);
         assert.equal((await f.request(7, 'tools/call', { name: 'upload', arguments: { sketchPath: f.sketchPath } })).error.code, -32602);
+    } finally { await f.close(); }
+});
+
+test('standalone packaged bridge returns profile context and dependency comparison without compiling', async () => {
+    const f = await fixture();
+    try {
+        await f.addProfile();
+        const argumentsValue = { sketchPath: f.sketchPath, profile: 'release' };
+        const context = await f.request(2, 'tools/call', { name: 'get_project_context', arguments: argumentsValue });
+        assert.equal(context.result.isError, false);
+        assert.equal(context.result.structuredContent.availableProfiles[0].name, 'release');
+        assert.equal(context.result.structuredContent.resolvedProfile, 'release');
+        const response = await f.request(3, 'tools/call', { name: 'list_dependencies', arguments: argumentsValue });
+        assert.equal(response.result.isError, false, JSON.stringify(response));
+        const report = response.result.structuredContent;
+        assert.equal(report.profile, 'release');
+        assert.equal(report.installed.scope, 'standard_cli_installations');
+        assert.equal(report.comparison.platforms[0].status, 'installed');
+        assert.equal(report.comparison.libraries[0].status, 'not_found');
+        assert.equal(report.buildResolved.status, 'not_reported');
+        assert.equal(f.compiles(), 0);
     } finally { await f.close(); }
 });
 

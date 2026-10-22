@@ -421,15 +421,23 @@ export class ArduinoCLI {
 	}
 	// #endregion
 
-	/** Fixed discovery operations; no cache writes, setup changes, or UI prompts. */
-	public async discoverForAssistant(kind: 'boards' | 'ports', signal: AbortSignal): Promise<unknown> {
+	/** Fixed queries without UI prompts. CLI initialization can update its indexes/built-in tools. */
+	public async discoverForAssistant(kind: 'boards' | 'ports' | 'cores' | 'libraries', signal: AbortSignal): Promise<unknown> {
 		if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Trust this workspace before using Arduino CLI.'); }
 		if (signal.aborted) { throw new AiBridgeError('CANCELED', 'The request was canceled.'); }
 		if (!this.arduinoCLIPath) { throw new AiBridgeError('CLI_NOT_READY', 'Arduino CLI is not ready.'); }
-		if (kind !== 'boards' && kind !== 'ports') { throw new AiBridgeError('INVALID_ARGUMENT', 'Only boards and ports discovery are supported.'); }
-		const args = kind === 'boards' ? ['board', 'listall', '--json'] : ['board', 'list', '--json'];
+		if (kind !== 'boards' && kind !== 'ports' && kind !== 'cores' && kind !== 'libraries') {
+			throw new AiBridgeError('INVALID_ARGUMENT', 'This discovery operation is not supported.');
+		}
+		const args = {
+			boards: ['board', 'listall', '--json'],
+			ports: ['board', 'list', '--json'],
+			cores: ['core', 'list', '--json'],
+			libraries: ['lib', 'list', '--all', '--json']
+		}[kind];
 		const result = await runProcess(this.arduinoCLIPath, args, { signal, maxOutputBytes: 512 * 1024 });
-		if (result.canceled) { throw new AiBridgeError('CANCELED', 'Discovery was canceled.'); }
+		if (result.canceled || signal.aborted) { throw new AiBridgeError('CANCELED', 'Discovery was canceled.'); }
+		if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Trust this workspace before using Arduino CLI.'); }
 		if (result.error || result.exitCode !== 0) {
 			throw new AiBridgeError(result.error?.code ?? 'CLI_FAILED', redactText(result.error?.message ?? `Arduino discovery exited with code ${result.exitCode}: ${result.stderr}`));
 		}

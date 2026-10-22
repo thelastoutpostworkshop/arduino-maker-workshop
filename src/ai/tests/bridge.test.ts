@@ -123,9 +123,12 @@ test('IPC rejects bad credentials, session identity, foreign sketch, disallowed 
         }
         client = await AiIpcClient.connect(context.server.sessionFile);
         await assert.rejects(client.call('get_project_context', { sketchPath: context.root }, new AbortController().signal, () => {}), { code: 'WRONG_WORKSPACE' });
+        await assert.rejects(client.call('list_dependencies', { sketchPath: context.root }, new AbortController().signal, () => {}), { code: 'WRONG_WORKSPACE' });
+        await assert.rejects(client.call('list_dependencies', { sketchPath: context.sketchPath, clean: true }, new AbortController().signal, () => {}), { code: 'INVALID_ARGUMENTS' });
         await assert.rejects(client.call('upload_sketch' as AiToolName, { sketchPath: context.sketchPath }, new AbortController().signal, () => {}), { code: 'UNKNOWN_TOOL' });
         trusted = false;
         await assert.rejects(client.call('compile_sketch', { sketchPath: context.sketchPath }, new AbortController().signal, () => {}), { code: 'WORKSPACE_UNTRUSTED' });
+        await assert.rejects(client.call('list_dependencies', { sketchPath: context.sketchPath }, new AbortController().signal, () => {}), { code: 'WORKSPACE_UNTRUSTED' });
         assert.equal(calls, 0);
     } finally { client?.dispose(); await context.dispose(); }
 });
@@ -182,7 +185,7 @@ test('descriptor validation refuses endpoint substitution without revealing its 
     } finally { await context.dispose(); }
 });
 
-test('MCP negotiates supported versions and offers exactly four explicit scoped tools', async () => {
+test('MCP negotiates supported versions and offers exactly five explicit scoped tools', async () => {
     const context = await fixture(async () => ({}));
     try {
         for (const version of ['2024-11-05', '2025-03-26', '2025-06-18', 'unsupported-version']) {
@@ -193,16 +196,20 @@ test('MCP negotiates supported versions and offers exactly four explicit scoped 
                 assert.ok(response.result.instructions.includes(`Connected sketch: ${context.sketchPath}`));
                 bridge.send({ jsonrpc: '2.0', id: 1, method: 'tools/list' });
                 const listed = await bridge.waitFor(message => message.id === 1);
-                assert.deepEqual(listed.result.tools.map((tool: Record<string, unknown>) => tool.name), ['get_project_context', 'list_boards', 'list_ports', 'compile_sketch']);
+                assert.deepEqual(listed.result.tools.map((tool: Record<string, unknown>) => tool.name), ['get_project_context', 'list_dependencies', 'list_boards', 'list_ports', 'compile_sketch']);
                 for (const tool of listed.result.tools) {
                     assert.deepEqual(tool.inputSchema.required, ['sketchPath']);
                     assert.equal(tool.inputSchema.additionalProperties, false);
-                    assert.equal(tool.annotations.readOnlyHint, tool.name !== 'compile_sketch');
+                    const initializesCli = tool.name === 'compile_sketch' || tool.name === 'list_dependencies';
+                    assert.equal(tool.annotations.readOnlyHint, !initializesCli);
+                    assert.equal(tool.annotations.idempotentHint, !initializesCli);
+                    assert.equal(tool.annotations.openWorldHint, initializesCli);
+                    assert.equal(tool.annotations.destructiveHint, tool.name === 'compile_sketch');
                     assert.equal('clean' in tool.inputSchema.properties, tool.name === 'compile_sketch');
                 }
             } finally { await bridge.dispose(); }
         }
-        assert.equal(getMcpTools().length, 4);
+        assert.equal(getMcpTools().length, 5);
     } finally { await context.dispose(); }
 });
 
@@ -220,11 +227,30 @@ test('MCP validates initialization, malformed input, unknown methods and tool sc
         await bridge.initialize();
         bridge.send({ jsonrpc: '2.0', id: 2, method: 'arbitrary/execute' });
         assert.equal((await bridge.waitFor(message => message.id === 2)).error.code, -32601);
-        for (const [id, name, args] of [[3, 'upload_sketch', { sketchPath: context.sketchPath }], [4, 'compile_sketch', {}], [5, 'list_ports', { sketchPath: context.sketchPath, clean: true }], [6, 'compile_sketch', { sketchPath: context.sketchPath, executable: 'shell' }]] as const) {
+        for (const [id, name, args] of [[3, 'upload_sketch', { sketchPath: context.sketchPath }], [4, 'compile_sketch', {}], [5, 'list_ports', { sketchPath: context.sketchPath, clean: true }], [6, 'compile_sketch', { sketchPath: context.sketchPath, executable: 'shell' }], [7, 'list_dependencies', { sketchPath: context.sketchPath, args: ['install', 'unrequested'] }], [8, 'list_dependencies', { sketchPath: context.sketchPath, clean: true }]] as const) {
             bridge.send({ jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } });
             assert.equal((await bridge.waitFor(message => message.id === id)).error.code, -32602);
         }
         assert.equal(calls, 0);
+    } finally { await bridge.dispose(); await context.dispose(); }
+});
+
+test('MCP routes dependency inventory with an explicit profile through authenticated IPC', async () => {
+    const calls: { name: AiToolName; input: unknown }[] = [];
+    const context = await fixture(async (name, input) => {
+        calls.push({ name, input });
+        return { schemaVersion: 1, sketchPath: input.sketchPath, resolvedProfile: input.profile };
+    });
+    const bridge = harness(context.server.sessionFile);
+    try {
+        await bridge.initialize();
+        bridge.send({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: {
+            name: 'list_dependencies', arguments: { sketchPath: context.sketchPath, profile: 'release' }
+        } });
+        const response = await bridge.waitFor(message => message.id === 1);
+        assert.equal(response.result.isError, false);
+        assert.equal(response.result.structuredContent.resolvedProfile, 'release');
+        assert.deepEqual(calls, [{ name: 'list_dependencies', input: { sketchPath: context.sketchPath, profile: 'release' } }]);
     } finally { await bridge.dispose(); await context.dispose(); }
 });
 

@@ -4,6 +4,37 @@ export interface AiIssue {
     message: string;
 }
 
+export interface DeclaredPlatformDependency {
+    id: string;
+    version?: string;
+    indexUrl?: string;
+}
+
+export type DeclaredLibraryDependency = {
+    kind: 'index';
+    name: string;
+    version?: string;
+    transitive?: boolean;
+} | {
+    kind: 'local';
+    directory: string;
+};
+
+export interface DeclaredDependencies {
+    platforms: DeclaredPlatformDependency[];
+    libraries: DeclaredLibraryDependency[];
+    issues: AiIssue[];
+}
+
+export interface ProjectProfileSummary {
+    name: string;
+    fqbn?: string;
+    isDefault: boolean;
+    isSelected: boolean;
+    dependencies: DeclaredDependencies;
+    issues: AiIssue[];
+}
+
 export interface ProjectInspection {
     schemaVersion: 1;
     sketchPath: string;
@@ -12,6 +43,10 @@ export interface ProjectInspection {
     profilePath?: string;
     selectedProfile?: string;
     resolvedProfile?: string;
+    defaultProfile?: string;
+    availableProfiles: ProjectProfileSummary[];
+    availableProfilesTruncated?: boolean;
+    declaredDependencies: DeclaredDependencies;
     fqbn?: string;
     port?: string;
     protocol?: string;
@@ -50,7 +85,7 @@ export interface OperationProgress {
     message: string;
 }
 
-export type AiToolName = 'get_project_context' | 'list_boards' | 'list_ports' | 'compile_sketch';
+export type AiToolName = 'get_project_context' | 'list_boards' | 'list_ports' | 'list_dependencies' | 'compile_sketch';
 
 export type AiToolHandler = (
     name: AiToolName,

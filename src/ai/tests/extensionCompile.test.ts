@@ -13,7 +13,7 @@ interface TestedCli {
     arduinoCLIPath: string;
     compileOrUploadRunning: boolean;
     compileForAssistant(target: ProjectInspection, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<AiOperationResult>;
-    discoverForAssistant(kind: 'boards' | 'ports', signal: AbortSignal): Promise<unknown>;
+    discoverForAssistant(kind: 'boards' | 'ports' | 'cores' | 'libraries', signal: AbortSignal): Promise<unknown>;
     invalidateAssistantBuild(target: ProjectInspection): void;
 }
 
@@ -55,6 +55,7 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
     let saves = 0;
     let onViewText: ((text: string) => void) | undefined;
     let onPrepare: (() => void) | undefined;
+    let onDiscovery: (() => void) | undefined;
     let discovery: ProcessResult = { exitCode: 0, signal: null, stdout: '{"boards":[]}', stderr: '', output: '', truncated: false, canceled: false, durationMs: 1 };
     const workspace = {
         isTrusted: true,
@@ -109,7 +110,11 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
         './ai/processRunner': {
             runProcess: (executable: string, args: string[], options: ProcessOptions) => {
                 calls.push({ executable, args: [...args], options });
-                return args[0] === 'board' ? Promise.resolve(discovery) : runProcess(executable, args, options);
+                if (['board', 'core', 'lib'].includes(args[0])) {
+                    onDiscovery?.();
+                    return Promise.resolve(discovery);
+                }
+                return runProcess(executable, args, options);
             }
         }
     };
@@ -134,6 +139,7 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
         onPrepare: (callback: () => void) => { onPrepare = callback; },
         setVerboseCompile: (value: boolean | undefined) => { verboseCompile = value; },
         setDiscovery: (result: Partial<ProcessResult>) => { discovery = { ...discovery, ...result }; },
+        onDiscovery: (callback: () => void) => { onDiscovery = callback; },
         cancelUi: () => { cancellationRequested = true; for (const listener of [...cancelListeners]) { listener(); } }
     };
 }
@@ -291,7 +297,15 @@ test('actual extension discovery uses fixed JSON argv and parses stdout independ
     assert.deepEqual(await f.cli.discoverForAssistant('boards', new AbortController().signal), { boards: [{ fqbn: 'arduino:avr:uno' }] });
     f.setDiscovery({ stdout: '{"detected_ports":[]}' });
     assert.deepEqual(await f.cli.discoverForAssistant('ports', new AbortController().signal), { detected_ports: [] });
-    assert.deepEqual(f.calls.map((call) => call.args), [['board', 'listall', '--json'], ['board', 'list', '--json']]);
+    f.setDiscovery({ stdout: '{"platforms":[{"id":"arduino:avr","installed_version":"1.8.6"}]}' });
+    assert.deepEqual(await f.cli.discoverForAssistant('cores', new AbortController().signal), { platforms: [{ id: 'arduino:avr', installed_version: '1.8.6' }] });
+    f.setDiscovery({ stdout: '{"installed_libraries":[]}' });
+    assert.deepEqual(await f.cli.discoverForAssistant('libraries', new AbortController().signal), { installed_libraries: [] });
+    assert.deepEqual(f.calls.map((call) => call.args), [
+        ['board', 'listall', '--json'], ['board', 'list', '--json'],
+        ['core', 'list', '--json'], ['lib', 'list', '--all', '--json']
+    ]);
+    assert.ok(f.calls.every(call => call.options.maxOutputBytes === 512 * 1024));
     assert.equal(f.statuses.length, 0);
     assert.equal(fs.existsSync(f.target().buildPath), false);
 });
@@ -299,16 +313,42 @@ test('actual extension discovery uses fixed JSON argv and parses stdout independ
 test('actual extension discovery redacts failure messages and rejects invalid JSON, truncation and cancellation', async (t) => {
     const f = host(t);
     const rejected = (expected: string) => (error: unknown) => error instanceof AiBridgeError && error.code === expected && !error.message.includes('dummy-value');
-    f.setDiscovery({ exitCode: 4, stderr: 'password=dummy-value\n' });
-    await assert.rejects(f.cli.discoverForAssistant('ports', new AbortController().signal), rejected('CLI_FAILED'));
-    f.setDiscovery({ exitCode: 0, stdout: '{invalid}', stderr: '' });
-    await assert.rejects(f.cli.discoverForAssistant('ports', new AbortController().signal), rejected('INVALID_CLI_OUTPUT'));
-    f.setDiscovery({ truncated: true });
-    await assert.rejects(f.cli.discoverForAssistant('ports', new AbortController().signal), rejected('OUTPUT_LIMIT'));
-    f.setDiscovery({ truncated: false, canceled: true });
-    await assert.rejects(f.cli.discoverForAssistant('ports', new AbortController().signal), rejected('CANCELED'));
-    const calls = f.calls.length;
-    f.workspace.isTrusted = false;
-    await assert.rejects(f.cli.discoverForAssistant('ports', new AbortController().signal), rejected('WORKSPACE_UNTRUSTED'));
-    assert.equal(f.calls.length, calls);
+    for (const kind of ['ports', 'cores', 'libraries'] as const) {
+        f.workspace.isTrusted = true;
+        f.setDiscovery({ exitCode: 4, stderr: 'password=dummy-value\n', canceled: false });
+        await assert.rejects(f.cli.discoverForAssistant(kind, new AbortController().signal), rejected('CLI_FAILED'));
+        f.setDiscovery({ exitCode: 0, stdout: '{invalid}', stderr: '' });
+        await assert.rejects(f.cli.discoverForAssistant(kind, new AbortController().signal), rejected('INVALID_CLI_OUTPUT'));
+        f.setDiscovery({ truncated: true });
+        await assert.rejects(f.cli.discoverForAssistant(kind, new AbortController().signal), rejected('OUTPUT_LIMIT'));
+        f.setDiscovery({ truncated: false, canceled: true });
+        await assert.rejects(f.cli.discoverForAssistant(kind, new AbortController().signal), rejected('CANCELED'));
+        const calls = f.calls.length;
+        f.workspace.isTrusted = false;
+        await assert.rejects(f.cli.discoverForAssistant(kind, new AbortController().signal), rejected('WORKSPACE_UNTRUSTED'));
+        assert.equal(f.calls.length, calls);
+    }
+});
+
+test('actual extension inventory rejects arbitrary operations and pre-canceled or unavailable requests without spawning', async (t) => {
+    const f = host(t);
+    await assert.rejects(f.cli.discoverForAssistant('install' as 'cores', new AbortController().signal), { code: 'INVALID_ARGUMENT' });
+    const controller = new AbortController();
+    controller.abort();
+    await assert.rejects(f.cli.discoverForAssistant('cores', controller.signal), { code: 'CANCELED' });
+    f.cli.arduinoCLIPath = '';
+    await assert.rejects(f.cli.discoverForAssistant('libraries', new AbortController().signal), { code: 'CLI_NOT_READY' });
+    assert.equal(f.calls.length, 0);
+});
+
+test('actual extension inventory rechecks cancellation and trust before returning results', async (t) => {
+    const f = host(t);
+    f.setDiscovery({ stdout: '{"platforms":[]}' });
+    const controller = new AbortController();
+    f.onDiscovery(() => controller.abort());
+    await assert.rejects(f.cli.discoverForAssistant('cores', controller.signal), { code: 'CANCELED' });
+    f.setDiscovery({ stdout: '{"installed_libraries":[]}' });
+    f.onDiscovery(() => { f.workspace.isTrusted = false; });
+    await assert.rejects(f.cli.discoverForAssistant('libraries', new AbortController().signal), { code: 'WORKSPACE_UNTRUSTED' });
+    assert.equal(f.calls.length, 2);
 });

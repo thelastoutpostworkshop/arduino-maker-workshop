@@ -9,6 +9,7 @@ function fixture(overrides: Partial<AiOperationDependencies> = {}) {
         schemaVersion: 1, sketchPath: '/sketch', sketchName: 'sketch', configurationPath: '/sketch/.vscode/arduino.json',
         fqbn: 'arduino:avr:uno', buildPath: '/sketch/build', buildProperties: ['build.extra_flags=-DWIFI_PASSWORD="private password"'],
         compileArgs: ['compile', '--build-property', 'build.extra_flags=-DWIFI_PASSWORD="private password"'], fingerprint: 'initial', canCompile: true, issues: [],
+        availableProfiles: [], declaredDependencies: { platforms: [], libraries: [], issues: [] },
     };
     let compiles = 0;
     let invalidated = 0;
@@ -57,6 +58,93 @@ test('discovery returns sanitized structured data without starting compilation',
     const f = fixture();
     assert.deepEqual(await call(f, 'list_ports'), { boards: [], password: '<redacted>' });
     assert.equal(f.compiles(), 0);
+});
+
+test('dependency inventory uses fixed queries, selected declarations and no compilation', async () => {
+    const queried: string[] = [];
+    const f = fixture({
+        discover: async (kind) => {
+            queried.push(kind);
+            return kind === 'cores' ? { platforms: [{ id: 'arduino:avr', installed_version: '1.8.6' }] }
+                : { installed_libraries: [{ library: { name: 'ArduinoJson', version: '7.3.0', properties: { secret: 'hidden' } } }] };
+        },
+    });
+    f.target.resolvedProfile = 'release';
+    f.target.declaredDependencies.libraries = [{ kind: 'index', name: 'ArduinoJson', version: '7.3.0' }];
+    const inspect = f.dependencies.inspect;
+    f.dependencies.inspect = (input, activePath) => {
+        assert.equal(input.profile, 'release');
+        return inspect(input, activePath);
+    };
+    const report = await f.handler('list_dependencies', { sketchPath: '/sketch', profile: 'release' }, new AbortController().signal, () => {}) as {
+        profile: string; comparison: { libraries: { status: string }[] }; buildResolved: { status: string };
+    };
+    assert.deepEqual(queried, ['cores', 'libraries']);
+    assert.equal(report.profile, 'release');
+    assert.equal(report.comparison.libraries[0].status, 'installed');
+    assert.equal(report.buildResolved.status, 'not_reported');
+    assert.doesNotMatch(JSON.stringify(report), /hidden|properties/);
+    assert.equal(f.compiles(), 0);
+});
+
+test('dependency inventory is available before a compilable board is selected', async () => {
+    const f = fixture({ discover: async kind => kind === 'cores' ? { platforms: [] } : { installed_libraries: [] } });
+    f.target.canCompile = false;
+    f.target.issues = [{ code: 'BOARD_REQUIRED', message: 'Select a board.' }];
+    const report = await call(f, 'list_dependencies') as { installed: { complete: boolean }; declared: unknown };
+    assert.equal(report.installed.complete, true);
+    assert.deepEqual(report.declared, { platforms: [], libraries: [], issues: [] });
+    assert.equal(f.compiles(), 0);
+});
+
+test('dependency inventory enforces readiness, trust and pre-cancellation before queries', async () => {
+    const noQueries = async () => { assert.fail('Inventory must not run'); };
+    await assert.rejects(call(fixture({ discover: noQueries, isReady: () => false }), 'list_dependencies'), code('CLI_NOT_READY'));
+    await assert.rejects(call(fixture({ discover: noQueries, isTrusted: () => false }), 'list_dependencies'), code('WORKSPACE_UNTRUSTED'));
+    const abort = new AbortController(); abort.abort();
+    await assert.rejects(call(fixture({ discover: noQueries }), 'list_dependencies', abort.signal), code('CANCELED'));
+});
+
+test('dependency queries stop on cancellation or trust revocation at either stage', async () => {
+    for (const stopAt of ['cores', 'libraries']) {
+        for (const failure of ['CANCELED', 'WORKSPACE_UNTRUSTED']) {
+            const abort = new AbortController();
+            let trusted = true;
+            const queries: string[] = [];
+            const f = fixture({
+                isTrusted: () => trusted,
+                discover: async kind => {
+                    queries.push(kind);
+                    if (kind === stopAt) {
+                        if (failure === 'CANCELED') { abort.abort(); } else { trusted = false; }
+                    }
+                    return kind === 'cores' ? { platforms: [] } : { installed_libraries: [] };
+                },
+            });
+            await assert.rejects(call(f, 'list_dependencies', abort.signal), code(failure));
+            assert.deepEqual(queries, stopAt === 'cores' ? ['cores'] : ['cores', 'libraries']);
+            assert.equal(f.compiles(), 0);
+        }
+    }
+});
+
+test('dependency discovery errors and invalid inventory never become a complete report', async () => {
+    const queries: string[] = [];
+    const f = fixture({ discover: async kind => { queries.push(kind); throw new AiBridgeError('CLI_FAILED', 'Inventory failed.'); } });
+    await assert.rejects(call(f, 'list_dependencies'), code('CLI_FAILED'));
+    assert.deepEqual(queries, ['cores']);
+    await assert.rejects(call(fixture(), 'list_dependencies'), code('INVALID_CLI_OUTPUT'));
+});
+
+test('dependency declarations and available profile metadata share credential redaction', async () => {
+    const f = fixture({ discover: async kind => kind === 'cores' ? { platforms: [] } : { installed_libraries: [] } });
+    f.target.declaredDependencies.platforms = [{ id: 'vendor:core', indexUrl: 'https://example.invalid/index.json?token=hidden' }];
+    f.target.availableProfiles = [{ name: 'release', isDefault: true, isSelected: true, issues: [], dependencies: f.target.declaredDependencies }];
+    for (const name of ['get_project_context', 'list_dependencies'] as const) {
+        const result = JSON.stringify(await call(f, name));
+        assert.doesNotMatch(result, /hidden|private password/);
+        assert.match(result, /<redacted>/);
+    }
 });
 
 test('normal and clean compilation start automatically and return redacted completion', async () => {

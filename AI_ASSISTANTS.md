@@ -94,7 +94,7 @@ unsaved-file checks, and cancellation checks still apply.
 `{schemaVersion: 1, sketches: [{sketchPath, sessionCount}]}`. An empty list means
 no sketch is currently connected in this storage profile.
 
-The four project tools require an absolute `sketchPath` matching a connected
+The five project tools require an absolute `sketchPath` matching a connected
 sketch. They accept an optional existing named `profile`; compilation additionally
 accepts `clean: true|false`. Unknown properties and operations are rejected in both
 the transport and extension backend.
@@ -102,14 +102,58 @@ the transport and extension backend.
 | Tool | Behavior |
 | --- | --- |
 | `list_connected_sketches` | Lists live sketches available through the enabled integration and their session counts. Does not enable the integration or select a target. |
-| `get_project_context` | Reads selected/resolved target, FQBN, build plan, CLI identity, and validation issues. Does not repair or rewrite project configuration. |
+| `get_project_context` | Reads available profiles and declared dependencies, selected/resolved target, FQBN, build plan, CLI identity, and validation issues. Does not repair or rewrite project configuration. |
+| `list_dependencies` | Queries standard CLI core/library installations and compares their versions with the selected profile's declarations. Does not inspect isolated profile caches or determine build-resolved dependencies. CLI initialization can download indexes and built-in tools. |
 | `list_boards` | Runs the extension's `arduino-cli board listall --json`. Does not install or select boards. |
 | `list_ports` | Runs `arduino-cli board list --json`. Does not open a monitor, select a port, or upload. |
 | `compile_sketch` | Executes the inspected compile plan automatically and returns structured completion. |
 
 There are no upload, reset, erase, bootloader, serial monitor, package installation,
-or arbitrary command tools. Compilation has `readOnlyHint: false`; tool hints are
-not the authorization boundary. Trust and AI enablement are checked in the extension.
+or arbitrary command tools. Compilation and dependency inventory have
+`readOnlyHint: false`; the latter is conservative because CLI initialization can
+change its supporting files. Tool hints are not the authorization boundary. Trust
+and AI enablement are checked in the extension.
+
+### Profiles and dependencies
+
+Ask the assistant: "Show the available profiles and check the dependencies for
+the release profile." It should use `get_project_context`, then call
+`list_dependencies` with the chosen `sketchPath` and optional `profile`.
+This does not change the profile selected in Home.
+
+Project context includes `defaultProfile` when declared, `availableProfiles` with
+default/selected flags and each profile's dependency declarations, and
+`declaredDependencies` for the resolved profile. Declarations include platform IDs,
+optional versions and index URLs, library names/versions, transitive dependencies,
+and local library directories. Local directory contents are not read. Metadata
+issues in an unrelated profile do not prevent compiling a valid selected profile.
+Profile/declaration output is bounded; `availableProfilesTruncated` or declaration
+issues indicate omitted metadata.
+
+`list_dependencies` returns separate sections:
+
+- `declared` and `declaredComplete`: requirements from the selected profile and
+  whether those declarations were read completely. Without a profile, this is an
+  empty declaration list, not a scan of source includes.
+- `installed`: installed platform/library versions from fixed
+  `arduino-cli core list --json` and `arduino-cli lib list --all --json` queries.
+  It excludes unrelated CLI metadata, such as author information and example paths.
+- `comparison`: `installed`, `not_found`, `version_mismatch`, or `unknown` for each
+  requirement, with matching installed versions. These statuses describe standard
+  CLI installations only. Local directory requirements remain `unknown`.
+- `buildResolved`: `status: "not_reported"`. Profile builds use isolated dependency
+  caches; a missing or different standard installation does not establish whether
+  that profile will compile successfully.
+
+CLI initialization warnings mark the inventory incomplete and prevent definitive
+absence/version-mismatch conclusions for the affected inventory. Malformed or
+oversized CLI output returns an error rather than an empty inventory. Neither
+query activates a profile, compiles, changes project settings, or explicitly
+installs its declared core/library requirements. Arduino CLI may initialize its
+own indexes and built-in tools, including downloads. No extension approval dialog
+is added; client tool permissions still apply.
+
+### Compile results
 
 Compile results include a schema version, operation ID, status, target, exit
 code/signal, separate stdout/stderr tails, duration, truncation flag, and a stable
@@ -305,8 +349,10 @@ are rejected. Linked source trees or a scan exceeding 20,000 entries currently
 block assistant compilation. Remote SSH/WSL/container windows and cross-host clients
 are outside this first slice.
 
-The legacy Arduino Home activation/setup still has its existing CLI setup/update
-behavior; observational bridge calls themselves never perform setup or install.
+The legacy Arduino Home activation/setup keeps its existing CLI setup/update
+behavior. `get_project_context` reads local project metadata without invoking the
+CLI. CLI inventory queries can trigger Arduino CLI's own initialization behavior;
+the bridge does not call setup or package installation commands for these queries.
 
 ## Development validation
 

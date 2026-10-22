@@ -2,11 +2,14 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { createHash } from 'node:crypto';
 import { parse as parseYaml } from 'yaml';
-import { AiBridgeError, AiIssue, InspectionInput, ProjectInspection } from './contracts';
+import { AiBridgeError, AiIssue, InspectionInput, ProjectInspection, ProjectProfileSummary } from './contracts';
+import { inspectDeclaredDependencies } from './profileDependencies';
 
 const DEFAULT_PROFILE = 'default_profile';
 const MAX_METADATA_BYTES = 1024 * 1024;
 const MAX_SOURCE_ENTRIES = 20000;
+const MAX_PROFILE_SUMMARIES = 100;
+const MAX_PROFILE_SUMMARY_DEPENDENCY_BYTES = 256 * 1024;
 const PROFILE_NAME = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/;
 const SOURCE_EXTENSIONS = new Set(['.ino', '.pde', '.cpp', '.h', '.hpp', '.hh', '.ipp', '.tpp', '.c', '.cc', '.cxx', '.s']);
 const EXCLUDED_DIRECTORIES = new Set(['.git', '.vscode', 'node_modules']);
@@ -205,6 +208,45 @@ function validFqbn(value: string): boolean {
         && (parts.length === 3 || (parts[3].length > 0 && !/[\s\0]/.test(parts[3])));
 }
 
+function summarizeProfiles(profiles: Metadata, defaultProfile: string | undefined, resolvedProfile: string | undefined): {
+    summaries: ProjectProfileSummary[]; truncated: boolean;
+} {
+    const names = Object.keys(profiles).filter(name => PROFILE_NAME.test(name)).sort();
+    const truncated = names.length !== Object.keys(profiles).length || names.length > MAX_PROFILE_SUMMARIES;
+    const includedNames = names.slice(0, MAX_PROFILE_SUMMARIES);
+    // Keep the active and default profiles discoverable even in unusually large metadata.
+    for (const preferred of [defaultProfile, resolvedProfile]) {
+        if (preferred && names.includes(preferred) && !includedNames.includes(preferred)) {
+            let replace = includedNames.length - 1;
+            while (replace >= 0 && [defaultProfile, resolvedProfile].includes(includedNames[replace])) { replace--; }
+            if (replace >= 0) { includedNames[replace] = preferred; }
+        }
+    }
+    const dependencyBudget = { remainingBytes: MAX_PROFILE_SUMMARY_DEPENDENCY_BYTES };
+    // Spend the shared dependency budget on selected/default profiles first.
+    const priority = (name: string) => name === resolvedProfile ? 0 : name === defaultProfile ? 1 : 2;
+    const summaries = includedNames.sort((left, right) => priority(left) - priority(right) || left.localeCompare(right)).map((name): ProjectProfileSummary => {
+        const entry = profiles[name];
+        const profile = isRecord(entry) ? entry : undefined;
+        const profileIssues: AiIssue[] = [];
+        let fqbn: string | undefined;
+        if (!profile) {
+            profileIssues.push({ code: 'INVALID_PROFILE', message: 'The profile must be a map.' });
+        } else if (typeof profile.fqbn !== 'string' || !profile.fqbn.trim()) {
+            profileIssues.push({ code: 'FQBN_REQUIRED', message: 'The profile does not declare an FQBN.' });
+        } else if (Buffer.byteLength(JSON.stringify(profile.fqbn), 'utf8') > 4096 || /[\x00-\x1f\x7f]/.test(profile.fqbn) || !validFqbn(profile.fqbn.trim())) {
+            profileIssues.push({ code: 'INVALID_FQBN', message: 'The profile FQBN is invalid.' });
+        } else {
+            fqbn = profile.fqbn.trim();
+        }
+        return {
+            name, ...(fqbn ? { fqbn } : {}), isDefault: name === defaultProfile, isSelected: name === resolvedProfile,
+            dependencies: inspectDeclaredDependencies(profile, dependencyBudget), issues: profileIssues,
+        };
+    }).sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0);
+    return { summaries, truncated };
+}
+
 function validateInput(input: InspectionInput): void {
     if (!isRecord(input) || Object.keys(input).some((key) => !['sketchPath', 'profile', 'clean'].includes(key))) {
         throw new AiBridgeError('INVALID_ARGUMENT', 'Only sketchPath, profile, and clean are accepted.');
@@ -392,6 +434,7 @@ export function inspectProject(input: InspectionInput, activeSketchPath: string)
         buildPath,
         sources: sources ?? null,
     })).digest('hex');
+    const profileSummary = summarizeProfiles(profiles, defaultProfile, resolvedProfile);
     return {
         schemaVersion: 1,
         sketchPath,
@@ -400,6 +443,10 @@ export function inspectProject(input: InspectionInput, activeSketchPath: string)
         ...(yamlRaw !== undefined ? { profilePath: yamlPath } : {}),
         ...(selectedProfile ? { selectedProfile } : {}),
         ...(resolvedProfile ? { resolvedProfile } : {}),
+        ...(defaultProfile && PROFILE_NAME.test(defaultProfile) ? { defaultProfile } : {}),
+        availableProfiles: profileSummary.summaries,
+        ...(profileSummary.truncated ? { availableProfilesTruncated: true } : {}),
+        declaredDependencies: inspectDeclaredDependencies(profile),
         ...(fqbn ? { fqbn } : {}),
         ...(port ? { port } : {}),
         ...(protocol ? { protocol } : {}),

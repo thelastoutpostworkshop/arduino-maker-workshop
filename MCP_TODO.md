@@ -5,7 +5,7 @@ Complete each step with tests, user documentation, and a separate commit.
 
 ## Progress
 
-- [ ] 1. Project context and dependencies
+- [x] 1. Project context and dependencies (implementation complete; commit pending)
 - [ ] 2. Board and library discovery
 - [ ] 3. Better compile results
 - [ ] 4. ESP32 crash decoding
@@ -24,11 +24,12 @@ Complete each step with tests, user documentation, and a separate commit.
 
 ## 1. Project context and dependencies
 
-- [ ] Extend `get_project_context` with available profiles and their declared dependencies.
-- [ ] Add `list_dependencies` for installed core/library versions and comparison with the selected profile's requirements.
-- [ ] Distinguish declared requirements, installed packages, and dependencies resolved by a build.
-- [ ] Test missing dependencies, version differences, and projects with and without profiles.
-- [ ] Update `AI_ASSISTANTS.md` and commit.
+- [x] Extend `get_project_context` with available profiles and their declared dependencies.
+- [x] Add `list_dependencies` for installed core/library versions and comparison with the selected profile's requirements.
+- [x] Distinguish declared requirements, installed packages, and dependencies resolved by a build.
+- [x] Test missing dependencies, version differences, and projects with and without profiles.
+- [x] Update `AI_ASSISTANTS.md`.
+- [ ] Commit this step.
 
 Suggested commit: `Expose MCP profiles and dependencies`
 

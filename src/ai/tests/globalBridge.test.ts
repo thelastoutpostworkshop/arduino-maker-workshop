@@ -149,7 +149,7 @@ test('global packaged bridge lists and routes changing connected sketches withou
     const f = await fixture(t);
     const tools = await f.request('tools/list');
     assert.deepEqual(tools.result.tools.map((tool: any) => tool.name).sort(),
-        ['compile_sketch', 'get_project_context', 'list_boards', 'list_connected_sketches', 'list_ports']);
+        ['compile_sketch', 'get_project_context', 'list_boards', 'list_connected_sketches', 'list_dependencies', 'list_ports']);
     assertSketches(await f.list(), []);
     assertSketches(await f.request('tools/call', { name: 'list_connected_sketches' }), []);
 
@@ -158,8 +158,9 @@ test('global packaged bridge lists and routes changing connected sketches withou
     assertSketches(await f.list(), [{ sketchPath: f.alpha, sessionCount: 1 }, { sketchPath: f.beta, sessionCount: 1 }]);
     assert.equal((await f.call(f.alpha)).result.structuredContent.session, 'alpha-window');
     assert.equal((await f.call(f.beta, 'list_ports')).result.structuredContent.session, 'beta-window');
+    assert.equal((await f.call(f.beta, 'list_dependencies')).result.structuredContent.session, 'beta-window');
     assert.deepEqual(alpha.calls, ['get_project_context']);
-    assert.deepEqual(beta.calls, ['list_ports']);
+    assert.deepEqual(beta.calls, ['list_ports', 'list_dependencies']);
 
     // Simulate one window switching folders while a second window stays connected.
     await alpha.server.dispose();

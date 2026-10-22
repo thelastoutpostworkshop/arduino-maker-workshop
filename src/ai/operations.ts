@@ -1,5 +1,6 @@
 import { AiBridgeError, AiOperationResult, AiToolHandler, AiToolName, InspectionInput, OperationProgress, ProjectInspection } from './contracts';
 import { collectSensitiveValues, redactForAssistant } from './redaction';
+import { buildDependencyReport } from './dependencies';
 
 export interface AiOperationDependencies {
     isTrusted(): boolean;
@@ -10,11 +11,11 @@ export interface AiOperationDependencies {
     hasUnsavedSketchDocuments(sketchPath: string): boolean;
     revision(): number;
     compile(target: ProjectInspection, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<AiOperationResult>;
-    discover(kind: 'boards' | 'ports', signal: AbortSignal): Promise<unknown>;
+    discover(kind: 'boards' | 'ports' | 'cores' | 'libraries', signal: AbortSignal): Promise<unknown>;
     invalidateBuild(target: ProjectInspection): void;
 }
 
-const allowedTools: readonly AiToolName[] = ['get_project_context', 'list_boards', 'list_ports', 'compile_sketch'];
+const allowedTools: readonly AiToolName[] = ['get_project_context', 'list_dependencies', 'list_boards', 'list_ports', 'compile_sketch'];
 
 /** Authorization is enforced here, independently of any client's tool annotations. */
 export function createAiOperationHandler(dependencies: AiOperationDependencies): AiToolHandler {
@@ -44,8 +45,18 @@ export function createAiOperationHandler(dependencies: AiOperationDependencies):
         if (!dependencies.isReady()) {
             throw new AiBridgeError('CLI_NOT_READY', 'Arduino CLI is not ready. Resolve its setup in Arduino Home and reconnect.');
         }
+        if (name === 'list_dependencies') {
+            // Each CLI query initializes its package inventory; avoid two initializers at once.
+            const cores = await dependencies.discover('cores', signal);
+            assertAvailable();
+            const libraries = await dependencies.discover('libraries', signal);
+            assertAvailable();
+            return redactForAssistant(buildDependencyReport(target, cores, libraries), sensitiveValues);
+        }
         if (name !== 'compile_sketch') {
-            return redactForAssistant(await dependencies.discover(name === 'list_boards' ? 'boards' : 'ports', signal), sensitiveValues);
+            const discovered = await dependencies.discover(name === 'list_boards' ? 'boards' : 'ports', signal);
+            assertAvailable();
+            return redactForAssistant(discovered, sensitiveValues);
         }
         if (!target.canCompile) {
             throw new AiBridgeError('INVALID_TARGET', 'Resolve project context issues and select a valid board or profile before compiling.');

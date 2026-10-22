@@ -21,7 +21,8 @@ function validId(value: unknown): value is RequestId {
 }
 
 const descriptions: Record<AiToolName, string> = {
-    get_project_context: 'Inspect the connected Arduino sketch, resolved profile, FQBN, build arguments, toolchain and issues without changing settings or opening hardware ports.',
+    get_project_context: 'Inspect the connected Arduino sketch, available profiles and declared dependencies, resolved profile, FQBN, build arguments, toolchain and issues without changing settings or opening hardware ports.',
+    list_dependencies: 'List standard Arduino CLI core/library installations and compare with the selected profile declarations. Does not inspect isolated profile caches or resolve build dependencies. CLI initialization may download indexes and built-in tools; does not explicitly install declared cores/libraries, compile or change project settings.',
     list_boards: 'List available Arduino boards using the connected VS Code toolchain. Does not select a board or install packages.',
     list_ports: 'Discover connected Arduino ports without opening a serial monitor, uploading, resetting or changing the selected port.',
     compile_sketch: 'Compile the connected Arduino sketch automatically while AI integration is enabled in its trusted VS Code window. Runs board-package build tools and may download profile dependencies. Does not upload firmware or open a serial monitor.'
@@ -43,11 +44,12 @@ export function getMcpTools(includeDiscovery = false): unknown[] {
             additionalProperties: false
         },
         annotations: {
-            title: name === 'compile_sketch' ? 'Compile Arduino Sketch' : name === 'get_project_context' ? 'Inspect Arduino Project' : name === 'list_boards' ? 'List Arduino Boards' : 'List Arduino Ports',
-            readOnlyHint: name !== 'compile_sketch',
+            title: name === 'compile_sketch' ? 'Compile Arduino Sketch' : name === 'get_project_context' ? 'Inspect Arduino Project' : name === 'list_dependencies' ? 'List Arduino Dependencies' : name === 'list_boards' ? 'List Arduino Boards' : 'List Arduino Ports',
+            // Inventory queries may initialize CLI indexes and built-in tools.
+            readOnlyHint: name !== 'compile_sketch' && name !== 'list_dependencies',
             destructiveHint: name === 'compile_sketch',
-            idempotentHint: name !== 'compile_sketch',
-            openWorldHint: name === 'compile_sketch'
+            idempotentHint: name !== 'compile_sketch' && name !== 'list_dependencies',
+            openWorldHint: name === 'compile_sketch' || name === 'list_dependencies'
         }
     }));
     if (includeDiscovery) {

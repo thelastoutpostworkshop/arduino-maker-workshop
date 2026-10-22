@@ -7,7 +7,7 @@ import { StringDecoder } from 'node:string_decoder';
 import { AiBridgeError, AiToolHandler, AiToolName, InspectionInput, OperationProgress } from './contracts';
 import { redactText } from './redaction';
 
-export const AI_TOOL_NAMES: readonly AiToolName[] = ['get_project_context', 'list_boards', 'list_ports', 'compile_sketch'];
+export const AI_TOOL_NAMES: readonly AiToolName[] = ['get_project_context', 'list_dependencies', 'list_boards', 'list_ports', 'compile_sketch'];
 const MAX_INPUT_BYTES = 64 * 1024;
 const MAX_RESULT_BYTES = 2 * 1024 * 1024;
 const MAX_RESPONSE_BYTES = MAX_RESULT_BYTES + 8192;
