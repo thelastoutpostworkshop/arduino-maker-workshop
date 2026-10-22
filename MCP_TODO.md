@@ -104,12 +104,14 @@ Suggested commit: `Add MCP firmware upload`
 
 ## 7. Serial capture
 
-- [ ] Add `capture_serial_output` with explicit port, baud rate, duration, and output limits.
-- [ ] Coordinate port ownership with uploads and the existing Serial Monitor.
-- [ ] Return captured output with timing and truncation information.
-- [ ] Release resources on completion, cancellation, client disconnect, and device removal.
-- [ ] Add a serial capture prompt with explicit port/baud/duration, prerequisites, and expected results; use it for the hardware validation below.
-- [ ] Test capture limits and lifecycle handling, then validate with a physical board.
-- [ ] Update `AI_ASSISTANTS.md` and commit.
+- [x] Add `capture_serial_output` with explicit port, baud rate, duration, and output limits.
+- [x] Coordinate port ownership with uploads and the existing Serial Monitor.
+- [x] Return captured output with timing and truncation information.
+- [x] Release resources on completion, cancellation, client disconnect, and device removal.
+- [x] Add serial capture prompts with explicit port/baud/duration/output limits, prerequisites, and expected results.
+- [x] Run automated capture limit, input validation, port coordination, and lifecycle tests (386 AI tests, typecheck, lint, and extension build pass).
+- [ ] Verify the capture and output-limit prompts with a physical board in an AI client; check cancellation, client disconnect, device removal, and Serial Monitor reuse after capture.
+- [x] Update `AI_ASSISTANTS.md` with capture behavior and limitations.
+- [ ] Commit this step.
 
 Suggested commit: `Add bounded MCP serial capture`

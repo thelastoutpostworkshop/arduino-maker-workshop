@@ -188,7 +188,7 @@ test('descriptor validation refuses endpoint substitution without revealing its 
     } finally { await context.dispose(); }
 });
 
-test('MCP negotiates supported versions and offers discovery plus ten explicitly targeted tools', async () => {
+test('MCP negotiates supported versions and offers discovery plus eleven explicitly targeted tools', async () => {
     const context = await fixture(async () => ({}));
     try {
         for (const version of ['2024-11-05', '2025-03-26', '2025-06-18', 'unsupported-version']) {
@@ -201,26 +201,144 @@ test('MCP negotiates supported versions and offers discovery plus ten explicitly
                 bridge.send({ jsonrpc: '2.0', id: 1, method: 'tools/list' });
                 const listed = await bridge.waitFor(message => message.id === 1);
                 assert.deepEqual(listed.result.tools.map((tool: Record<string, unknown>) => tool.name).sort(), [
-                    'compile_sketch', 'decode_esp32_backtrace', 'get_board_details', 'get_project_context', 'install_library', 'list_boards',
+                    'capture_serial_output', 'compile_sketch', 'decode_esp32_backtrace', 'get_board_details', 'get_project_context', 'install_library', 'list_boards',
                     'list_connected_sketches', 'list_dependencies', 'list_examples', 'list_ports', 'search_libraries'
                 ]);
                 for (const tool of listed.result.tools) {
                     assert.deepEqual(tool.inputSchema.required, tool.name === 'list_connected_sketches' ? undefined
                         : tool.name === 'search_libraries' ? ['sketchPath', 'query']
                         : tool.name === 'install_library' ? ['sketchPath', 'library', 'version']
+                        : tool.name === 'capture_serial_output' ? ['sketchPath', 'port', 'baudRate', 'durationMs', 'maxOutputBytes']
                         : tool.name === 'decode_esp32_backtrace' ? ['sketchPath', 'log'] : ['sketchPath']);
                     assert.equal(tool.inputSchema.additionalProperties, false);
-                    const initializesCli = ['compile_sketch', 'list_dependencies', 'get_board_details', 'search_libraries', 'list_examples', 'install_library'].includes(tool.name);
+                    const initializesCli = ['compile_sketch', 'list_dependencies', 'get_board_details', 'search_libraries', 'list_examples', 'install_library', 'capture_serial_output'].includes(tool.name);
                     assert.equal(tool.annotations.readOnlyHint, !initializesCli);
                     assert.equal(tool.annotations.idempotentHint, !initializesCli);
                     assert.equal(tool.annotations.openWorldHint, initializesCli);
-                    assert.equal(tool.annotations.destructiveHint, ['compile_sketch', 'install_library'].includes(tool.name));
+                    assert.equal(tool.annotations.destructiveHint, ['compile_sketch', 'install_library', 'capture_serial_output'].includes(tool.name));
                     assert.equal('clean' in tool.inputSchema.properties, tool.name === 'compile_sketch');
                 }
             } finally { await bridge.dispose(); }
         }
-        assert.equal(getMcpTools().length, 11);
+        assert.equal(getMcpTools().length, 12);
     } finally { await context.dispose(); }
+});
+
+test('MCP serial capture requires explicit bounded settings without a profile or serial writes', () => {
+    const tool = (getMcpTools() as Record<string, any>[]).find(value => value.name === 'capture_serial_output');
+    assert.ok(tool);
+    assert.deepEqual(Object.keys(tool.inputSchema.properties).sort(), ['baudRate', 'durationMs', 'maxOutputBytes', 'port', 'sketchPath']);
+    assert.deepEqual(tool.inputSchema.required, ['sketchPath', 'port', 'baudRate', 'durationMs', 'maxOutputBytes']);
+    assert.equal(tool.inputSchema.properties.port.maxLength, 256);
+    for (const [field, minimum, maximum] of [['baudRate', 300, 2000000], ['durationMs', 1000, 60000], ['maxOutputBytes', 1024, 65536]] as const) {
+        assert.equal(tool.inputSchema.properties[field].type, 'integer');
+        assert.equal(tool.inputSchema.properties[field].minimum, minimum);
+        assert.equal(tool.inputSchema.properties[field].maximum, maximum);
+    }
+    assert.deepEqual(tool.annotations, { title: 'Capture Arduino Serial Output', readOnlyHint: false,
+        destructiveHint: true, idempotentHint: false, openWorldHint: true });
+    assert.match(tool.description, /Opening a serial port can reset some boards/);
+    assert.match(tool.description, /leaves it stopped/);
+});
+
+test('MCP and authenticated IPC reject unsafe serial addresses, missing bounds and extra options', async () => {
+    let calls = 0;
+    const context = await fixture(async () => { calls++; return {}; });
+    const bridge = await harness(context.sessionDirectory);
+    const client = await AiIpcClient.connect(context.server.sessionFile);
+    try {
+        await bridge.initialize();
+        const valid = { sketchPath: context.sketchPath, port: 'COM5', baudRate: 115200, durationMs: 10000, maxOutputBytes: 8192 };
+        const cases: Record<string, unknown>[] = [
+            ...[undefined, null, 42, [], '', ' ', 'COM0', 'COM-1', 'COM01', 'COM5\n', ' COM5', 'COM5 ', 'COM5;command',
+                'COM5\x00', 'COM5\x7f', '--port', 'tcp://localhost:1234', '192.168.1.1', '\\\\.\\COM5',
+                '/tmp/ttyUSB0', '/dev/ttyUSB0/../../other', '/dev/ttyUSB0/child', '/dev/serial/../ttyUSB0',
+                '/dev/serial/./ttyUSB0', '/dev/serial//by-id/port', '/dev/serial/by-id/port name',
+                '/dev/serial/by-id/port;command', '/dev/serial/by-id/', '/dev/cu', '/dev/cu.', '/dev/tty',
+                'COM' + '1'.repeat(254)].map(port => ({ port })),
+            ...[undefined, null, '115200', true, 299, 2000001, 115200.5, 0, -1].map(baudRate => ({ baudRate })),
+            ...[undefined, null, '10000', true, 999, 60001, 1000.5, 0, -1].map(durationMs => ({ durationMs })),
+            ...[undefined, null, '8192', true, 1023, 65537, 1024.5, 0, -1].map(maxOutputBytes => ({ maxOutputBytes })),
+            ...[{ profile: 'release' }, { clean: true }, { data: 'reset' }, { command: 'monitor' },
+                { executable: 'shell' }, { args: ['--raw'] }, { reset: true }, { dtr: false }, { rts: false }],
+        ];
+        let id = 1;
+        for (const override of cases) {
+            const args = { ...valid, ...override };
+            const requestId = id++;
+            bridge.send({ jsonrpc: '2.0', id: requestId, method: 'tools/call', params: { name: 'capture_serial_output', arguments: args } });
+            assert.equal((await bridge.waitFor(message => message.id === requestId)).error?.code, -32602, JSON.stringify(override));
+            await assert.rejects(client.call('capture_serial_output', args as Parameters<AiIpcClient['call']>[1],
+                new AbortController().signal, () => {}), { code: 'INVALID_ARGUMENTS' });
+        }
+        assert.equal(calls, 0, 'Invalid capture requests never reach the extension or open a port');
+    } finally { client.dispose(); await bridge.dispose(); await context.dispose(); }
+});
+
+test('MCP serial capture preserves explicit ports and bounds and returns structured output and progress', async () => {
+    const received: unknown[] = [];
+    const context = await fixture(async (name, input, _signal, progress) => {
+        assert.equal(name, 'capture_serial_output');
+        received.push(input);
+        progress({ message: 'Capturing serial output' });
+        return { schemaVersion: 1, status: 'success', request: input, output: 'Sensor: 21\n', truncated: false, stopReason: 'duration' };
+    });
+    const bridge = await harness(context.sessionDirectory);
+    try {
+        await bridge.initialize();
+        const ports = ['COM5', 'com12', '/dev/ttyUSB0', '/dev/ttyACM0', '/dev/tty.usbmodem1101', '/dev/cu.usbmodem1101', '/dev/serial/by-id/usb-Sensor_123-if00-port0'];
+        for (let id = 0; id < ports.length; id++) {
+            const args = { sketchPath: context.sketchPath, port: ports[id], baudRate: id === 0 ? 300 : 2000000,
+                durationMs: id === 0 ? 1000 : 60000, maxOutputBytes: id === 0 ? 1024 : 65536 };
+            bridge.send({ jsonrpc: '2.0', id, method: 'tools/call', params: { name: 'capture_serial_output',
+                arguments: args, _meta: { progressToken: `capture-${id}` } } });
+            const response = await bridge.waitFor(message => message.id === id);
+            assert.equal(response.error, undefined);
+            assert.equal(response.result.isError, false);
+            assert.equal(response.result.structuredContent.output, 'Sensor: 21\n');
+            assert.deepEqual(JSON.parse(response.result.content[0].text), response.result.structuredContent);
+            assert.deepEqual(received[id], args);
+            assert.ok(bridge.messages.some(message => message.method === 'notifications/progress' && message.params.progressToken === `capture-${id}`));
+        }
+    } finally { await bridge.dispose(); await context.dispose(); }
+});
+
+test('serial capture keeps workspace and trust guards and aborts on MCP cancel or disconnect', async () => {
+    for (const mode of ['cancel', 'disconnect', 'session-stop']) {
+        let calls = 0;
+        let trusted = true;
+        const started = deferred<void>();
+        const aborted = deferred<void>();
+        const context = await fixture(async (_name, _input, signal) => {
+            calls++;
+            started.resolve();
+            await new Promise<void>((_resolve, reject) => signal.addEventListener('abort', () => {
+                aborted.resolve(); reject(new AiBridgeError('CANCELED', 'Canceled'));
+            }, { once: true }));
+        }, () => trusted);
+        const client = await AiIpcClient.connect(context.server.sessionFile);
+        const bridge = await harness(context.sessionDirectory);
+        try {
+            const args = { sketchPath: context.sketchPath, port: 'COM5', baudRate: 115200, durationMs: 10000, maxOutputBytes: 8192 };
+            await assert.rejects(client.call('capture_serial_output', { ...args, sketchPath: context.root },
+                new AbortController().signal, () => {}), { code: 'WRONG_WORKSPACE' });
+            trusted = false;
+            await assert.rejects(client.call('capture_serial_output', args, new AbortController().signal,
+                () => {}), { code: 'WORKSPACE_UNTRUSTED' });
+            assert.equal(calls, 0);
+            trusted = true;
+            await bridge.initialize();
+            bridge.send({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'capture_serial_output', arguments: args } });
+            await started.promise;
+            if (mode === 'cancel') {
+                bridge.send({ jsonrpc: '2.0', method: 'notifications/cancelled', params: { requestId: 1 } });
+                assert.equal((await bridge.waitFor(message => message.id === 1)).error?.code, -32800);
+            } else if (mode === 'disconnect') { await bridge.dispose(); }
+            else { await context.server.dispose(); }
+            await aborted.promise;
+            assert.equal(calls, 1, 'Interrupted capture is not replayed');
+        } finally { client.dispose(); await bridge.dispose(); await context.dispose(); }
+    }
 });
 
 test('MCP exposes only an exact indexed library and version for shared-library installation', () => {

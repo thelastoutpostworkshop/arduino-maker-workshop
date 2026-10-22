@@ -1,10 +1,11 @@
 import * as assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { AiBridgeError, AiDiscoveryQuery, AiOperationResult, AiToolInput, AiToolName, ProjectInspection } from '../contracts';
+import { AiBridgeError, AiDiscoveryQuery, AiOperationResult, AiToolInput, AiToolName, ProjectInspection, SerialCaptureRequest } from '../contracts';
 import { AiOperationDependencies, createAiOperationHandler } from '../operations';
 import { collectSensitiveValues, redactForAssistant, redactText } from '../redaction';
 import type { BacktraceDecodeResult } from '../backtrace';
 import type { LibraryInstallationResult } from '../libraryInstallation';
+import type { SerialCaptureResult } from '../serialCapture';
 
 function fixture(overrides: Partial<AiOperationDependencies> = {}) {
     const target: ProjectInspection = {
@@ -31,6 +32,7 @@ function fixture(overrides: Partial<AiOperationDependencies> = {}) {
         compile: async () => { compiles++; return result(); },
         decode: async () => { throw new Error('Unexpected decoder invocation.'); },
         install: async () => { throw new Error('Unexpected library installation.'); },
+        capture: async () => { throw new Error('Unexpected serial capture.'); },
         discover: async () => ({ boards: [], password: 'hidden' }),
         query: async () => ({ installed_libraries: [] }),
         invalidateBuild: () => { invalidated++; }, ...overrides,
@@ -415,6 +417,198 @@ function decoded(target: ProjectInspection): BacktraceDecodeResult {
         frames: [{ address: '0x40001234', functionName: 'private password', file: '/sketch/sketch.ino', line: 7 }],
         stdout: 'private password', stderr: '', truncated: false, durationMs: 1, notes: [] };
 }
+
+const serialRequest: SerialCaptureRequest = { port: 'COM3', baudRate: 115200, durationMs: 1000, maxOutputBytes: 4096 };
+const serialInput = { sketchPath: '/sketch', ...serialRequest };
+
+function captured(request: SerialCaptureRequest = serialRequest): SerialCaptureResult {
+    const output = 'Booted with private password\n';
+    return {
+        schemaVersion: 1, request, status: 'success', stopReason: 'duration', output, stderr: 'private password',
+        receivedBytes: Buffer.byteLength(output), returnedBytes: Buffer.byteLength(output), truncated: false, stderrTruncated: false,
+        startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:00:01.000Z',
+        durationMs: 1000, exitCode: null, signal: 'SIGTERM', notes: ['private password'],
+    };
+}
+
+test('serial capture routes explicit settings without compilation and redacts device observations', async () => {
+    let captures = 0, inspections = 0;
+    const messages: string[] = [];
+    const f = fixture({ capture: async (target, request, signal, progress, assertCurrent) => {
+        captures++;
+        assert.equal(target, f.target);
+        assert.deepEqual(request, serialRequest);
+        assert.equal(signal.aborted, false);
+        for (let index = 0; index < 100; index++) { assertCurrent(); }
+        progress({ message: 'Capturing serial output.' });
+        return captured(request);
+    } });
+    f.dependencies.inspect = input => { inspections++; assert.deepEqual(input, { sketchPath: '/sketch' }); return f.target; };
+    const result = await f.handler('capture_serial_output', serialInput, new AbortController().signal,
+        value => messages.push(value.message)) as SerialCaptureResult;
+    assert.equal(result.status, 'success');
+    assert.equal(result.output, 'Booted with <redacted>\n');
+    assert.equal(result.stderr, '<redacted>');
+    assert.deepEqual(result.notes, ['<redacted>']);
+    assert.equal(result.returnedBytes, Buffer.byteLength(result.output));
+    assert.equal(result.receivedBytes, Buffer.byteLength(captured().output));
+    assert.ok(messages.includes('Capturing serial output.'));
+    assert.equal(captures, 1);
+    assert.equal(inspections, 1, 'Repeated capture guards must not scan the sketch sources.');
+    assert.equal(f.compiles(), 0);
+    assert.equal(f.invalidated(), 0);
+});
+
+test('serial capture allows unconfigured boards, unsaved edits and selected target changes', async () => {
+    let revision = 0;
+    const f = fixture({ hasUnsavedSketchDocuments: () => true, revision: () => revision,
+        capture: async (_target, request, _signal, _progress, assertCurrent) => {
+            revision++;
+            f.target.fingerprint = 'edited';
+            f.target.fqbn = 'other:board:model';
+            f.target.selectedProfile = 'another-profile';
+            assertCurrent();
+            return captured(request);
+        } });
+    f.target.canCompile = false;
+    f.target.fqbn = undefined;
+    f.target.issues = [{ code: 'FQBN_REQUIRED', message: 'Select a board before compiling.' }];
+    const result = await f.handler('capture_serial_output', serialInput, new AbortController().signal, () => {}) as SerialCaptureResult;
+    assert.equal(result.status, 'success');
+    assert.equal(f.compiles(), 0);
+    assert.equal(f.invalidated(), 0);
+});
+
+test('serial capture keeps the output limit after credential redaction expands the transcript', async () => {
+    const f = fixture({ capture: async (_target, request) => ({ ...captured(request), output: 'x'.repeat(request.maxOutputBytes) }) });
+    f.target.compileArgs = ['--build-property', 'build.extra_flags=-DWIFI_PASSWORD="x"'];
+    const result = await f.handler('capture_serial_output', serialInput, new AbortController().signal, () => {}) as SerialCaptureResult;
+    assert.equal(result.truncated, true);
+    assert.ok(result.returnedBytes <= serialRequest.maxOutputBytes);
+    assert.equal(result.returnedBytes, Buffer.byteLength(result.output));
+    assert.doesNotMatch(result.output, /x/);
+});
+
+test('serial capture rejects untrusted, unavailable or canceled sessions before opening a port', async () => {
+    for (const [overrides, expected] of [
+        [{ isTrusted: () => false }, 'WORKSPACE_UNTRUSTED'], [{ isReady: () => false }, 'CLI_NOT_READY'],
+        [{ activeSketchPath: () => undefined }, 'NO_ACTIVE_SKETCH'],
+    ] as [Partial<AiOperationDependencies>, string][]) {
+        const f = fixture({ ...overrides, capture: async () => assert.fail('The port must not open.') });
+        await assert.rejects(f.handler('capture_serial_output', serialInput, new AbortController().signal, () => {}), code(expected));
+    }
+    const controller = new AbortController(); controller.abort();
+    await assert.rejects(fixture().handler('capture_serial_output', serialInput, controller.signal, () => {}), code('CANCELED'));
+});
+
+test('serial capture validates all explicit limits and rejects profile or extra arguments before execution', async () => {
+    const f = fixture({ capture: async () => assert.fail('Invalid arguments must not reach capture.') });
+    const inputs: unknown[] = [
+        { ...serialInput, port: '' }, { ...serialInput, baudRate: 0 }, { ...serialInput, durationMs: 0 },
+        { ...serialInput, maxOutputBytes: 0 }, { ...serialInput, baudRate: 115200.5 },
+        { ...serialInput, profile: 'debug' }, { ...serialInput, clean: true }, { ...serialInput, write: 'command' },
+    ];
+    for (const field of ['port', 'baudRate', 'durationMs', 'maxOutputBytes']) {
+        const missing: Record<string, unknown> = { ...serialInput };
+        delete missing[field]; inputs.push(missing);
+    }
+    for (const input of inputs) {
+        await assert.rejects(f.handler('capture_serial_output', input as AiToolInput, new AbortController().signal, () => {}), code('INVALID_ARGUMENTS'));
+    }
+});
+
+test('serial capture holds the window lock through cancellation and releases it after completion or failure', async () => {
+    let finish!: () => void;
+    const controller = new AbortController();
+    const f = fixture({ capture: async (_target, request) => {
+        await new Promise<void>(resolve => { finish = resolve; });
+        return captured(request);
+    } });
+    const pending = f.handler('capture_serial_output', serialInput, controller.signal, () => {});
+    await assert.rejects(call(f), code('BUSY'));
+    await assert.rejects(call(f, 'list_ports'), code('BUSY'));
+    await assert.rejects(f.handler('install_library', { sketchPath: '/sketch', library: 'Sensor Library', version: '2.0.0' }, new AbortController().signal, () => {}), code('BUSY'));
+    await assert.rejects(f.handler('decode_esp32_backtrace', { sketchPath: '/sketch', log: 'PC: 0x40001234' }, new AbortController().signal, () => {}), code('BUSY'));
+    await assert.rejects(f.handler('capture_serial_output', serialInput, new AbortController().signal, () => {}), code('BUSY'));
+    await call(f, 'get_project_context');
+    controller.abort();
+    await assert.rejects(call(f, 'list_ports'), code('BUSY'), 'Keep the lock until capture has actually released the port.');
+    finish();
+    const canceled = await pending as SerialCaptureResult;
+    assert.equal(canceled.status, 'canceled');
+    assert.equal(canceled.stopReason, 'canceled');
+    assert.equal(canceled.error?.code, 'CANCELED');
+    assert.equal(canceled.output, 'Booted with <redacted>\n');
+    await call(f, 'list_ports');
+    f.dependencies.capture = async () => { throw new AiBridgeError('PORT_BUSY', 'The port is busy.'); };
+    await assert.rejects(f.handler('capture_serial_output', serialInput, new AbortController().signal, () => {}), code('PORT_BUSY'));
+    assert.equal((await call(f) as AiOperationResult).status, 'success');
+});
+
+test('serial capture cannot overlap another assistant compile or discovery', async () => {
+    for (const operation of ['compile_sketch', 'list_ports'] as const) {
+        let finish!: () => void;
+        const f = fixture();
+        const compile = f.dependencies.compile;
+        f.dependencies.compile = async (...args) => { await new Promise<void>(resolve => { finish = resolve; }); return compile(...args); };
+        f.dependencies.discover = async () => { await new Promise<void>(resolve => { finish = resolve; }); return {}; };
+        const pending = call(f, operation);
+        await assert.rejects(f.handler('capture_serial_output', serialInput, new AbortController().signal, () => {}), code('BUSY'));
+        finish(); await pending;
+    }
+});
+
+test('serial capture checks context before opening the port after asynchronous preparation', async () => {
+    for (const change of ['toolchain', 'active', 'trust', 'readiness', 'cancellation']) {
+        let trusted = true, ready = true, version = 'initial', active = '/sketch', openings = 0;
+        const controller = new AbortController();
+        const f = fixture({ isTrusted: () => trusted, isReady: () => ready, activeSketchPath: () => active,
+            cliInfo: () => ({ executable: '/tools/cli', version }) });
+        f.dependencies.capture = async (_target, request, _signal, _progress, assertCurrent) => {
+            await Promise.resolve();
+            if (change === 'toolchain') { version = 'changed'; }
+            if (change === 'active') { active = '/another-sketch'; }
+            if (change === 'trust') { trusted = false; }
+            if (change === 'readiness') { ready = false; }
+            if (change === 'cancellation') { controller.abort(); }
+            assertCurrent();
+            openings++;
+            return captured(request);
+        };
+        const expected = change === 'trust' ? 'WORKSPACE_UNTRUSTED' : change === 'readiness' ? 'CLI_NOT_READY'
+            : change === 'cancellation' ? 'CANCELED' : 'STALE_INPUT';
+        await assert.rejects(f.handler('capture_serial_output', serialInput, controller.signal, () => {}), code(expected));
+        assert.equal(openings, 0);
+    }
+});
+
+test('serial capture retains received observations when completion detects lost context', async () => {
+    for (const change of ['toolchain', 'active', 'trust', 'readiness', 'cancellation']) {
+        let trusted = true, ready = true, version = 'initial';
+        let active: string | undefined = '/sketch';
+        const controller = new AbortController();
+        const f = fixture({ isTrusted: () => trusted, isReady: () => ready, activeSketchPath: () => active,
+            cliInfo: () => ({ executable: '/tools/cli', version }), capture: async (_target, request) => {
+                if (change === 'toolchain') { version = 'changed'; }
+                if (change === 'active') { active = undefined; }
+                if (change === 'trust') { trusted = false; }
+                if (change === 'readiness') { ready = false; }
+                if (change === 'cancellation') { controller.abort(); }
+                return captured(request);
+            } });
+        const result = await f.handler('capture_serial_output', serialInput, controller.signal, () => {}) as SerialCaptureResult;
+        const expected = change === 'trust' ? 'WORKSPACE_UNTRUSTED' : change === 'readiness' ? 'CLI_NOT_READY'
+            : change === 'cancellation' ? 'CANCELED' : 'STALE_INPUT';
+        assert.equal(result.status, change === 'cancellation' ? 'canceled' : 'failed');
+        assert.equal(result.stopReason, change === 'cancellation' ? 'canceled' : 'context_changed');
+        assert.equal(result.error?.code, expected);
+        assert.equal(result.output, 'Booted with <redacted>\n');
+        assert.equal(result.receivedBytes, captured().receivedBytes);
+        assert.equal(result.durationMs, 1000);
+        assert.match(result.notes.at(-1)!, /does not establish which sketch or firmware/);
+        assert.equal(f.invalidated(), 0);
+    }
+});
 
 function installed(target: ProjectInspection): LibraryInstallationResult {
     return {

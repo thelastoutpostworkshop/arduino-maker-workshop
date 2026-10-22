@@ -72,6 +72,13 @@ export interface InspectionInput {
 
 export type ExampleSource = 'board' | 'libraries' | 'all';
 
+export interface SerialCaptureRequest {
+    port: string;
+    baudRate: number;
+    durationMs: number;
+    maxOutputBytes: number;
+}
+
 export interface AiToolInput extends InspectionInput {
     query?: string;
     limit?: number;
@@ -79,6 +86,10 @@ export interface AiToolInput extends InspectionInput {
     library?: string;
     version?: string;
     log?: string;
+    port?: string;
+    baudRate?: number;
+    durationMs?: number;
+    maxOutputBytes?: number;
 }
 
 /** Fixed CLI queries constructed from validated inputs and inspected project targets. */
@@ -113,7 +124,8 @@ export interface OperationProgress {
 }
 
 export type AiToolName = 'get_project_context' | 'list_boards' | 'list_ports' | 'list_dependencies' |
-    'get_board_details' | 'search_libraries' | 'list_examples' | 'compile_sketch' | 'decode_esp32_backtrace' | 'install_library';
+    'get_board_details' | 'search_libraries' | 'list_examples' | 'compile_sketch' | 'decode_esp32_backtrace' | 'install_library' |
+    'capture_serial_output';
 
 export type AiToolHandler = (
     name: AiToolName,

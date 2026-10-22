@@ -2,7 +2,7 @@
 
 Connect Codex, Claude Code, or Copilot to inspect your Arduino projects, discover
 boards, libraries, and examples, check dependencies, install indexed libraries,
-compile sketches, and decode ESP32 crash logs.
+compile sketches, capture serial output, and decode ESP32 crash logs.
 Compile progress appears in VS Code's Arduino CLI Output panel and status bar,
 with the usual cancel control.
 
@@ -95,9 +95,11 @@ the appropriate tool; you do not need to enter tool arguments yourself.
 | `list_examples` | Lists names and paths of board and installed-library examples, optionally filtered by library name. It does not open, copy, or run them. |
 | `compile_sketch` | Compiles the requested sketch and profile, returning errors and warnings with source locations, flash/RAM usage, libraries and board platforms used with their versions and paths, the Arduino CLI version, and build artifact paths when available. You can also request a clean build. |
 | `decode_esp32_backtrace` | Decodes a pasted ESP32 crash log using the matching sketch/profile build, returning functions, files, and line numbers where available. It does not compile or access your board. |
+| `capture_serial_output` | Captures serial text from an explicit port at a specified baud rate, for a limited duration and output size. Returns the text, timing, stop reason, and any truncation. |
 
 This integration does not currently provide firmware upload, board reset or erase,
-bootloader flashing, serial monitoring, board-platform installation, or library
+bootloader flashing, continuous serial monitoring, sending serial commands,
+board-platform installation, or library
 installation from Git repositories, ZIP files, URLs, or local paths.
 
 ### Prompt examples
@@ -109,7 +111,11 @@ and `[library name]` with an exact library name. For installation, first search
 the index and use a returned name and available version for `[library name]`
 and `[version]`; for library examples, use an installed library's name. For crash decoding,
 replace `[paste crash log here]` with the actual log text, including its backtrace
-or exception program-counter lines.
+or exception program-counter lines. For serial capture, first list connected ports
+and replace `[port]` with the exact serial address, such as `COM5`, `/dev/ttyUSB0`,
+or `/dev/cu.usbmodem1101`. Replace `115200` with your running firmware's baud rate.
+The board must already have firmware that prints serial text lines; upload it
+normally before trying capture.
 
 Compare the response with the expected result; for compilation, also check the
 Arduino CLI Output panel in VS Code.
@@ -135,6 +141,8 @@ Arduino CLI Output panel in VS Code.
 | Clean compilation | Perform a clean compilation of my current sketch with its current board or profile and show the generated file paths. | Runs a clean build with the current target, reports the outcome in Arduino CLI Output, and lists available artifact paths on success. |
 | Decode an ESP32 crash | Decode this ESP32 crash log for my current sketch and show the functions, source files, and line numbers: [paste crash log here] | Requires the unchanged successful AI build that matches the firmware producing this crash. Shows resolved frames and identifies unresolved addresses. Compiles nothing and opens no serial port. |
 | Decode a profile's crash | Decode this ESP32 crash log for my current sketch using the [profile name] profile: [paste crash log here] | Uses that profile's matching build only; the profile selected in Home stays unchanged. Missing or stale builds are reported instead of using another profile's ELF. |
+| Capture serial output | For my current sketch, capture serial output from [port] at 115200 baud for 10 seconds, with an 8192-byte output limit. Show the captured text and explain why capture stopped. | Returns output, elapsed time, and whether the duration or output limit ended capture. Uses the explicit port; it does not change the port selected in Home or verify which firmware is running. An existing Serial Monitor on that port is stopped and left stopped. |
+| Check the capture limit | For my current sketch, capture serial output from [port] at 115200 baud for 30 seconds, with a 1024-byte output limit. | With firmware that prints enough lines, stops early at the output limit and reports shortened output. With less output, stops at the duration limit. |
 
 Compile results retain logs and report when details are unavailable or shortened.
 Memory summaries recognize standard English and French Arduino CLI output;
@@ -163,8 +171,35 @@ exception program counter. Decoding covers up to 128 unique program-counter
 addresses and reports unresolved frames when symbols or
 source locations are unavailable. Unsupported boards, missing tools, and missing,
 changed, or mismatched builds are reported without substituting another build.
-Capture the log yourself; serial capture and firmware upload are not available
-through this integration.
+Paste a log you recorded yourself, or ask the assistant to capture serial output
+first. Firmware upload is not available through this integration.
+
+### Serial capture
+
+List connected ports first and choose the board's serial port and the baud rate
+used by its running firmware. Capture uses 8 data bits, no parity, and 1 stop bit
+(8-N-1). It accepts integer baud rates from 300 to 2,000,000; the installed serial
+monitor must support the chosen rate. No board selection, build, or profile is
+required. The assistant cannot verify that the firmware running on that port
+belongs to the current sketch.
+
+Specify a duration from 1 to 60 seconds and an output limit from 1 to 64 KiB.
+Capture stops when either limit is reached. Its duration includes CLI startup;
+the elapsed time also includes releasing the port. Output is UTF-8 text and may
+include CLI startup messages. An unfinished final line may be omitted when capture
+stops, and the result reports truncation. Empty output does not prove the port
+opened successfully; check the baud rate and that the firmware prints lines.
+
+Wait for compilation, upload, or library operations to finish first. If VS Code's
+Serial Monitor is using the requested port, capture stops it and leaves it stopped;
+reopen it normally afterward if needed. Other applications can keep the port busy.
+Compilation and upload in this extension's window are blocked while capture runs.
+You can cancel capture in VS Code or your AI client. Completion, cancellation,
+client disconnect, and detected device removal release the capture process.
+
+Capture sends no serial commands and does not intentionally reset the board, but
+opening a serial port can reset some boards. It does not upload firmware or change
+your selected port or profile. Interrupted capture is never restarted automatically.
 
 ### Boards, libraries, and examples
 

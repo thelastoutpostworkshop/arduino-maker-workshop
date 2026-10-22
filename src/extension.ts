@@ -143,6 +143,7 @@ export async function activate(context: ExtensionContext) {
 		discover: (kind, signal) => arduinoCLI.discoverForAssistant(kind, signal),
 		query: (query, signal) => arduinoCLI.queryForAssistant(query, signal),
 		decode: (target, log, signal, progress) => arduinoCLI.decodeBacktraceForAssistant(target, log, signal, progress),
+		capture: (target, request, signal, progress, assertCurrent) => arduinoCLI.captureSerialForAssistant(target, request, signal, progress, assertCurrent),
 		install: (target, library, version, signal, progress, assertCurrent) => arduinoCLI.installLibraryForAssistant(
 			target, library, version, signal, progress, assertCurrent, (inventory, outdated) => {
 				VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: '', payload: JSON.stringify(inventory ?? null) });

@@ -10,9 +10,10 @@ import { createAiOperationHandler } from '../operations';
 import { inspectProject } from '../projectInspection';
 import { runProcess } from '../processRunner';
 import { collectSensitiveValues } from '../redaction';
-import type { AiDiscoveryQuery, ProjectInspection } from '../contracts';
+import { AiBridgeError, type AiDiscoveryQuery, type ProjectInspection, type SerialCaptureRequest } from '../contracts';
 import type { BacktraceDecodeResult } from '../backtrace';
 import type { LibraryInstallationResult } from '../libraryInstallation';
+import type { SerialCaptureResult } from '../serialCapture';
 import { CompileOutputCollector } from '../compileOutput';
 import { snapshotCompileArtifacts, collectCompileArtifacts, unavailableCompileArtifacts } from '../compileArtifacts';
 
@@ -30,6 +31,7 @@ async function fixture() {
     const queries: AiDiscoveryQuery[] = [];
     const decodes: { target: ProjectInspection; log: string }[] = [];
     const installations: { target: ProjectInspection; library: string; version: string }[] = [];
+    const captures: { target: ProjectInspection; request: SerialCaptureRequest }[] = [];
     let partialDecode = false;
     let started!: () => void;
     const startedPromise = new Promise<void>(resolve => { started = resolve; });
@@ -89,6 +91,22 @@ async function fixture() {
                 exitCode: 0, stdout: 'Library installed.', stderr: '', truncated: false, durationMs: 1,
                 notes: ['Profile declarations and isolated profile dependencies are unchanged.'],
             };
+        },
+        capture: async (target, request, signal, progress, assertCurrent): Promise<SerialCaptureResult> => {
+            assertCurrent();
+            captures.push({ target, request });
+            progress({ message: 'Capturing fixture serial output.' });
+            if (mode === 'waiting') {
+                started();
+                await new Promise<void>((_resolve, reject) => signal.addEventListener('abort', () => {
+                    reject(new AiBridgeError('CANCELED', 'Capture canceled'));
+                }, { once: true }));
+            }
+            return { schemaVersion: 1, request, status: 'success', stopReason: 'duration',
+                output: 'Sensor: 21\n', stderr: '', receivedBytes: 11, returnedBytes: 11,
+                truncated: false, stderrTruncated: false, startedAt: '2026-01-01T00:00:00.000Z',
+                completedAt: '2026-01-01T00:00:10.000Z', durationMs: 10000, exitCode: null, signal: null,
+                notes: ['The running firmware is not verified against this sketch.'] };
         },
         compile: async (target, signal, progress) => {
             compiles++;
@@ -154,7 +172,7 @@ async function fixture() {
     await request(1, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'simulated-client', version: 'test' } });
     send({ jsonrpc: '2.0', method: 'notifications/initialized' });
     return {
-        sketchPath, request, send, notifications, startedPromise, queries, decodes, installations, input: child.stdin,
+        sketchPath, request, send, notifications, startedPromise, queries, decodes, installations, captures, input: child.stdin,
         addProfile: () => fs.writeFile(path.join(sketchPath, 'sketch.yaml'), 'profiles:\n  release:\n    fqbn: arduino:avr:uno\n    platforms:\n      - platform: arduino:avr (1.8.6)\n    libraries:\n      - Missing (1.0.0)\n'),
         addEsp32Profile: () => fs.writeFile(path.join(sketchPath, 'sketch.yaml'), 'profiles:\n  debug:\n    fqbn: esp32:esp32:esp32\n    platforms:\n      - platform: esp32:esp32 (3.3.2)\n'),
         mode: (value: typeof mode) => { mode = value; },
@@ -185,7 +203,7 @@ test('standalone packaged bridge reaches extension operations and reports compil
     const f = await fixture();
     try {
         const tools = await f.request(2, 'tools/list');
-        assert.equal(tools.result.tools.length, 11);
+        assert.equal(tools.result.tools.length, 12);
         const context = await f.request(3, 'tools/call', { name: 'get_project_context', arguments: { sketchPath: f.sketchPath } });
         assert.equal(context.result.structuredContent.fqbn, 'arduino:avr:uno');
         const compile = await f.request(4, 'tools/call', { name: 'compile_sketch', arguments: { sketchPath: f.sketchPath }, _meta: { progressToken: 'compile-progress' } });
@@ -350,6 +368,48 @@ test('standalone packaged bridge routes exact library installation, profile and 
         assert.equal(f.installations.length, 1, 'Unsupported source options never reach the installer.');
         assert.equal(f.compiles(), 0);
         assert.equal(f.decodes.length, 0);
+    } finally { await f.close(); }
+});
+
+test('standalone packaged bridge returns serial output, explicit capture settings, timing and progress', async () => {
+    const f = await fixture();
+    try {
+        const settings = { port: 'COM5', baudRate: 115200, durationMs: 10000, maxOutputBytes: 8192 };
+        const response = await f.request(2, 'tools/call', { name: 'capture_serial_output',
+            arguments: { sketchPath: f.sketchPath, ...settings }, _meta: { progressToken: 'serial-progress' } });
+        assert.equal(response.error, undefined, JSON.stringify(response));
+        assert.equal(response.result.isError, false);
+        const capture = response.result.structuredContent;
+        assert.equal(capture.status, 'success');
+        assert.equal(capture.output, 'Sensor: 21\n');
+        assert.equal(capture.stopReason, 'duration');
+        assert.equal(capture.durationMs, 10000);
+        assert.equal(capture.truncated, false);
+        assert.deepEqual(capture.request, settings);
+        assert.deepEqual(JSON.parse(response.result.content[0].text), capture);
+        assert.ok(f.notifications.some(frame => frame.method === 'notifications/progress' && frame.params.progressToken === 'serial-progress'));
+        assert.equal(f.captures.length, 1);
+        assert.equal(f.captures[0].target.sketchPath, f.sketchPath);
+        assert.deepEqual(f.captures[0].request, settings);
+        const invalid = await f.request(3, 'tools/call', { name: 'capture_serial_output',
+            arguments: { sketchPath: f.sketchPath, ...settings, profile: 'release' } });
+        assert.equal(invalid.error?.code, -32602);
+        assert.equal(f.captures.length, 1);
+        assert.equal(f.compiles(), 0, 'Serial capture must not create a build or imply firmware provenance');
+    } finally { await f.close(); }
+});
+
+test('packaged bridge forwards MCP cancellation to serial capture without retrying', async () => {
+    const f = await fixture();
+    try {
+        f.mode('waiting');
+        const capture = f.request(2, 'tools/call', { name: 'capture_serial_output', arguments: {
+            sketchPath: f.sketchPath, port: 'COM5', baudRate: 115200, durationMs: 10000, maxOutputBytes: 8192,
+        } });
+        await f.startedPromise;
+        f.send({ jsonrpc: '2.0', method: 'notifications/cancelled', params: { requestId: 2 } });
+        assert.equal((await capture).error.code, -32800);
+        assert.equal(f.captures.length, 1);
     } finally { await f.close(); }
 });
 

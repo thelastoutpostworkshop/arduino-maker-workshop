@@ -1,12 +1,34 @@
 import * as path from 'node:path';
-import { AiBridgeError, type AiToolInput, type AiToolName } from './contracts';
+import { AiBridgeError, type AiToolInput, type AiToolName, type SerialCaptureRequest } from './contracts';
 
 export const AI_TOOL_NAMES: readonly AiToolName[] = [
     'get_project_context', 'list_dependencies', 'list_boards', 'list_ports',
     'get_board_details', 'search_libraries', 'list_examples', 'compile_sketch',
     'decode_esp32_backtrace',
     'install_library',
+    'capture_serial_output',
 ];
+
+export const SERIAL_CAPTURE_PORT_PATTERN = '^(?:[Cc][Oo][Mm][1-9][0-9]*|/dev/(?:tty[A-Za-z0-9._-]+|cu\\.[A-Za-z0-9._-]+|serial/(?:[A-Za-z0-9_-][A-Za-z0-9._:+-]*/)*[A-Za-z0-9_-][A-Za-z0-9._:+-]*))$(?![\\s\\S])';
+export const SERIAL_CAPTURE_MIN_BAUD_RATE = 300;
+export const SERIAL_CAPTURE_MAX_BAUD_RATE = 2000000;
+export const SERIAL_CAPTURE_MIN_DURATION_MS = 1000;
+export const SERIAL_CAPTURE_MAX_DURATION_MS = 60000;
+export const SERIAL_CAPTURE_MIN_OUTPUT_BYTES = 1024;
+export const SERIAL_CAPTURE_MAX_OUTPUT_BYTES = 65536;
+
+/** Restrict capture to an explicit local serial address and bounded numeric settings. */
+export function validateSerialCapture(port: unknown, baudRate: unknown, durationMs: unknown, maxOutputBytes: unknown): SerialCaptureRequest {
+    const boundedInteger = (value: unknown, min: number, max: number): value is number =>
+        typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max;
+    if (typeof port !== 'string' || port.length > 256 || !new RegExp(SERIAL_CAPTURE_PORT_PATTERN).test(port) ||
+        !boundedInteger(baudRate, SERIAL_CAPTURE_MIN_BAUD_RATE, SERIAL_CAPTURE_MAX_BAUD_RATE) ||
+        !boundedInteger(durationMs, SERIAL_CAPTURE_MIN_DURATION_MS, SERIAL_CAPTURE_MAX_DURATION_MS) ||
+        !boundedInteger(maxOutputBytes, SERIAL_CAPTURE_MIN_OUTPUT_BYTES, SERIAL_CAPTURE_MAX_OUTPUT_BYTES)) {
+        throw new AiBridgeError('INVALID_ARGUMENTS', 'Serial capture requires a local serial port, an integer baud rate from 300 to 2000000, a duration from 1000 to 60000 ms, and an output limit from 1024 to 65536 bytes.');
+    }
+    return { port, baudRate, durationMs, maxOutputBytes };
+}
 
 export const MAX_BACKTRACE_LOG_BYTES = 8192;
 export const LIBRARY_INSTALL_NAME_PATTERN = '^ *[A-Za-z0-9][A-Za-z0-9 _.-]*$(?![\\s\\S])';
@@ -46,7 +68,8 @@ export function validateToolCall(name: unknown, input: unknown): { name: AiToolN
         input.sketchPath.length > 32768 || /[\x00-\x1f\x7f]/.test(input.sketchPath)) {
         throw new AiBridgeError('INVALID_ARGUMENTS', 'An absolute sketchPath is required.');
     }
-    const allowed = ['sketchPath', 'profile', ...(name === 'compile_sketch' ? ['clean'] :
+    const allowed = name === 'capture_serial_output' ? ['sketchPath', 'port', 'baudRate', 'durationMs', 'maxOutputBytes'] :
+        ['sketchPath', 'profile', ...(name === 'compile_sketch' ? ['clean'] :
         name === 'install_library' ? ['library', 'version'] :
         name === 'decode_esp32_backtrace' ? ['log'] :
         name === 'search_libraries' ? ['query', 'limit'] : name === 'list_examples' ? ['source', 'library', 'limit'] : [])];
@@ -61,9 +84,10 @@ export function validateToolCall(name: unknown, input: unknown): { name: AiToolN
         throw new AiBridgeError('INVALID_ARGUMENTS', 'The operation arguments are invalid.');
     }
     const installation = name === 'install_library' ? validateLibraryInstall(input.library, input.version) : {};
+    const capture = name === 'capture_serial_output' ? validateSerialCapture(input.port, input.baudRate, input.durationMs, input.maxOutputBytes) : {};
     return {
         name: name as AiToolName,
         input: { ...input, ...(typeof input.query === 'string' ? { query: input.query.trim() } : {}),
-            ...(typeof input.library === 'string' ? { library: input.library.trim() } : {}), ...installation } as unknown as AiToolInput,
+            ...(typeof input.library === 'string' ? { library: input.library.trim() } : {}), ...installation, ...capture } as unknown as AiToolInput,
     };
 }

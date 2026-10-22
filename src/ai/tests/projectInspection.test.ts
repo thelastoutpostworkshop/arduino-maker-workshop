@@ -314,7 +314,8 @@ test('header edits during assistant preflight or compilation reject stale builds
             };
         },
         discover: async () => ({}), query: async () => ({}), decode: async () => { throw new Error('Unexpected decoding.'); },
-        install: async () => { throw new Error('Unexpected library installation.'); }, invalidateBuild: () => { invalidations++; },
+        install: async () => { throw new Error('Unexpected library installation.'); },
+        capture: async () => { throw new Error('Unexpected serial capture.'); }, invalidateBuild: () => { invalidations++; },
     });
     const compile = () => handler('compile_sketch', { sketchPath: f.sketch }, new AbortController().signal, () => {
         if (changeDuringPreflight) { fs.appendFileSync(source, 'changed during preflight\n'); }

@@ -61,7 +61,7 @@ Home shows a short status summary and a link to the AI integration page. Turn
 revoke access across windows in the same profile; saved client entries stay intact.
 
 Ask your assistant to inspect projects and board options, find libraries and examples,
-check dependencies, list ports, or compile sketches. See the [AI assistant guide](AI_ASSISTANTS.md) for setup,
+check dependencies, compile sketches, or capture serial output. See the [AI assistant guide](AI_ASSISTANTS.md) for setup,
 prompt examples, and limitations.
 
 ### Profiles Manager (Reproducible build profiles)

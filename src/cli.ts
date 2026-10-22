@@ -10,12 +10,14 @@ import { ArduinoDebugInfo, createCortexDebugConfiguration, findCortexDebugConfig
 import type { CliOutputView } from "./cliOutputView";
 import { randomUUID } from 'node:crypto';
 import { runProcess } from './ai/processRunner';
-import { AiBridgeError, type AiDiscoveryQuery, type AiOperationResult, type OperationProgress, type ProjectInspection } from './ai/contracts';
+import { AiBridgeError, type AiDiscoveryQuery, type AiOperationResult, type OperationProgress, type ProjectInspection, type SerialCaptureRequest } from './ai/contracts';
 import { collectSensitiveValues, redactText } from './ai/redaction';
 import { CompileOutputCollector, unavailableCompileOutput } from './ai/compileOutput';
 import { snapshotCompileArtifacts, collectCompileArtifacts, unavailableCompileArtifacts, type CompileArtifactSnapshot } from './ai/compileArtifacts';
 import { createBacktraceBuildRecord, decodeEsp32Backtrace, type BacktraceBuildRecord, type BacktraceDecodeResult } from './ai/backtrace';
 import { installLibraryForTarget, type LibraryInstallationResult } from './ai/libraryInstallation';
+import { captureSerialOutput, type SerialCaptureResult } from './ai/serialCapture';
+import { validateSerialCapture } from './ai/toolInputs';
 
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
 
@@ -41,8 +43,10 @@ export class ArduinoCLI {
 	public arduinoCLIPath: string = "";
 	public compileOrUploadRunning: boolean = false;
 	private assistantLibraryInstallRunning = false;
+	private assistantSerialCaptureRunning = false;
 	private packageOperations = 0;
 	private serialMonitorAPI: SerialMonitorApi | undefined = undefined;
+	private readonly serialMonitorReady: Promise<void>;
 	private arduinoCLIChannel: OutputChannel;
 	private cliArgs = new CLIArguments();
 	private _lastCLIError: string = "";
@@ -56,7 +60,7 @@ export class ArduinoCLI {
 		this.cliCache = new CliCache(cacheDirectory);
 		arduinoExtensionChannel.appendLine(`arduino-cli cache created: ${cacheDirectory}`)
 
-		getSerialMonitorApi(Version.latest, context)
+		this.serialMonitorReady = getSerialMonitorApi(Version.latest, context)
 			.then((api) => {
 				this.serialMonitorAPI = api;
 			})
@@ -498,6 +502,93 @@ export class ArduinoCLI {
 			}
 			return data;
 		} catch { throw new AiBridgeError('INVALID_CLI_OUTPUT', 'Arduino CLI discovery did not return valid JSON.'); }
+	}
+
+	/** Temporarily owns the requested physical serial port; never writes to it. */
+	public async captureSerialForAssistant(target: ProjectInspection, request: SerialCaptureRequest, signal: AbortSignal,
+		progress: (value: OperationProgress) => void, assertCurrent: () => void): Promise<SerialCaptureResult> {
+		const validated = validateSerialCapture(request.port, request.baudRate, request.durationMs, request.maxOutputBytes);
+		if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Trust this workspace before capturing serial output.'); }
+		if (signal.aborted) { throw new AiBridgeError('CANCELED', 'Serial capture was canceled.'); }
+		if (!this.arduinoCLIPath) { throw new AiBridgeError('CLI_NOT_READY', 'Arduino CLI is not ready.'); }
+		if (this.compileOrUploadRunning || this.packageOperations > 0) { throw new AiBridgeError('BUSY', 'Another Arduino operation is running in this window.'); }
+		assertCurrent();
+		this.compileOrUploadRunning = true;
+		this.assistantSerialCaptureRunning = true;
+		const controller = new AbortController();
+		const abort = () => controller.abort();
+		signal.addEventListener('abort', abort, { once: true });
+		let preparationError: AiBridgeError | undefined;
+		let monitorStopped = false;
+		let monitorStopRequested = false;
+		const preparationTimer = setTimeout(() => {
+			preparationError = new AiBridgeError('SERIAL_PREPARATION_TIMEOUT', 'Serial port discovery or Serial Monitor coordination timed out.');
+			controller.abort();
+		}, 30000);
+		const guard = () => {
+			if (preparationError) { throw preparationError; }
+			if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Workspace trust changed during serial capture.'); }
+			if (controller.signal.aborted) { throw new AiBridgeError('CANCELED', 'Serial capture was canceled.'); }
+			assertCurrent();
+		};
+		// The optional Serial Monitor API has no cancellation parameter. Stop waiting
+		// if the client disconnects, and never start capture after that point.
+		const abortable = <T>(operation: Promise<T>): Promise<T> => new Promise((resolve, reject) => {
+			const canceled = () => reject(preparationError ?? new AiBridgeError('CANCELED', 'Serial capture was canceled.'));
+			controller.signal.addEventListener('abort', canceled, { once: true });
+			operation.then(value => { controller.signal.removeEventListener('abort', canceled); resolve(value); },
+				error => { controller.signal.removeEventListener('abort', canceled); reject(error); });
+			if (controller.signal.aborted) { controller.signal.removeEventListener('abort', canceled); canceled(); }
+		});
+		try {
+			updateStateCompileUpload();
+			return await window.withProgress({ location: ProgressLocation.Notification,
+				title: `Capturing ${validated.port} at ${validated.baudRate} baud for assistant`, cancellable: true }, async (_progress, token) => {
+				const cancellation = token.onCancellationRequested(abort);
+				try {
+					if (signal.aborted || token.isCancellationRequested) { controller.abort(); }
+					guard();
+					progress({ message: 'Checking the requested serial port...' });
+					const discovered = await this.runAssistantDiscovery(['board', 'list', '--json'], controller.signal);
+					guard();
+					const ports = (discovered as { detected_ports?: { port?: { address?: string; protocol?: string } }[] })?.detected_ports;
+					if (!Array.isArray(ports)) { throw new AiBridgeError('INVALID_CLI_OUTPUT', 'Port discovery did not return a serial port list.'); }
+					const samePort = (address: unknown) => typeof address === 'string' &&
+						(/^COM\d+$/i.test(validated.port) ? address.toUpperCase() === validated.port.toUpperCase() : address === validated.port);
+					const detectedPort = ports.find(entry => entry?.port?.protocol === 'serial' && samePort(entry.port.address))?.port?.address;
+					if (!detectedPort) {
+						throw new AiBridgeError('SERIAL_PORT_NOT_FOUND', 'The requested serial port is not connected. List ports again and choose a physical serial port.');
+					}
+					await abortable(this.serialMonitorReady);
+					guard();
+					if (this.serialMonitorAPI) {
+						monitorStopRequested = true;
+						try { monitorStopped = await abortable(this.serialMonitorAPI.stopMonitoringPort(detectedPort)); }
+						catch (error) {
+							guard();
+							throw new AiBridgeError('SERIAL_MONITOR_BUSY', `Could not stop Serial Monitor on the requested port: ${redactText(error instanceof Error ? error.message : String(error))}`);
+						}
+					}
+					guard();
+					clearTimeout(preparationTimer);
+					const result = await captureSerialOutput({ executable: this.arduinoCLIPath, request: validated,
+						signal: controller.signal, assertCurrent: guard, progress, sensitiveValues: collectSensitiveValues(target.compileArgs) });
+					if (monitorStopped) { result.notes.push('Serial Monitor was stopped on this port for capture. Restart it manually when needed.'); }
+					return result;
+				} finally { cancellation.dispose(); }
+			});
+		} catch (error) {
+			const issue = preparationError ?? error;
+			if (monitorStopped && issue instanceof Error) { issue.message += ' Serial Monitor was stopped on this port; restart it manually when needed.'; }
+			else if (monitorStopRequested && issue instanceof Error) { issue.message += ' Serial Monitor may have been stopped on this port; restart it manually when needed.'; }
+			throw issue;
+		} finally {
+			clearTimeout(preparationTimer);
+			signal.removeEventListener('abort', abort);
+			this.assistantSerialCaptureRunning = false;
+			this.compileOrUploadRunning = false;
+			updateStateCompileUpload();
+		}
 	}
 
 	public async installLibraryForAssistant(target: ProjectInspection, library: string, version: string, signal: AbortSignal,
@@ -947,18 +1038,11 @@ export class ArduinoCLI {
 			errorMsg = "Failed to upload";
 		}
 
-		if (this.serialMonitorAPI) {
-			let port
-			if (useBuildProfile) {
-				port = arduinoYaml.getProfilePort(arduinoYaml.getProfileName());
-			} else {
-				port = arduinoProject.getPort();
-			}
-			if (port) {
-				this.serialMonitorAPI.stopMonitoringPort(port);
-			}
-		}
 		try {
+			if (this.serialMonitorAPI) {
+				const port = useBuildProfile ? arduinoYaml.getProfilePort(arduinoYaml.getProfileName()) : arduinoProject.getPort();
+				if (port) { await this.serialMonitorAPI.stopMonitoringPort(port); }
+			}
 			if (!useBuildProfile && arduinoProject.useProgrammer()) {
 				uploadTitle += ` using programmer ${arduinoProject.getProgrammer()}`;
 			}
@@ -1005,7 +1089,7 @@ export class ArduinoCLI {
 							const monitorPortSettings = arduinoYaml.getProfileMonitorPortSettings(profileName);
 							if (monitorPortSettings) {
 								arduinoExtensionChannel.appendLine(`Starting serial monitor with build profile '${profileName}': ${JSON.stringify(monitorPortSettings)}`);
-								this.serialMonitorAPI.startMonitoringPort(monitorPortSettings).then((port) => {
+								await this.serialMonitorAPI.startMonitoringPort(monitorPortSettings).then((port) => {
 									arduinoExtensionChannel.appendLine(`Serial monitor started on port ${port}`);
 								}).catch((err) => {
 									arduinoExtensionChannel.appendLine(`Error starting serial monitor: ${err.message}`);
@@ -1016,7 +1100,7 @@ export class ArduinoCLI {
 						} else {
 							monitorPortSettings = arduinoProject.getMonitorPortSettings();
 							arduinoExtensionChannel.appendLine(`Starting serial monitor with settings: ${JSON.stringify(monitorPortSettings)}`);
-							this.serialMonitorAPI.startMonitoringPort(monitorPortSettings).then((port) => {
+							await this.serialMonitorAPI.startMonitoringPort(monitorPortSettings).then((port) => {
 								arduinoExtensionChannel.appendLine(`Serial monitor started on port ${port}`);
 							}).catch((err) => {
 								arduinoExtensionChannel.appendLine(`Error starting serial monitor: ${err.message}`);
@@ -1438,9 +1522,9 @@ export class ArduinoCLI {
 			}
 			packageOperation = ['lib', 'core'].includes(args[0]) && ['install', 'uninstall', 'upgrade', 'update-index'].includes(args[1])
 				|| args[0] === 'config' && ['set', 'add', 'delete', 'remove', 'init'].includes(args[1]);
-			if (packageOperation && this.assistantLibraryInstallRunning) {
+			if (packageOperation && (this.assistantLibraryInstallRunning || this.assistantSerialCaptureRunning)) {
 				packageOperation = false;
-				throw new AiBridgeError('BUSY', 'An assistant library installation is running in this window.');
+				throw new AiBridgeError('BUSY', 'An assistant library installation or serial capture is running in this window.');
 			}
 			if (packageOperation) { this.packageOperations++; }
 			if (coloredOutputView) {

@@ -1,4 +1,5 @@
-import { AiBridgeError, AiDiscoveryQuery, AiOperationResult, AiToolHandler, InspectionInput, OperationProgress, ProjectInspection } from './contracts';
+import { StringDecoder } from 'node:string_decoder';
+import { AiBridgeError, AiDiscoveryQuery, AiOperationResult, AiToolHandler, InspectionInput, OperationProgress, ProjectInspection, SerialCaptureRequest } from './contracts';
 import { collectSensitiveValues, redactForAssistant } from './redaction';
 import { buildDependencyReport } from './dependencies';
 import { buildBoardDetails, buildLibrarySearch, buildExamples } from './discovery';
@@ -8,6 +9,7 @@ import { unavailableCompileOutput } from './compileOutput';
 import { unavailableCompileDependencies } from './compileDependencies';
 import type { BacktraceDecodeResult } from './backtrace';
 import type { LibraryInstallationResult } from './libraryInstallation';
+import type { SerialCaptureResult } from './serialCapture';
 
 export interface AiOperationDependencies {
     isTrusted(): boolean;
@@ -21,6 +23,8 @@ export interface AiOperationDependencies {
     decode(target: ProjectInspection, log: string, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<BacktraceDecodeResult>;
     install(target: ProjectInspection, library: string, version: string, signal: AbortSignal,
         progress: (value: OperationProgress) => void, assertCurrent: () => void): Promise<LibraryInstallationResult>;
+    capture(target: ProjectInspection, request: SerialCaptureRequest, signal: AbortSignal,
+        progress: (value: OperationProgress) => void, assertCurrent: () => void): Promise<SerialCaptureResult>;
     discover(kind: 'boards' | 'ports' | 'cores' | 'libraries', signal: AbortSignal): Promise<unknown>;
     query(query: AiDiscoveryQuery, signal: AbortSignal): Promise<unknown>;
     invalidateBuild(target: ProjectInspection): void;
@@ -58,6 +62,50 @@ export function createAiOperationHandler(dependencies: AiOperationDependencies):
         }
         if (!dependencies.isReady()) {
             throw new AiBridgeError('CLI_NOT_READY', 'Arduino CLI is not ready. Resolve its setup in Arduino Home and reconnect.');
+        }
+        if (name === 'capture_serial_output') {
+            if (compilePending || discoveryPending) {
+                throw new AiBridgeError('BUSY', 'Another assistant operation is pending or running in this window.');
+            }
+            discoveryPending = true;
+            try {
+                const toolchain = JSON.stringify(dependencies.cliInfo());
+                // Capture reads the running device. Editing source or selecting a
+                // different board/profile does not change the explicitly chosen port.
+                const assertCurrent = () => {
+                    assertAvailable();
+                    if (!dependencies.isReady()) {
+                        throw new AiBridgeError('CLI_NOT_READY', 'Arduino CLI is no longer ready. Resolve its setup before capturing serial output.');
+                    }
+                    if (dependencies.activeSketchPath() !== activePath || JSON.stringify(dependencies.cliInfo()) !== toolchain) {
+                        throw new AiBridgeError('STALE_INPUT', 'The active sketch or toolchain changed during serial capture. Request fresh context before capturing again.');
+                    }
+                };
+                const request: SerialCaptureRequest = { port: input.port!, baudRate: input.baudRate!,
+                    durationMs: input.durationMs!, maxOutputBytes: input.maxOutputBytes! };
+                progress({ message: 'Checking the selected serial port...' });
+                assertCurrent();
+                const result = await dependencies.capture(target, request, signal, progress, assertCurrent);
+                // Keep observations already received from the device if the context
+                // changes at the completion boundary; they are still useful partial logs.
+                if (result.status === 'success') {
+                    try { assertCurrent(); } catch (error) {
+                        const issue = error instanceof AiBridgeError ? error : new AiBridgeError('STALE_INPUT', 'The capture context changed. Request fresh context before capturing again.');
+                        result.status = issue.code === 'CANCELED' ? 'canceled' : 'failed';
+                        result.stopReason = issue.code === 'CANCELED' ? 'canceled' : 'context_changed';
+                        result.error = { code: issue.code, message: issue.message };
+                        result.notes.push('Captured output is retained from the explicitly requested port; it does not establish which sketch or firmware is running.');
+                    }
+                }
+                const redacted = redactForAssistant(result, sensitiveValues) as SerialCaptureResult;
+                const outputBytes = Buffer.from(redacted.output, 'utf8');
+                if (outputBytes.length > request.maxOutputBytes) {
+                    redacted.output = new StringDecoder('utf8').write(outputBytes.subarray(0, request.maxOutputBytes));
+                    redacted.truncated = true;
+                }
+                redacted.returnedBytes = Buffer.byteLength(redacted.output, 'utf8');
+                return redacted;
+            } finally { discoveryPending = false; }
         }
         if (name === 'install_library') {
             if (compilePending || discoveryPending) {

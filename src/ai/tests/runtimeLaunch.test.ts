@@ -158,7 +158,7 @@ for (const client of ['codex', 'claude'] as const) {
         running.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
         const tools = await request('tools/list');
         assert.deepEqual(tools.result?.tools?.map(tool => tool.name).sort(), [
-            'compile_sketch', 'decode_esp32_backtrace', 'get_board_details', 'get_project_context', 'install_library', 'list_boards', 'list_connected_sketches',
+            'capture_serial_output', 'compile_sketch', 'decode_esp32_backtrace', 'get_board_details', 'get_project_context', 'install_library', 'list_boards', 'list_connected_sketches',
             'list_dependencies', 'list_examples', 'list_ports', 'search_libraries',
         ]);
         const discovery = await request('tools/call', { name: 'list_connected_sketches', arguments: {} });

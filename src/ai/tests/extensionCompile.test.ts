@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import * as vm from 'node:vm';
 import { test, type TestContext } from 'node:test';
 import * as ts from 'typescript';
-import { AiBridgeError, type AiDiscoveryQuery, type AiOperationResult, type OperationProgress, type ProjectInspection } from '../contracts';
+import { AiBridgeError, type AiDiscoveryQuery, type AiOperationResult, type OperationProgress, type ProjectInspection, type SerialCaptureRequest } from '../contracts';
 import { inspectProject } from '../projectInspection';
 import { runProcess, type ProcessOptions, type ProcessResult } from '../processRunner';
 import * as redaction from '../redaction';
@@ -12,6 +12,8 @@ import * as compileOutput from '../compileOutput';
 import * as compileArtifacts from '../compileArtifacts';
 import * as backtrace from '../backtrace';
 import * as libraryInstallation from '../libraryInstallation';
+import * as serialCapture from '../serialCapture';
+import * as toolInputs from '../toolInputs';
 
 interface TestedCli {
     arduinoCLIPath: string;
@@ -27,6 +29,10 @@ interface TestedCli {
     runArduinoCommand(args: () => string[], prefix: string, cache: { caching: number; ttl: number }): Promise<string>;
     searchLibrary(): Promise<string>;
     searchCore(): Promise<string>;
+    upload(): Promise<void>;
+    getUploadFieldsForUpload(profile: boolean): Promise<Record<string, string>>;
+    captureSerialForAssistant(target: ProjectInspection, request: SerialCaptureRequest, signal: AbortSignal,
+        progress: (value: OperationProgress) => void, assertCurrent: () => void): Promise<serialCapture.SerialCaptureResult>;
 }
 
 const filename = path.resolve(__dirname, '../../../src/cli.ts');
@@ -73,6 +79,10 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
     let onPrepare: (() => void) | undefined;
     let onDiscovery: (() => void) | undefined;
     let onDecode = backtrace.decodeEsp32Backtrace;
+    let onCapture: typeof serialCapture.captureSerialOutput = async () => { throw new Error('Unexpected serial capture.'); };
+    let onStopMonitor = async (_port: string) => false;
+    let onStartMonitor = async (_settings: unknown) => ({});
+    const stoppedMonitorPorts: string[] = [];
     let processHandler: ((args: string[], options: ProcessOptions) => Promise<ProcessResult>) | undefined;
     let discovery: ProcessResult = { exitCode: 0, signal: null, stdout: '{"boards":[]}', stderr: '', output: '', truncated: false, canceled: false, durationMs: 1 };
     const workspace = {
@@ -93,10 +103,12 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
         arduinoExtensionChannel: outputChannel,
         compileOutputView: outputView, compileStatusBarItem,
         compileStatusBarExecuting: 'compiling', compileStatusBarNotExecuting: 'idle',
+        uploadStatusBarItem: { text: 'idle' }, uploadStatusBarExecuting: 'uploading', uploadStatusBarNotExecuting: 'idle',
         updateStateCompileUpload: () => { invalidations++; },
         arduinoProject: {
             getProjectPath: () => sketch, getBoard: () => 'arduino:avr:uno', getBoardConfiguration: () => '',
-            getProgrammer: () => '', optimizeForDebug: () => false
+            getProgrammer: () => '', optimizeForDebug: () => false, useProgrammer: () => false,
+            getPort: () => 'COM7', getMonitorPortSettings: () => ({ port: 'COM7', baudRate: 115200 })
         },
         arduinoYaml: { status: () => 'inactive', getProfileName: () => 'uno' }
     };
@@ -124,7 +136,10 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
         },
         './extension': extension,
         './shared/messages': { PROFILES_STATUS: { ACTIVE: 'active' } },
-        '@microsoft/vscode-serial-monitor-api': { getSerialMonitorApi: async () => undefined, Version: { latest: 1 } },
+        '@microsoft/vscode-serial-monitor-api': { getSerialMonitorApi: async () => ({ stopMonitoringPort: async (port: string) => {
+            stoppedMonitorPorts.push(port);
+            return onStopMonitor(port);
+        }, startMonitoringPort: (settings: unknown) => onStartMonitor(settings) }), Version: { latest: 1 } },
         './ArduinoProject': { COMPILE_RESULT_FILE: 'compile_result.json', VSCODE_FOLDER: '.vscode' },
         './cliArgs': { CLIArguments }, './config': { ArduinoConfiguration: class {} },
         './cliCache': { CliCache: class {
@@ -137,6 +152,8 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
         './ai/compileOutput': compileOutput, './ai/compileArtifacts': compileArtifacts,
         './ai/backtrace': { ...backtrace, decodeEsp32Backtrace: (options: Parameters<typeof backtrace.decodeEsp32Backtrace>[0]) => onDecode(options) },
         './ai/libraryInstallation': libraryInstallation,
+        './ai/toolInputs': toolInputs,
+        './ai/serialCapture': { captureSerialOutput: (options: Parameters<typeof serialCapture.captureSerialOutput>[0]) => onCapture(options) },
         './ai/processRunner': {
             runProcess: (executable: string, args: string[], options: ProcessOptions) => {
                 calls.push({ executable, args: [...args], options });
@@ -175,6 +192,12 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
         setDiscovery: (result: Partial<ProcessResult>) => { discovery = { ...discovery, ...result }; },
         onDiscovery: (callback: () => void) => { onDiscovery = callback; },
         onDecode: (callback: typeof backtrace.decodeEsp32Backtrace) => { onDecode = callback; },
+        onCapture: (callback: typeof serialCapture.captureSerialOutput) => { onCapture = callback; },
+        onStopMonitor: (callback: typeof onStopMonitor) => { onStopMonitor = callback; },
+        onStartMonitor: (callback: typeof onStartMonitor) => { onStartMonitor = callback; },
+        stoppedMonitorPorts,
+        capture: (request: SerialCaptureRequest = serialRequest, signal = new AbortController().signal, guard = () => {}) =>
+            cli.captureSerialForAssistant(target(), request, signal, value => progress.push(value), guard),
         onProcess: (callback: (args: string[], options: ProcessOptions) => Promise<ProcessResult>) => { processHandler = callback; },
         cancelUi: () => { cancellationRequested = true; for (const listener of [...cancelListeners]) { listener(); } }
     };
@@ -186,6 +209,162 @@ const libraryProcessResult = (value: unknown, overrides: Partial<ProcessResult> 
     truncated: false, canceled: false, durationMs: 1, ...overrides,
 });
 const indexedLibrary = { status: 'success', libraries: [{ name: 'ArduinoJson', available_versions: ['7.3.0'], latest: { version: '7.3.0' } }] };
+
+const serialRequest: SerialCaptureRequest = { port: 'COM7', baudRate: 115200, durationMs: 1000, maxOutputBytes: 4096 };
+function serialResult(status: serialCapture.SerialCaptureResult['status'] = 'success'): serialCapture.SerialCaptureResult {
+    return { schemaVersion: 1, request: serialRequest, status, stopReason: status === 'success' ? 'duration' : 'canceled',
+        output: 'Board ready\n', stderr: '', receivedBytes: 12, returnedBytes: 12, truncated: false, stderrTruncated: false,
+        startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:00:01.000Z', durationMs: 1000,
+        exitCode: null, signal: null, notes: [] };
+}
+const serialDiscovery = { detected_ports: [{ port: { address: serialRequest.port, protocol: 'serial' } }] };
+
+test('assistant capture verifies the physical port, waits for Serial Monitor, and leaves build and Home selections unchanged', async t => {
+    const f = host(t);
+    await f.compile();
+    const marker = fs.readFileSync(path.join(f.target().buildPath, 'compile_result.json'), 'utf8');
+    f.calls.length = 0;
+    f.setDiscovery({ stdout: JSON.stringify(serialDiscovery) });
+    let release!: () => void;
+    const stopped = new Promise<void>(resolve => { release = resolve; });
+    f.onStopMonitor(async () => { await stopped; return true; });
+    let captured = false;
+    f.onCapture(async options => {
+        captured = true;
+        options.assertCurrent();
+        assert.deepEqual(options.request, serialRequest);
+        assert.equal(options.executable, process.execPath);
+        assert.equal(f.cli.compileOrUploadRunning, true);
+        return serialResult();
+    });
+    const pending = f.capture();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(captured, false);
+    assert.equal(f.cli.compileOrUploadRunning, true);
+    assert.deepEqual(f.stoppedMonitorPorts, ['COM7']);
+    assert.equal((await f.compile()).status, 'busy');
+    await f.cli.upload();
+    assert.equal(f.calls.length, 1, 'upload cannot start while capture owns the port');
+    await assert.rejects(f.cli.runArduinoCommand(() => ['core', 'install', 'arduino:avr'], 'install', { caching: 1, ttl: 0 }), { code: 'BUSY' });
+    release();
+    const result = await pending;
+    assert.equal(result.status, 'success');
+    assert.match(result.notes.join(' '), /Serial Monitor was stopped/);
+    assert.deepEqual(f.calls.map(call => call.args), [['board', 'list', '--json']]);
+    assert.equal(f.cli.compileOrUploadRunning, false);
+    assert.equal(fs.readFileSync(path.join(f.target().buildPath, 'compile_result.json'), 'utf8'), marker);
+    assert.equal(fs.readFileSync(f.configurationPath, 'utf8'), f.configuration);
+});
+
+test('assistant capture rejects invalid, missing and network ports before touching Serial Monitor', async t => {
+    const f = host(t);
+    await assert.rejects(f.capture({ ...serialRequest, port: '--help' }), { code: 'INVALID_ARGUMENTS' });
+    assert.equal(f.calls.length, 0);
+    for (const detected of [{ detected_ports: [] }, { detected_ports: [{ port: { address: 'COM7', protocol: 'network' } }] },
+        { detected_ports: [{ port: { address: 'COM70', protocol: 'serial' } }] }]) {
+        f.setDiscovery({ stdout: JSON.stringify(detected) });
+        await assert.rejects(f.capture(), { code: 'SERIAL_PORT_NOT_FOUND' });
+        assert.equal(f.cli.compileOrUploadRunning, false);
+    }
+    f.setDiscovery({ stdout: '{}' });
+    await assert.rejects(f.capture(), { code: 'INVALID_CLI_OUTPUT' });
+    assert.deepEqual(f.stoppedMonitorPorts, []);
+});
+
+test('lowercase COM capture coordinates with the canonical discovered Serial Monitor name', async t => {
+    const f = host(t);
+    f.setDiscovery({ stdout: JSON.stringify(serialDiscovery) });
+    f.onCapture(async options => ({ ...serialResult(), request: options.request }));
+    const result = await f.capture({ ...serialRequest, port: 'com7' });
+    assert.equal(result.status, 'success');
+    assert.deepEqual(f.stoppedMonitorPorts, ['COM7']);
+});
+
+test('manual upload holds the shared lock through Serial Monitor release and acquisition', async t => {
+    const f = host(t);
+    await new Promise(resolve => setImmediate(resolve));
+    let releaseStop!: () => void;
+    const stopped = new Promise<void>(resolve => { releaseStop = resolve; });
+    let releaseStart!: () => void;
+    const started = new Promise<void>(resolve => { releaseStart = resolve; });
+    let uploaded = false;
+    f.onStopMonitor(async () => { await stopped; return true; });
+    f.onStartMonitor(async () => { await started; return {}; });
+    f.cli.getUploadFieldsForUpload = async () => ({});
+    f.cli.runArduinoCommand = async () => { uploaded = true; return ''; };
+    const pending = f.cli.upload();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(uploaded, false, 'upload waits until the existing monitor releases the port');
+    await assert.rejects(f.capture(), { code: 'BUSY' });
+    releaseStop();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(uploaded, true);
+    assert.equal(f.cli.compileOrUploadRunning, true, 'lock stays held while monitor acquisition is pending');
+    await assert.rejects(f.capture(), { code: 'BUSY' });
+    releaseStart();
+    await pending;
+    assert.equal(f.cli.compileOrUploadRunning, false);
+});
+
+test('capture cancellation while waiting for Serial Monitor never opens the port later', async t => {
+    const f = host(t);
+    f.setDiscovery({ stdout: JSON.stringify(serialDiscovery) });
+    let release!: () => void;
+    const stopped = new Promise<void>(resolve => { release = resolve; });
+    f.onStopMonitor(async () => { await stopped; return true; });
+    const controller = new AbortController();
+    const pending = f.capture(serialRequest, controller.signal);
+    await new Promise(resolve => setImmediate(resolve));
+    controller.abort();
+    await assert.rejects(pending, { code: 'CANCELED' });
+    assert.equal(f.cli.compileOrUploadRunning, false);
+    release();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(f.cli.compileOrUploadRunning, false);
+});
+
+test('capture UI cancellation propagates to process cleanup before releasing the operation lock', async t => {
+    const f = host(t);
+    f.setDiscovery({ stdout: JSON.stringify(serialDiscovery) });
+    let entered!: () => void;
+    const ready = new Promise<void>(resolve => { entered = resolve; });
+    let cleanup!: () => void;
+    const cleaned = new Promise<void>(resolve => { cleanup = resolve; });
+    f.onCapture(async options => {
+        entered();
+        await new Promise<void>(resolve => options.signal.addEventListener('abort', () => resolve(), { once: true }));
+        assert.equal(f.cli.compileOrUploadRunning, true);
+        await cleaned;
+        return serialResult('canceled');
+    });
+    const pending = f.capture();
+    await ready;
+    f.cancelUi();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(f.cli.compileOrUploadRunning, true);
+    cleanup();
+    assert.equal((await pending).status, 'canceled');
+    assert.equal(f.cli.compileOrUploadRunning, false);
+});
+
+test('capture stops before opening on context changes and releases locks on monitor errors', async t => {
+    const f = host(t);
+    f.setDiscovery({ stdout: JSON.stringify(serialDiscovery) });
+    let current = true;
+    f.onDiscovery(() => { current = false; });
+    await assert.rejects(f.capture(serialRequest, new AbortController().signal, () => {
+        if (!current) { throw new AiBridgeError('STALE_TARGET', 'Sketch changed.'); }
+    }), { code: 'STALE_TARGET' });
+    assert.deepEqual(f.stoppedMonitorPorts, []);
+    f.onDiscovery(() => {});
+    f.onStopMonitor(async () => { throw new Error('Monitor busy'); });
+    await assert.rejects(f.capture(), { code: 'SERIAL_MONITOR_BUSY' });
+    assert.equal(f.cli.compileOrUploadRunning, false);
+    f.workspace.isTrusted = false;
+    const calls = f.calls.length;
+    await assert.rejects(f.capture(), { code: 'WORKSPACE_UNTRUSTED' });
+    assert.equal(f.calls.length, calls);
+});
 
 test('manual library and board managers retain full JSON indexes and cache stdout without diagnostics', async t => {
     const f = host(t);

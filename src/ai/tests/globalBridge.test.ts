@@ -149,7 +149,7 @@ test('global packaged bridge lists and routes changing connected sketches withou
     const f = await fixture(t);
     const tools = await f.request('tools/list');
     assert.deepEqual(tools.result.tools.map((tool: any) => tool.name).sort(),
-        ['compile_sketch', 'decode_esp32_backtrace', 'get_board_details', 'get_project_context', 'install_library', 'list_boards', 'list_connected_sketches', 'list_dependencies', 'list_examples', 'list_ports', 'search_libraries']);
+        ['capture_serial_output', 'compile_sketch', 'decode_esp32_backtrace', 'get_board_details', 'get_project_context', 'install_library', 'list_boards', 'list_connected_sketches', 'list_dependencies', 'list_examples', 'list_ports', 'search_libraries']);
     assertSketches(await f.list(), []);
     assertSketches(await f.request('tools/call', { name: 'list_connected_sketches' }), []);
 
@@ -170,8 +170,12 @@ test('global packaged bridge lists and routes changing connected sketches withou
     const installed = (await f.call(f.beta, 'install_library', installInput)).result.structuredContent;
     assert.equal(installed.session, 'beta-window');
     assert.deepEqual(installed.input, { sketchPath: f.beta, ...installInput });
+    const captureInput = { port: 'COM5', baudRate: 115200, durationMs: 10000, maxOutputBytes: 8192 };
+    const captured = (await f.call(f.beta, 'capture_serial_output', captureInput)).result.structuredContent;
+    assert.equal(captured.session, 'beta-window');
+    assert.deepEqual(captured.input, { sketchPath: f.beta, ...captureInput });
     assert.deepEqual(alpha.calls, ['get_project_context', 'get_board_details']);
-    assert.deepEqual(beta.calls, ['list_ports', 'list_dependencies', 'search_libraries', 'list_examples', 'decode_esp32_backtrace', 'install_library']);
+    assert.deepEqual(beta.calls, ['list_ports', 'list_dependencies', 'search_libraries', 'list_examples', 'decode_esp32_backtrace', 'install_library', 'capture_serial_output']);
 
     // Simulate one window switching folders while a second window stays connected.
     await alpha.server.dispose();
@@ -288,5 +292,29 @@ test('global packaged installation stays on its sketch and never replays after s
     assert.deepEqual(retried.result.structuredContent.input, { sketchPath: f.alpha, ...args });
     assert.deepEqual(alpha.calls, ['install_library']);
     assert.deepEqual(replacement.calls, ['install_library']);
+    assert.deepEqual(beta.calls, ['get_project_context']);
+});
+
+test('global packaged capture aborts with its session and does not reopen the port in another session', { timeout: 25000 }, async t => {
+    const f = await fixture(t);
+    const alpha = await f.connect(f.alpha, 'capturing-alpha', 'capture_serial_output');
+    const beta = await f.connect(f.beta, 'beta');
+    const args = { port: 'COM5', baudRate: 115200, durationMs: 10000, maxOutputBytes: 8192 };
+    const pending = f.call(f.alpha, 'capture_serial_output', args);
+    await bounded(alpha.started, 'Capture never reached its selected window');
+    const [otherSketch, listing] = await Promise.all([f.call(f.beta), f.list()]);
+    assert.equal(otherSketch.result.structuredContent.session, 'beta');
+    assertSketches(listing, [{ sketchPath: f.alpha, sessionCount: 1 }, { sketchPath: f.beta, sessionCount: 1 }]);
+    assert.equal(alpha.wasAborted(), false);
+    const replacement = await f.connect(f.alpha, 'replacement-alpha');
+    await alpha.server.dispose();
+    await bounded(alpha.aborted, 'Session loss did not abort capture');
+    assertToolError(await pending, 'SESSION_UNAVAILABLE');
+    assert.deepEqual(replacement.calls, [], 'An interrupted capture must not reopen a port in another session');
+    const retried = await f.call(f.alpha, 'capture_serial_output', args);
+    assert.equal(retried.result.structuredContent.session, 'replacement-alpha');
+    assert.deepEqual(retried.result.structuredContent.input, { sketchPath: f.alpha, ...args });
+    assert.deepEqual(alpha.calls, ['capture_serial_output']);
+    assert.deepEqual(replacement.calls, ['capture_serial_output']);
     assert.deepEqual(beta.calls, ['get_project_context']);
 });

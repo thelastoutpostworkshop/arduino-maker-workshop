@@ -2,7 +2,10 @@ import { Readable, Writable } from 'node:stream';
 import { AiBridgeError, AiToolName } from './contracts';
 import { receiveLines, validateToolCall } from './ipcServer';
 import { AiSessionResolver } from './sessionDiscovery';
-import { LIBRARY_INSTALL_NAME_PATTERN, LIBRARY_INSTALL_VERSION_PATTERN, MAX_BACKTRACE_LOG_BYTES } from './toolInputs';
+import { LIBRARY_INSTALL_NAME_PATTERN, LIBRARY_INSTALL_VERSION_PATTERN, MAX_BACKTRACE_LOG_BYTES,
+    SERIAL_CAPTURE_PORT_PATTERN, SERIAL_CAPTURE_MIN_BAUD_RATE, SERIAL_CAPTURE_MAX_BAUD_RATE,
+    SERIAL_CAPTURE_MIN_DURATION_MS, SERIAL_CAPTURE_MAX_DURATION_MS,
+    SERIAL_CAPTURE_MIN_OUTPUT_BYTES, SERIAL_CAPTURE_MAX_OUTPUT_BYTES } from './toolInputs';
 
 const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'] as const;
 const MAX_LINE_BYTES = 64 * 1024;
@@ -31,7 +34,8 @@ const descriptions: Record<AiToolName, string> = {
     list_examples: 'List example locations from the selected board platform and/or standard installed libraries. Supports an exact library-name filter. Does not read, open, copy or run examples, install dependencies, or inspect isolated profile caches. CLI initialization may download indexes and built-in tools.',
     compile_sketch: 'Compile the connected Arduino sketch automatically while AI integration is enabled in its trusted VS Code window. Returns bounded logs, errors/warnings/notes with source locations when recognized, flash/RAM usage, the known Arduino CLI version, and used libraries and board platforms with versions and installation paths when reported by this compilation. Successful builds generally require the user to enable Verbose Compile to report used dependencies. Returns new or changed artifact paths only for a successful current build. Reports unavailable or partial details. Runs board-package build tools and may download profile dependencies. Does not upload firmware or open a serial monitor.',
     decode_esp32_backtrace: 'Decode a pasted ESP32 crash log against the selected sketch/profile\'s matching ELF from a successful current AI compilation. Returns addresses, functions, source files and line numbers when resolvable, and reports unresolved frames. The user must ensure that the ELF matches the firmware that produced the crash; do not rebuild an earlier crash and assume it matches. Uses the installed addr2line tool. Does not compile, download tools, upload firmware or open a serial port. Accepts no caller-supplied executable or ELF path.',
-    install_library: 'Install one Arduino library at an exact indexed version in the connected toolchain\'s shared user libraries. Search libraries first to obtain the exact name and available version. Downloads dependencies and may replace an installed version used by other sketches. For a selected or requested profile, the library must be an indexed declaration and the version must match any pin; incomplete or conflicting declarations are rejected. Does not edit sketch.yaml or populate isolated profile caches. Does not accept URLs, Git repositories, ZIP files, paths, arbitrary CLI options, version ranges or latest. Does not install board platforms, compile, upload firmware or open a serial port.'
+    install_library: 'Install one Arduino library at an exact indexed version in the connected toolchain\'s shared user libraries. Search libraries first to obtain the exact name and available version. Downloads dependencies and may replace an installed version used by other sketches. For a selected or requested profile, the library must be an indexed declaration and the version must match any pin; incomplete or conflicting declarations are rejected. Does not edit sketch.yaml or populate isolated profile caches. Does not accept URLs, Git repositories, ZIP files, paths, arbitrary CLI options, version ranges or latest. Does not install board platforms, compile, upload firmware or open a serial port.',
+    capture_serial_output: 'Capture bounded UTF-8 serial text from an explicit local serial port returned by list_ports, with the firmware\'s baud rate, duration and output limit. Uses 8-N-1; firmware should print newline-terminated text. Returns captured output, timing, stop reason and truncation information; an unfinished final line may be omitted. The duration includes CLI startup and output may include CLI startup messages. Empty output does not establish that the port opened successfully. Stops the existing VS Code Serial Monitor on that port first and leaves it stopped. Opening a serial port can reset some boards. Other programs may keep the port busy. Does not send serial commands, intentionally reset a board, upload firmware, or verify that the running firmware matches this sketch. No profile argument is accepted.'
 };
 
 const titles: Record<AiToolName, string> = {
@@ -40,9 +44,10 @@ const titles: Record<AiToolName, string> = {
     get_board_details: 'Inspect Arduino Board Options', search_libraries: 'Search Arduino Libraries', list_examples: 'List Arduino Examples',
     decode_esp32_backtrace: 'Decode ESP32 Crash Backtrace',
     install_library: 'Install Arduino Library',
+    capture_serial_output: 'Capture Arduino Serial Output',
 };
 
-const initializingTools: readonly AiToolName[] = ['compile_sketch', 'list_dependencies', 'get_board_details', 'search_libraries', 'list_examples', 'install_library'];
+const initializingTools: readonly AiToolName[] = ['compile_sketch', 'list_dependencies', 'get_board_details', 'search_libraries', 'list_examples', 'install_library', 'capture_serial_output'];
 
 /** The complete intentionally small MCP surface. No generic command or upload tool exists. */
 export function getMcpTools(): unknown[] {
@@ -53,7 +58,13 @@ export function getMcpTools(): unknown[] {
             type: 'object',
             properties: {
                 sketchPath: { type: 'string', description: 'Absolute path of the sketch connected by the user in VS Code.', minLength: 1, maxLength: 32768 },
-                profile: { type: 'string', description: 'Optional existing sketch.yaml profile name.', minLength: 1, maxLength: 64, pattern: '^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$' },
+                ...(name !== 'capture_serial_output' ? { profile: { type: 'string', description: 'Optional existing sketch.yaml profile name.', minLength: 1, maxLength: 64, pattern: '^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$' } } : {}),
+                ...(name === 'capture_serial_output' ? {
+                    port: { type: 'string', description: 'Exact local serial port returned by list_ports, such as COM5, /dev/ttyUSB0 or /dev/cu.usbmodem1101.', minLength: 1, maxLength: 256, pattern: SERIAL_CAPTURE_PORT_PATTERN },
+                    baudRate: { type: 'integer', description: 'Baud rate configured by the running firmware; the installed serial monitor must support this value.', minimum: SERIAL_CAPTURE_MIN_BAUD_RATE, maximum: SERIAL_CAPTURE_MAX_BAUD_RATE },
+                    durationMs: { type: 'integer', description: 'Maximum capture duration in milliseconds, including CLI startup. Capture may stop earlier at the output limit.', minimum: SERIAL_CAPTURE_MIN_DURATION_MS, maximum: SERIAL_CAPTURE_MAX_DURATION_MS },
+                    maxOutputBytes: { type: 'integer', description: 'Maximum captured UTF-8 output bytes. Reaching this limit stops capture.', minimum: SERIAL_CAPTURE_MIN_OUTPUT_BYTES, maximum: SERIAL_CAPTURE_MAX_OUTPUT_BYTES },
+                } : {}),
                 ...(name === 'compile_sketch' ? { clean: { type: 'boolean', description: 'Clean this sketch/profile build output before compiling.', default: false } } : {}),
                 ...(name === 'install_library' ? {
                     library: { type: 'string', description: 'Exact Arduino library index name returned by search_libraries.', minLength: 1, maxLength: 256, pattern: LIBRARY_INSTALL_NAME_PATTERN },
@@ -73,6 +84,7 @@ export function getMcpTools(): unknown[] {
                 } : {})
             },
             required: name === 'search_libraries' ? ['sketchPath', 'query']
+                : name === 'capture_serial_output' ? ['sketchPath', 'port', 'baudRate', 'durationMs', 'maxOutputBytes']
                 : name === 'install_library' ? ['sketchPath', 'library', 'version']
                 : name === 'decode_esp32_backtrace' ? ['sketchPath', 'log'] : ['sketchPath'],
             additionalProperties: false
@@ -81,7 +93,7 @@ export function getMcpTools(): unknown[] {
             title: titles[name],
             // Inventory queries may initialize CLI indexes and built-in tools.
             readOnlyHint: !initializingTools.includes(name),
-            destructiveHint: name === 'compile_sketch' || name === 'install_library',
+            destructiveHint: name === 'compile_sketch' || name === 'install_library' || name === 'capture_serial_output',
             idempotentHint: !initializingTools.includes(name),
             openWorldHint: initializingTools.includes(name)
         }
@@ -175,7 +187,7 @@ export async function runMcpBridge(input: Readable, output: Writable, resolver: 
                 }
                 initializationRequested = true;
                 const version = PROTOCOL_VERSIONS.find(value => value === params.protocolVersion) ?? PROTOCOL_VERSIONS[0];
-                const instructions = 'Arduino Maker Workshop connects to enabled, trusted VS Code sketch windows. Call list_connected_sketches first, then pass the selected absolute sketchPath to other tools. Use the project requested by the user; ask if the target is unclear. If none are listed, enable AI integration in VS Code. AI operations run without extension approval dialogs. Interrupted operations are never replayed. Upload, reset, erase and serial tools are unavailable.';
+                const instructions = 'Arduino Maker Workshop connects to enabled, trusted VS Code sketch windows. Call list_connected_sketches first, then pass the selected absolute sketchPath to other tools. Use the project requested by the user; ask if the target is unclear. If none are listed, enable AI integration in VS Code. AI operations run without extension approval dialogs. Interrupted operations are never replayed. Serial capture requires an explicit discovered port, baud rate, duration and output limit; opening a port can reset some boards. Upload, intentional reset, erase and serial-write tools are unavailable.';
                 result(id, { protocolVersion: version, capabilities: { tools: {} }, serverInfo: { name: 'arduino-maker-workshop-local', version: '1.0.0' }, instructions });
                 return;
             }
