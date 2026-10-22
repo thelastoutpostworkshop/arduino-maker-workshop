@@ -1,15 +1,14 @@
-# Local AI assistant bridge (preview)
+# Use AI assistants with Arduino Maker Workshop (preview)
 
-The extension can expose the selected sketch to MCP clients through a packaged
-stdio bridge. The bridge forwards requests to the running extension through
-authenticated local IPC. Arduino CLI runs only in the extension host, with the
-existing compile output panel, status bar, and cancel control.
+Connect Codex, Claude Code, or Copilot to inspect your Arduino projects, check
+profiles and dependencies, and request compilation. Compile progress appears in
+VS Code's Arduino CLI Output panel and status bar, with the usual cancel control.
 
 This preview is disabled by default. Select **AI integration** (the robot icon)
 in the extension's navigation bar and turn on **Enable AI integration**.
-Home shows a short status summary and a link to this page. The choice is saved for this computer and VS
-Code profile. Trusted local sketch windows restore their bridge automatically
-after reloads and restarts, including **Run and Debug** restarts.
+Home shows a short status summary and a link to the AI integration page. The choice
+is saved for this computer and VS Code profile. Trusted local sketch windows
+become available to your assistant automatically after reloads and restarts.
 
 Choose a setup button once for each client you want to use:
 
@@ -28,15 +27,18 @@ preserved. Existing files are backed up alongside the original with an
 with an error. Setup can be run again to update an old entry.
 
 Configure one server per computer and VS Code storage profile. That entry works
-across sketches in the same profile. Each user runs setup on their own computer;
-the extension contains no developer-specific paths. **Manual setup instructions**
-opens matching configuration blocks if you prefer to edit the files yourself.
+across sketches in the same profile. Each user runs setup on their own computer.
+**Manual setup instructions** opens matching configuration blocks if you prefer
+to edit the files yourself.
 
 ## Enable, use, and disable
 
 For external clients, install Node.js 20 or newer on the same computer as VS Code.
-The `node` command must work in the client's environment. The native VS Code MCP
-provider uses the editor's runtime instead.
+The `node` command must work in the client's environment. Copilot's automatic
+integration uses VS Code's included runtime.
+
+Use a local VS Code window and local sketch files. Remote SSH, WSL, container
+workspaces, and clients running on another computer are not supported by this preview.
 
 1. Open a local sketch folder in a local, trusted VS Code window. The first
    workspace folder is the active sketch and must contain a matching
@@ -47,8 +49,8 @@ provider uses the editor's runtime instead.
    button for your client. Restart the client's MCP server or open a new client
    session as directed. Copilot may ask you to enable the registered server's tools.
 4. Once the status shows **Available to assistants**, ask your client to list connected
-   sketches, choose the intended sketch, then request its project context. Every
-   project operation must include that sketch's explicit `sketchPath`.
+   sketches, choose the intended sketch, then inspect it. For example: "List my
+   connected Arduino sketches, then show the board and profiles for Blink."
 5. Turn off **Enable AI integration** to revoke access and prevent automatic
    reconnection in all windows sharing this VS Code profile. Closing one sketch
    window ends only that window's session. Reopening a trusted sketch restores its
@@ -56,23 +58,18 @@ provider uses the editor's runtime instead.
 
 The same actions are exposed in the Command Palette as **Arduino Maker Workshop:
 Enable AI Integration**, **Disable AI Integration**, **Set Up AI Client**, and
-**AI Setup Instructions**. The user setting is `arduinoMakerWorkshop.ai.enabled`;
-a workspace cannot opt itself in. Availability means the bridge is ready, not that
-an assistant has already connected.
+**AI Setup Instructions**. The user setting is `arduinoMakerWorkshop.ai.enabled`.
+**Available to assistants** means the integration is ready for requests.
 
 When switching to another trusted local sketch, reuse the same client entry.
 Several different sketches can be available at once.
 Repeat setup only when moving to another computer or VS Code storage profile.
 
-The global MCP server searches only the configured `--session-dir` for live,
-authorized sessions. `list_connected_sketches` returns their sketch paths and
-session counts. The assistant must choose a path from the user's request or ask
-which sketch to use when the choice is unclear. Project operations route to the
-unique live session for their explicit `sketchPath`. If a sketch has more than one
-session, close its extra sketch windows; the bridge will not guess between
-them. After a debug restart, an already running client reconnects on its next tool
-call once the extension is ready. It never retries an interrupted operation
-automatically.
+When several sketches are available, tell your assistant which one to use. If the
+same sketch is connected in more than one VS Code window, close its extra windows
+before requesting an operation. After a VS Code restart, your client reconnects
+on its next request once the extension is ready. If compilation was interrupted,
+request it again; interrupted operations are never retried automatically.
 
 ## Compilation
 
@@ -82,90 +79,54 @@ Your AI client may still apply its own tool permissions.
 
 AI compilation follows the **Verbose Compile** setting
 (`arduinoMakerWorkshop.verboseCompile`), just like manual compilation. Changes
-apply to the next compile. The AI bridge's output size limits still apply.
+apply to the next compile. Long output may be shortened in the assistant's response.
 
-Builds execute board-package recipes, write build files, and may download
-dependencies; clean builds may clear the output directory. Trust, sketch scope,
-unsaved-file checks, and cancellation checks still apply.
+Compilation writes build files and may download dependencies; clean builds may
+clear the output directory. Save your sketch files before asking for compilation.
+If the sketch or selected target changes during a
+build, request another compile before using its output.
 
-## Tools
+To use a particular profile, include its name in your request, for example:
+"Compile Blink using the release profile." This applies to that request and does
+not change the profile selected in Home. You can cancel compilation in VS Code.
 
-`list_connected_sketches` takes no arguments and returns
-`{schemaVersion: 1, sketches: [{sketchPath, sessionCount}]}`. An empty list means
-no sketch is currently connected in this storage profile.
+## What you can ask your assistant to do
 
-The five project tools require an absolute `sketchPath` matching a connected
-sketch. They accept an optional existing named `profile`; compilation additionally
-accepts `clean: true|false`. Unknown properties and operations are rejected in both
-the transport and extension backend.
+Describe the action and name the sketch you want to use. Your assistant selects
+the appropriate tool; you do not need to enter tool arguments yourself.
 
 | Tool | Behavior |
 | --- | --- |
-| `list_connected_sketches` | Lists live sketches available through the enabled integration and their session counts. Does not enable the integration or select a target. |
-| `get_project_context` | Reads available profiles and declared dependencies, selected/resolved target, FQBN, build plan, CLI identity, and validation issues. Does not repair or rewrite project configuration. |
-| `list_dependencies` | Queries standard CLI core/library installations and compares their versions with the selected profile's declarations. Does not inspect isolated profile caches or determine build-resolved dependencies. CLI initialization can download indexes and built-in tools. |
-| `list_boards` | Runs the extension's `arduino-cli board listall --json`. Does not install or select boards. |
-| `list_ports` | Runs `arduino-cli board list --json`. Does not open a monitor, select a port, or upload. |
-| `compile_sketch` | Executes the inspected compile plan automatically and returns structured completion. |
+| `list_connected_sketches` | Shows sketches available in your running VS Code windows. |
+| `get_project_context` | Shows the sketch's board, profiles, declared dependencies, build settings, and configuration issues. |
+| `list_dependencies` | Compares installed core and library versions with the selected profile's requirements. |
+| `list_boards` | Lists available Arduino boards without changing your board selection. |
+| `list_ports` | Lists connected ports without opening a serial monitor or changing your port selection. |
+| `compile_sketch` | Compiles the requested sketch and profile and reports the outcome. You can also request a clean build. |
 
-There are no upload, reset, erase, bootloader, serial monitor, package installation,
-or arbitrary command tools. Compilation and dependency inventory have
-`readOnlyHint: false`; the latter is conservative because CLI initialization can
-change its supporting files. Tool hints are not the authorization boundary. Trust
-and AI enablement are checked in the extension.
+This integration does not currently provide firmware upload, board reset or erase,
+bootloader flashing, serial monitoring, or package installation tools.
 
 ### Profiles and dependencies
 
 Ask the assistant: "Show the available profiles and check the dependencies for
-the release profile." It should use `get_project_context`, then call
-`list_dependencies` with the chosen `sketchPath` and optional `profile`.
-This does not change the profile selected in Home.
+the release profile." This does not change the profile selected in Home.
 
-Project context includes `defaultProfile` when declared, `availableProfiles` with
-default/selected flags and each profile's dependency declarations, and
-`declaredDependencies` for the resolved profile. Declarations include platform IDs,
-optional versions and index URLs, library names/versions, transitive dependencies,
-and local library directories. Local directory contents are not read. Metadata
-issues in an unrelated profile do not prevent compiling a valid selected profile.
-Profile/declaration output is bounded; `availableProfilesTruncated` or declaration
-issues indicate omitted metadata.
+The assistant can show default and selected profiles, required core and library
+versions, and whether matching versions are installed. Without a selected profile,
+there are no profile requirements to compare; this check does not scan your source
+code for library includes. Local library directory declarations are shown, but
+their contents and versions are not inspected.
 
-`list_dependencies` returns separate sections:
+Profile builds can use their own separate dependency installations. A core or
+library reported as missing from the normal installation does not necessarily
+mean the profile will fail to compile. This check does not determine which
+dependencies a build actually uses.
 
-- `declared` and `declaredComplete`: requirements from the selected profile and
-  whether those declarations were read completely. Without a profile, this is an
-  empty declaration list, not a scan of source includes.
-- `installed`: installed platform/library versions from fixed
-  `arduino-cli core list --json` and `arduino-cli lib list --all --json` queries.
-  It excludes unrelated CLI metadata, such as author information and example paths.
-- `comparison`: `installed`, `not_found`, `version_mismatch`, or `unknown` for each
-  requirement, with matching installed versions. These statuses describe standard
-  CLI installations only. Local directory requirements remain `unknown`.
-- `buildResolved`: `status: "not_reported"`. Profile builds use isolated dependency
-  caches; a missing or different standard installation does not establish whether
-  that profile will compile successfully.
-
-CLI initialization warnings mark the inventory incomplete and prevent definitive
-absence/version-mismatch conclusions for the affected inventory. Malformed or
-oversized CLI output returns an error rather than an empty inventory. Neither
-query activates a profile, compiles, changes project settings, or explicitly
-installs its declared core/library requirements. Arduino CLI may initialize its
-own indexes and built-in tools, including downloads. No extension approval dialog
-is added; client tool permissions still apply.
-
-### Compile results
-
-Compile results include a schema version, operation ID, status, target, exit
-code/signal, separate stdout/stderr tails, duration, truncation flag, and a stable
-error code when available. Common statuses are `success`, `failed`, `canceled`,
-`busy`, and `invalid`. Transport or operation validation failures are MCP error results.
-Progress is available through MCP progress notifications and the existing UI.
-
-The explicit profile applies only to this operation; it does not change Home's
-selection. The bridge refreshes metadata and checks source sizes/mtimes before and
-after compilation. Changes while a build is pending require a fresh request.
-It never saves unrelated documents; save dirty sketch documents before compiling.
-IntelliSense is refreshed only when the compiled target still matches Home's target.
+The assistant reports when dependency information is incomplete or too large to
+display. Checking dependencies does not compile, change project settings, or
+install the profile's requirements. Arduino CLI may download indexes and built-in
+tools while preparing the installed package list.
 
 ## Client setup
 
@@ -180,24 +141,17 @@ including doubled Windows backslashes. The optional form fields described below
 use raw values instead.
 
 Use the paths in your own setup document wherever a placeholder appears below.
-Do not copy another user's paths. If `node` is unavailable or a broken shim, use
-the absolute path of a working Node.js 20+ executable. This preview has been tested
-with simulated clients; actual Copilot, Codex, and Claude Code onboarding remains
-a separate validation step.
+Do not copy another user's paths. If the `node` command is not working, use
+the absolute path of a working Node.js 20+ executable.
 
 ### Copilot / VS Code
 
-On supported VS Code versions, enabling the integration advertises the Arduino Maker
-Workshop server through the extension's native MCP provider. Select it in VS Code's
-MCP/tool picker. It uses the editor's Node runtime and the same global tools for
-connected sketches in this storage profile. This window advertises it only while
-its own session is enabled; it does not edit `mcp.json`. Manual client configuration
-uses the reusable arguments below.
+On supported VS Code versions, enabling the integration makes the Arduino Maker
+Workshop server available in VS Code's MCP/tool picker. Select it there to use it
+with Copilot. Older VS Code versions may not support MCP.
 
-The extension keeps its VS Code `^1.93.0` baseline. Provider registration is guarded
-by runtime feature detection. Older VS Code versions retain the existing extension
-features but may not support MCP. For manual setup, run **MCP: Open User
-Configuration** from VS Code's Command Palette. In the profile's `mcp.json`, merge
+For manual setup, run **MCP: Open User Configuration** from VS Code's Command
+Palette. In the profile's `mcp.json`, merge
 the generated server entry into the existing `servers` object, replacing an entry
 with the same name if present. If the file is empty, paste the full JSON block:
 
@@ -219,8 +173,9 @@ the sketch you choose. See [official VS Code MCP configuration](https://code.vis
 
 ### Codex desktop, IDE, and CLI
 
-The desktop app, IDE extension, and CLI share MCP configuration on the same Codex
-host. You do not need to add the same server separately in each one.
+The desktop app, IDE extension, and CLI share MCP configuration when using the same
+user account and configuration location on your computer. You do not need to add
+the same server separately in each one.
 
 **Set up Codex** handles this file for you, including `tool_timeout_sec = 900`.
 For manual setup, open `~/.codex/config.toml` (`%USERPROFILE%\.codex\config.toml` on Windows) and
@@ -241,7 +196,7 @@ Save the file, then restart the MCP server or your Codex client. Ask it to call
 path and board or profile before requesting a compile.
 
 `tool_timeout_sec = 900` is a client setting, not a command argument. It allows
-time for compilation; the default is 60 seconds. Codex's own tool permissions
+up to 15 minutes for a tool request, including compilation. Codex's own tool permissions
 still apply. See [official OpenAI MCP setup](https://learn.chatgpt.com/docs/extend/mcp).
 
 #### Optional alternative: Codex desktop form
@@ -314,73 +269,29 @@ again, or update the entry with the matching TOML or JSON block from the setup
 document. Restart the client's MCP server once. The new arguments contain only
 the launcher path, `--session-dir`, and the bridge storage folder. After that
 migration, the same entry works for any sketch available in this storage profile.
-Regenerate setup only when moving to
-another computer or VS Code storage profile, such as a separate development profile.
+Regenerate setup only when moving to another computer or VS Code storage profile.
 
-## Session and privacy boundary
+## Troubleshooting
 
-- Each enabled window has a unique session, authenticated with a random 256-bit
-  secret. The descriptor is private to the OS user and is never put into a client
-  argument or log as a token. Reusable client configuration contains only the
-  launcher and bridge storage paths.
-- Windows uses a session-specific named pipe; Unix uses a short private temporary
-  directory and socket. There is no HTTP listener, remote endpoint, OAuth account,
-  or selection of an arbitrary window. Enablement is persistent user consent;
-  AI operations run without additional extension approval. Each project operation
-  requires exactly one live session for its explicit `sketchPath`.
-- The launcher is copied from the package into extension global storage only on
-  enabled startup. Its path remains stable across extension upgrades. Session
-  descriptors and tokens intentionally change; closed-host descriptors grant no
-  access even if an abrupt crash leaves an inert file behind.
-- The boundary trusts the OS user and installed extension/package recipes. It does
-  not protect against malicious processes already running as that user. Keep the
-  descriptor private and do not commit generated client settings.
-- Raw project configuration and notes are not exported. Known credential-valued
-  build flags and common password/token/key fields are redacted, including output
-  split across process chunks. This is best-effort filtering, not a secret detector;
-  avoid printing credentials or putting them in build flags.
-- Retained compiler output is capped at 64 KiB per stream; the assistant UI
-  transcript is capped at 128 KiB. Oversized lines are omitted safely. Discovery
-  JSON is capped at 512 KiB. Protocol frames and concurrent calls are also bounded.
+- **No sketches are available:** Keep the sketch open in VS Code, trust the
+  workspace, complete Arduino CLI setup, and check that AI integration is enabled.
+- **The same sketch is connected more than once:** Close its extra VS Code
+  windows and retry.
+- **Two Arduino Maker Workshop servers appear in your client:** Use the
+  `arduino_maker_workshop` entry created by automatic setup. Disable an older
+  manually named entry, test the current one, then remove the old entry if it is
+  no longer needed.
+- **The client still shows old tools after an update:** Restart its MCP server or
+  fully quit and reopen the client while the sketch remains open in VS Code.
+- **Compilation cannot start:** Save your sketch files, check the selected board
+  or profile, and wait for any other compilation or upload to finish. Build output
+  must stay inside the sketch folder. Linked source folders and very large source
+  trees can prevent AI compilation; follow the reported error.
 
-Inspection requires explicit canonical scope. Output paths cannot escape the sketch
-through `..`, absolute paths, or directory links, and reserved source/metadata paths
-are rejected. Linked source trees or a scan exceeding 20,000 entries currently
-block assistant compilation. Remote SSH/WSL/container windows and cross-host clients
-are outside this first slice.
+## Privacy
 
-The legacy Arduino Home activation/setup keeps its existing CLI setup/update
-behavior. `get_project_context` reads local project metadata without invoking the
-CLI. CLI inventory queries can trigger Arduino CLI's own initialization behavior;
-the bridge does not call setup or package installation commands for these queries.
-
-## Development validation
-
-```text
-npm run typecheck
-npm run test:ai
-npm run lint
-npm run vscode:prepublish
-```
-
-`test:ai` builds the standalone bridge, compiles test fixtures, and runs simulated
-IPC/MCP, authorization, project inspection, process, and lifecycle tests. It uses
-temporary files and controlled Node child processes; it never invokes Arduino CLI
-or hardware. Filesystem-link tests require permission to create test junctions.
-
-For development, `npm run watch` watches both the extension and the standalone
-AI bridge. Each watcher preserves the other bundle in `build/`. After restarting
-the Extension Development Host, enabled integration restores itself; reuse the
-existing client configuration. If the standalone bridge code itself changed,
-restart the client's MCP server once the bridge is available so it loads the
-rebuilt launcher. Production builds still clear extension output before building
-both bundles.
-
-Package the extension with `vsce package` after builds. Confirm that
-`build/extension.js`, `build/aiBridge.cjs`, webview assets, and existing native USB
-runtime files are present. Do not test this preview by replacing a daily extension
-or editing client configuration without an explicit user decision.
-
-Next iterations: actual-client onboarding in an isolated VS Code profile, richer
-source diagnostics/tasks, then separately designed serial ownership and device
-write consent. No hardware tools should be added by simply widening this allowlist.
+Your assistant receives the requested project information and command output.
+The extension filters common credential fields, but this is best-effort filtering;
+avoid putting secrets in build flags or printing them in compiler output. Keep
+generated client configuration and the AI bridge storage folder private, and do
+not add them to shared project files.
