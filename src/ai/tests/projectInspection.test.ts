@@ -289,7 +289,7 @@ test('header edits during assistant preflight or compilation reject stale builds
             fs.appendFileSync(source, 'changed during compilation\n');
             return {
                 schemaVersion: 1, operationId: 'simulated-operation', target, status: 'success',
-                exitCode: 0, stdout: '', stderr: '', durationMs: 1, truncated: false,
+                exitCode: 0, stdout: '', stderr: '', durationMs: 1, truncated: false, cliVersion: 'test',
                 ...unavailableCompileOutput('Simulated compile.'), artifacts: unavailableCompileArtifacts('Simulated compile.'),
             };
         },

@@ -68,6 +68,12 @@ async function fixture() {
                 console.log('Sketch uses 1000 bytes (10%) of program storage space. Maximum is 10000 bytes.');
                 console.log('Global variables use 100 bytes (5%) of dynamic memory, leaving 1900 bytes for local variables. Maximum is 2000 bytes.');
                 console.error('Blink.ino:3:2: warning: fixture warning [-Wunused-variable]');
+                console.log('');
+                console.log('Used library'.padEnd(20) + 'Version'.padEnd(10) + 'Path');
+                console.log('Sensor Library'.padEnd(20) + '2.1.0'.padEnd(10) + '/profile cache/libraries/SensorLibrary');
+                console.log('');
+                console.log('Used platform'.padEnd(20) + 'Version'.padEnd(10) + 'Path');
+                console.log('arduino:avr'.padEnd(20) + '1.8.6'.padEnd(10) + '/profile cache/packages/arduino/hardware/avr/1.8.6');
             ` : mode === 'failure'
                 ? 'console.error("Blink.ino:5: error: fixture compile failure"); process.exitCode=2;' : 'console.log("ready"); setInterval(()=>{},1000);';
             const running = runProcess(process.execPath, ['-e', code, path.join(target.buildPath, 'Blink.ino.bin')], {
@@ -82,7 +88,7 @@ async function fixture() {
                 schemaVersion: 1, operationId: 'simulated-operation', target,
                 status,
                 exitCode: result.exitCode, signal: result.signal, stdout: result.stdout, stderr: result.stderr,
-                durationMs: result.durationMs, truncated: result.truncated,
+                durationMs: result.durationMs, truncated: result.truncated, cliVersion: 'test',
                 ...output.finish({ status, truncated: result.truncated }),
                 artifacts: status === 'success' ? await collectCompileArtifacts(target, snapshot)
                     : unavailableCompileArtifacts('Compilation did not succeed.'),
@@ -153,6 +159,14 @@ test('standalone packaged bridge reaches extension operations and reports compil
         assert.equal(compile.result.structuredContent.diagnostics.items[0].code, '-Wunused-variable');
         assert.equal(compile.result.structuredContent.memory.flash.usedBytes, 1000);
         assert.equal(compile.result.structuredContent.memory.ram.usedBytes, 100);
+        assert.equal(compile.result.structuredContent.cliVersion, 'test');
+        assert.equal(compile.result.structuredContent.dependencies.status, 'available');
+        assert.deepEqual(compile.result.structuredContent.dependencies.libraries, [
+            { name: 'Sensor Library', version: '2.1.0', path: '/profile cache/libraries/SensorLibrary' },
+        ]);
+        assert.deepEqual(compile.result.structuredContent.dependencies.platforms, [
+            { id: 'arduino:avr', version: '1.8.6', path: '/profile cache/packages/arduino/hardware/avr/1.8.6' },
+        ]);
         assert.equal(compile.result.structuredContent.artifacts.files[0].path, path.join(compile.result.structuredContent.target.buildPath, 'Blink.ino.bin'));
         assert.deepEqual(JSON.parse(compile.result.content[0].text), compile.result.structuredContent);
         assert.ok(f.notifications.some(frame => frame.method === 'notifications/progress'));
@@ -164,6 +178,7 @@ test('standalone packaged bridge reaches extension operations and reports compil
         assert.equal(failure.result.structuredContent.diagnostics.items[0].line, 5);
         assert.equal(failure.result.structuredContent.diagnostics.items[0].severity, 'error');
         assert.equal(failure.result.structuredContent.memory.status, 'unavailable');
+        assert.equal(failure.result.structuredContent.dependencies.status, 'unavailable');
         assert.deepEqual(failure.result.structuredContent.artifacts.files, []);
         f.mode('success');
         const clean = await f.request(6, 'tools/call', { name: 'compile_sketch', arguments: { sketchPath: f.sketchPath, clean: true } });

@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import { stripVTControlCharacters } from 'node:util';
+import { CompileDependenciesCollector, unavailableCompileDependencies, type CompileDependenciesReport } from './compileDependencies';
 
 export type CompileReportStatus = 'available' | 'partial' | 'unavailable';
 
@@ -34,9 +35,11 @@ export interface CompileMemory {
 export interface CompileOutputReport {
     diagnostics: CompileDiagnostics;
     memory: CompileMemory;
+    dependencies: CompileDependenciesReport;
 }
 
 interface StreamFrame {
+    source: 'stdout' | 'stderr';
     pending: string;
     bytes: number;
     dropping: boolean;
@@ -61,6 +64,7 @@ export function unavailableCompileOutput(reason: string): CompileOutputReport {
     return {
         diagnostics: { status: 'unavailable', items: [], notes: [note] },
         memory: { status: 'unavailable', notes: [note] },
+        dependencies: unavailableCompileDependencies(note),
     };
 }
 
@@ -70,8 +74,9 @@ export function unavailableCompileOutput(reason: string): CompileOutputReport {
  * authority for build success; an empty list never establishes error-free output.
  */
 export class CompileOutputCollector {
-    private readonly out: StreamFrame = { pending: '', bytes: 0, dropping: false };
-    private readonly err: StreamFrame = { pending: '', bytes: 0, dropping: false };
+    private readonly out: StreamFrame = { source: 'stdout', pending: '', bytes: 0, dropping: false };
+    private readonly err: StreamFrame = { source: 'stderr', pending: '', bytes: 0, dropping: false };
+    private readonly dependencies = new CompileDependenciesCollector();
     private readonly items: CompileDiagnostic[] = [];
     private flash?: CompileMemoryRegion;
     private ram?: CompileMemoryRegion;
@@ -91,7 +96,7 @@ export class CompileOutputCollector {
     }): CompileOutputReport {
         if (this.result) { return this.result; }
         for (const stream of [this.out, this.err]) {
-            if (stream.pending && !stream.dropping) { this.parseLine(stream.pending); }
+            if (stream.pending && !stream.dropping) { this.parseLine(stream.pending, stream.source); }
             stream.pending = '';
             stream.bytes = 0;
         }
@@ -126,6 +131,7 @@ export class CompileOutputCollector {
             memoryNotes.push('Multiple different memory summaries were reported; the last recognized summary for each region is shown.');
         }
         this.result = {
+            dependencies: this.dependencies.finish({ ...input, incomplete: this.boundedLines }),
             diagnostics: {
                 status: !this.items.length ? 'unavailable' : sharedNotes.length || this.boundedDiagnostics ? 'partial' : 'available',
                 items: this.items,
@@ -161,7 +167,7 @@ export class CompileOutputCollector {
                 }
             }
             if (newline < 0) { return; }
-            if (!stream.dropping) { this.parseLine(stream.pending); }
+            if (!stream.dropping) { this.parseLine(stream.pending, stream.source); }
             stream.pending = '';
             stream.bytes = 0;
             stream.dropping = false;
@@ -169,8 +175,10 @@ export class CompileOutputCollector {
         }
     }
 
-    private parseLine(raw: string): void {
-        const text = stripVTControlCharacters(raw).trim();
+    private parseLine(raw: string, stream: 'stdout' | 'stderr'): void {
+        const line = stripVTControlCharacters(raw);
+        this.dependencies.line(line, stream);
+        const text = line.trim();
         if (!text) { return; }
         this.parseMemory(text);
         const diagnostic = this.parseDiagnostic(text);

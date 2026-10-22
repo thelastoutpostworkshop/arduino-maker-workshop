@@ -5,6 +5,7 @@ import { buildBoardDetails, buildLibrarySearch, buildExamples } from './discover
 import { AI_TOOL_NAMES, validateToolCall } from './toolInputs';
 import { unavailableCompileArtifacts } from './compileArtifacts';
 import { unavailableCompileOutput } from './compileOutput';
+import { unavailableCompileDependencies } from './compileDependencies';
 
 export interface AiOperationDependencies {
     isTrusted(): boolean;
@@ -136,6 +137,7 @@ export function createAiOperationHandler(dependencies: AiOperationDependencies):
                     result.status = 'failed';
                     result.error = { code: 'STALE_INPUT', message: 'Inputs changed during compilation. Compile again before using the artifacts.' };
                     result.memory = unavailableCompileOutput(result.error.message).memory;
+                    result.dependencies = unavailableCompileDependencies(result.error.message);
                     progress({ message: result.error.message });
                 }
             }

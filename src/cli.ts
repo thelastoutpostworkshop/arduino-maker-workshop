@@ -500,10 +500,11 @@ export class ArduinoCLI {
 	public async compileForAssistant(target: ProjectInspection, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<AiOperationResult> {
 		const operationId = randomUUID();
 		const startedAt = Date.now();
+		const cliVersion = this.cliStatus.VersionString || null;
 		const empty = (status: AiOperationResult['status'], code: string, message: string): AiOperationResult => ({
 			schemaVersion: 1, operationId, status, target, exitCode: null, stdout: '', stderr: '', truncated: false,
 			...unavailableCompileOutput(message), artifacts: unavailableCompileArtifacts(message),
-			durationMs: Date.now() - startedAt, error: { code, message }
+			durationMs: Date.now() - startedAt, cliVersion, error: { code, message }
 		});
 		if (!workspace.isTrusted) { return empty('invalid', 'WORKSPACE_UNTRUSTED', 'Trust this workspace before compiling.'); }
 		if (signal.aborted) { return empty('canceled', 'CANCELED', 'Compilation was canceled before it started.'); }
@@ -591,7 +592,7 @@ export class ArduinoCLI {
 			}
 			return {
 				schemaVersion: 1, operationId, status, target, exitCode: result.exitCode, signal: result.signal,
-				stdout: result.stdout, stderr: result.stderr, truncated: result.truncated, durationMs: Date.now() - startedAt,
+				stdout: result.stdout, stderr: result.stderr, truncated: result.truncated, durationMs: Date.now() - startedAt, cliVersion,
 				...output.finish({ status, truncated: result.truncated }), artifacts,
 				...(status === 'canceled' ? { error: { code: 'CANCELED', message } } : result.error ? { error: result.error }
 					: status === 'failed' ? { error: { code: 'CLI_FAILED', message: `Arduino CLI exited with code ${result.exitCode}. See stderr and Arduino CLI Output.` } } : {})

@@ -91,7 +91,7 @@ the appropriate tool; you do not need to enter tool arguments yourself.
 | `get_board_details` | Shows the selected board or requested profile's board options, defaults, and current values. |
 | `search_libraries` | Searches the Arduino library index and shows available versions without installing libraries. |
 | `list_examples` | Lists names and paths of board and installed-library examples, optionally filtered by library name. It does not open, copy, or run them. |
-| `compile_sketch` | Compiles the requested sketch and profile, returning errors and warnings with source locations, flash/RAM usage, and build artifact paths when available. You can also request a clean build. |
+| `compile_sketch` | Compiles the requested sketch and profile, returning errors and warnings with source locations, flash/RAM usage, libraries and board platforms used with their versions and paths, the Arduino CLI version, and build artifact paths when available. You can also request a clean build. |
 
 This integration does not currently provide firmware upload, board reset or erase,
 bootloader flashing, serial monitoring, or package installation tools.
@@ -116,7 +116,8 @@ Arduino CLI Output panel in VS Code.
 | Search libraries | Search for libraries matching [search term] for my current sketch and show their available versions. | Shows matching library names, latest versions, and available versions from the Arduino index; installs nothing. |
 | Find examples | List board and installed-library examples for my current sketch. | Shows example names, paths, and their library or platform. Requires a valid selected board or profile; opens and runs nothing. |
 | Filter library examples | List installed-library examples from [library name] for my current sketch. | Shows examples for that exact installed library, or an empty list if none are available. Does not require a selected board. |
-| Compile | Compile my current sketch with its current board or profile and show flash/RAM usage and generated file paths. | Reports the outcome, available memory usage, and files produced on success, consistent with Arduino CLI Output. |
+| Compile | Compile my current sketch with its current board or profile and show flash/RAM usage, generated file paths, and the Arduino CLI version. | Reports the outcome, available memory usage, files produced on success, and the known CLI version, consistent with Arduino CLI Output and the extension's CLI setup. |
+| Inspect build dependencies | Compile my current sketch and list the libraries and board platforms actually used, including their versions and installation paths. | Enable **Verbose Compile** first for dependency details from successful builds. Shows dependencies reported by this compilation, including profile-specific installations when reported. Compare with Arduino CLI Output; missing details are unavailable. Paths identify which library copy was selected. |
 | Inspect build errors | Compile my current sketch and show any errors or warnings with their file and line numbers. | Reports recognized errors, warnings, and notes with source locations when available. Try this on a sketch with a known build error or warning; failed builds do not return artifact paths. |
 | Compile a profile | Compile my current sketch using the [profile name] profile. | Uses that profile only for this request and reports the outcome; the profile selected in Home stays unchanged. |
 | Clean compilation | Perform a clean compilation of my current sketch with its current board or profile and show the generated file paths. | Runs a clean build with the current target, reports the outcome in Arduino CLI Output, and lists available artifact paths on success. |
@@ -126,6 +127,12 @@ Memory summaries recognize standard English and French Arduino CLI output;
 other formats may leave flash/RAM usage unavailable. Artifact paths include only
 new or changed files from a successful build whose inputs stayed unchanged;
 unchanged cached files are omitted.
+
+Used libraries and board platforms come from this compilation's output, rather
+than the installed-package inventory. Enable **Verbose Compile** to have Arduino
+CLI report the used libraries and platforms after successful builds. Versions and
+installation paths are included when reported; unsupported or incomplete output
+can leave these details unavailable or partial.
 
 ### Boards, libraries, and examples
 
@@ -160,8 +167,8 @@ their contents and versions are not inspected.
 
 Profile builds can use their own separate dependency installations. A core or
 library reported as missing from the normal installation does not necessarily
-mean the profile will fail to compile. This check does not determine which
-dependencies a build actually uses.
+mean the profile will fail to compile. To see dependencies a build actually uses,
+ask for compilation and its reported libraries and board platforms.
 
 The assistant reports when dependency information is incomplete or too large to
 display. Checking dependencies does not compile, change project settings, or

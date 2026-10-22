@@ -54,10 +54,14 @@ Suggested commit: `Add MCP board and library discovery`
 
 - [x] Extend `compile_sketch` results with structured errors and warnings, including source locations when available.
 - [x] Include flash/RAM usage and build artifact paths when available.
+- [x] Include libraries and board platforms reported by the compilation, with available versions and installation paths.
+- [x] Include the known Arduino CLI version with each compile result.
 - [x] Preserve existing logs and report when structured details are unavailable.
-- [x] Test successful and failed builds, different output formats, truncation, and stale artifacts (238 AI bridge tests passing).
+- [x] Test successful and failed builds, different output formats, truncation, and stale artifacts (256 AI bridge tests passing).
 - [x] Update the compilation prompts and expected results in `AI_ASSISTANTS.md`, including unavailable details and artifact freshness limits.
+- [x] Test used dependencies across output formats, missing versions, profile installation paths, failed builds, and truncation; update the dependency prompt and limitations.
 - [ ] Verify the compilation prompts in an AI client, including memory usage, source locations on a failed build, and clean-build artifact paths.
+- [ ] Verify the used-dependencies prompt in an AI client against Arduino CLI Output, including a verbose profile build, unavailable details without verbose output, and the CLI version.
 - [ ] Commit this step.
 
 Suggested commit: `Return richer MCP compile results`

@@ -79,6 +79,25 @@ test('empty diagnostics are explicitly unavailable even after a successful compi
     assert.match(result.memory.notes.join(' '), /No supported memory summary/);
 });
 
+test('used dependency tables survive ANSI decoration, split chunks and interleaved diagnostic streams', () => {
+    const collector = new CompileOutputCollector('/sketch');
+    collector.stdout('\u001b[32mUsed lib');
+    collector.stderr('main.ino:1: warning: warning during dependency reporting\n');
+    collector.stdout('rary'.padEnd(20 - 'Used lib'.length) + 'Version'.padEnd(10) + 'Path\u001b[0m\n');
+    collector.stdout('Sensor Library'.padEnd(20) + '2.1.0'.padEnd(10) + '/profile cache/libraries/SensorLibrary\n\n');
+    collector.stdout('Used platform'.padEnd(20) + 'Version'.padEnd(10) + 'Path\n');
+    collector.stdout('vendor:arch'.padEnd(20) + '3.0.0'.padEnd(10) + '/profile cache/hardware/arch/3.0.0');
+    const result = collector.finish({ status: 'success', truncated: false });
+    assert.equal(result.dependencies.status, 'available');
+    assert.deepEqual(result.dependencies.libraries, [
+        { name: 'Sensor Library', version: '2.1.0', path: '/profile cache/libraries/SensorLibrary' },
+    ]);
+    assert.deepEqual(result.dependencies.platforms, [
+        { id: 'vendor:arch', version: '3.0.0', path: '/profile cache/hardware/arch/3.0.0' },
+    ]);
+    assert.equal(result.diagnostics.items.length, 1);
+});
+
 test('English standard flash and RAM summaries expose reported integers, including zero usage', () => {
     const collector = new CompileOutputCollector('/sketch');
     collector.stdout(englishFlash + '\r\n');
@@ -198,6 +217,7 @@ test('unavailable reports explain why and finalization does not duplicate pendin
     assert.deepEqual(unavailableCompileOutput('The CLI could not start.'), {
         diagnostics: { status: 'unavailable', items: [], notes: ['The CLI could not start.'] },
         memory: { status: 'unavailable', notes: ['The CLI could not start.'] },
+        dependencies: { status: 'unavailable', libraries: [], platforms: [], notes: ['The CLI could not start.'] },
     });
     const collector = new CompileOutputCollector('/sketch');
     collector.stderr('main.ino:1: error: interrupted line');

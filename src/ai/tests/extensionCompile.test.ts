@@ -14,6 +14,7 @@ import * as compileArtifacts from '../compileArtifacts';
 interface TestedCli {
     arduinoCLIPath: string;
     compileOrUploadRunning: boolean;
+    getCLIStatus(): { VersionString: string };
     compileForAssistant(target: ProjectInspection, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<AiOperationResult>;
     discoverForAssistant(kind: 'boards' | 'ports' | 'cores' | 'libraries', signal: AbortSignal): Promise<unknown>;
     queryForAssistant(query: AiDiscoveryQuery, signal: AbortSignal): Promise<unknown>;
@@ -131,6 +132,7 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
     const ArduinoCLI = module.exports.ArduinoCLI as new (context: unknown) => TestedCli;
     const cli = new ArduinoCLI({ globalStorageUri: { fsPath: path.join(temporary, 'storage') } });
     cli.arduinoCLIPath = process.execPath;
+    cli.getCLIStatus().VersionString = '1.5.1';
     extension.arduinoCLI = cli;
     const target = () => inspectProject({ sketchPath: sketch }, sketch);
     const compile = (signal = new AbortController().signal, selected = target()) => cli.compileForAssistant(selected, signal, (value) => progress.push(value));
@@ -153,10 +155,12 @@ test('actual extension compile returns structured success, visible progress and 
     const result = await f.compile();
     assert.equal(result.status, 'success', JSON.stringify(result));
     assert.equal(result.exitCode, 0);
+    assert.equal(result.cliVersion, '1.5.1');
     assert.equal(result.stdout, 'compiled\n');
     assert.equal(result.diagnostics.status, 'unavailable');
     assert.equal(result.memory.status, 'unavailable');
     assert.equal(result.artifacts.status, 'unavailable');
+    assert.equal(result.dependencies.status, 'unavailable');
     assert.match(result.operationId, /^[0-9a-f-]{36}$/);
     assert.equal(f.calls[0].executable, process.execPath);
     assert.deepEqual(f.calls[0].args, result.target.compileArgs);
@@ -202,6 +206,12 @@ test('actual extension reports warning locations, memory and only newly produced
         console.error('Blink.ino:8:3: warning: unused variable [-Wunused-variable]');
         console.log('Sketch uses 1000 bytes (10%) of program storage space. Maximum is 10000 bytes.');
         console.log('Global variables use 100 bytes (5%) of dynamic memory, leaving 1900 bytes for local variables. Maximum is 2000 bytes.');
+        console.log('');
+        console.log('Used library'.padEnd(20) + 'Version'.padEnd(10) + 'Path');
+        console.log('Sensor Library'.padEnd(20) + '2.1.0'.padEnd(10) + path.join(process.cwd(), 'profile cache', 'SensorLibrary'));
+        console.log('');
+        console.log('Used platform'.padEnd(20) + 'Version'.padEnd(10) + 'Path');
+        console.log('arduino:avr'.padEnd(20) + '1.8.6'.padEnd(10) + path.join(process.cwd(), 'profile cache', 'arduino', 'hardware', 'avr', '1.8.6'));
     `;
     const f = host(t, compiler);
     fs.writeFileSync(path.join(f.sketch, 'sketch.yaml'), 'profiles:\n  nano:\n    fqbn: arduino:avr:nano\n');
@@ -216,6 +226,11 @@ test('actual extension reports warning locations, memory and only newly produced
     assert.equal(result.memory.status, 'available');
     assert.deepEqual(result.memory.flash, { usedBytes: 1000, percent: 10, maxBytes: 10000 });
     assert.deepEqual(result.memory.ram, { usedBytes: 100, percent: 5, maxBytes: 2000 });
+    assert.equal(result.dependencies.status, 'available');
+    assert.deepEqual(result.dependencies.libraries, [{ name: 'Sensor Library', version: '2.1.0',
+        path: path.join(f.sketch, 'profile cache', 'SensorLibrary') }]);
+    assert.deepEqual(result.dependencies.platforms, [{ id: 'arduino:avr', version: '1.8.6',
+        path: path.join(f.sketch, 'profile cache', 'arduino', 'hardware', 'avr', '1.8.6') }]);
     assert.deepEqual(result.artifacts.files, [{ path: path.join(target.buildPath, 'Blink.ino.bin'),
         relativePath: 'Blink.ino.bin', kind: 'bin', sizeBytes: 8 }]);
     assert.match(result.artifacts.notes.join(' '), /cached/);
@@ -227,9 +242,24 @@ test('actual extension reports warning locations, memory and only newly produced
     assert.ok(f.calls.every(call => !call.args.includes('--json')), 'compiler output must remain live');
 });
 
+test('actual extension reports unavailable build dependencies when nonverbose output omits them', async (t) => {
+    const f = host(t);
+    f.setVerboseCompile(false);
+    f.cli.getCLIStatus().VersionString = '';
+    const result = await f.compile();
+    assert.equal(result.status, 'success');
+    assert.equal(result.cliVersion, null, 'unknown CLI version must not be guessed');
+    assert.equal(result.dependencies.status, 'unavailable');
+    assert.deepEqual(result.dependencies.libraries, []);
+    assert.deepEqual(result.dependencies.platforms, []);
+    assert.equal(f.calls.length, 1, 'no inventory query may substitute installed packages for build dependencies');
+    assert.ok(!f.calls[0].args.includes('-v'), 'dependency reporting must respect the verbose preference');
+});
+
 test('actual extension retains early redacted diagnostics after verbose log truncation', async (t) => {
     const f = host(t, `
         console.log('Blink.ino:2:9: warning: password=dummy-value');
+        console.log('Using library Sensor Library at version 2.1.0 in folder: /libraries/password=dummy-value');
         process.stdout.write(('verbose line '.repeat(20) + '\\n').repeat(1200));
         console.log("Le croquis utilise 291184 octets (9%) de l'espace de stockage de programmes. Le maximum est de 3145728 octets.");
         console.log('Les variables globales utilisent 29824 octets (9%) de m\\u00e9moire dynamique, ce qui laisse 297856 octets pour les variables locales. Le maximum est de 327680 octets.');
@@ -245,6 +275,9 @@ test('actual extension retains early redacted diagnostics after verbose log trun
     assert.equal(result.memory.flash?.usedBytes, 291184);
     assert.equal(result.memory.ram?.usedBytes, 29824);
     assert.equal(result.memory.status, 'partial');
+    assert.equal(result.dependencies.status, 'partial');
+    assert.equal(result.dependencies.libraries[0].version, '2.1.0');
+    assert.match(result.dependencies.libraries[0].path ?? '', /<redacted>/);
 });
 
 test('actual extension reports fresh artifacts when a clean compile recreates its output directory', async (t) => {
@@ -334,6 +367,7 @@ test('actual extension compile coordinates busy state and request cancellation',
     assert.equal(busy.error?.code, 'BUSY');
     assert.equal(busy.diagnostics.status, 'unavailable');
     assert.equal(busy.memory.status, 'unavailable');
+    assert.equal(busy.dependencies.status, 'unavailable');
     assert.equal(busy.artifacts.status, 'unavailable');
     assert.equal(f.calls.length, 1);
     controller.abort();
