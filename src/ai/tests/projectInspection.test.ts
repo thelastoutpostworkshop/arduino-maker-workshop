@@ -290,7 +290,7 @@ test('header edits during assistant preflight or compilation reject stale builds
                 exitCode: 0, stdout: '', stderr: '', durationMs: 1, truncated: false,
             };
         },
-        discover: async () => ({}), invalidateBuild: () => { invalidations++; },
+        discover: async () => ({}), query: async () => ({}), invalidateBuild: () => { invalidations++; },
     });
     const compile = () => handler('compile_sketch', { sketchPath: f.sketch }, new AbortController().signal, () => {
         if (changeDuringPreflight) { fs.appendFileSync(source, 'changed during preflight\n'); }

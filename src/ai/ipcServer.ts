@@ -4,10 +4,11 @@ import * as net from 'node:net';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
-import { AiBridgeError, AiToolHandler, AiToolName, InspectionInput, OperationProgress } from './contracts';
+import { AiBridgeError, AiToolHandler, AiToolName, AiToolInput, OperationProgress } from './contracts';
 import { redactText } from './redaction';
+import { validateToolCall } from './toolInputs';
+export { AI_TOOL_NAMES, validateToolCall } from './toolInputs';
 
-export const AI_TOOL_NAMES: readonly AiToolName[] = ['get_project_context', 'list_dependencies', 'list_boards', 'list_ports', 'compile_sketch'];
 const MAX_INPUT_BYTES = 64 * 1024;
 const MAX_RESULT_BYTES = 2 * 1024 * 1024;
 const MAX_RESPONSE_BYTES = MAX_RESULT_BYTES + 8192;
@@ -38,23 +39,6 @@ export interface AiIpcServer {
 
 function record(value: unknown): value is Record<string, unknown> {
     return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
-
-/** Shared boundary validation; transports must never accept arbitrary operation names. */
-export function validateToolCall(name: unknown, input: unknown): { name: AiToolName; input: InspectionInput } {
-    if (typeof name !== 'string' || !AI_TOOL_NAMES.includes(name as AiToolName)) {
-        throw new AiBridgeError('UNKNOWN_TOOL', 'This operation is not available.');
-    }
-    if (!record(input) || typeof input.sketchPath !== 'string' || !path.isAbsolute(input.sketchPath) || input.sketchPath.length > 32768) {
-        throw new AiBridgeError('INVALID_ARGUMENTS', 'An absolute sketchPath is required.');
-    }
-    const allowed = name === 'compile_sketch' ? ['sketchPath', 'profile', 'clean'] : ['sketchPath', 'profile'];
-    if (Object.keys(input).some(key => !allowed.includes(key)) ||
-        (input.profile !== undefined && (typeof input.profile !== 'string' || input.profile.length === 0 || input.profile.length > 256 || /[\x00-\x1f]/.test(input.profile))) ||
-        (input.clean !== undefined && typeof input.clean !== 'boolean')) {
-        throw new AiBridgeError('INVALID_ARGUMENTS', 'The operation arguments are invalid.');
-    }
-    return { name: name as AiToolName, input: input as unknown as InspectionInput };
 }
 
 /** Bounded newline framing. StringDecoder preserves UTF-8 split across socket chunks. */
@@ -331,7 +315,7 @@ export class AiIpcClient {
         return client;
     }
 
-    call(name: AiToolName, input: InspectionInput, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<unknown> {
+    call(name: AiToolName, input: AiToolInput, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<unknown> {
         if (this.socket.destroyed) { return Promise.reject(new AiBridgeError('SESSION_UNAVAILABLE', 'The VS Code bridge session is unavailable.')); }
         if (signal.aborted) { return Promise.reject(new AiBridgeError('CANCELED', 'The operation was canceled.')); }
         if (this.pending.size >= MAX_REQUESTS) { return Promise.reject(new AiBridgeError('BUSY', 'The bridge is busy.')); }

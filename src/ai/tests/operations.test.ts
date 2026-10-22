@@ -1,6 +1,6 @@
 import * as assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { AiBridgeError, AiOperationResult, ProjectInspection } from '../contracts';
+import { AiBridgeError, AiDiscoveryQuery, AiOperationResult, AiToolInput, AiToolName, ProjectInspection } from '../contracts';
 import { AiOperationDependencies, createAiOperationHandler } from '../operations';
 import { collectSensitiveValues, redactForAssistant, redactText } from '../redaction';
 
@@ -23,6 +23,7 @@ function fixture(overrides: Partial<AiOperationDependencies> = {}) {
         hasUnsavedSketchDocuments: () => false, revision: () => 0,
         compile: async () => { compiles++; return result(); },
         discover: async () => ({ boards: [], password: 'hidden' }),
+        query: async () => ({ installed_libraries: [] }),
         invalidateBuild: () => { invalidated++; }, ...overrides,
     };
     return { target, dependencies, handler: createAiOperationHandler(dependencies), compiles: () => compiles, invalidated: () => invalidated };
@@ -143,6 +144,155 @@ test('dependency declarations and available profile metadata share credential re
     for (const name of ['get_project_context', 'list_dependencies'] as const) {
         const result = JSON.stringify(await call(f, name));
         assert.doesNotMatch(result, /hidden|private password/);
+        assert.match(result, /<redacted>/);
+    }
+});
+
+function discoveryResponse(query: AiDiscoveryQuery): unknown {
+    if (query.kind === 'boardDetails') {
+        return { name: 'Test board', fqbn: query.fqbn, config_options: [
+            { option: 'speed', option_label: 'Speed', values: [
+                { value: 'slow', value_label: 'Slow', selected: true }, { value: 'fast', value_label: 'Fast' },
+            ] },
+        ], build_properties: ['password=do-not-export'] };
+    }
+    if (query.kind === 'librarySearch') { return { status: 'success', libraries: [] }; }
+    return { installed_libraries: [] };
+}
+
+test('discovery uses the requested profile, base board defaults, scoped examples and normalized search', async () => {
+    const queries: AiDiscoveryQuery[] = [];
+    const inspected: AiToolInput[] = [];
+    const f = fixture({ query: async query => { queries.push(query); return discoveryResponse(query); } });
+    f.target.fqbn = 'vendor:arch:board:speed=fast';
+    f.target.resolvedProfile = 'release';
+    f.target.selectedProfile = 'release';
+    f.target.canCompile = false; // Discovery does not need a compilable output directory or dependency set.
+    f.dependencies.inspect = input => { inspected.push(input); return f.target; };
+    const input = { sketchPath: '/sketch', profile: 'release' };
+    const board = await f.handler('get_board_details', input, new AbortController().signal, () => {}) as {
+        profile: string; board: { options: { defaultValue: string; selectedValue: string }[] };
+    };
+    assert.equal(board.profile, 'release');
+    assert.equal(board.board.options[0].defaultValue, 'slow');
+    assert.equal(board.board.options[0].selectedValue, 'fast');
+    assert.doesNotMatch(JSON.stringify(board), /do-not-export|build_properties/);
+    await f.handler('list_examples', { ...input, source: 'all', library: ' Wire ', limit: 3 }, new AbortController().signal, () => {});
+    await f.handler('list_examples', { ...input, source: 'libraries' }, new AbortController().signal, () => {});
+    await f.handler('search_libraries', { ...input, query: ' sensor ', limit: 2 }, new AbortController().signal, () => {});
+    assert.deepEqual(queries, [
+        { kind: 'boardDetails', sketchPath: '/sketch', fqbn: 'vendor:arch:board' },
+        { kind: 'examples', sketchPath: '/sketch', fqbn: 'vendor:arch:board:speed=fast' },
+        { kind: 'examples', sketchPath: '/sketch' },
+        { kind: 'librarySearch', sketchPath: '/sketch', query: 'sensor' },
+    ]);
+    assert.ok(inspected.every(value => JSON.stringify(value) === JSON.stringify(input)), 'Only inspection fields reach the project reader');
+    assert.equal(f.target.fqbn, 'vendor:arch:board:speed=fast');
+    assert.equal(f.compiles(), 0);
+});
+
+test('library discovery remains available without a board while board discovery rejects unresolved targets', async () => {
+    let queries = 0;
+    const f = fixture({ query: async query => { queries++; return discoveryResponse(query); } });
+    f.target.fqbn = undefined;
+    f.target.canCompile = false;
+    f.target.issues = [{ code: 'FQBN_REQUIRED', message: 'Select a board.' }];
+    await f.handler('search_libraries', { sketchPath: '/sketch', query: 'sensor' }, new AbortController().signal, () => {});
+    await f.handler('list_examples', { sketchPath: '/sketch', source: 'libraries' }, new AbortController().signal, () => {});
+    assert.equal(queries, 2);
+    await assert.rejects(call(f, 'get_board_details'), code('INVALID_TARGET'));
+    await assert.rejects(call(f, 'list_examples'), code('INVALID_TARGET'));
+    f.target.fqbn = 'vendor:arch:board';
+    f.target.issues = [{ code: 'PROFILE_NOT_FOUND', message: 'No selected profile.' }];
+    await assert.rejects(call(f, 'get_board_details'), code('INVALID_TARGET'));
+    assert.equal(queries, 2);
+});
+
+const discoveryCalls: { name: AiToolName; input: AiToolInput }[] = [
+    { name: 'get_board_details', input: { sketchPath: '/sketch' } },
+    { name: 'search_libraries', input: { sketchPath: '/sketch', query: 'sensor' } },
+    { name: 'list_examples', input: { sketchPath: '/sketch' } },
+];
+
+test('new discovery validates arguments and rejects unavailable sessions before querying', async () => {
+    const noQueries = async () => { assert.fail('Discovery must not run'); };
+    const f = fixture({ query: noQueries });
+    await assert.rejects(f.handler('search_libraries', { sketchPath: '/sketch', query: ' ' }, new AbortController().signal, () => {}), code('INVALID_ARGUMENTS'));
+    await assert.rejects(f.handler('list_examples', { sketchPath: '/sketch', limit: 101 }, new AbortController().signal, () => {}), code('INVALID_ARGUMENTS'));
+    for (const { name, input } of discoveryCalls) {
+        for (const [overrides, expected] of [
+            [{ isReady: () => false }, 'CLI_NOT_READY'], [{ isTrusted: () => false }, 'WORKSPACE_UNTRUSTED'],
+        ] as const) {
+            const unavailable = fixture({ ...overrides, query: noQueries });
+            await assert.rejects(unavailable.handler(name, input, new AbortController().signal, () => {}), code(expected));
+        }
+        const abort = new AbortController(); abort.abort();
+        await assert.rejects(f.handler(name, input, abort.signal, () => {}), code('CANCELED'));
+    }
+});
+
+test('new discovery rejects cancellation, revoked trust and changed sketch/target after a query', async () => {
+    for (const { name, input } of discoveryCalls) {
+        for (const expected of ['CANCELED', 'WORKSPACE_UNTRUSTED', 'STALE_TARGET', 'changed-board']) {
+            const abort = new AbortController(); let trusted = true; let active = '/sketch';
+            const f = fixture({ isTrusted: () => trusted, activeSketchPath: () => active,
+                query: async query => {
+                    if (expected === 'CANCELED') { abort.abort(); }
+                    if (expected === 'WORKSPACE_UNTRUSTED') { trusted = false; }
+                    if (expected === 'STALE_TARGET') { active = '/other-sketch'; }
+                    if (expected === 'changed-board') { f.target.fqbn = 'vendor:arch:changed'; }
+                    return discoveryResponse(query);
+                } });
+            f.dependencies.inspect = () => ({ ...f.target });
+            await assert.rejects(f.handler(name, input, abort.signal, () => {}), code(expected === 'changed-board' ? 'STALE_TARGET' : expected));
+        }
+    }
+});
+
+test('discovery serializes window CLI operations and releases its lock on errors', async () => {
+    let finish!: () => void;
+    const f = fixture({ query: async query => {
+        await new Promise<void>(resolve => { finish = resolve; });
+        return discoveryResponse(query);
+    } });
+    const pending = call(f, 'get_board_details');
+    await assert.rejects(call(f), code('BUSY'));
+    await assert.rejects(call(f, 'list_dependencies'), code('BUSY'));
+    await assert.rejects(call(f, 'list_ports'), code('BUSY'));
+    await assert.rejects(call(f, 'list_examples'), code('BUSY'));
+    await call(f, 'get_project_context');
+    finish(); await pending;
+    f.dependencies.query = async () => { throw new AiBridgeError('CLI_FAILED', 'Discovery failed.'); };
+    await assert.rejects(call(f, 'get_board_details'), code('CLI_FAILED'));
+    await call(f);
+    assert.equal(f.compiles(), 1);
+});
+
+test('compilation prevents assistant discovery in the same window without interrupting the build', async () => {
+    let finish!: () => void;
+    const f = fixture();
+    const compile = f.dependencies.compile;
+    f.dependencies.compile = async (...args) => { await new Promise<void>(resolve => { finish = resolve; }); return compile(...args); };
+    const pending = call(f);
+    for (const { name, input } of discoveryCalls) {
+        await assert.rejects(f.handler(name, input, new AbortController().signal, () => {}), code('BUSY'));
+    }
+    finish(); await pending;
+    assert.equal(f.compiles(), 1);
+});
+
+test('all new discovery reports redact known project credentials after normalization', async () => {
+    const f = fixture({ query: async query => {
+        if (query.kind === 'boardDetails') { return { name: 'private password', fqbn: query.fqbn }; }
+        if (query.kind === 'librarySearch') {
+            return { status: 'success', libraries: [{ name: 'Example', available_versions: ['1.0'],
+                latest: { version: '1.0', sentence: 'private password' } }] };
+        }
+        return { installed_libraries: [{ library: { name: 'Example', location: 'user', examples: ['/private password/Example'] } }] };
+    } });
+    for (const { name, input } of discoveryCalls) {
+        const result = JSON.stringify(await f.handler(name, input, new AbortController().signal, () => {}));
+        assert.doesNotMatch(result, /private password/);
         assert.match(result, /<redacted>/);
     }
 });

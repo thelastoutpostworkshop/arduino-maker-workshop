@@ -1,8 +1,9 @@
 # Use AI assistants with Arduino Maker Workshop (preview)
 
-Connect Codex, Claude Code, or Copilot to inspect your Arduino projects, check
-profiles and dependencies, and request compilation. Compile progress appears in
-VS Code's Arduino CLI Output panel and status bar, with the usual cancel control.
+Connect Codex, Claude Code, or Copilot to inspect your Arduino projects, discover
+boards, libraries, and examples, check dependencies, and request compilation.
+Compile progress appears in VS Code's Arduino CLI Output panel and status bar,
+with the usual cancel control.
 
 This preview is disabled by default. Select **AI integration** (the robot icon)
 in the extension's navigation bar and turn on **Enable AI integration**.
@@ -41,7 +42,8 @@ workspaces, and clients running on another computer are not supported by this pr
    workspace folder is the active sketch and must contain a matching
    `sketchName.ino` or `sketchName.pde` file. Use **Add as Active Workspace Folder**
    when necessary.
-2. Resolve Arduino CLI setup and select a board or build profile in Arduino Home.
+2. Complete Arduino CLI setup. Select a board or build profile in Arduino Home for
+   board details, board examples, and compilation.
 3. On the **AI integration** navigation page, enable the integration and use the setup
    button for your client. Restart the client's MCP server or open a new client
    session as directed. Copilot may ask you to enable the registered server's tools.
@@ -86,6 +88,9 @@ the appropriate tool; you do not need to enter tool arguments yourself.
 | `list_dependencies` | Compares installed core and library versions with the selected profile's requirements. |
 | `list_boards` | Lists available Arduino boards without changing your board selection. |
 | `list_ports` | Lists connected ports without opening a serial monitor or changing your port selection. |
+| `get_board_details` | Shows the selected board or requested profile's board options, defaults, and current values. |
+| `search_libraries` | Searches the Arduino library index and shows available versions without installing libraries. |
+| `list_examples` | Lists names and paths of board and installed-library examples, optionally filtered by library name. It does not open, copy, or run them. |
 | `compile_sketch` | Compiles the requested sketch and profile and reports the outcome. You can also request a clean build. |
 
 This integration does not currently provide firmware upload, board reset or erase,
@@ -95,7 +100,8 @@ bootloader flashing, serial monitoring, or package installation tools.
 
 Start by listing connected sketches. If more than one is listed, tell the assistant
 which one to use as "my current sketch." Replace `[profile name]` with one of that
-sketch's profile names.
+sketch's profile names, `[search term]` with a library name or search keywords,
+and `[library name]` with an exact installed library name.
 
 Compare the response with the expected result; for compilation, also check the
 Arduino CLI Output panel in VS Code.
@@ -105,9 +111,34 @@ Arduino CLI Output panel in VS Code.
 | Find sketches | List my connected sketches. | Names and paths match the sketches available in your running VS Code windows. |
 | Inspect a project | Inspect my current sketch, list its profiles, and check the dependencies for its selected profile. | Shows the board, profiles, and declared requirements compared with installed versions, without changing the selected profile. |
 | Find boards and ports | Show available boards and connected ports for my current sketch. | Lists boards and detected ports without changing your selections or opening a serial monitor. |
+| Inspect board options | Show the valid board options, defaults, and current values for my current sketch. | Shows metadata for the selected board or profile, without changing its settings. Requires a valid target and an installed board platform. |
+| Inspect a profile's board | Show the board options and current values for my current sketch using the [profile name] profile. | Uses that profile for this request; the profile selected in Home stays unchanged. |
+| Search libraries | Search for libraries matching [search term] for my current sketch and show their available versions. | Shows matching library names, latest versions, and available versions from the Arduino index; installs nothing. |
+| Find examples | List board and installed-library examples for my current sketch. | Shows example names, paths, and their library or platform. Requires a valid selected board or profile; opens and runs nothing. |
+| Filter library examples | List installed-library examples from [library name] for my current sketch. | Shows examples for that exact installed library, or an empty list if none are available. Does not require a selected board. |
 | Compile | Compile my current sketch with its current board or profile and summarize the result. | Uses the current target and reports success or build errors consistent with Arduino CLI Output. |
 | Compile a profile | Compile my current sketch using the [profile name] profile. | Uses that profile only for this request and reports the outcome; the profile selected in Home stays unchanged. |
 | Clean compilation | Perform a clean compilation of my current sketch with its current board or profile. | Runs a clean build with the current target and reports the outcome in the response and Arduino CLI Output. |
+
+### Boards, libraries, and examples
+
+Board details and examples use normal Arduino CLI installations, not separate
+profile dependency caches. Install the board platform normally before requesting
+its options or examples. You can ask for board examples, installed-library
+examples, or both; both are returned by default. Library-only examples and library
+search do not require a selected board. These requests do not change selections
+in Home.
+
+Library search may refresh the Arduino library index and need network access.
+Discovery may also download indexes and built-in tools while Arduino CLI starts;
+it does not install libraries or board platforms. If the CLI returns suggestions
+instead of matches, the assistant reports that versions are unavailable.
+
+Results are limited: library search returns up to 20 libraries and example listing
+up to 50 examples by default. You can request up to 100 of either. The assistant
+reports incomplete or shortened results, including omitted versions or board
+options. Refine a library search or ask for examples from one exact library to
+narrow a large result.
 
 ### Profiles and dependencies
 

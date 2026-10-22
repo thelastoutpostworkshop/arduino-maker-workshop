@@ -188,7 +188,7 @@ test('descriptor validation refuses endpoint substitution without revealing its 
     } finally { await context.dispose(); }
 });
 
-test('MCP negotiates supported versions and offers discovery plus five explicitly targeted tools', async () => {
+test('MCP negotiates supported versions and offers discovery plus eight explicitly targeted tools', async () => {
     const context = await fixture(async () => ({}));
     try {
         for (const version of ['2024-11-05', '2025-03-26', '2025-06-18', 'unsupported-version']) {
@@ -200,11 +200,15 @@ test('MCP negotiates supported versions and offers discovery plus five explicitl
                 assert.equal(response.result.instructions.includes(context.sketchPath), false);
                 bridge.send({ jsonrpc: '2.0', id: 1, method: 'tools/list' });
                 const listed = await bridge.waitFor(message => message.id === 1);
-                assert.deepEqual(listed.result.tools.map((tool: Record<string, unknown>) => tool.name), ['list_connected_sketches', 'get_project_context', 'list_dependencies', 'list_boards', 'list_ports', 'compile_sketch']);
+                assert.deepEqual(listed.result.tools.map((tool: Record<string, unknown>) => tool.name).sort(), [
+                    'compile_sketch', 'get_board_details', 'get_project_context', 'list_boards',
+                    'list_connected_sketches', 'list_dependencies', 'list_examples', 'list_ports', 'search_libraries'
+                ]);
                 for (const tool of listed.result.tools) {
-                    assert.deepEqual(tool.inputSchema.required, tool.name === 'list_connected_sketches' ? undefined : ['sketchPath']);
+                    assert.deepEqual(tool.inputSchema.required, tool.name === 'list_connected_sketches' ? undefined
+                        : tool.name === 'search_libraries' ? ['sketchPath', 'query'] : ['sketchPath']);
                     assert.equal(tool.inputSchema.additionalProperties, false);
-                    const initializesCli = tool.name === 'compile_sketch' || tool.name === 'list_dependencies';
+                    const initializesCli = ['compile_sketch', 'list_dependencies', 'get_board_details', 'search_libraries', 'list_examples'].includes(tool.name);
                     assert.equal(tool.annotations.readOnlyHint, !initializesCli);
                     assert.equal(tool.annotations.idempotentHint, !initializesCli);
                     assert.equal(tool.annotations.openWorldHint, initializesCli);
@@ -213,7 +217,7 @@ test('MCP negotiates supported versions and offers discovery plus five explicitl
                 }
             } finally { await bridge.dispose(); }
         }
-        assert.equal(getMcpTools().length, 6);
+        assert.equal(getMcpTools().length, 9);
     } finally { await context.dispose(); }
 });
 
@@ -270,6 +274,139 @@ test('MCP routes dependency inventory with an explicit profile through authentic
         assert.equal(response.result.structuredContent.resolvedProfile, 'release');
         assert.deepEqual(calls, [{ name: 'list_dependencies', input: { sketchPath: context.sketchPath, profile: 'release' } }]);
     } finally { await bridge.dispose(); await context.dispose(); }
+});
+
+test('MCP discovery schemas expose bounded searches and filters without arbitrary command or path inputs', () => {
+    const tools = getMcpTools() as { name: string; inputSchema: { properties: Record<string, any> } }[];
+    const properties = (name: string) => {
+        const tool = tools.find(value => value.name === name);
+        assert.ok(tool, `Missing ${name}`);
+        return tool.inputSchema.properties;
+    };
+    const board = properties('get_board_details');
+    assert.deepEqual(Object.keys(board).sort(), ['profile', 'sketchPath']);
+    assert.equal(board.profile.maxLength, 64);
+    assert.equal(board.profile.pattern, '^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$');
+    const search = properties('search_libraries');
+    assert.deepEqual(Object.keys(search).sort(), ['limit', 'profile', 'query', 'sketchPath']);
+    assert.equal(search.query.type, 'string');
+    assert.equal(search.query.minLength, 1);
+    assert.equal(search.query.maxLength, 256);
+    assert.equal(search.limit.type, 'integer');
+    assert.equal(search.limit.minimum, 1);
+    assert.equal(search.limit.maximum, 100);
+    assert.equal(search.limit.default, 20);
+    const examples = properties('list_examples');
+    assert.deepEqual(Object.keys(examples).sort(), ['library', 'limit', 'profile', 'sketchPath', 'source']);
+    assert.deepEqual([...examples.source.enum].sort(), ['all', 'board', 'libraries']);
+    assert.equal(examples.source.default, 'all');
+    assert.equal(examples.library.type, 'string');
+    assert.equal(examples.library.minLength, 1);
+    assert.equal(examples.library.maxLength, 256);
+    assert.equal(examples.limit.type, 'integer');
+    assert.equal(examples.limit.minimum, 1);
+    assert.equal(examples.limit.maximum, 100);
+    assert.equal(examples.limit.default, 50);
+});
+
+test('MCP and authenticated IPC both reject invalid discovery inputs before handling them', async () => {
+    let calls = 0;
+    const context = await fixture(async () => { calls++; return {}; });
+    const bridge = await harness(context.sessionDirectory);
+    const client = await AiIpcClient.connect(context.server.sessionFile);
+    try {
+        await bridge.initialize();
+        const cases: { name: AiToolName; args: Record<string, unknown> }[] = [];
+        for (const name of ['get_board_details', 'search_libraries', 'list_examples'] as const) {
+            const required = name === 'search_libraries' ? { query: 'sensor' } : {};
+            for (const override of [
+                { sketchPath: undefined }, { sketchPath: 'relative/sketch' }, { profile: '' },
+                { profile: 'bad\nprofile' }, { profile: 42 }, { profile: 'has space' },
+                { profile: '../profile' }, { profile: 'x'.repeat(65) }, { clean: true },
+                { command: 'install' }, { executable: 'shell' }, { path: context.root },
+                { args: ['--install'] }
+            ]) {
+                cases.push({ name, args: { sketchPath: context.sketchPath, ...required, ...override } });
+            }
+        }
+        for (const query of [undefined, '', '   ', 42, null, 'sensor\ninstall', 'bad\x00query', 'bad\x7fquery', 'x'.repeat(257)]) {
+            cases.push({ name: 'search_libraries', args: { sketchPath: context.sketchPath, query } });
+        }
+        for (const name of ['search_libraries', 'list_examples'] as const) {
+            for (const limit of [0, 101, 1.5, '20', null]) {
+                cases.push({ name, args: { sketchPath: context.sketchPath, ...(name === 'search_libraries' ? { query: 'sensor' } : {}), limit } });
+            }
+        }
+        for (const source of ['platform', 'Board', '', null, 42]) {
+            cases.push({ name: 'list_examples', args: { sketchPath: context.sketchPath, source } });
+        }
+        for (const library of ['', '   ', 42, null, 'library\nname', 'bad\x00name', 'bad\x7fname', 'x'.repeat(257)]) {
+            cases.push({ name: 'list_examples', args: { sketchPath: context.sketchPath, library } });
+        }
+        cases.push({ name: 'get_board_details', args: { sketchPath: context.sketchPath, fqbn: 'unrequested:board:target' } });
+        cases.push({ name: 'list_examples', args: { sketchPath: context.sketchPath, query: 'sensor' } });
+        let id = 1;
+        for (const { name, args } of cases) {
+            const requestId = id++;
+            bridge.send({ jsonrpc: '2.0', id: requestId, method: 'tools/call', params: { name, arguments: args } });
+            const response = await bridge.waitFor(message => message.id === requestId);
+            assert.equal(response.error?.code, -32602, `${name}: ${JSON.stringify(args)}`);
+            await assert.rejects(client.call(name, args as unknown as Parameters<AiIpcClient['call']>[1], new AbortController().signal, () => {}), { code: 'INVALID_ARGUMENTS' });
+        }
+        assert.equal(calls, 0, 'Invalid discovery requests must never reach extension operations');
+    } finally { client.dispose(); await bridge.dispose(); await context.dispose(); }
+});
+
+test('MCP routes bounded discovery inputs and profiles through authenticated IPC', async () => {
+    const calls: { name: AiToolName; input: unknown }[] = [];
+    const context = await fixture(async (name, input) => {
+        calls.push({ name, input });
+        return { schemaVersion: 1, name, input };
+    });
+    const bridge = await harness(context.sessionDirectory);
+    try {
+        await bridge.initialize();
+        const cases: { name: AiToolName; args: Record<string, unknown>; expected?: Record<string, unknown> }[] = [
+            { name: 'get_board_details', args: { profile: 'release' } },
+            { name: 'get_board_details', args: { profile: 'x'.repeat(64) } },
+            { name: 'search_libraries', args: { profile: 'release', query: '  temperature sensor  ', limit: 1 }, expected: { profile: 'release', query: 'temperature sensor', limit: 1 } },
+            { name: 'search_libraries', args: { query: 'x'.repeat(256), limit: 100 } },
+            { name: 'list_examples', args: { profile: 'release', source: 'board', limit: 1 } },
+            { name: 'list_examples', args: { source: 'libraries', library: '  Sensor Library  ', limit: 100 }, expected: { source: 'libraries', library: 'Sensor Library', limit: 100 } },
+            { name: 'list_examples', args: { source: 'all', library: 'x'.repeat(256), limit: 50 } },
+        ];
+        let id = 1;
+        for (const { name, args, expected } of cases) {
+            const requestId = id++;
+            bridge.send({ jsonrpc: '2.0', id: requestId, method: 'tools/call', params: { name, arguments: { sketchPath: context.sketchPath, ...args } } });
+            const response = await bridge.waitFor(message => message.id === requestId);
+            assert.equal(response.error, undefined, JSON.stringify(response));
+            assert.equal(response.result.isError, false, JSON.stringify(response));
+            const expectedInput = { sketchPath: context.sketchPath, ...(expected ?? args) };
+            assert.deepEqual(response.result.structuredContent, { schemaVersion: 1, name, input: expectedInput });
+            assert.deepEqual(calls[calls.length - 1], { name, input: expectedInput });
+        }
+        assert.equal(calls.length, cases.length);
+    } finally { await bridge.dispose(); await context.dispose(); }
+});
+
+test('new discovery tools retain IPC workspace and trust guards', async () => {
+    let calls = 0;
+    let trusted = true;
+    const context = await fixture(async () => { calls++; return {}; }, () => trusted);
+    const client = await AiIpcClient.connect(context.server.sessionFile);
+    try {
+        for (const name of ['get_board_details', 'search_libraries', 'list_examples'] as const) {
+            const args = name === 'search_libraries' ? { query: 'sensor' } : {};
+            await assert.rejects(client.call(name, { sketchPath: context.root, ...args }, new AbortController().signal, () => {}), { code: 'WRONG_WORKSPACE' });
+        }
+        trusted = false;
+        for (const name of ['get_board_details', 'search_libraries', 'list_examples'] as const) {
+            const args = name === 'search_libraries' ? { query: 'sensor' } : {};
+            await assert.rejects(client.call(name, { sketchPath: context.sketchPath, ...args }, new AbortController().signal, () => {}), { code: 'WORKSPACE_UNTRUSTED' });
+        }
+        assert.equal(calls, 0);
+    } finally { client.dispose(); await context.dispose(); }
 });
 
 test('MCP returns structured and text results with progress and operation failures', async () => {

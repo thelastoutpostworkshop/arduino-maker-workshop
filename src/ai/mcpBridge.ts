@@ -25,8 +25,19 @@ const descriptions: Record<AiToolName, string> = {
     list_dependencies: 'List standard Arduino CLI core/library installations and compare with the selected profile declarations. Does not inspect isolated profile caches or resolve build dependencies. CLI initialization may download indexes and built-in tools; does not explicitly install declared cores/libraries, compile or change project settings.',
     list_boards: 'List available Arduino boards using the connected VS Code toolchain. Does not select a board or install packages.',
     list_ports: 'Discover connected Arduino ports without opening a serial monitor, uploading, resetting or changing the selected port.',
+    get_board_details: 'Show the requested sketch/profile board, valid option values, defaults and current choices from its standard installed platform. Does not change board settings or install platforms. CLI initialization may download indexes and built-in tools.',
+    search_libraries: 'Search the Arduino library index and return bounded results with available versions. May refresh the library index; does not install libraries or change profile declarations.',
+    list_examples: 'List example locations from the selected board platform and/or standard installed libraries. Supports an exact library-name filter. Does not read, open, copy or run examples, install dependencies, or inspect isolated profile caches. CLI initialization may download indexes and built-in tools.',
     compile_sketch: 'Compile the connected Arduino sketch automatically while AI integration is enabled in its trusted VS Code window. Runs board-package build tools and may download profile dependencies. Does not upload firmware or open a serial monitor.'
 };
+
+const titles: Record<AiToolName, string> = {
+    get_project_context: 'Inspect Arduino Project', list_dependencies: 'List Arduino Dependencies',
+    list_boards: 'List Arduino Boards', list_ports: 'List Arduino Ports', compile_sketch: 'Compile Arduino Sketch',
+    get_board_details: 'Inspect Arduino Board Options', search_libraries: 'Search Arduino Libraries', list_examples: 'List Arduino Examples',
+};
+
+const initializingTools: readonly AiToolName[] = ['compile_sketch', 'list_dependencies', 'get_board_details', 'search_libraries', 'list_examples'];
 
 /** The complete intentionally small MCP surface. No generic command or upload tool exists. */
 export function getMcpTools(): unknown[] {
@@ -37,19 +48,28 @@ export function getMcpTools(): unknown[] {
             type: 'object',
             properties: {
                 sketchPath: { type: 'string', description: 'Absolute path of the sketch connected by the user in VS Code.', minLength: 1, maxLength: 32768 },
-                profile: { type: 'string', description: 'Optional existing sketch.yaml profile name.', minLength: 1, maxLength: 256 },
-                ...(name === 'compile_sketch' ? { clean: { type: 'boolean', description: 'Clean this sketch/profile build output before compiling.', default: false } } : {})
+                profile: { type: 'string', description: 'Optional existing sketch.yaml profile name.', minLength: 1, maxLength: 64, pattern: '^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$' },
+                ...(name === 'compile_sketch' ? { clean: { type: 'boolean', description: 'Clean this sketch/profile build output before compiling.', default: false } } : {}),
+                ...(name === 'search_libraries' ? {
+                    query: { type: 'string', description: 'Library name or search terms for the Arduino index.', minLength: 1, maxLength: 256 },
+                    limit: { type: 'integer', description: 'Maximum libraries to return.', minimum: 1, maximum: 100, default: 20 },
+                } : {}),
+                ...(name === 'list_examples' ? {
+                    source: { type: 'string', description: 'Board platform examples, installed library examples, or both. Board/all require a selected board or valid profile.', enum: ['board', 'libraries', 'all'], default: 'all' },
+                    library: { type: 'string', description: 'Optional exact installed library name.', minLength: 1, maxLength: 256 },
+                    limit: { type: 'integer', description: 'Maximum examples to return.', minimum: 1, maximum: 100, default: 50 },
+                } : {})
             },
-            required: ['sketchPath'],
+            required: name === 'search_libraries' ? ['sketchPath', 'query'] : ['sketchPath'],
             additionalProperties: false
         },
         annotations: {
-            title: name === 'compile_sketch' ? 'Compile Arduino Sketch' : name === 'get_project_context' ? 'Inspect Arduino Project' : name === 'list_dependencies' ? 'List Arduino Dependencies' : name === 'list_boards' ? 'List Arduino Boards' : 'List Arduino Ports',
+            title: titles[name],
             // Inventory queries may initialize CLI indexes and built-in tools.
-            readOnlyHint: name !== 'compile_sketch' && name !== 'list_dependencies',
+            readOnlyHint: !initializingTools.includes(name),
             destructiveHint: name === 'compile_sketch',
-            idempotentHint: name !== 'compile_sketch' && name !== 'list_dependencies',
-            openWorldHint: name === 'compile_sketch' || name === 'list_dependencies'
+            idempotentHint: !initializingTools.includes(name),
+            openWorldHint: initializingTools.includes(name)
         }
     }));
     tools.unshift({

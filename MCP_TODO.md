@@ -5,8 +5,8 @@ Complete each step with tests, user documentation, and a separate commit.
 
 ## Progress
 
-- [x] 1. Project context and dependencies (implementation complete; commit pending)
-- [ ] 2. Board and library discovery
+- [x] 1. Project context and dependencies (implemented and committed; AI-client check pending)
+- [x] 2. Board and library discovery (implementation complete; AI-client check and commit pending)
 - [ ] 3. Better compile results
 - [ ] 4. ESP32 crash decoding
 - [ ] 5. Library installation
@@ -34,18 +34,19 @@ Complete each step with tests, user documentation, and a separate commit.
 - [x] Update `AI_ASSISTANTS.md`.
 - [x] Provide prompt examples with expected results for project context and dependency inspection.
 - [ ] Verify the project context and dependency prompts in an AI client.
-- [ ] Commit this step.
+- [x] Commit this step (`e016af2`).
 
 Suggested commit: `Expose MCP profiles and dependencies`
 
 ## 2. Board and library discovery
 
-- [ ] Add `get_board_details` with valid board options and defaults.
-- [ ] Add `search_libraries` with bounded search results and available versions.
-- [ ] Add `list_examples` for the selected board and installed libraries.
-- [ ] Test profile-specific boards, empty results, invalid inputs, and result limits.
-- [ ] Add or update prompt examples with expected results, then verify them in an AI client.
-- [ ] Update `AI_ASSISTANTS.md` and commit.
+- [x] Add `get_board_details` with valid board options and defaults.
+- [x] Add `search_libraries` with bounded search results and available versions.
+- [x] Add `list_examples` for the selected board and installed libraries.
+- [x] Test profile-specific boards, empty results, invalid inputs, and result limits.
+- [x] Add prompt examples with expected results and update `AI_ASSISTANTS.md`.
+- [ ] Verify the board details, library search, and example prompts in an AI client.
+- [ ] Commit this step.
 
 Suggested commit: `Add MCP board and library discovery`
 

@@ -158,7 +158,8 @@ for (const client of ['codex', 'claude'] as const) {
         running.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
         const tools = await request('tools/list');
         assert.deepEqual(tools.result?.tools?.map(tool => tool.name).sort(), [
-            'compile_sketch', 'get_project_context', 'list_boards', 'list_connected_sketches', 'list_dependencies', 'list_ports',
+            'compile_sketch', 'get_board_details', 'get_project_context', 'list_boards', 'list_connected_sketches',
+            'list_dependencies', 'list_examples', 'list_ports', 'search_libraries',
         ]);
         const discovery = await request('tools/call', { name: 'list_connected_sketches', arguments: {} });
         assert.notEqual(discovery.result?.isError, true, JSON.stringify(discovery));

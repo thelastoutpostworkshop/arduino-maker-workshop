@@ -141,6 +141,7 @@ export async function activate(context: ExtensionContext) {
 			finally { aiCompileOutput = undefined; }
 		},
 		discover: (kind, signal) => arduinoCLI.discoverForAssistant(kind, signal),
+		query: (query, signal) => arduinoCLI.queryForAssistant(query, signal),
 		invalidateBuild: invalidateAssistantBuild,
 	});
 	const aiConnection = registerAiConnection(context, {

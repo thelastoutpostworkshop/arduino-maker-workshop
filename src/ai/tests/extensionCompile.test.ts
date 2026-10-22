@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import * as vm from 'node:vm';
 import { test, type TestContext } from 'node:test';
 import * as ts from 'typescript';
-import { AiBridgeError, type AiOperationResult, type OperationProgress, type ProjectInspection } from '../contracts';
+import { AiBridgeError, type AiDiscoveryQuery, type AiOperationResult, type OperationProgress, type ProjectInspection } from '../contracts';
 import { inspectProject } from '../projectInspection';
 import { runProcess, type ProcessOptions, type ProcessResult } from '../processRunner';
 import * as redaction from '../redaction';
@@ -14,6 +14,7 @@ interface TestedCli {
     compileOrUploadRunning: boolean;
     compileForAssistant(target: ProjectInspection, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<AiOperationResult>;
     discoverForAssistant(kind: 'boards' | 'ports' | 'cores' | 'libraries', signal: AbortSignal): Promise<unknown>;
+    queryForAssistant(query: AiDiscoveryQuery, signal: AbortSignal): Promise<unknown>;
     invalidateAssistantBuild(target: ProjectInspection): void;
 }
 
@@ -291,11 +292,14 @@ test('actual extension bounds displayed output and retained results before stale
     assert.match(f.displayed.at(-1) ?? '', /Inputs changed.*Compile again/);
 });
 
-test('actual extension discovery uses fixed JSON argv and parses stdout independently of stderr', async (t) => {
+test('actual extension discovery uses fixed JSON argv and keeps stdout data separate from diagnostic warnings', async (t) => {
     const f = host(t);
     f.setDiscovery({ stdout: '{"boards":[{"fqbn":"arduino:avr:uno"}]}', stderr: 'a harmless warning' });
-    assert.deepEqual(await f.cli.discoverForAssistant('boards', new AbortController().signal), { boards: [{ fqbn: 'arduino:avr:uno' }] });
-    f.setDiscovery({ stdout: '{"detected_ports":[]}' });
+    const boards = await f.cli.discoverForAssistant('boards', new AbortController().signal) as { boards: unknown[]; warnings: string[] };
+    assert.deepEqual(boards.boards, [{ fqbn: 'arduino:avr:uno' }]);
+    assert.equal(boards.warnings.length, 1);
+    assert.doesNotMatch(JSON.stringify(boards), /a harmless warning/);
+    f.setDiscovery({ stdout: '{"detected_ports":[]}', stderr: '' });
     assert.deepEqual(await f.cli.discoverForAssistant('ports', new AbortController().signal), { detected_ports: [] });
     f.setDiscovery({ stdout: '{"platforms":[{"id":"arduino:avr","installed_version":"1.8.6"}]}' });
     assert.deepEqual(await f.cli.discoverForAssistant('cores', new AbortController().signal), { platforms: [{ id: 'arduino:avr', installed_version: '1.8.6' }] });
@@ -351,4 +355,126 @@ test('actual extension inventory rechecks cancellation and trust before returnin
     f.onDiscovery(() => { f.workspace.isTrusted = false; });
     await assert.rejects(f.cli.discoverForAssistant('libraries', new AbortController().signal), { code: 'WORKSPACE_UNTRUSTED' });
     assert.equal(f.calls.length, 2);
+});
+
+test('assistant discovery queries use inspected targets and fixed JSON commands without changing Home', async (t) => {
+    const f = host(t);
+    const signal = new AbortController().signal;
+    const fqbn = 'esp32:esp32:esp32:FlashSize=8M,CPUFreq=160';
+    const cases: { query: AiDiscoveryQuery; output: unknown; args: string[] }[] = [
+        {
+            query: { kind: 'boardDetails', sketchPath: f.sketch, fqbn: 'esp32:esp32:esp32' },
+            output: { fqbn: 'esp32:esp32:esp32', config_options: [{ option: 'CPUFreq', values: [{ value: '240', selected: true }] }] },
+            args: ['board', 'details', '--fqbn', 'esp32:esp32:esp32', '--json']
+        },
+        {
+            query: { kind: 'librarySearch', sketchPath: f.sketch, query: 'name:"Adafruit NeoPixel"' },
+            output: { libraries: [{ name: 'Adafruit NeoPixel', latest: { version: '1.0.0' }, available_versions: ['1.0.0'] }], status: 'success' },
+            args: ['lib', 'search', '--omit-releases-details', '--json', '--', 'name:"Adafruit NeoPixel"']
+        },
+        {
+            query: { kind: 'examples', sketchPath: f.sketch, fqbn },
+            output: { installed_libraries: [{ library: { name: 'SPI', location: 'platform', examples: ['SPI/Transfer'] } }] },
+            args: ['lib', 'list', '--all', '--fqbn', fqbn, '--json']
+        },
+        {
+            query: { kind: 'examples', sketchPath: f.sketch },
+            output: { installed_libraries: [] },
+            args: ['lib', 'list', '--all', '--json']
+        }
+    ];
+    for (const { query, output, args } of cases) {
+        f.setDiscovery({ stdout: JSON.stringify(output), stderr: '' });
+        assert.deepEqual(await f.cli.queryForAssistant(query, signal), output);
+        const call = f.calls.at(-1)!;
+        assert.equal(call.executable, process.execPath);
+        assert.deepEqual(call.args, args);
+        assert.equal(call.options.cwd, f.sketch);
+        assert.equal(call.options.signal, signal);
+        assert.equal(call.options.maxOutputBytes, 2 * 1024 * 1024);
+    }
+    assert.equal(f.statuses.length, 0);
+    assert.equal(f.displayed.length, 0);
+    assert.equal(f.invalidations(), 0);
+    assert.equal(f.saves(), 0);
+    assert.equal(fs.existsSync(f.target().buildPath), false);
+    assert.equal(fs.readFileSync(f.configurationPath, 'utf8'), f.configuration);
+});
+
+test('assistant library search treats option-like text and shell metacharacters as one query argument', async (t) => {
+    const f = host(t);
+    f.setDiscovery({ stdout: '{"libraries":[]}' });
+    for (const query of ['--config-file=other.yaml', 'name:"LED Strip"; & echo value', 'a$(echo value)`echo value`']) {
+        await f.cli.queryForAssistant({ kind: 'librarySearch', sketchPath: f.sketch, query }, new AbortController().signal);
+        assert.deepEqual(f.calls.at(-1)?.args, ['lib', 'search', '--omit-releases-details', '--json', '--', query]);
+    }
+});
+
+test('assistant discovery queries reject invalid inputs and unavailable requests before spawning', async (t) => {
+    const f = host(t);
+    const invalid: unknown[] = [
+        undefined, null,
+        { kind: 'install', sketchPath: f.sketch },
+        { kind: 'examples', sketchPath: 'relative/sketch' },
+        { kind: 'examples', sketchPath: f.sketch + '\0' },
+        { kind: 'boardDetails', sketchPath: f.sketch },
+        { kind: 'boardDetails', sketchPath: f.sketch, fqbn: '   ' },
+        { kind: 'examples', sketchPath: f.sketch, fqbn: 'arduino:avr:uno\n--config-file=other' },
+        ...['', '  ', 'x'.repeat(257), 'led\0', 'led\r', 'led\n'].map(query => ({ kind: 'librarySearch', sketchPath: f.sketch, query }))
+    ];
+    for (const query of invalid) {
+        await assert.rejects(f.cli.queryForAssistant(query as AiDiscoveryQuery, new AbortController().signal), { code: 'INVALID_ARGUMENT' });
+    }
+    const query: AiDiscoveryQuery = { kind: 'examples', sketchPath: f.sketch };
+    const controller = new AbortController();
+    controller.abort();
+    await assert.rejects(f.cli.queryForAssistant(query, controller.signal), { code: 'CANCELED' });
+    f.workspace.isTrusted = false;
+    await assert.rejects(f.cli.queryForAssistant(query, new AbortController().signal), { code: 'WORKSPACE_UNTRUSTED' });
+    f.workspace.isTrusted = true;
+    f.cli.compileOrUploadRunning = true;
+    await assert.rejects(f.cli.queryForAssistant(query, new AbortController().signal), { code: 'BUSY' });
+    f.cli.compileOrUploadRunning = false;
+    f.cli.arduinoCLIPath = '';
+    await assert.rejects(f.cli.queryForAssistant(query, new AbortController().signal), { code: 'CLI_NOT_READY' });
+    assert.equal(f.calls.length, 0);
+});
+
+test('assistant discovery queries reject failed, oversized or malformed output and redact diagnostics', async (t) => {
+    const f = host(t);
+    const query: AiDiscoveryQuery = { kind: 'librarySearch', sketchPath: f.sketch, query: 'led' };
+    f.setDiscovery({ exitCode: 3, stderr: 'token=dummy-secret' });
+    await assert.rejects(f.cli.queryForAssistant(query, new AbortController().signal), (error: unknown) =>
+        error instanceof AiBridgeError && error.code === 'CLI_FAILED' && !error.message.includes('dummy-secret'));
+    f.setDiscovery({ exitCode: 0, stderr: '', stdout: 'not JSON' });
+    await assert.rejects(f.cli.queryForAssistant(query, new AbortController().signal), { code: 'INVALID_CLI_OUTPUT' });
+    f.setDiscovery({ truncated: true });
+    await assert.rejects(f.cli.queryForAssistant(query, new AbortController().signal), { code: 'OUTPUT_LIMIT' });
+    f.setDiscovery({ truncated: false, canceled: true });
+    await assert.rejects(f.cli.queryForAssistant(query, new AbortController().signal), { code: 'CANCELED' });
+});
+
+test('assistant discovery queries recheck cancellation and trust after the CLI returns', async (t) => {
+    const f = host(t);
+    const query: AiDiscoveryQuery = { kind: 'examples', sketchPath: f.sketch, fqbn: 'arduino:avr:uno' };
+    f.setDiscovery({ stdout: '{"installed_libraries":[]}' });
+    const controller = new AbortController();
+    f.onDiscovery(() => controller.abort());
+    await assert.rejects(f.cli.queryForAssistant(query, controller.signal), { code: 'CANCELED' });
+    f.onDiscovery(() => { f.workspace.isTrusted = false; });
+    await assert.rejects(f.cli.queryForAssistant(query, new AbortController().signal), { code: 'WORKSPACE_UNTRUSTED' });
+    assert.equal(f.calls.length, 2);
+});
+
+test('successful discovery with stderr diagnostics reports incomplete initialization without exposing details', async (t) => {
+    const f = host(t);
+    f.setDiscovery({ stdout: '{"status":"success","libraries":[],"warnings":["Existing warning"]}', stderr: 'Error initializing instance at private-location' });
+    const result = await f.cli.queryForAssistant({ kind: 'librarySearch', sketchPath: f.sketch, query: 'sensor' }, new AbortController().signal) as {
+        warnings: string[];
+    };
+    assert.equal(result.warnings.length, 2);
+    assert.equal(result.warnings[0], 'Existing warning');
+    assert.doesNotMatch(JSON.stringify(result), /private-location/);
+    f.setDiscovery({ stdout: '{"status":"success","libraries":[],"warnings":"invalid"}' });
+    await assert.rejects(f.cli.queryForAssistant({ kind: 'librarySearch', sketchPath: f.sketch, query: 'sensor' }, new AbortController().signal), { code: 'INVALID_CLI_OUTPUT' });
 });

@@ -10,7 +10,7 @@ import { ArduinoDebugInfo, createCortexDebugConfiguration, findCortexDebugConfig
 import type { CliOutputView } from "./cliOutputView";
 import { randomUUID } from 'node:crypto';
 import { runProcess } from './ai/processRunner';
-import { AiBridgeError, type AiOperationResult, type OperationProgress, type ProjectInspection } from './ai/contracts';
+import { AiBridgeError, type AiDiscoveryQuery, type AiOperationResult, type OperationProgress, type ProjectInspection } from './ai/contracts';
 import { collectSensitiveValues, redactText } from './ai/redaction';
 
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
@@ -423,9 +423,6 @@ export class ArduinoCLI {
 
 	/** Fixed queries without UI prompts. CLI initialization can update its indexes/built-in tools. */
 	public async discoverForAssistant(kind: 'boards' | 'ports' | 'cores' | 'libraries', signal: AbortSignal): Promise<unknown> {
-		if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Trust this workspace before using Arduino CLI.'); }
-		if (signal.aborted) { throw new AiBridgeError('CANCELED', 'The request was canceled.'); }
-		if (!this.arduinoCLIPath) { throw new AiBridgeError('CLI_NOT_READY', 'Arduino CLI is not ready.'); }
 		if (kind !== 'boards' && kind !== 'ports' && kind !== 'cores' && kind !== 'libraries') {
 			throw new AiBridgeError('INVALID_ARGUMENT', 'This discovery operation is not supported.');
 		}
@@ -435,14 +432,66 @@ export class ArduinoCLI {
 			cores: ['core', 'list', '--json'],
 			libraries: ['lib', 'list', '--all', '--json']
 		}[kind];
-		const result = await runProcess(this.arduinoCLIPath, args, { signal, maxOutputBytes: 512 * 1024 });
+		return this.runAssistantDiscovery(args, signal);
+	}
+
+	/** Query the inspected sketch without loading or changing the Home selection. */
+	public async queryForAssistant(query: AiDiscoveryQuery, signal: AbortSignal): Promise<unknown> {
+		if (this.compileOrUploadRunning) { throw new AiBridgeError('BUSY', 'Another Arduino operation is running in this window.'); }
+		if (!query || typeof query !== 'object' || typeof query.sketchPath !== 'string' ||
+			!path.isAbsolute(query.sketchPath) || /[\x00-\x1f\x7f]/.test(query.sketchPath)) {
+			throw new AiBridgeError('INVALID_ARGUMENT', 'Discovery requires an absolute sketch directory.');
+		}
+		const requireFqbn = (fqbn: unknown): string => {
+			if (typeof fqbn !== 'string' || !fqbn.trim() || fqbn.length > 4096 || /[\x00-\x1f\x7f]/.test(fqbn)) {
+				throw new AiBridgeError('INVALID_ARGUMENT', 'Discovery requires a valid board FQBN.');
+			}
+			return fqbn;
+		};
+		let args: string[];
+		switch (query.kind) {
+			case 'boardDetails':
+				args = ['board', 'details', '--fqbn', requireFqbn(query.fqbn), '--json'];
+				break;
+			case 'librarySearch':
+				if (typeof query.query !== 'string' || !query.query.trim() || query.query.length > 256 || /[\x00-\x1f\x7f]/.test(query.query)) {
+					throw new AiBridgeError('INVALID_ARGUMENT', 'Library search requires a query of 1 to 256 characters without control characters.');
+				}
+				// Keep available_versions and latest metadata. "--" makes the query data even when it begins with a dash.
+				args = ['lib', 'search', '--omit-releases-details', '--json', '--', query.query];
+				break;
+			case 'examples':
+				args = ['lib', 'list', '--all', ...(query.fqbn === undefined ? [] : ['--fqbn', requireFqbn(query.fqbn)]), '--json'];
+				break;
+			default:
+				throw new AiBridgeError('INVALID_ARGUMENT', 'This discovery operation is not supported.');
+		}
+		return this.runAssistantDiscovery(args, signal, query.sketchPath, 2 * 1024 * 1024);
+	}
+
+	private async runAssistantDiscovery(args: string[], signal: AbortSignal, cwd?: string, maxOutputBytes = 512 * 1024): Promise<unknown> {
+		if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Trust this workspace before using Arduino CLI.'); }
+		if (signal.aborted) { throw new AiBridgeError('CANCELED', 'The request was canceled.'); }
+		if (!this.arduinoCLIPath) { throw new AiBridgeError('CLI_NOT_READY', 'Arduino CLI is not ready.'); }
+		const result = await runProcess(this.arduinoCLIPath, args, { signal, maxOutputBytes, ...(cwd ? { cwd } : {}) });
 		if (result.canceled || signal.aborted) { throw new AiBridgeError('CANCELED', 'Discovery was canceled.'); }
 		if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Trust this workspace before using Arduino CLI.'); }
 		if (result.error || result.exitCode !== 0) {
 			throw new AiBridgeError(result.error?.code ?? 'CLI_FAILED', redactText(result.error?.message ?? `Arduino discovery exited with code ${result.exitCode}: ${result.stderr}`));
 		}
-		if (result.truncated) { throw new AiBridgeError('OUTPUT_LIMIT', 'Discovery output exceeded the bounded output or line limit. Use Arduino Home to inspect this result.'); }
-		try { return JSON.parse(result.stdout); } catch { throw new AiBridgeError('INVALID_CLI_OUTPUT', 'Arduino CLI discovery did not return valid JSON.'); }
+		if (result.truncated) { throw new AiBridgeError('OUTPUT_LIMIT', 'Discovery output exceeded the bounded output or line limit. Narrow a library search, or use Arduino Home to inspect this result.'); }
+		try {
+			const data: unknown = JSON.parse(result.stdout);
+			if (result.stderr.trim()) {
+				if (!data || typeof data !== 'object' || Array.isArray(data)) { throw new Error('Invalid discovery object'); }
+				const object = data as Record<string, unknown>;
+				if (object.warnings !== undefined && !Array.isArray(object.warnings)) { throw new Error('Invalid discovery warnings'); }
+				// A successful exit can still accompany failed CLI initialization. Keep
+				// results explicitly incomplete without exposing raw diagnostic paths.
+				return { ...object, warnings: [...((object.warnings as unknown[] | undefined) ?? []), 'Arduino CLI reported diagnostics while preparing discovery.'] };
+			}
+			return data;
+		} catch { throw new AiBridgeError('INVALID_CLI_OUTPUT', 'Arduino CLI discovery did not return valid JSON.'); }
 	}
 
 	/** The bridge passes an inspected plan, never client-provided executable/argv. */

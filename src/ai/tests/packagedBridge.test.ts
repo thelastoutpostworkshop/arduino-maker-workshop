@@ -10,6 +10,7 @@ import { createAiOperationHandler } from '../operations';
 import { inspectProject } from '../projectInspection';
 import { runProcess } from '../processRunner';
 import { collectSensitiveValues } from '../redaction';
+import type { AiDiscoveryQuery } from '../contracts';
 
 async function fixture() {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'amw-package-'));
@@ -22,6 +23,7 @@ async function fixture() {
     let mode: 'success' | 'failure' | 'waiting' = 'success';
     let compiles = 0;
     let activeCompile: ReturnType<typeof runProcess> | undefined;
+    const queries: AiDiscoveryQuery[] = [];
     let started!: () => void;
     const startedPromise = new Promise<void>(resolve => { started = resolve; });
     const handler = createAiOperationHandler({
@@ -31,6 +33,27 @@ async function fixture() {
         discover: async kind => kind === 'cores'
             ? { platforms: [{ id: 'arduino:avr', installed_version: '1.8.6' }] }
             : kind === 'libraries' ? { installed_libraries: [] } : { kind, entries: [] }, invalidateBuild: () => {},
+        query: async query => {
+            queries.push(query);
+            if (query.kind === 'boardDetails') {
+                return { fqbn: 'arduino:avr:uno', name: 'Uno', config_options: [
+                    { option: 'clock', option_label: 'Clock', values: [
+                        { value: 'default', value_label: 'Default clock', selected: true },
+                        { value: 'slow', value_label: 'Slow clock' },
+                    ] },
+                ] };
+            }
+            if (query.kind === 'librarySearch') {
+                return { status: 'success', libraries: [{ name: 'Sensor Library', available_versions: ['2.0.0', '1.0.0'],
+                    latest: { version: '2.0.0', sentence: 'Read a sensor.', architectures: ['*'] } }] };
+            }
+            return { installed_libraries: [
+                { library: { name: 'Board Library', location: 'platform', container_platform: 'arduino:avr@1.8.6',
+                    examples: [path.join(directory, 'board-package', 'examples', 'BoardExample')] } },
+                { library: { name: 'Sensor Library', location: 'user',
+                    examples: [path.join(directory, 'libraries', 'Sensor Library', 'examples', 'ReadSensor')] } },
+            ] };
+        },
         compile: async (target, signal, progress) => {
             compiles++;
             progress({ message: 'Simulated extension compiler starting.' });
@@ -75,7 +98,7 @@ async function fixture() {
     await request(1, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'simulated-client', version: 'test' } });
     send({ jsonrpc: '2.0', method: 'notifications/initialized' });
     return {
-        sketchPath, request, send, notifications, startedPromise, input: child.stdin,
+        sketchPath, request, send, notifications, startedPromise, queries, input: child.stdin,
         addProfile: () => fs.writeFile(path.join(sketchPath, 'sketch.yaml'), 'profiles:\n  release:\n    fqbn: arduino:avr:uno\n    platforms:\n      - platform: arduino:avr (1.8.6)\n    libraries:\n      - Missing (1.0.0)\n'),
         mode: (value: typeof mode) => { mode = value; },
         compiles: () => compiles,
@@ -104,7 +127,7 @@ test('standalone packaged bridge reaches extension operations and reports compil
     const f = await fixture();
     try {
         const tools = await f.request(2, 'tools/list');
-        assert.equal(tools.result.tools.length, 6);
+        assert.equal(tools.result.tools.length, 9);
         const context = await f.request(3, 'tools/call', { name: 'get_project_context', arguments: { sketchPath: f.sketchPath } });
         assert.equal(context.result.structuredContent.fqbn, 'arduino:avr:uno');
         const compile = await f.request(4, 'tools/call', { name: 'compile_sketch', arguments: { sketchPath: f.sketchPath }, _meta: { progressToken: 'compile-progress' } });
@@ -142,6 +165,41 @@ test('standalone packaged bridge returns profile context and dependency comparis
         assert.equal(report.comparison.platforms[0].status, 'installed');
         assert.equal(report.comparison.libraries[0].status, 'not_found');
         assert.equal(report.buildResolved.status, 'not_reported');
+        assert.equal(f.compiles(), 0);
+    } finally { await f.close(); }
+});
+
+test('standalone packaged bridge returns board options, library versions and filtered examples without compiling', async () => {
+    const f = await fixture();
+    try {
+        await f.addProfile();
+        const target = { sketchPath: f.sketchPath, profile: 'release' };
+        const board = await f.request(2, 'tools/call', { name: 'get_board_details', arguments: target });
+        assert.equal(board.result.isError, false, JSON.stringify(board));
+        assert.equal(board.result.structuredContent.profile, 'release');
+        assert.equal(board.result.structuredContent.board.fqbn, 'arduino:avr:uno');
+        assert.equal(board.result.structuredContent.board.options[0].defaultValue, 'default');
+        assert.equal(board.result.structuredContent.board.options[0].selectedValue, 'default');
+        const search = await f.request(3, 'tools/call', { name: 'search_libraries', arguments: { ...target, query: '  sensor  ', limit: 1 } });
+        assert.equal(search.result.isError, false, JSON.stringify(search));
+        assert.equal(search.result.structuredContent.query, 'sensor');
+        assert.equal(search.result.structuredContent.profile, 'release');
+        assert.equal(search.result.structuredContent.returned, 1);
+        assert.equal(search.result.structuredContent.libraries[0].latestVersion, '2.0.0');
+        assert.deepEqual(search.result.structuredContent.libraries[0].versions, ['1.0.0', '2.0.0']);
+        const boardExamples = await f.request(4, 'tools/call', { name: 'list_examples', arguments: { ...target, source: 'board' } });
+        assert.equal(boardExamples.result.isError, false, JSON.stringify(boardExamples));
+        assert.deepEqual(boardExamples.result.structuredContent.examples.map((example: any) => [example.name, example.source]), [['BoardExample', 'board']]);
+        const libraryExamples = await f.request(5, 'tools/call', { name: 'list_examples', arguments: { ...target, source: 'libraries', library: '  Sensor Library  ', limit: 1 } });
+        assert.equal(libraryExamples.result.isError, false, JSON.stringify(libraryExamples));
+        assert.equal(libraryExamples.result.structuredContent.library, 'Sensor Library');
+        assert.deepEqual(libraryExamples.result.structuredContent.examples.map((example: any) => [example.name, example.source]), [['ReadSensor', 'libraries']]);
+        assert.deepEqual(f.queries, [
+            { kind: 'boardDetails', sketchPath: f.sketchPath, fqbn: 'arduino:avr:uno' },
+            { kind: 'librarySearch', sketchPath: f.sketchPath, query: 'sensor' },
+            { kind: 'examples', sketchPath: f.sketchPath, fqbn: 'arduino:avr:uno' },
+            { kind: 'examples', sketchPath: f.sketchPath },
+        ]);
         assert.equal(f.compiles(), 0);
     } finally { await f.close(); }
 });

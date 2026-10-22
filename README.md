@@ -60,8 +60,8 @@ Home shows a short status summary and a link to the AI integration page. Turn
 **Enable AI integration** off on that page to
 revoke access across windows in the same profile; saved client entries stay intact.
 
-Ask your assistant to inspect projects, check dependencies, list boards and ports,
-or compile sketches. See the [AI assistant guide](AI_ASSISTANTS.md) for setup,
+Ask your assistant to inspect projects and board options, find libraries and examples,
+check dependencies, list ports, or compile sketches. See the [AI assistant guide](AI_ASSISTANTS.md) for setup,
 prompt examples, and limitations.
 
 ### Profiles Manager (Reproducible build profiles)

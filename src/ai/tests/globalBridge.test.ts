@@ -125,8 +125,8 @@ async function fixture(t: TestContext) {
             descriptor: JSON.parse(await fs.readFile(server.sessionFile, 'utf8')) as { token: string; endpoint: string; sessionId: string }
         };
     };
-    const call = (sketchPath: string, name: AiToolName = 'get_project_context') =>
-        request('tools/call', { name, arguments: { sketchPath } });
+    const call = (sketchPath: string, name: AiToolName = 'get_project_context', args: Record<string, unknown> = {}) =>
+        request('tools/call', { name, arguments: { sketchPath, ...args } });
     const list = () => request('tools/call', { name: 'list_connected_sketches', arguments: {} });
     return { alpha, beta, gamma, unopened, request, call, list, connect };
 }
@@ -149,7 +149,7 @@ test('global packaged bridge lists and routes changing connected sketches withou
     const f = await fixture(t);
     const tools = await f.request('tools/list');
     assert.deepEqual(tools.result.tools.map((tool: any) => tool.name).sort(),
-        ['compile_sketch', 'get_project_context', 'list_boards', 'list_connected_sketches', 'list_dependencies', 'list_ports']);
+        ['compile_sketch', 'get_board_details', 'get_project_context', 'list_boards', 'list_connected_sketches', 'list_dependencies', 'list_examples', 'list_ports', 'search_libraries']);
     assertSketches(await f.list(), []);
     assertSketches(await f.request('tools/call', { name: 'list_connected_sketches' }), []);
 
@@ -159,8 +159,11 @@ test('global packaged bridge lists and routes changing connected sketches withou
     assert.equal((await f.call(f.alpha)).result.structuredContent.session, 'alpha-window');
     assert.equal((await f.call(f.beta, 'list_ports')).result.structuredContent.session, 'beta-window');
     assert.equal((await f.call(f.beta, 'list_dependencies')).result.structuredContent.session, 'beta-window');
-    assert.deepEqual(alpha.calls, ['get_project_context']);
-    assert.deepEqual(beta.calls, ['list_ports', 'list_dependencies']);
+    assert.equal((await f.call(f.alpha, 'get_board_details', { profile: 'release' })).result.structuredContent.session, 'alpha-window');
+    assert.equal((await f.call(f.beta, 'search_libraries', { query: 'temperature sensor', limit: 10 })).result.structuredContent.session, 'beta-window');
+    assert.equal((await f.call(f.beta, 'list_examples', { source: 'board' })).result.structuredContent.session, 'beta-window');
+    assert.deepEqual(alpha.calls, ['get_project_context', 'get_board_details']);
+    assert.deepEqual(beta.calls, ['list_ports', 'list_dependencies', 'search_libraries', 'list_examples']);
 
     // Simulate one window switching folders while a second window stays connected.
     await alpha.server.dispose();
@@ -180,14 +183,14 @@ test('global discovery and another sketch remain usable during compilation witho
     const beta = await f.connect(f.beta, 'beta');
     const compilation = f.call(f.alpha, 'compile_sketch');
     await bounded(alpha.started, 'Compilation never reached alpha');
-    const [inspection, listing] = await Promise.all([f.call(f.beta), f.list()]);
+    const [inspection, listing] = await Promise.all([f.call(f.beta, 'search_libraries', { query: 'sensor' }), f.list()]);
     assert.equal(inspection.result.structuredContent.session, 'beta');
     assertSketches(listing, [{ sketchPath: f.alpha, sessionCount: 1 }, { sketchPath: f.beta, sessionCount: 1 }]);
     assert.equal(alpha.wasAborted(), false, 'Inspecting or listing other sessions must retain the active compile connection');
     alpha.release();
     assert.equal((await compilation).result.structuredContent.status, 'success');
     assert.deepEqual(alpha.calls, ['compile_sketch']);
-    assert.deepEqual(beta.calls, ['get_project_context']);
+    assert.deepEqual(beta.calls, ['search_libraries']);
 
     await alpha.server.dispose();
     const interrupted = await f.connect(f.alpha, 'interrupted-alpha', true);
