@@ -59,14 +59,9 @@ Home shows a short status summary and a link to the AI integration page. Turn
 **Enable AI integration** off on that page to
 revoke access across windows in the same profile; saved client entries stay intact.
 
-Assistants can inspect projects, discover boards/ports, and request compilation.
-AI operations run automatically in trusted local workspaces while the integration
-is enabled, including normal and clean compilation. The extension does not ask
-for approval; your AI client's own tool permissions still apply. Upload and
-serial tools are not exposed.
-Ask the assistant to list available sketches and inspect the one you choose.
-See [AI assistant setup and limitations](AI_ASSISTANTS.md) for details and manual
-configuration alternatives.
+Ask your assistant to inspect projects, check dependencies, list boards and ports,
+or compile sketches. See the [AI assistant guide](AI_ASSISTANTS.md) for setup,
+prompt examples, and limitations.
 
 ### Profiles Manager (Reproducible build profiles)
 

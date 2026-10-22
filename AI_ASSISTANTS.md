@@ -107,6 +107,20 @@ the appropriate tool; you do not need to enter tool arguments yourself.
 This integration does not currently provide firmware upload, board reset or erase,
 bootloader flashing, serial monitoring, or package installation tools.
 
+### Prompt examples
+
+Start by listing connected sketches. Then copy a prompt below, replacing `Blink`
+and `release` with your sketch and profile names.
+
+| Task | Prompt |
+| --- | --- |
+| Find sketches | Use Arduino Maker Workshop to list my connected sketches. |
+| Inspect a project | Use Arduino Maker Workshop to inspect Blink, list its profiles, and check the dependencies for its release profile. |
+| Find boards and ports | Use Arduino Maker Workshop to show available boards and connected ports for Blink. |
+| Compile | Use Arduino Maker Workshop to compile Blink with its current board or profile and summarize the result. |
+| Compile a profile | Use Arduino Maker Workshop to compile Blink using the release profile. |
+| Clean compilation | Use Arduino Maker Workshop to perform a clean compilation of Blink using the release profile. |
+
 ### Profiles and dependencies
 
 Ask the assistant: "Show the available profiles and check the dependencies for
