@@ -434,6 +434,29 @@ export function inspectProject(input: InspectionInput, activeSketchPath: string)
         buildPath,
         sources: sources ?? null,
     })).digest('hex');
+    // Artifact identity follows resolved build inputs, not clean/rebuild options
+    // or whether the same profile was requested explicitly or selected in Home.
+    let profileBuildInputs: string | null = null;
+    if (profile) {
+        try {
+            let remaining = MAX_METADATA_BYTES;
+            profileBuildInputs = JSON.stringify(Object.fromEntries(Object.entries(profile)
+                .filter(([key]) => !['port', 'protocol', 'programmer', 'notes'].includes(key))), (key, value) => {
+                remaining -= Buffer.byteLength(key, 'utf8') + (typeof value === 'string' ? Buffer.byteLength(value, 'utf8') : 16);
+                if (remaining < 0) { throw new Error('Profile expansion exceeds metadata limit.'); }
+                return value;
+            });
+        } catch {
+            // Cyclic or oversized YAML expansions remain inspectable. Their bounded
+            // original text conservatively invalidates the build on metadata changes.
+            profileBuildInputs = yamlRaw ?? null;
+        }
+    }
+    const buildFingerprint = createHash('sha256').update(JSON.stringify({
+        schemaVersion: 1, sketchPath, resolvedProfile: resolvedProfile ?? null,
+        fqbn: fqbn ?? null, buildProperties, optimizeForDebug: optimizeForDebug ?? false,
+        profileBuildInputs, buildPath, sources: sources ?? null,
+    })).digest('hex');
     const profileSummary = summarizeProfiles(profiles, defaultProfile, resolvedProfile);
     return {
         schemaVersion: 1,
@@ -455,6 +478,7 @@ export function inspectProject(input: InspectionInput, activeSketchPath: string)
         buildProperties,
         compileArgs,
         fingerprint,
+        buildFingerprint,
         canCompile,
         issues,
     };

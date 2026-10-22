@@ -10,7 +10,8 @@ import { createAiOperationHandler } from '../operations';
 import { inspectProject } from '../projectInspection';
 import { runProcess } from '../processRunner';
 import { collectSensitiveValues } from '../redaction';
-import type { AiDiscoveryQuery } from '../contracts';
+import type { AiDiscoveryQuery, ProjectInspection } from '../contracts';
+import type { BacktraceDecodeResult } from '../backtrace';
 import { CompileOutputCollector } from '../compileOutput';
 import { snapshotCompileArtifacts, collectCompileArtifacts, unavailableCompileArtifacts } from '../compileArtifacts';
 
@@ -26,6 +27,8 @@ async function fixture() {
     let compiles = 0;
     let activeCompile: ReturnType<typeof runProcess> | undefined;
     const queries: AiDiscoveryQuery[] = [];
+    const decodes: { target: ProjectInspection; log: string }[] = [];
+    let partialDecode = false;
     let started!: () => void;
     const startedPromise = new Promise<void>(resolve => { started = resolve; });
     const handler = createAiOperationHandler({
@@ -55,6 +58,22 @@ async function fixture() {
                 { library: { name: 'Sensor Library', location: 'user',
                     examples: [path.join(directory, 'libraries', 'Sensor Library', 'examples', 'ReadSensor')] } },
             ] };
+        },
+        decode: async (target, log, _signal, progress): Promise<BacktraceDecodeResult> => {
+            decodes.push({ target, log });
+            progress({ message: 'Decoding fixture addresses with the selected profile build.' });
+            return {
+                schemaVersion: 1, status: partialDecode ? 'partial' : 'success',
+                target: { sketchPath: target.sketchPath, profile: target.resolvedProfile, fqbn: target.fqbn!, buildPath: target.buildPath },
+                architecture: 'xtensa', elfPath: path.join(target.buildPath, 'Blink.ino.elf'),
+                decoderPath: path.join(directory, 'toolchain', 'xtensa-esp32-elf-addr2line'),
+                frames: [
+                    { address: '0x40012345', functionName: 'readSensor()', file: path.join(target.sketchPath, 'Blink.ino'), line: 12 },
+                    ...(partialDecode ? [{ address: '0x40054321', functionName: '??', file: '??', line: 0 }] : []),
+                ],
+                stdout: '0x40012345: readSensor() at Blink.ino:12\n', stderr: '', truncated: false, durationMs: 1,
+                notes: partialDecode ? ['One address has no available source symbols.'] : [],
+            };
         },
         compile: async (target, signal, progress) => {
             compiles++;
@@ -120,9 +139,11 @@ async function fixture() {
     await request(1, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'simulated-client', version: 'test' } });
     send({ jsonrpc: '2.0', method: 'notifications/initialized' });
     return {
-        sketchPath, request, send, notifications, startedPromise, queries, input: child.stdin,
+        sketchPath, request, send, notifications, startedPromise, queries, decodes, input: child.stdin,
         addProfile: () => fs.writeFile(path.join(sketchPath, 'sketch.yaml'), 'profiles:\n  release:\n    fqbn: arduino:avr:uno\n    platforms:\n      - platform: arduino:avr (1.8.6)\n    libraries:\n      - Missing (1.0.0)\n'),
+        addEsp32Profile: () => fs.writeFile(path.join(sketchPath, 'sketch.yaml'), 'profiles:\n  debug:\n    fqbn: esp32:esp32:esp32\n    platforms:\n      - platform: esp32:esp32 (3.3.2)\n'),
         mode: (value: typeof mode) => { mode = value; },
+        partialDecode: (value: boolean) => { partialDecode = value; },
         compiles: () => compiles,
         compileResult: () => activeCompile,
         waitForExit: async () => {
@@ -149,7 +170,7 @@ test('standalone packaged bridge reaches extension operations and reports compil
     const f = await fixture();
     try {
         const tools = await f.request(2, 'tools/list');
-        assert.equal(tools.result.tools.length, 9);
+        assert.equal(tools.result.tools.length, 10);
         const context = await f.request(3, 'tools/call', { name: 'get_project_context', arguments: { sketchPath: f.sketchPath } });
         assert.equal(context.result.structuredContent.fqbn, 'arduino:avr:uno');
         const compile = await f.request(4, 'tools/call', { name: 'compile_sketch', arguments: { sketchPath: f.sketchPath }, _meta: { progressToken: 'compile-progress' } });
@@ -242,6 +263,46 @@ test('standalone packaged bridge returns board options, library versions and fil
             { kind: 'examples', sketchPath: f.sketchPath },
         ]);
         assert.equal(f.compiles(), 0);
+    } finally { await f.close(); }
+});
+
+test('standalone packaged bridge routes ESP32 logs and profiles with decoded and unresolved frames', async () => {
+    const f = await fixture();
+    try {
+        await f.addEsp32Profile();
+        const log = 'PC : 0x40012345\r\nBacktrace: 0x40012345:0x3ffb0020 0x40054321:0x3ffb0040\n';
+        const args = { sketchPath: f.sketchPath, profile: 'debug', log };
+        const response = await f.request(2, 'tools/call', {
+            name: 'decode_esp32_backtrace', arguments: args, _meta: { progressToken: 'decode-progress' },
+        });
+        assert.equal(response.error, undefined, JSON.stringify(response));
+        assert.equal(response.result.isError, false);
+        const decoded = response.result.structuredContent;
+        assert.equal(decoded.status, 'success');
+        assert.equal(decoded.target.profile, 'debug');
+        assert.equal(decoded.target.fqbn, 'esp32:esp32:esp32');
+        assert.equal(decoded.target.sketchPath, f.sketchPath);
+        assert.equal(decoded.elfPath, path.join(decoded.target.buildPath, 'Blink.ino.elf'));
+        assert.equal(decoded.architecture, 'xtensa');
+        assert.deepEqual(decoded.frames, [{ address: '0x40012345', functionName: 'readSensor()', file: path.join(f.sketchPath, 'Blink.ino'), line: 12 }]);
+        assert.deepEqual(JSON.parse(response.result.content[0].text), decoded);
+        assert.ok(f.notifications.some(frame => frame.method === 'notifications/progress' && frame.params.progressToken === 'decode-progress'));
+        assert.equal(f.decodes.length, 1);
+        assert.equal(f.decodes[0].target.resolvedProfile, 'debug');
+        assert.equal(f.decodes[0].log, log);
+
+        f.partialDecode(true);
+        const partial = await f.request(3, 'tools/call', { name: 'decode_esp32_backtrace', arguments: args });
+        assert.equal(partial.result.isError, false, 'Unresolved addresses are useful partial results, not tool failures');
+        assert.equal(partial.result.structuredContent.status, 'partial');
+        assert.deepEqual(partial.result.structuredContent.frames[1], { address: '0x40054321', functionName: '??', file: '??', line: 0 });
+        assert.equal(partial.result.structuredContent.notes.length, 1);
+        assert.deepEqual(JSON.parse(partial.result.content[0].text), partial.result.structuredContent);
+
+        const invalid = await f.request(4, 'tools/call', { name: 'decode_esp32_backtrace', arguments: { ...args, elfPath: path.join(f.sketchPath, 'other.elf') } });
+        assert.equal(invalid.error?.code, -32602);
+        assert.equal(f.decodes.length, 2, 'Caller-selected ELF paths must never reach the extension decoder');
+        assert.equal(f.compiles(), 0, 'Decoding must not compile or replace the firmware build');
     } finally { await f.close(); }
 });
 

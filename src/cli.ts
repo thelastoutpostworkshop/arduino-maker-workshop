@@ -14,6 +14,7 @@ import { AiBridgeError, type AiDiscoveryQuery, type AiOperationResult, type Oper
 import { collectSensitiveValues, redactText } from './ai/redaction';
 import { CompileOutputCollector, unavailableCompileOutput } from './ai/compileOutput';
 import { snapshotCompileArtifacts, collectCompileArtifacts, unavailableCompileArtifacts, type CompileArtifactSnapshot } from './ai/compileArtifacts';
+import { createBacktraceBuildRecord, decodeEsp32Backtrace, type BacktraceBuildRecord, type BacktraceDecodeResult } from './ai/backtrace';
 
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
 
@@ -496,6 +497,40 @@ export class ArduinoCLI {
 		} catch { throw new AiBridgeError('INVALID_CLI_OUTPUT', 'Arduino CLI discovery did not return valid JSON.'); }
 	}
 
+	public async decodeBacktraceForAssistant(target: ProjectInspection, log: string, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<BacktraceDecodeResult> {
+		if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Trust this workspace before decoding.'); }
+		if (signal.aborted) { throw new AiBridgeError('CANCELED', 'Decoding was canceled.'); }
+		if (!target.canCompile || !this.isAssistantCompilePlan(target)) { throw new AiBridgeError('INVALID_TARGET', 'Request fresh project context before decoding.'); }
+		if (this.compileOrUploadRunning) { throw new AiBridgeError('BUSY', 'Another Arduino operation is running in this window.'); }
+		this.compileOrUploadRunning = true;
+		const controller = new AbortController();
+		const abort = () => controller.abort();
+		signal.addEventListener('abort', abort, { once: true });
+		try {
+			return await window.withProgress({ location: ProgressLocation.Notification, title: 'Decoding ESP32 crash log for assistant', cancellable: true }, async (_progress, token) => {
+				const cancellation = token.onCancellationRequested(abort);
+				try {
+					if (signal.aborted || token.isCancellationRequested) { controller.abort(); }
+					const config = await this.runAssistantDiscovery(['config', 'dump', '--json'], controller.signal, target.sketchPath) as { config?: { directories?: { data?: unknown } }; directories?: { data?: unknown } };
+					const dataDir = config?.config?.directories?.data ?? config?.directories?.data;
+					if (typeof dataDir !== 'string' || !path.isAbsolute(dataDir) || /[\x00-\x1f\x7f]/.test(dataDir)) {
+						throw new AiBridgeError('INVALID_CLI_CONFIG', 'Arduino CLI did not report a valid data directory for the ESP32 decoder.');
+					}
+					if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Workspace trust changed before decoding.'); }
+					progress({ message: 'Decoding with the matching ELF and installed ESP32 tools...' });
+					const result = await decodeEsp32Backtrace({ target, log, dataDir, signal: controller.signal, sensitiveValues: collectSensitiveValues(target.compileArgs) });
+					if (controller.signal.aborted) { throw new AiBridgeError('CANCELED', 'Decoding was canceled.'); }
+					if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Workspace trust changed during decoding.'); }
+					progress({ message: `ESP32 decoding completed: ${result.frames.length} frames reported.` });
+					return result;
+				} finally { cancellation.dispose(); }
+			});
+		} finally {
+			signal.removeEventListener('abort', abort);
+			this.compileOrUploadRunning = false;
+		}
+	}
+
 	/** The bridge passes an inspected plan, never client-provided executable/argv. */
 	public async compileForAssistant(target: ProjectInspection, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<AiOperationResult> {
 		const operationId = randomUUID();
@@ -580,7 +615,8 @@ export class ArduinoCLI {
 			const artifacts = status === 'success' && artifactSnapshot
 				? await collectCompileArtifacts(target, artifactSnapshot)
 				: unavailableCompileArtifacts('Artifacts are only reported after successful compilation.');
-			this.writeAssistantBuildResult(target, status === 'success');
+			const backtrace = status === 'success' ? await createBacktraceBuildRecord(target) : undefined;
+			this.writeAssistantBuildResult(target, status === 'success', backtrace);
 			const message = status === 'success' ? 'Assistant compilation completed successfully.' : status === 'canceled' ? 'Assistant compilation canceled.' : 'Assistant compilation failed.';
 			compileOutputView?.setStatus(status === 'success' ? 'success' : status === 'canceled' ? 'canceled' : 'failure', message);
 			compileOutputView?.appendInfo(`${message}\n`);
@@ -655,7 +691,7 @@ export class ArduinoCLI {
 			&& JSON.stringify(currentProfile ? arduinoYaml.getProfileBuildProperties(currentProfile) : []) === JSON.stringify(target.buildProperties);
 	}
 
-	private writeAssistantBuildResult(target: ProjectInspection, result: boolean): void {
+	private writeAssistantBuildResult(target: ProjectInspection, result: boolean, backtrace?: BacktraceBuildRecord): void {
 		// Re-inspect existing ancestors at write time; never follow a marker symlink.
 		const root = fs.realpathSync.native(target.sketchPath);
 		let ancestor = path.resolve(target.buildPath);
@@ -677,7 +713,7 @@ export class ArduinoCLI {
 		fs.mkdirSync(buildPath, { recursive: true });
 		const temporary = path.join(buildPath, `.compile-result-${randomUUID()}.tmp`);
 		try {
-			fs.writeFileSync(temporary, JSON.stringify({ result, fingerprint: target.fingerprint, completedAt: new Date().toISOString() }, null, 2), { encoding: 'utf8', flag: 'wx' });
+			fs.writeFileSync(temporary, JSON.stringify({ result, fingerprint: target.fingerprint, completedAt: new Date().toISOString(), ...(result && backtrace ? { backtrace } : {}) }, null, 2), { encoding: 'utf8', flag: 'wx' });
 			fs.renameSync(temporary, path.join(buildPath, COMPILE_RESULT_FILE));
 		} finally { if (fs.existsSync(temporary)) { fs.unlinkSync(temporary); } }
 	}

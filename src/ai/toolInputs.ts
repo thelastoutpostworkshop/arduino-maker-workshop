@@ -4,7 +4,10 @@ import { AiBridgeError, type AiToolInput, type AiToolName } from './contracts';
 export const AI_TOOL_NAMES: readonly AiToolName[] = [
     'get_project_context', 'list_dependencies', 'list_boards', 'list_ports',
     'get_board_details', 'search_libraries', 'list_examples', 'compile_sketch',
+    'decode_esp32_backtrace',
 ];
+
+export const MAX_BACKTRACE_LOG_BYTES = 8192;
 
 function record(value: unknown): value is Record<string, unknown> {
     return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -12,6 +15,12 @@ function record(value: unknown): value is Record<string, unknown> {
 
 function validText(value: unknown): value is string {
     return typeof value === 'string' && value.length <= 256 && value.trim().length > 0 && !/[\x00-\x1f\x7f]/.test(value);
+}
+
+function validBacktraceLog(value: unknown): value is string {
+    return typeof value === 'string' && value.trim().length > 0 &&
+        Buffer.byteLength(value, 'utf8') <= MAX_BACKTRACE_LOG_BYTES &&
+        !/[\x00-\x08\x0b\x0c\x0e-\x1a\x1c-\x1f\x7f]/.test(value);
 }
 
 /** One allowlist and argument validator for both transports and operation execution. */
@@ -24,11 +33,13 @@ export function validateToolCall(name: unknown, input: unknown): { name: AiToolN
         throw new AiBridgeError('INVALID_ARGUMENTS', 'An absolute sketchPath is required.');
     }
     const allowed = ['sketchPath', 'profile', ...(name === 'compile_sketch' ? ['clean'] :
+        name === 'decode_esp32_backtrace' ? ['log'] :
         name === 'search_libraries' ? ['query', 'limit'] : name === 'list_examples' ? ['source', 'library', 'limit'] : [])];
     if (Object.keys(input).some(key => !allowed.includes(key)) ||
         (input.profile !== undefined && (typeof input.profile !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/.test(input.profile))) ||
         (input.clean !== undefined && typeof input.clean !== 'boolean') ||
         (name === 'search_libraries' && !validText(input.query)) ||
+        (name === 'decode_esp32_backtrace' && !validBacktraceLog(input.log)) ||
         (input.library !== undefined && !validText(input.library)) ||
         (input.limit !== undefined && (typeof input.limit !== 'number' || !Number.isInteger(input.limit) || input.limit < 1 || input.limit > 100)) ||
         (input.source !== undefined && !['board', 'libraries', 'all'].includes(input.source as string))) {

@@ -6,6 +6,7 @@ import { AI_TOOL_NAMES, validateToolCall } from './toolInputs';
 import { unavailableCompileArtifacts } from './compileArtifacts';
 import { unavailableCompileOutput } from './compileOutput';
 import { unavailableCompileDependencies } from './compileDependencies';
+import type { BacktraceDecodeResult } from './backtrace';
 
 export interface AiOperationDependencies {
     isTrusted(): boolean;
@@ -16,6 +17,7 @@ export interface AiOperationDependencies {
     hasUnsavedSketchDocuments(sketchPath: string): boolean;
     revision(): number;
     compile(target: ProjectInspection, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<AiOperationResult>;
+    decode(target: ProjectInspection, log: string, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<BacktraceDecodeResult>;
     discover(kind: 'boards' | 'ports' | 'cores' | 'libraries', signal: AbortSignal): Promise<unknown>;
     query(query: AiDiscoveryQuery, signal: AbortSignal): Promise<unknown>;
     invalidateBuild(target: ProjectInspection): void;
@@ -53,6 +55,37 @@ export function createAiOperationHandler(dependencies: AiOperationDependencies):
         }
         if (!dependencies.isReady()) {
             throw new AiBridgeError('CLI_NOT_READY', 'Arduino CLI is not ready. Resolve its setup in Arduino Home and reconnect.');
+        }
+        if (name === 'decode_esp32_backtrace') {
+            if (compilePending || discoveryPending) {
+                throw new AiBridgeError('BUSY', 'Another assistant operation is pending or running in this window.');
+            }
+            if (!target.canCompile) {
+                throw new AiBridgeError('INVALID_TARGET', 'Resolve the sketch board/profile and configuration issues before decoding.');
+            }
+            discoveryPending = true;
+            try {
+                const revision = dependencies.revision();
+                const toolchain = JSON.stringify(dependencies.cliInfo());
+                const assertCurrent = () => {
+                    assertAvailable();
+                    if (dependencies.hasUnsavedSketchDocuments(target.sketchPath)) {
+                        throw new AiBridgeError('UNSAVED_DOCUMENTS', 'Save the sketch documents and use the matching build before decoding.');
+                    }
+                    const currentPath = dependencies.activeSketchPath();
+                    let current: ProjectInspection | undefined;
+                    try { current = currentPath ? dependencies.inspect(inspectionInput, currentPath) : undefined; } catch { /* Changed or removed inputs are stale. */ }
+                    if (!current || current.fingerprint !== target.fingerprint || dependencies.revision() !== revision ||
+                        JSON.stringify(dependencies.cliInfo()) !== toolchain) {
+                        throw new AiBridgeError('STALE_INPUT', 'The sketch or toolchain changed during decoding. Use the matching build and request decoding again.');
+                    }
+                };
+                progress({ message: 'Checking the matching ESP32 build...' });
+                assertCurrent();
+                const result = await dependencies.decode(target, input.log!, signal, progress);
+                assertCurrent();
+                return redactForAssistant(result, sensitiveValues);
+            } finally { discoveryPending = false; }
         }
         if (name !== 'compile_sketch') {
             if (compilePending || discoveryPending) {

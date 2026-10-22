@@ -10,12 +10,14 @@ import { runProcess, type ProcessOptions, type ProcessResult } from '../processR
 import * as redaction from '../redaction';
 import * as compileOutput from '../compileOutput';
 import * as compileArtifacts from '../compileArtifacts';
+import * as backtrace from '../backtrace';
 
 interface TestedCli {
     arduinoCLIPath: string;
     compileOrUploadRunning: boolean;
     getCLIStatus(): { VersionString: string };
     compileForAssistant(target: ProjectInspection, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<AiOperationResult>;
+    decodeBacktraceForAssistant(target: ProjectInspection, log: string, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<backtrace.BacktraceDecodeResult>;
     discoverForAssistant(kind: 'boards' | 'ports' | 'cores' | 'libraries', signal: AbortSignal): Promise<unknown>;
     queryForAssistant(query: AiDiscoveryQuery, signal: AbortSignal): Promise<unknown>;
     invalidateAssistantBuild(target: ProjectInspection): void;
@@ -60,6 +62,7 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
     let onViewText: ((text: string) => void) | undefined;
     let onPrepare: (() => void) | undefined;
     let onDiscovery: (() => void) | undefined;
+    let onDecode = backtrace.decodeEsp32Backtrace;
     let discovery: ProcessResult = { exitCode: 0, signal: null, stdout: '{"boards":[]}', stderr: '', output: '', truncated: false, canceled: false, durationMs: 1 };
     const workspace = {
         isTrusted: true,
@@ -112,10 +115,11 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
         './cliCache': { CliCache: class {} }, './debugConfiguration': {},
         './ai/contracts': { AiBridgeError }, './ai/redaction': redaction,
         './ai/compileOutput': compileOutput, './ai/compileArtifacts': compileArtifacts,
+        './ai/backtrace': { ...backtrace, decodeEsp32Backtrace: (options: Parameters<typeof backtrace.decodeEsp32Backtrace>[0]) => onDecode(options) },
         './ai/processRunner': {
             runProcess: (executable: string, args: string[], options: ProcessOptions) => {
                 calls.push({ executable, args: [...args], options });
-                if (['board', 'core', 'lib'].includes(args[0])) {
+                if (['board', 'core', 'lib', 'config'].includes(args[0])) {
                     onDiscovery?.();
                     return Promise.resolve(discovery);
                 }
@@ -146,6 +150,7 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
         setVerboseCompile: (value: boolean | undefined) => { verboseCompile = value; },
         setDiscovery: (result: Partial<ProcessResult>) => { discovery = { ...discovery, ...result }; },
         onDiscovery: (callback: () => void) => { onDiscovery = callback; },
+        onDecode: (callback: typeof backtrace.decodeEsp32Backtrace) => { onDecode = callback; },
         cancelUi: () => { cancellationRequested = true; for (const listener of [...cancelListeners]) { listener(); } }
     };
 }
@@ -254,6 +259,77 @@ test('actual extension reports unavailable build dependencies when nonverbose ou
     assert.deepEqual(result.dependencies.platforms, []);
     assert.equal(f.calls.length, 1, 'no inventory query may substitute installed packages for build dependencies');
     assert.ok(!f.calls[0].args.includes('-v'), 'dependency reporting must respect the verbose preference');
+});
+
+test('actual AI compilation records a matching ESP32 ELF and clears that record on invalidation', async (t) => {
+    const f = host(t, `
+        const fs = require('node:fs'), path = require('node:path');
+        const output = process.argv[process.argv.indexOf('--build-path') + 1];
+        const elf = Buffer.alloc(64);
+        elf.set([0x7f, 0x45, 0x4c, 0x46, 1, 1, 1]);
+        elf.writeUInt16LE(2, 16); elf.writeUInt16LE(94, 18);
+        elf.writeUInt32LE(1, 20); elf.writeUInt16LE(52, 40);
+        fs.writeFileSync(path.join(output, 'Blink.ino.elf'), elf);
+        console.log('compiled');
+    `);
+    fs.writeFileSync(f.configurationPath, JSON.stringify({ board: 'esp32:esp32:esp32', output: 'build' }));
+    const target = inspectProject({ sketchPath: f.sketch, clean: true }, f.sketch);
+    const result = await f.compile(undefined, target);
+    assert.equal(result.status, 'success');
+    const marker = JSON.parse(fs.readFileSync(path.join(target.buildPath, 'compile_result.json'), 'utf8'));
+    assert.ok(marker.backtrace, 'successful AI builds must persist ELF provenance for later decoding');
+    assert.match(JSON.stringify(marker.backtrace), /[a-f0-9]{64}/);
+    assert.equal(target.buildFingerprint, f.target().buildFingerprint, 'clean builds must match ordinary decode requests');
+    f.cli.invalidateAssistantBuild(target);
+    const invalid = JSON.parse(fs.readFileSync(path.join(target.buildPath, 'compile_result.json'), 'utf8'));
+    assert.equal(invalid.result, false);
+    assert.equal(invalid.backtrace, undefined);
+});
+
+test('actual extension decode uses fixed configuration lookup, shares the Arduino lock and cancels from VS Code', async (t) => {
+    const f = host(t);
+    fs.writeFileSync(f.configurationPath, JSON.stringify({ board: 'esp32:esp32:esp32', output: 'build' }));
+    const dataDir = path.join(f.sketch, 'Arduino Data');
+    f.setDiscovery({ stdout: JSON.stringify({ config: { directories: { data: dataDir } } }) });
+    let started!: () => void;
+    const ready = new Promise<void>(resolve => { started = resolve; });
+    f.onDecode(async options => {
+        assert.equal(options.dataDir, dataDir);
+        assert.equal(options.log, 'PC: 0x40001234');
+        assert.equal(options.target.fqbn, 'esp32:esp32:esp32');
+        started();
+        await new Promise<void>(resolve => options.signal.addEventListener('abort', () => resolve(), { once: true }));
+        throw new AiBridgeError('CANCELED', 'Decoded request canceled.');
+    });
+    const controller = new AbortController();
+    t.after(() => controller.abort());
+    const pending = f.cli.decodeBacktraceForAssistant(f.target(), 'PC: 0x40001234', controller.signal, () => {});
+    await ready;
+    assert.equal((await f.compile()).status, 'busy');
+    await assert.rejects(f.cli.decodeBacktraceForAssistant(f.target(), 'PC: 0x40001234', controller.signal, () => {}), { code: 'BUSY' });
+    assert.deepEqual(f.calls.map(call => call.args), [['config', 'dump', '--json']]);
+    f.cancelUi();
+    await assert.rejects(pending, { code: 'CANCELED' });
+    assert.equal(f.cli.compileOrUploadRunning, false);
+    assert.equal(f.saves(), 0);
+    assert.equal(fs.existsSync(f.target().buildPath), false, 'decoding must not compile or create build output');
+});
+
+test('actual extension decoding rejects invalid CLI data and trust revocation without invoking the decoder', async (t) => {
+    const f = host(t);
+    f.onDecode(async () => { assert.fail('Decoder must not start.'); });
+    const decode = () => f.cli.decodeBacktraceForAssistant(f.target(), 'PC: 0x40001234', new AbortController().signal, () => {});
+    f.workspace.isTrusted = false;
+    await assert.rejects(decode(), { code: 'WORKSPACE_UNTRUSTED' });
+    assert.equal(f.calls.length, 0);
+    f.workspace.isTrusted = true;
+    f.setDiscovery({ stdout: '{"config":{"directories":{"data":"relative"}}}' });
+    await assert.rejects(decode(), { code: 'INVALID_CLI_CONFIG' });
+    assert.equal(f.cli.compileOrUploadRunning, false);
+    f.setDiscovery({ stdout: JSON.stringify({ directories: { data: f.sketch } }) });
+    f.onDiscovery(() => { f.workspace.isTrusted = false; });
+    await assert.rejects(decode(), { code: 'WORKSPACE_UNTRUSTED' });
+    assert.equal(f.cli.compileOrUploadRunning, false);
 });
 
 test('actual extension retains early redacted diagnostics after verbose log truncation', async (t) => {

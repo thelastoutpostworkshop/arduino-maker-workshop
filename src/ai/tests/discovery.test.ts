@@ -6,7 +6,7 @@ import { buildBoardDetails, buildExamples, buildLibrarySearch } from '../discove
 function target(fqbn: string | undefined = 'vendor:arch:board:Speed=fast'): ProjectInspection {
     return {
         schemaVersion: 1, sketchPath: '/sketch', sketchName: 'sketch', configurationPath: '/sketch/.vscode/arduino.json',
-        resolvedProfile: 'release', fqbn, buildPath: '/sketch/build', buildProperties: ['token=secret'], compileArgs: [], fingerprint: 'test',
+        resolvedProfile: 'release', fqbn, buildPath: '/sketch/build', buildProperties: ['token=secret'], compileArgs: [], fingerprint: 'test', buildFingerprint: 'test',
         canCompile: true, issues: [], availableProfiles: [], declaredDependencies: { platforms: [], libraries: [], issues: [] },
     };
 }

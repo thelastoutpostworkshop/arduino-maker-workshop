@@ -1,7 +1,8 @@
 # Use AI assistants with Arduino Maker Workshop (preview)
 
 Connect Codex, Claude Code, or Copilot to inspect your Arduino projects, discover
-boards, libraries, and examples, check dependencies, and request compilation.
+boards, libraries, and examples, check dependencies, compile sketches, and decode
+ESP32 crash logs.
 Compile progress appears in VS Code's Arduino CLI Output panel and status bar,
 with the usual cancel control.
 
@@ -92,6 +93,7 @@ the appropriate tool; you do not need to enter tool arguments yourself.
 | `search_libraries` | Searches the Arduino library index and shows available versions without installing libraries. |
 | `list_examples` | Lists names and paths of board and installed-library examples, optionally filtered by library name. It does not open, copy, or run them. |
 | `compile_sketch` | Compiles the requested sketch and profile, returning errors and warnings with source locations, flash/RAM usage, libraries and board platforms used with their versions and paths, the Arduino CLI version, and build artifact paths when available. You can also request a clean build. |
+| `decode_esp32_backtrace` | Decodes a pasted ESP32 crash log using the matching sketch/profile build, returning functions, files, and line numbers where available. It does not compile or access your board. |
 
 This integration does not currently provide firmware upload, board reset or erase,
 bootloader flashing, serial monitoring, or package installation tools.
@@ -101,7 +103,9 @@ bootloader flashing, serial monitoring, or package installation tools.
 Start by listing connected sketches. If more than one is listed, tell the assistant
 which one to use as "my current sketch." Replace `[profile name]` with one of that
 sketch's profile names, `[search term]` with a library name or search keywords,
-and `[library name]` with an exact installed library name.
+and `[library name]` with an exact installed library name. For crash decoding,
+replace `[paste crash log here]` with the actual log text, including its backtrace
+or exception program-counter lines.
 
 Compare the response with the expected result; for compilation, also check the
 Arduino CLI Output panel in VS Code.
@@ -121,6 +125,8 @@ Arduino CLI Output panel in VS Code.
 | Inspect build errors | Compile my current sketch and show any errors or warnings with their file and line numbers. | Reports recognized errors, warnings, and notes with source locations when available. Try this on a sketch with a known build error or warning; failed builds do not return artifact paths. |
 | Compile a profile | Compile my current sketch using the [profile name] profile. | Uses that profile only for this request and reports the outcome; the profile selected in Home stays unchanged. |
 | Clean compilation | Perform a clean compilation of my current sketch with its current board or profile and show the generated file paths. | Runs a clean build with the current target, reports the outcome in Arduino CLI Output, and lists available artifact paths on success. |
+| Decode an ESP32 crash | Decode this ESP32 crash log for my current sketch and show the functions, source files, and line numbers: [paste crash log here] | Requires the unchanged successful AI build that matches the firmware producing this crash. Shows resolved frames and identifies unresolved addresses. Compiles nothing and opens no serial port. |
+| Decode a profile's crash | Decode this ESP32 crash log for my current sketch using the [profile name] profile: [paste crash log here] | Uses that profile's matching build only; the profile selected in Home stays unchanged. Missing or stale builds are reported instead of using another profile's ELF. |
 
 Compile results retain logs and report when details are unavailable or shortened.
 Memory summaries recognize standard English and French Arduino CLI output;
@@ -133,6 +139,24 @@ than the installed-package inventory. Enable **Verbose Compile** to have Arduino
 CLI report the used libraries and platforms after successful builds. Versions and
 installation paths are included when reported; unsupported or incomplete output
 can leave these details unavailable or partial.
+
+### ESP32 crash decoding
+
+Use a successful AI compilation for the same sketch, board, and profile as the
+firmware that produced the crash. Keep that build and its source files unchanged.
+Save your sketch files and wait for any compilation or upload to finish first.
+The decoder uses its matching ELF file and installed ESP32 toolchain; it does not
+download tools or rebuild. Recompiling after a crash can produce a different ELF,
+so do not assume a new build matches an earlier crash. The assistant cannot check
+which firmware is running on your board.
+
+Paste the relevant crash section, up to 8 KiB of UTF-8 text, including its backtrace or
+exception program counter. Decoding covers up to 128 unique program-counter
+addresses and reports unresolved frames when symbols or
+source locations are unavailable. Unsupported boards, missing tools, and missing,
+changed, or mismatched builds are reported without substituting another build.
+Capture the log yourself; serial capture and firmware upload are not available
+through this integration.
 
 ### Boards, libraries, and examples
 

@@ -188,7 +188,7 @@ test('descriptor validation refuses endpoint substitution without revealing its 
     } finally { await context.dispose(); }
 });
 
-test('MCP negotiates supported versions and offers discovery plus eight explicitly targeted tools', async () => {
+test('MCP negotiates supported versions and offers discovery plus nine explicitly targeted tools', async () => {
     const context = await fixture(async () => ({}));
     try {
         for (const version of ['2024-11-05', '2025-03-26', '2025-06-18', 'unsupported-version']) {
@@ -201,12 +201,13 @@ test('MCP negotiates supported versions and offers discovery plus eight explicit
                 bridge.send({ jsonrpc: '2.0', id: 1, method: 'tools/list' });
                 const listed = await bridge.waitFor(message => message.id === 1);
                 assert.deepEqual(listed.result.tools.map((tool: Record<string, unknown>) => tool.name).sort(), [
-                    'compile_sketch', 'get_board_details', 'get_project_context', 'list_boards',
+                    'compile_sketch', 'decode_esp32_backtrace', 'get_board_details', 'get_project_context', 'list_boards',
                     'list_connected_sketches', 'list_dependencies', 'list_examples', 'list_ports', 'search_libraries'
                 ]);
                 for (const tool of listed.result.tools) {
                     assert.deepEqual(tool.inputSchema.required, tool.name === 'list_connected_sketches' ? undefined
-                        : tool.name === 'search_libraries' ? ['sketchPath', 'query'] : ['sketchPath']);
+                        : tool.name === 'search_libraries' ? ['sketchPath', 'query']
+                        : tool.name === 'decode_esp32_backtrace' ? ['sketchPath', 'log'] : ['sketchPath']);
                     assert.equal(tool.inputSchema.additionalProperties, false);
                     const initializesCli = ['compile_sketch', 'list_dependencies', 'get_board_details', 'search_libraries', 'list_examples'].includes(tool.name);
                     assert.equal(tool.annotations.readOnlyHint, !initializesCli);
@@ -217,8 +218,113 @@ test('MCP negotiates supported versions and offers discovery plus eight explicit
                 }
             } finally { await bridge.dispose(); }
         }
-        assert.equal(getMcpTools().length, 9);
+        assert.equal(getMcpTools().length, 10);
     } finally { await context.dispose(); }
+});
+
+test('MCP exposes only a sketch, optional profile and bounded log for read-only ESP32 decoding', () => {
+    const tool = (getMcpTools() as Record<string, any>[]).find(value => value.name === 'decode_esp32_backtrace');
+    assert.ok(tool);
+    assert.deepEqual(Object.keys(tool.inputSchema.properties).sort(), ['log', 'profile', 'sketchPath']);
+    assert.deepEqual(tool.inputSchema.required, ['sketchPath', 'log']);
+    assert.equal(tool.inputSchema.properties.log.minLength, 1);
+    assert.equal(tool.inputSchema.properties.log.maxLength, 8192);
+    assert.equal(tool.inputSchema.additionalProperties, false);
+    assert.deepEqual(tool.annotations, {
+        title: 'Decode ESP32 Crash Backtrace', readOnlyHint: true, destructiveHint: false,
+        idempotentHint: true, openWorldHint: false,
+    });
+});
+
+test('MCP and authenticated IPC reject invalid crash logs and caller-selected decoder paths', async () => {
+    let calls = 0;
+    const context = await fixture(async () => { calls++; return {}; });
+    const bridge = await harness(context.sessionDirectory);
+    const client = await AiIpcClient.connect(context.server.sessionFile);
+    try {
+        await bridge.initialize();
+        const cases: Record<string, unknown>[] = [
+            ...[undefined, '', ' \r\n\t ', 42, null, [], 'bad\x00log', 'bad\x07log', 'bad\x7flog',
+                'x'.repeat(8193), '\u00e9'.repeat(4097)].map(log => ({ log })),
+            { sketchPath: 'relative', log: 'Backtrace: 0x40012345' },
+            ...[{ profile: '../release' }, { profile: '' }, { elfPath: '/tmp/other.elf' },
+                { executable: 'shell' }, { toolPath: '/tmp/addr2line' }, { command: 'install' },
+                { args: ['--arbitrary'] }, { clean: true }, { fqbn: 'other:esp32:board' }]
+                .map(override => ({ log: 'Backtrace: 0x40012345', ...override })),
+        ];
+        let id = 1;
+        for (const override of cases) {
+            const args = { sketchPath: context.sketchPath, ...override };
+            const requestId = id++;
+            bridge.send({ jsonrpc: '2.0', id: requestId, method: 'tools/call', params: {
+                name: 'decode_esp32_backtrace', arguments: args,
+            } });
+            assert.equal((await bridge.waitFor(message => message.id === requestId)).error?.code, -32602, JSON.stringify(override));
+            await assert.rejects(client.call('decode_esp32_backtrace', args as Parameters<AiIpcClient['call']>[1],
+                new AbortController().signal, () => {}), { code: 'INVALID_ARGUMENTS' });
+        }
+        assert.equal(calls, 0);
+    } finally { client.dispose(); await bridge.dispose(); await context.dispose(); }
+});
+
+test('MCP routes a complete crash log and optional profile unchanged within UTF-8 byte limits', async () => {
+    const received: unknown[] = [];
+    const context = await fixture(async (name, input) => {
+        received.push(input);
+        assert.equal(name, 'decode_esp32_backtrace');
+        return { schemaVersion: 1, status: 'success', frames: [{ address: '0x40012345', function: 'setup()', file: 'sketch.ino', line: 12 }] };
+    });
+    const bridge = await harness(context.sessionDirectory);
+    try {
+        await bridge.initialize();
+        const logs = [
+            '\x1b[31mGuru Meditation Error\x1b[0m\r\nBacktrace:\t0x40012345:0x3ffb0020\n',
+            'x'.repeat(8192), '\u00e9'.repeat(4096),
+        ];
+        for (let index = 0; index < logs.length; index++) {
+            const args = { sketchPath: context.sketchPath, ...(index === 0 ? { profile: 'release' } : {}), log: logs[index] };
+            bridge.send({ jsonrpc: '2.0', id: index, method: 'tools/call', params: { name: 'decode_esp32_backtrace', arguments: args } });
+            const response = await bridge.waitFor(message => message.id === index);
+            assert.equal(response.error, undefined);
+            assert.equal(response.result.isError, false);
+            assert.equal(response.result.structuredContent.frames[0].line, 12);
+            assert.deepEqual(JSON.parse(response.result.content[0].text), response.result.structuredContent);
+            assert.deepEqual(received[index], args);
+        }
+    } finally { await bridge.dispose(); await context.dispose(); }
+});
+
+test('ESP32 decoding retains IPC workspace, trust and cancellation guards', async () => {
+    let calls = 0;
+    let trusted = true;
+    const started = deferred<void>();
+    const aborted = deferred<void>();
+    const context = await fixture(async (_name, _input, signal) => {
+        calls++;
+        started.resolve();
+        await new Promise<void>((_resolve, reject) => signal.addEventListener('abort', () => {
+            aborted.resolve(); reject(new AiBridgeError('CANCELED', 'Canceled'));
+        }, { once: true }));
+    }, () => trusted);
+    const client = await AiIpcClient.connect(context.server.sessionFile);
+    const bridge = await harness(context.sessionDirectory);
+    try {
+        const args = { sketchPath: context.sketchPath, log: 'Backtrace: 0x40012345:0x3ffb0020' };
+        await assert.rejects(client.call('decode_esp32_backtrace', { ...args, sketchPath: context.root },
+            new AbortController().signal, () => {}), { code: 'WRONG_WORKSPACE' });
+        trusted = false;
+        await assert.rejects(client.call('decode_esp32_backtrace', args, new AbortController().signal,
+            () => {}), { code: 'WORKSPACE_UNTRUSTED' });
+        assert.equal(calls, 0);
+        trusted = true;
+        await bridge.initialize();
+        bridge.send({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'decode_esp32_backtrace', arguments: args } });
+        await started.promise;
+        bridge.send({ jsonrpc: '2.0', method: 'notifications/cancelled', params: { requestId: 1 } });
+        assert.equal((await bridge.waitFor(message => message.id === 1)).error?.code, -32800);
+        await aborted.promise;
+        assert.equal(calls, 1);
+    } finally { client.dispose(); await bridge.dispose(); await context.dispose(); }
 });
 
 test('launcher rejects unsupported per-session and per-sketch arguments', async () => {

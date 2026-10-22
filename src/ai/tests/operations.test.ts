@@ -3,12 +3,13 @@ import { test } from 'node:test';
 import { AiBridgeError, AiDiscoveryQuery, AiOperationResult, AiToolInput, AiToolName, ProjectInspection } from '../contracts';
 import { AiOperationDependencies, createAiOperationHandler } from '../operations';
 import { collectSensitiveValues, redactForAssistant, redactText } from '../redaction';
+import type { BacktraceDecodeResult } from '../backtrace';
 
 function fixture(overrides: Partial<AiOperationDependencies> = {}) {
     const target: ProjectInspection = {
         schemaVersion: 1, sketchPath: '/sketch', sketchName: 'sketch', configurationPath: '/sketch/.vscode/arduino.json',
         fqbn: 'arduino:avr:uno', buildPath: '/sketch/build', buildProperties: ['build.extra_flags=-DWIFI_PASSWORD="private password"'],
-        compileArgs: ['compile', '--build-property', 'build.extra_flags=-DWIFI_PASSWORD="private password"'], fingerprint: 'initial', canCompile: true, issues: [],
+        compileArgs: ['compile', '--build-property', 'build.extra_flags=-DWIFI_PASSWORD="private password"'], fingerprint: 'initial', buildFingerprint: 'initial', canCompile: true, issues: [],
         availableProfiles: [], declaredDependencies: { platforms: [], libraries: [], issues: [] },
     };
     let compiles = 0;
@@ -27,6 +28,7 @@ function fixture(overrides: Partial<AiOperationDependencies> = {}) {
         inspect: () => target, cliInfo: () => ({ executable: '/tools/arduino-cli', version: 'test' }),
         hasUnsavedSketchDocuments: () => false, revision: () => 0,
         compile: async () => { compiles++; return result(); },
+        decode: async () => { throw new Error('Unexpected decoder invocation.'); },
         discover: async () => ({ boards: [], password: 'hidden' }),
         query: async () => ({ installed_libraries: [] }),
         invalidateBuild: () => { invalidated++; }, ...overrides,
@@ -402,6 +404,79 @@ test('source changes and invalid metadata during compilation invalidate successf
     const originalCompile = unsaved.dependencies.compile;
     unsaved.dependencies.compile = async (...args) => { const value = await originalCompile(...args); dirty = true; return value; };
     assert.equal((await call(unsaved) as AiOperationResult).error?.code, 'STALE_INPUT');
+});
+
+function decoded(target: ProjectInspection): BacktraceDecodeResult {
+    return { schemaVersion: 1, status: 'success', target: { sketchPath: target.sketchPath, fqbn: target.fqbn!,
+        buildPath: target.buildPath, ...(target.resolvedProfile ? { profile: target.resolvedProfile } : {}) },
+        architecture: 'xtensa', elfPath: '/sketch/build/sketch.ino.elf', decoderPath: '/tools/addr2line',
+        frames: [{ address: '0x40001234', functionName: 'private password', file: '/sketch/sketch.ino', line: 7 }],
+        stdout: 'private password', stderr: '', truncated: false, durationMs: 1, notes: [] };
+}
+
+test('decoding uses the requested profile without compilation and redacts returned frame details', async () => {
+    let decodedLog: string | undefined;
+    const f = fixture({ decode: async (target, log) => { decodedLog = log; return decoded(target); } });
+    f.target.resolvedProfile = 'debug';
+    f.dependencies.inspect = input => { assert.equal(input.profile, 'debug'); return f.target; };
+    const result = await f.handler('decode_esp32_backtrace', { sketchPath: '/sketch', profile: 'debug', log: 'PC: 0x40001234' }, new AbortController().signal, () => {}) as BacktraceDecodeResult;
+    assert.equal(decodedLog, 'PC: 0x40001234');
+    assert.equal(result.target.profile, 'debug');
+    assert.equal(result.frames[0].functionName, '<redacted>');
+    assert.equal(result.stdout, '<redacted>');
+    assert.equal(f.compiles(), 0);
+});
+
+test('decoding shares the window operation lock and releases it after cancellation or failure', async () => {
+    let finish!: () => void;
+    const controller = new AbortController();
+    const f = fixture({ decode: async (target) => {
+        await new Promise<void>(resolve => { finish = resolve; });
+        return decoded(target);
+    } });
+    const input = { sketchPath: '/sketch', log: 'PC: 0x40001234' };
+    const pending = f.handler('decode_esp32_backtrace', input, controller.signal, () => {});
+    await assert.rejects(call(f), code('BUSY'));
+    await assert.rejects(call(f, 'list_dependencies'), code('BUSY'));
+    await assert.rejects(f.handler('decode_esp32_backtrace', input, new AbortController().signal, () => {}), code('BUSY'));
+    controller.abort(); finish();
+    await assert.rejects(pending, code('CANCELED'));
+    f.dependencies.decode = async () => { throw new AiBridgeError('BUILD_REQUIRED', 'A matching build is required.'); };
+    await assert.rejects(f.handler('decode_esp32_backtrace', input, new AbortController().signal, () => {}), code('BUILD_REQUIRED'));
+    assert.equal((await call(f) as AiOperationResult).status, 'success');
+});
+
+test('decoding rejects trust, readiness, dirty files and invalid context before tool execution', async () => {
+    for (const [overrides, expected] of [
+        [{ isTrusted: () => false }, 'WORKSPACE_UNTRUSTED'],
+        [{ isReady: () => false }, 'CLI_NOT_READY'],
+        [{ hasUnsavedSketchDocuments: () => true }, 'UNSAVED_DOCUMENTS'],
+    ] as [Partial<AiOperationDependencies>, string][]) {
+        const f = fixture({ ...overrides, decode: async () => assert.fail('Decoder must not execute.') });
+        await assert.rejects(f.handler('decode_esp32_backtrace', { sketchPath: '/sketch', log: 'PC: 0x40001234' }, new AbortController().signal, () => {}), code(expected));
+    }
+    const invalid = fixture(); invalid.target.canCompile = false;
+    await assert.rejects(invalid.handler('decode_esp32_backtrace', { sketchPath: '/sketch', log: 'PC: 0x40001234' }, new AbortController().signal, () => {}), code('INVALID_TARGET'));
+});
+
+test('decoding withholds frames when source, target, toolchain, trust or saved documents change', async () => {
+    for (const change of ['source', 'profile', 'toolchain', 'trust', 'dirty']) {
+        let revision = 0, trusted = true, dirty = false, version = 'initial';
+        const f = fixture({ revision: () => revision, isTrusted: () => trusted, hasUnsavedSketchDocuments: () => dirty,
+            cliInfo: () => ({ executable: '/tools/cli', version }) });
+        f.dependencies.inspect = () => ({ ...f.target });
+        f.dependencies.decode = async target => {
+            if (change === 'source') { revision++; }
+            if (change === 'profile') { f.target.fingerprint = 'changed'; }
+            if (change === 'toolchain') { version = 'changed'; }
+            if (change === 'trust') { trusted = false; }
+            if (change === 'dirty') { dirty = true; }
+            return decoded(target);
+        };
+        await assert.rejects(f.handler('decode_esp32_backtrace', { sketchPath: '/sketch', log: 'PC: 0x40001234' }, new AbortController().signal, () => {}),
+            code(change === 'trust' ? 'WORKSPACE_UNTRUSTED' : change === 'dirty' ? 'UNSAVED_DOCUMENTS' : 'STALE_INPUT'));
+        assert.equal(f.invalidated(), 0, 'a read-only decoding request must not rewrite build results');
+    }
 });
 
 test('credential redaction handles quoted flags, nested fields and known values', () => {

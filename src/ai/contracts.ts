@@ -59,6 +59,7 @@ export interface ProjectInspection {
     buildProperties: string[];
     compileArgs: string[];
     fingerprint: string;
+    buildFingerprint: string;
     canCompile: boolean;
     issues: AiIssue[];
 }
@@ -76,6 +77,7 @@ export interface AiToolInput extends InspectionInput {
     limit?: number;
     source?: ExampleSource;
     library?: string;
+    log?: string;
 }
 
 /** Fixed CLI queries constructed from validated inputs and inspected project targets. */
@@ -110,7 +112,7 @@ export interface OperationProgress {
 }
 
 export type AiToolName = 'get_project_context' | 'list_boards' | 'list_ports' | 'list_dependencies' |
-    'get_board_details' | 'search_libraries' | 'list_examples' | 'compile_sketch';
+    'get_board_details' | 'search_libraries' | 'list_examples' | 'compile_sketch' | 'decode_esp32_backtrace';
 
 export type AiToolHandler = (
     name: AiToolName,

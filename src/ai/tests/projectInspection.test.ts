@@ -225,6 +225,26 @@ test('fingerprint is stable but changes for raw configuration, YAML, profile and
     assert.notEqual(inspectProject({ sketchPath: f.sketch }, f.sketch).fingerprint, initial.fingerprint);
 });
 
+test('build identity matches clean and explicit requests for the same resolved profile but rejects changed inputs', (t) => {
+    const f = fixture(t);
+    f.config({ compile_profile: 'one' });
+    f.yaml('profiles:\n  one:\n    fqbn: esp32:esp32:esp32\n  two:\n    fqbn: esp32:esp32:esp32c3\n');
+    const initial = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.equal(inspectProject({ sketchPath: f.sketch, clean: true }, f.sketch).buildFingerprint, initial.buildFingerprint);
+    assert.equal(inspectProject({ sketchPath: f.sketch, profile: 'one', clean: true }, f.sketch).buildFingerprint, initial.buildFingerprint);
+    assert.notEqual(inspectProject({ sketchPath: f.sketch, profile: 'two' }, f.sketch).buildFingerprint, initial.buildFingerprint);
+    f.config({ compile_profile: 'two', port: 'COM8', monitorPortSettings: { baudRate: 115200 } });
+    assert.equal(inspectProject({ sketchPath: f.sketch, profile: 'one' }, f.sketch).buildFingerprint, initial.buildFingerprint,
+        'upload/monitor settings and Home selection must not invalidate an explicitly requested matching build');
+    f.yaml('profiles:\n  one:\n    fqbn: esp32:esp32:esp32\n    port: COM9\n  two:\n    fqbn: esp32:esp32:esp32c3\n');
+    assert.equal(inspectProject({ sketchPath: f.sketch, profile: 'one' }, f.sketch).buildFingerprint, initial.buildFingerprint);
+    f.config({ compile_profile: 'one', optimize_for_debug: true });
+    assert.notEqual(inspectProject({ sketchPath: f.sketch }, f.sketch).buildFingerprint, initial.buildFingerprint);
+    f.config({ compile_profile: 'one' });
+    fs.appendFileSync(path.join(f.sketch, 'Blink.ino'), '// changed source\n');
+    assert.notEqual(inspectProject({ sketchPath: f.sketch }, f.sketch).buildFingerprint, initial.buildFingerprint);
+});
+
 test('invalid selected profile data cannot produce executable compile arguments', (t) => {
     const f = fixture(t);
     f.yaml('profiles:\n  invalid:\n    fqbn: not-an-fqbn\n    build_properties: [42]\ndefault_profile: invalid\n');
@@ -293,7 +313,7 @@ test('header edits during assistant preflight or compilation reject stale builds
                 ...unavailableCompileOutput('Simulated compile.'), artifacts: unavailableCompileArtifacts('Simulated compile.'),
             };
         },
-        discover: async () => ({}), query: async () => ({}), invalidateBuild: () => { invalidations++; },
+        discover: async () => ({}), query: async () => ({}), decode: async () => { throw new Error('Unexpected decoding.'); }, invalidateBuild: () => { invalidations++; },
     });
     const compile = () => handler('compile_sketch', { sketchPath: f.sketch }, new AbortController().signal, () => {
         if (changeDuringPreflight) { fs.appendFileSync(source, 'changed during preflight\n'); }

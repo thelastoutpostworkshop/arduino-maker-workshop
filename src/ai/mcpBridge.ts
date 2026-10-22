@@ -2,6 +2,7 @@ import { Readable, Writable } from 'node:stream';
 import { AiBridgeError, AiToolName } from './contracts';
 import { receiveLines, validateToolCall } from './ipcServer';
 import { AiSessionResolver } from './sessionDiscovery';
+import { MAX_BACKTRACE_LOG_BYTES } from './toolInputs';
 
 const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'] as const;
 const MAX_LINE_BYTES = 64 * 1024;
@@ -28,13 +29,15 @@ const descriptions: Record<AiToolName, string> = {
     get_board_details: 'Show the requested sketch/profile board, valid option values, defaults and current choices from its standard installed platform. Does not change board settings or install platforms. CLI initialization may download indexes and built-in tools.',
     search_libraries: 'Search the Arduino library index and return bounded results with available versions. May refresh the library index; does not install libraries or change profile declarations.',
     list_examples: 'List example locations from the selected board platform and/or standard installed libraries. Supports an exact library-name filter. Does not read, open, copy or run examples, install dependencies, or inspect isolated profile caches. CLI initialization may download indexes and built-in tools.',
-    compile_sketch: 'Compile the connected Arduino sketch automatically while AI integration is enabled in its trusted VS Code window. Returns bounded logs, errors/warnings/notes with source locations when recognized, flash/RAM usage, the known Arduino CLI version, and used libraries and board platforms with versions and installation paths when reported by this compilation. Successful builds generally require the user to enable Verbose Compile to report used dependencies. Returns new or changed artifact paths only for a successful current build. Reports unavailable or partial details. Runs board-package build tools and may download profile dependencies. Does not upload firmware or open a serial monitor.'
+    compile_sketch: 'Compile the connected Arduino sketch automatically while AI integration is enabled in its trusted VS Code window. Returns bounded logs, errors/warnings/notes with source locations when recognized, flash/RAM usage, the known Arduino CLI version, and used libraries and board platforms with versions and installation paths when reported by this compilation. Successful builds generally require the user to enable Verbose Compile to report used dependencies. Returns new or changed artifact paths only for a successful current build. Reports unavailable or partial details. Runs board-package build tools and may download profile dependencies. Does not upload firmware or open a serial monitor.',
+    decode_esp32_backtrace: 'Decode a pasted ESP32 crash log against the selected sketch/profile\'s matching ELF from a successful current AI compilation. Returns addresses, functions, source files and line numbers when resolvable, and reports unresolved frames. The user must ensure that the ELF matches the firmware that produced the crash; do not rebuild an earlier crash and assume it matches. Uses the installed addr2line tool. Does not compile, download tools, upload firmware or open a serial port. Accepts no caller-supplied executable or ELF path.'
 };
 
 const titles: Record<AiToolName, string> = {
     get_project_context: 'Inspect Arduino Project', list_dependencies: 'List Arduino Dependencies',
     list_boards: 'List Arduino Boards', list_ports: 'List Arduino Ports', compile_sketch: 'Compile Arduino Sketch',
     get_board_details: 'Inspect Arduino Board Options', search_libraries: 'Search Arduino Libraries', list_examples: 'List Arduino Examples',
+    decode_esp32_backtrace: 'Decode ESP32 Crash Backtrace',
 };
 
 const initializingTools: readonly AiToolName[] = ['compile_sketch', 'list_dependencies', 'get_board_details', 'search_libraries', 'list_examples'];
@@ -50,6 +53,9 @@ export function getMcpTools(): unknown[] {
                 sketchPath: { type: 'string', description: 'Absolute path of the sketch connected by the user in VS Code.', minLength: 1, maxLength: 32768 },
                 profile: { type: 'string', description: 'Optional existing sketch.yaml profile name.', minLength: 1, maxLength: 64, pattern: '^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$' },
                 ...(name === 'compile_sketch' ? { clean: { type: 'boolean', description: 'Clean this sketch/profile build output before compiling.', default: false } } : {}),
+                ...(name === 'decode_esp32_backtrace' ? {
+                    log: { type: 'string', description: 'Pasted ESP32 crash log from firmware matching the selected build. Maximum 8192 UTF-8 bytes. Include the backtrace or exception program-counter lines.', minLength: 1, maxLength: MAX_BACKTRACE_LOG_BYTES },
+                } : {}),
                 ...(name === 'search_libraries' ? {
                     query: { type: 'string', description: 'Library name or search terms for the Arduino index.', minLength: 1, maxLength: 256 },
                     limit: { type: 'integer', description: 'Maximum libraries to return.', minimum: 1, maximum: 100, default: 20 },
@@ -60,7 +66,8 @@ export function getMcpTools(): unknown[] {
                     limit: { type: 'integer', description: 'Maximum examples to return.', minimum: 1, maximum: 100, default: 50 },
                 } : {})
             },
-            required: name === 'search_libraries' ? ['sketchPath', 'query'] : ['sketchPath'],
+            required: name === 'search_libraries' ? ['sketchPath', 'query']
+                : name === 'decode_esp32_backtrace' ? ['sketchPath', 'log'] : ['sketchPath'],
             additionalProperties: false
         },
         annotations: {
@@ -213,7 +220,8 @@ export async function runMcpBridge(input: Readable, output: Writable, resolver: 
             });
         })().then(value => {
             const structuredContent = record(value) ? value : { result: value };
-            result(id, { content: [{ type: 'text', text: JSON.stringify(structuredContent) }], structuredContent, isError: typeof structuredContent.status === 'string' && structuredContent.status !== 'success' });
+            result(id, { content: [{ type: 'text', text: JSON.stringify(structuredContent) }], structuredContent,
+                isError: typeof structuredContent.status === 'string' && !['success', 'partial'].includes(structuredContent.status) });
         }).catch(failure => {
             if (controller.signal.aborted) { error(id, -32800, 'Request canceled'); return; }
             const issue = failure instanceof AiBridgeError ? { code: failure.code, message: failure.message } : { code: 'INTERNAL_ERROR', message: 'The bridge operation failed.' };

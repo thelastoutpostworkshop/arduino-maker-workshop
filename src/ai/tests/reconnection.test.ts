@@ -127,7 +127,7 @@ test('packaged bridge starts disconnected, reconnects on later calls, and never 
     const f = await fixture(t);
     const listed = await f.request('tools/list');
     assert.deepEqual(listed.result.tools.map((tool: any) => tool.name).sort(), [
-        'compile_sketch', 'get_board_details', 'get_project_context', 'list_boards', 'list_connected_sketches',
+        'compile_sketch', 'decode_esp32_backtrace', 'get_board_details', 'get_project_context', 'list_boards', 'list_connected_sketches',
         'list_dependencies', 'list_examples', 'list_ports', 'search_libraries'
     ]);
     const unavailable = await f.call();
@@ -150,7 +150,7 @@ test('packaged bridge starts disconnected, reconnects on later calls, and never 
     assert.deepEqual(replacement.calls, ['get_project_context']);
     await replacement.server.dispose();
     assertToolError(await f.call(), 'SESSION_UNAVAILABLE');
-    assert.equal((await f.request('tools/list')).result.tools.length, 9, 'Session loss does not terminate the MCP process');
+    assert.equal((await f.request('tools/list')).result.tools.length, 10, 'Session loss does not terminate the MCP process');
 });
 
 test('packaged bridge does not send operations to a different sketch than requested', { timeout: 20000 }, async t => {

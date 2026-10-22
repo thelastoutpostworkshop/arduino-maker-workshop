@@ -97,7 +97,7 @@ async function fixture(t: TestContext) {
     assert.equal(initialized.error, undefined, JSON.stringify(initialized));
     child.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
 
-    const connect = async (sketchPath: string, label: string, holdCompile = false) => {
+    const connect = async (sketchPath: string, label: string, holdOperation: boolean | AiToolName = false) => {
         const calls: AiToolName[] = [];
         const started = deferred();
         const aborted = deferred();
@@ -107,7 +107,7 @@ async function fixture(t: TestContext) {
             sessionDirectory, sketchPath, isTrusted: () => true,
             handler: async (name, input, signal) => {
                 calls.push(name);
-                if (name === 'compile_sketch' && holdCompile) {
+                if (name === (holdOperation === true ? 'compile_sketch' : holdOperation)) {
                     const onAbort = () => { wasAborted = true; aborted.resolve(); };
                     if (signal.aborted) { onAbort(); }
                     else { signal.addEventListener('abort', onAbort, { once: true }); }
@@ -115,7 +115,7 @@ async function fixture(t: TestContext) {
                     try { await Promise.race([released.promise, aborted.promise]); }
                     finally { signal.removeEventListener('abort', onAbort); }
                 }
-                return { schemaVersion: 1, status: signal.aborted ? 'canceled' : 'success', session: label, sketchPath: input.sketchPath };
+                return { schemaVersion: 1, status: signal.aborted ? 'canceled' : 'success', session: label, sketchPath: input.sketchPath, input };
             }
         });
         servers.push(server);
@@ -149,7 +149,7 @@ test('global packaged bridge lists and routes changing connected sketches withou
     const f = await fixture(t);
     const tools = await f.request('tools/list');
     assert.deepEqual(tools.result.tools.map((tool: any) => tool.name).sort(),
-        ['compile_sketch', 'get_board_details', 'get_project_context', 'list_boards', 'list_connected_sketches', 'list_dependencies', 'list_examples', 'list_ports', 'search_libraries']);
+        ['compile_sketch', 'decode_esp32_backtrace', 'get_board_details', 'get_project_context', 'list_boards', 'list_connected_sketches', 'list_dependencies', 'list_examples', 'list_ports', 'search_libraries']);
     assertSketches(await f.list(), []);
     assertSketches(await f.request('tools/call', { name: 'list_connected_sketches' }), []);
 
@@ -162,8 +162,12 @@ test('global packaged bridge lists and routes changing connected sketches withou
     assert.equal((await f.call(f.alpha, 'get_board_details', { profile: 'release' })).result.structuredContent.session, 'alpha-window');
     assert.equal((await f.call(f.beta, 'search_libraries', { query: 'temperature sensor', limit: 10 })).result.structuredContent.session, 'beta-window');
     assert.equal((await f.call(f.beta, 'list_examples', { source: 'board' })).result.structuredContent.session, 'beta-window');
+    const decodeInput = { profile: 'release', log: 'Backtrace: 0x40012345:0x3ffb0020' };
+    const decoded = (await f.call(f.beta, 'decode_esp32_backtrace', decodeInput)).result.structuredContent;
+    assert.equal(decoded.session, 'beta-window');
+    assert.deepEqual(decoded.input, { sketchPath: f.beta, ...decodeInput });
     assert.deepEqual(alpha.calls, ['get_project_context', 'get_board_details']);
-    assert.deepEqual(beta.calls, ['list_ports', 'list_dependencies', 'search_libraries', 'list_examples']);
+    assert.deepEqual(beta.calls, ['list_ports', 'list_dependencies', 'search_libraries', 'list_examples', 'decode_esp32_backtrace']);
 
     // Simulate one window switching folders while a second window stays connected.
     await alpha.server.dispose();
@@ -218,7 +222,9 @@ test('global ambiguity is isolated to its sketch and discovery exposes no privat
         }
     }
     assertToolError(await f.call(f.alpha, 'compile_sketch'), 'AMBIGUOUS_SESSION');
+    assertToolError(await f.call(f.alpha, 'decode_esp32_backtrace', { log: 'Backtrace: 0x40012345' }), 'AMBIGUOUS_SESSION');
     assertToolError(await f.call(f.unopened, 'compile_sketch'), 'SESSION_UNAVAILABLE');
+    assertToolError(await f.call(f.unopened, 'decode_esp32_backtrace', { log: 'Backtrace: 0x40012345' }), 'SESSION_UNAVAILABLE');
     assert.deepEqual(alpha.calls, []);
     assert.deepEqual(duplicate.calls, []);
     assert.deepEqual(beta.calls, []);
@@ -232,4 +238,25 @@ test('global ambiguity is isolated to its sketch and discovery exposes no privat
     await duplicate.server.dispose();
     assert.equal((await f.call(f.alpha)).result.structuredContent.session, 'alpha');
     assert.deepEqual(alpha.calls, ['get_project_context']);
+});
+
+test('global packaged decoding keeps other sketches available and never replays an interrupted decode', { timeout: 25000 }, async t => {
+    const f = await fixture(t);
+    const alpha = await f.connect(f.alpha, 'decoding-alpha', 'decode_esp32_backtrace');
+    const beta = await f.connect(f.beta, 'beta');
+    const pending = f.call(f.alpha, 'decode_esp32_backtrace', { profile: 'debug', log: 'Backtrace: 0x40012345:0x3ffb0020' });
+    await bounded(alpha.started, 'Decoding never reached its selected window');
+    const [otherSketch, listing] = await Promise.all([f.call(f.beta), f.list()]);
+    assert.equal(otherSketch.result.structuredContent.session, 'beta');
+    assertSketches(listing, [{ sketchPath: f.alpha, sessionCount: 1 }, { sketchPath: f.beta, sessionCount: 1 }]);
+    assert.equal(alpha.wasAborted(), false, 'Other sketch operations must retain the decoder connection');
+    const replacement = await f.connect(f.alpha, 'replacement-alpha');
+    await alpha.server.dispose();
+    await bounded(alpha.aborted, 'Disconnect did not abort decoding');
+    assertToolError(await pending, 'SESSION_UNAVAILABLE');
+    assert.deepEqual(replacement.calls, [], 'An interrupted decode must not replay into another session');
+    assert.equal((await f.call(f.alpha, 'decode_esp32_backtrace', { log: 'Backtrace: 0x40012345' })).result.structuredContent.session, 'replacement-alpha');
+    assert.deepEqual(alpha.calls, ['decode_esp32_backtrace']);
+    assert.deepEqual(replacement.calls, ['decode_esp32_backtrace']);
+    assert.deepEqual(beta.calls, ['get_project_context']);
 });
