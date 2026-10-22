@@ -43,6 +43,14 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 
 ## Features
 
+### AI Assistant Bridge (Preview)
+
+Use **Arduino Maker Workshop: Connect AI Assistant (This Session)** to expose
+project context, board/port discovery, and approved compilation through a local
+MCP bridge. Access is disabled by default; upload and serial tools are not exposed.
+See [AI assistant setup and limitations](AI_ASSISTANTS.md) for Copilot, Codex, and
+Claude Code. The extension never edits client configuration automatically.
+
 ### Profiles Manager (Reproducible build profiles)
 
 ![new sketch](.readme/profiles_manager.gif)

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import type { Dirent } from 'node:fs';
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoProjectConfiguration, ArduinoProjectStatus, CompileResult, PROFILES_STATUS } from './shared/messages';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject, arduinoYaml, updateStateCompileUpload } from './extension';
 import { LineEnding, MonitorPortSettings, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
@@ -28,8 +29,17 @@ export function getMonitorPortSettingsDefault(): MonitorPortSettings {
     };
 }
 
+function getArduinoProjectConfigurationDefault(): ArduinoProjectConfiguration {
+    return {
+        schemaVersion: ARDUINO_CONFIGURATION_SCHEMA_VERSION,
+        port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "", programmer: "", useProgrammer: false,
+        optimize_for_debug: false, configurationRequired: false, compile_profile: "",
+        monitorPortSettings: getMonitorPortSettingsDefault()
+    };
+}
+
 export class ArduinoProject {
-    private configJson: ArduinoProjectConfiguration;
+    private configJson: ArduinoProjectConfiguration = getArduinoProjectConfigurationDefault();
     private arduinoConfigurationPath: string = "";
     private projectFullPath: string = "";
     private projectStatus: ArduinoProjectStatus = { status: ARDUINO_ERRORS.NO_ERRORS };
@@ -41,23 +51,23 @@ export class ArduinoProject {
             arduinoExtensionChannel.appendLine(`No workspace available, open a workspace by using the File > Open Folder... menu, and then selecting a folder`);
             vscode.window.showErrorMessage('No workspace available, open a workspace by using the File > Open Folder... menu, and then selecting a folder');
         }
-        this.configJson = {
-            schemaVersion: ARDUINO_CONFIGURATION_SCHEMA_VERSION,
-            port: "", configuration: "", output: ARDUINO_DEFAULT_OUTPUT, board: "", programmer: "", useProgrammer: false,
-            optimize_for_debug: false, configurationRequired: false, compile_profile: "",
-            monitorPortSettings: getMonitorPortSettingsDefault()
-        };
     }
 
     private updateProjectPathFromWorkspace(): boolean {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders || workspaceFolders.length === 0) {
+            this.configJson = getArduinoProjectConfigurationDefault();
             this.projectFullPath = "";
             this.arduinoConfigurationPath = "";
             return false;
         }
 
-        this.projectFullPath = workspaceFolders[0].uri.fsPath;
+        const projectPath = workspaceFolders[0].uri.fsPath;
+        if (projectPath !== this.projectFullPath) {
+            this.configJson = getArduinoProjectConfigurationDefault();
+        }
+        this.projectFullPath = projectPath;
+        this.arduinoConfigurationPath = path.join(projectPath, VSCODE_FOLDER, ARDUINO_SETTINGS);
         return true;
     }
 
@@ -123,7 +133,7 @@ export class ArduinoProject {
             if (!current) {
                 continue;
             }
-            let entries: fs.Dirent[];
+            let entries: Dirent[];
             try {
                 entries = fs.readdirSync(current, { withFileTypes: true });
             } catch (error) {
@@ -166,61 +176,70 @@ export class ArduinoProject {
         return this.arduinoConfigurationPath;
     }
     public readConfiguration(): boolean {
+        // Always replace the previous snapshot, including when a file was removed
+        // or is temporarily malformed during an external edit.
+        this.configJson = getArduinoProjectConfigurationDefault();
         if (!this.updateProjectPathFromWorkspace()) {
             return false;
         }
 
-        try {
-            const vsCodeFolder = path.join(this.projectFullPath, VSCODE_FOLDER);
-            if (!fs.existsSync(vsCodeFolder)) {
-                fs.mkdirSync(vsCodeFolder);
-            }
-        } catch (error) {
-            arduinoExtensionChannel.appendLine(`Error: Cannot create folder ${VSCODE_FOLDER} in ${this.projectFullPath}`);
-        }
-
-        this.arduinoConfigurationPath = path.join(this.projectFullPath, VSCODE_FOLDER, ARDUINO_SETTINGS);
         if (!fs.existsSync(this.arduinoConfigurationPath)) {
-            this.writeVSCodeArduinoConfiguration();
-        } else {
-            try {
-                const configContent = fs.readFileSync(this.arduinoConfigurationPath, 'utf-8');
-                let configJson = JSON.parse(configContent);
-
-                // Files without a schema version use the legacy, unversioned format.
-                if (configJson.schemaVersion === undefined) {
-                    const legacyMonitorPortSettings = configJson.monitorPortSettings?.settings;
-                    if (legacyMonitorPortSettings !== undefined) {
-                        configJson.monitorPortSettings = legacyMonitorPortSettings;
-                    }
-                    configJson.schemaVersion = ARDUINO_CONFIGURATION_SCHEMA_VERSION;
-                }
-
-                if (configJson.monitorPortSettings === undefined) {
-                    configJson.monitorPortSettings = getMonitorPortSettingsDefault();
-                    if (configJson.port.trim().length !== 0) {
-                        configJson.monitorPortSettings.port = configJson.port;
-                    }
-                }
-
-                if (configJson.optimize_for_debug == undefined) {
-                    configJson.optimize_for_debug = false;
-                }
-
-                this.configJson = configJson;
-                this.writeVSCodeArduinoConfiguration();
-
-                if (!this.configJson.configuration) {
-                    this.configJson.configuration = "";
-                    this.writeVSCodeArduinoConfiguration();
-                }
-            } catch (error) {
-                arduinoExtensionChannel.appendLine(`New ${ARDUINO_SETTINGS} file created`);
-                this.writeVSCodeArduinoConfiguration();
-            }
+            return true;
         }
 
-        return true;
+        try {
+            const configContent = fs.readFileSync(this.arduinoConfigurationPath, 'utf-8');
+            const config = JSON.parse(configContent);
+            if (!config || typeof config !== 'object' || Array.isArray(config)) {
+                throw new Error('Configuration must be an object.');
+            }
+
+            const defaults = getArduinoProjectConfigurationDefault();
+            for (const key of ['port', 'configuration', 'output', 'board', 'programmer', 'compile_profile']) {
+                if (config[key] !== undefined && typeof config[key] !== 'string') {
+                    throw new Error(`Invalid configuration field: ${key}.`);
+                }
+            }
+            for (const key of ['useProgrammer', 'optimize_for_debug', 'configurationRequired']) {
+                if (config[key] !== undefined && typeof config[key] !== 'boolean') {
+                    throw new Error(`Invalid configuration field: ${key}.`);
+                }
+            }
+            if (config.schemaVersion !== undefined && typeof config.schemaVersion !== 'number') {
+                throw new Error('Invalid configuration field: schemaVersion.');
+            }
+
+            // Normalize legacy files in memory. Only explicit setters persist a
+            // migration, so inspection cannot overwrite externally edited files.
+            const monitor = config.schemaVersion === undefined && config.monitorPortSettings?.settings !== undefined
+                ? config.monitorPortSettings.settings : config.monitorPortSettings;
+            if (monitor !== undefined && (!monitor || typeof monitor !== 'object' || Array.isArray(monitor))) {
+                throw new Error('Invalid configuration field: monitorPortSettings.');
+            }
+            for (const key of ['port', 'lineEnding', 'parity', 'stopBits']) {
+                if (monitor?.[key] !== undefined && typeof monitor[key] !== 'string') {
+                    throw new Error(`Invalid monitor configuration field: ${key}.`);
+                }
+            }
+            for (const key of ['baudRate', 'dataBits']) {
+                if (monitor?.[key] !== undefined && typeof monitor[key] !== 'number') {
+                    throw new Error(`Invalid monitor configuration field: ${key}.`);
+                }
+            }
+            this.configJson = {
+                ...defaults,
+                ...config,
+                monitorPortSettings: {
+                    ...defaults.monitorPortSettings,
+                    port: config.port ?? '',
+                    ...monitor
+                }
+            };
+            return true;
+        } catch (error) {
+            arduinoExtensionChannel.appendLine(`Cannot read ${ARDUINO_SETTINGS}; the file was left unchanged.`);
+            return false;
+        }
     }
 
     public isFolderArduinoProject(): ARDUINO_ERRORS {
@@ -288,6 +307,10 @@ export class ArduinoProject {
     }
 
     private writeVSCodeArduinoConfiguration() {
+        if (!this.projectFullPath || !this.arduinoConfigurationPath) {
+            return;
+        }
+        fs.mkdirSync(path.dirname(this.arduinoConfigurationPath), { recursive: true });
         fs.writeFileSync(this.arduinoConfigurationPath, JSON.stringify(this.configJson, null, 2), 'utf-8');
         // arduinoExtensionChannel.appendLine(`Wrote configuration to ${this.arduinoConfigurationPath}`);
     }

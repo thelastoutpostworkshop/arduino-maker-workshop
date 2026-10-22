@@ -6,6 +6,10 @@ import { ARDUINO_ERRORS, ARDUINO_MESSAGES, ArduinoExtensionChannelName, PROFILES
 import { ArduinoCLI } from "./cli";
 import { SketchProfileManager } from "./sketchProfileManager";
 import { CliOutputView } from "./cliOutputView";
+import { registerAiConnection } from './ai/connection';
+import { createAiOperationHandler } from './ai/operations';
+import { AI_INPUT_GLOB, inspectProject, isAiSourceFile } from './ai/projectInspection';
+import { ProjectInspection } from './ai/contracts';
 
 const os = require('os');
 const path = require('path');
@@ -98,6 +102,60 @@ async function ensureSerialMonitorAvailable(): Promise<void> {
 }
 
 export async function activate(context: ExtensionContext) {
+	let aiReady = false;
+	let aiRevision = 0;
+	let aiCompileOutput: string | undefined;
+	const activeSketchPath = () => workspace.workspaceFolders?.[0]?.uri.scheme === 'file'
+		? workspace.workspaceFolders[0].uri.fsPath : undefined;
+	const isWithin = (root: string, candidate: string) => {
+		const relative = path.relative(root, candidate);
+		return relative === '' || (!relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative));
+	};
+	const affectsAiInput = (filePath: string) => {
+		const root = activeSketchPath();
+		if (!root || !isWithin(root, filePath) || (aiCompileOutput && isWithin(aiCompileOutput, filePath))) {
+			return false;
+		}
+		const relative = path.relative(root, filePath);
+		if (relative.split(path.sep).some((part: string) => part === '.git' || part === 'node_modules')) {
+			return false;
+		}
+		return isAiSourceFile(filePath) ||
+			relative === 'sketch.yaml' || relative === path.join('.vscode', 'arduino.json');
+	};
+	const invalidateAssistantBuild = (target: ProjectInspection) => {
+		arduinoCLI.invalidateAssistantBuild(target);
+	};
+	const aiHandler = createAiOperationHandler({
+		isTrusted: () => workspace.isTrusted,
+		activeSketchPath,
+		isReady: () => aiReady,
+		inspect: inspectProject,
+		cliInfo: () => ({ executable: arduinoCLI?.arduinoCLIPath ?? '', version: arduinoCLI?.getCLIStatus().VersionString ?? '' }),
+		hasUnsavedSketchDocuments: (root) => workspace.textDocuments.some((document) =>
+			document.isDirty && document.uri.scheme === 'file' && isWithin(root, document.uri.fsPath)),
+		revision: () => aiRevision,
+		confirmCompile: async (target) => {
+			const action = target.compileArgs.includes('--clean') ? 'Clean Compile' : 'Compile';
+			return (await window.showWarningMessage(
+				`${action} ${target.sketchName} for ${target.fqbn}${target.resolvedProfile ? ` (profile ${target.resolvedProfile})` : ''}?`,
+				{ modal: true, detail: `Requested by a connected AI assistant. This executes installed board-package recipes, writes build artifacts, and may download dependencies.${action === 'Clean Compile' ? ' The build output directory may be cleared before compilation.' : ''}\nSketch: ${target.sketchPath}\nOutput: ${target.buildPath}\nNo upload or serial operation is included.` },
+				action
+			)) === action;
+		},
+		compile: async (target, signal, progress) => {
+			aiCompileOutput = target.buildPath;
+			try { return await arduinoCLI.compileForAssistant(target, signal, progress); }
+			finally { aiCompileOutput = undefined; }
+		},
+		discover: (kind, signal) => arduinoCLI.discoverForAssistant(kind, signal),
+		invalidateBuild: invalidateAssistantBuild,
+	});
+	context.subscriptions.push(registerAiConnection(context, { handler: aiHandler, ready: () => aiReady, activeSketchPath }));
+	const aiInputWatcher = workspace.createFileSystemWatcher(AI_INPUT_GLOB);
+	const onAiInputChanged = (uri: Uri) => { if (affectsAiInput(uri.fsPath)) { aiRevision++; } };
+	context.subscriptions.push(aiInputWatcher, aiInputWatcher.onDidChange(onAiInputChanged), aiInputWatcher.onDidCreate(onAiInputChanged), aiInputWatcher.onDidDelete(onAiInputChanged));
+	context.subscriptions.push(workspace.onDidChangeTextDocument((event) => onAiInputChanged(event.document.uri)));
 	let resolveExtensionReady!: (ready: boolean) => void;
 	const extensionReady = new Promise<boolean>((resolve) => {
 		resolveExtensionReady = resolve;
@@ -286,6 +344,7 @@ export async function activate(context: ExtensionContext) {
 			sourceWatcher.onDidDelete((uri) => invalidateBuild(uri.fsPath));
 			context.subscriptions.push(sourceWatcher);
 
+			aiReady = true;
 			resolveExtensionReady(true);
 		} else {
 			arduinoProject.setStatus(ARDUINO_ERRORS.CONFIG_FILE_PROBLEM);
@@ -556,6 +615,10 @@ export function compile(
 	clean: boolean = false,
 	createBuildProfile = false
 ): Promise<string> {
+	if (!arduinoProject.readConfiguration()) {
+		window.showErrorMessage('Arduino configuration is invalid. Repair .vscode/arduino.json before compiling.');
+		return Promise.resolve('');
+	}
 	if (!arduinoProject.isCompileReady()) {
 		window.showErrorMessage('Select a board first before compiling');
 		return Promise.resolve("");
@@ -589,7 +652,7 @@ function vsCommandUpload(): Disposable {
 	return commands.registerCommand('quickAccessView.upload', async () => {
 		switch (arduinoProject.isUploadReady()) {
 			case UPLOAD_READY_STATUS.READY:
-				arduinoCLI.upload();
+				await arduinoCLI.upload();
 				break;
 			case UPLOAD_READY_STATUS.NO_PORT:
 				window.showErrorMessage("No port is selected for upload");
@@ -597,7 +660,7 @@ function vsCommandUpload(): Disposable {
 			case UPLOAD_READY_STATUS.LAST_COMPILE_FAILED:
 				await compile();
 				if (arduinoProject.isUploadReady() == UPLOAD_READY_STATUS.READY) {
-					arduinoCLI.upload();
+					await arduinoCLI.upload();
 				}
 				break;
 			default:
@@ -612,7 +675,7 @@ function updateProfileStatusBarText() {
 	let profile = arduinoProject.getCompileProfile();
 
 	// If the current profile is missing or invalid, default to first in list
-	if (!profile || profiles.indexOf(profile) === -1) {
+	if (!profile || (profile !== 'default_profile' && profiles.indexOf(profile) === -1)) {
 		if (profiles.length > 0) {
 			profile = profiles[0];
 			arduinoProject.setCompileProfile(profile);
@@ -663,12 +726,12 @@ function vsCommandProfile(): Disposable {
 
 function vsCommandCompileClean(): Disposable {
 	return commands.registerCommand('compile.clean', async () => {
-		compile(true);
+		return compile(true);
 	});
 }
 function vsCommandCompile(clean: boolean = false): Disposable {
 	return commands.registerCommand('quickAccessView.compile', async () => {
-		compile(false);
+		return compile(false);
 	});
 }
 function vsCommandActivateBuildProfiles(): Disposable {

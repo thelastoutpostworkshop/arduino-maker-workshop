@@ -1,0 +1,364 @@
+import { test } from 'node:test';
+import * as assert from 'node:assert/strict';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { AiBridgeError, AiOperationResult } from '../contracts';
+import { createAiOperationHandler } from '../operations';
+import { inspectProject } from '../projectInspection';
+
+function fixture(t: { after: (fn: () => void) => void }, name = 'Blink') {
+    const temporary = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'amw-inspection-')));
+    const sketch = path.join(temporary, name);
+    fs.mkdirSync(sketch);
+    fs.writeFileSync(path.join(sketch, `${name}.ino`), 'void setup() {}\nvoid loop() {}\n');
+    t.after(() => {
+        assert.equal(path.dirname(temporary), fs.realpathSync.native(os.tmpdir()));
+        assert.ok(path.basename(temporary).startsWith('amw-inspection-'));
+        fs.rmSync(temporary, { recursive: true, force: true });
+    });
+    return {
+        temporary,
+        sketch,
+        config(value: unknown) {
+            fs.mkdirSync(path.join(sketch, '.vscode'), { recursive: true });
+            const file = path.join(sketch, '.vscode', 'arduino.json');
+            fs.writeFileSync(file, typeof value === 'string' ? value : JSON.stringify(value));
+            return file;
+        },
+        yaml(value: string) {
+            const file = path.join(sketch, 'sketch.yaml');
+            fs.writeFileSync(file, value);
+            return file;
+        },
+    };
+}
+
+function hasCode(code: string) {
+    return (error: unknown) => error instanceof AiBridgeError && error.code === code;
+}
+
+test('resolves standard saved board options, debug and clean arguments', (t) => {
+    const f = fixture(t);
+    f.config({ board: 'esp32:esp32:esp32', configuration: 'FlashMode=qio,CPUFreq=240', port: 'COM7', output: 'output', optimize_for_debug: true, useProgrammer: true, programmer: 'esp-prog', privateSetting: 'do-not-return' });
+    const result = inspectProject({ sketchPath: f.sketch, clean: true }, f.sketch);
+    assert.equal(result.canCompile, true);
+    assert.equal(result.fqbn, 'esp32:esp32:esp32:FlashMode=qio,CPUFreq=240');
+    assert.equal(result.port, 'COM7');
+    assert.equal(result.programmer, 'esp-prog');
+    assert.equal(result.buildPath, path.join(f.sketch, 'output'));
+    assert.deepEqual(result.compileArgs, ['compile', '--fqbn', result.fqbn, '--build-path', result.buildPath, '--no-color', '--jobs', '0', '--optimize-for-debug', '--clean', f.sketch]);
+    assert.ok(!JSON.stringify(result).includes('do-not-return'));
+});
+
+test('accepts defaults-only YAML without creating or repairing Arduino configuration', (t) => {
+    const f = fixture(t);
+    const original = 'default_fqbn: arduino:avr:uno\ndefault_port: COM8\ndefault_protocol: serial\ndefault_programmer: usbasp\n';
+    const yaml = f.yaml(original);
+    const result = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.equal(result.canCompile, true);
+    assert.equal(result.fqbn, 'arduino:avr:uno');
+    assert.equal(result.port, 'COM8');
+    assert.equal(result.protocol, 'serial');
+    assert.equal(result.programmer, 'usbasp');
+    assert.equal(result.resolvedProfile, undefined);
+    assert.equal(fs.existsSync(path.join(f.sketch, '.vscode')), false);
+    assert.equal(fs.readFileSync(yaml, 'utf8'), original);
+    assert.equal(fs.existsSync(`${yaml}.disabled`), false);
+});
+
+test('saved default sentinel follows YAML default even when it is not first', (t) => {
+    const f = fixture(t);
+    f.config({ compile_profile: 'default_profile' });
+    f.yaml('profiles:\n  first:\n    fqbn: arduino:avr:uno\n  actual:\n    fqbn: esp32:esp32:esp32:FlashMode=qio\n    build_properties:\n      - build.extra_flags=-DTEST=1\ndefault_profile: actual\ndefault_port: COM9\ndefault_protocol: serial\n');
+    const result = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.equal(result.selectedProfile, 'default_profile');
+    assert.equal(result.resolvedProfile, 'actual');
+    assert.equal(result.fqbn, 'esp32:esp32:esp32:FlashMode=qio');
+    assert.equal(result.port, 'COM9');
+    assert.equal(result.protocol, 'serial');
+    assert.equal(result.buildPath, path.join(f.sketch, 'build', 'build_actual'));
+    assert.deepEqual(result.compileArgs, ['compile', '--profile', 'actual', '--build-property', 'build.extra_flags=-DTEST=1', '--build-path', result.buildPath, '--no-color', '--jobs', '0', f.sketch]);
+});
+
+test('explicit named profile is operation-local and overrides saved/default selections', (t) => {
+    const f = fixture(t);
+    const config = f.config({ compile_profile: 'release' });
+    const yaml = f.yaml('profiles:\n  release:\n    fqbn: arduino:avr:uno\n    port: COM3\n  debug:\n    fqbn: arduino:avr:nano\n    port: COM4\ndefault_profile: release\n');
+    const configBefore = fs.readFileSync(config, 'utf8');
+    const yamlBefore = fs.readFileSync(yaml, 'utf8');
+    const result = inspectProject({ sketchPath: f.sketch, profile: 'debug' }, f.sketch);
+    assert.equal(result.canCompile, true);
+    assert.equal(result.resolvedProfile, 'debug');
+    assert.equal(result.selectedProfile, 'debug');
+    assert.equal(result.port, 'COM4');
+    assert.equal(fs.readFileSync(config, 'utf8'), configBefore);
+    assert.equal(fs.readFileSync(yaml, 'utf8'), yamlBefore);
+    assert.equal(inspectProject({ sketchPath: f.sketch }, f.sketch).resolvedProfile, 'release');
+});
+
+test('uses YAML default profile when no local selection exists, never guesses first', (t) => {
+    const f = fixture(t);
+    f.yaml('profiles:\n  one:\n    fqbn: arduino:avr:uno\n  two:\n    fqbn: arduino:avr:nano\ndefault_profile: two\n');
+    assert.equal(inspectProject({ sketchPath: f.sketch }, f.sketch).resolvedProfile, 'two');
+    f.yaml('profiles:\n  one:\n    fqbn: arduino:avr:uno\n  two:\n    fqbn: arduino:avr:nano\n');
+    const result = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.equal(result.canCompile, false);
+    assert.ok(result.issues.some((issue) => issue.code === 'PROFILE_REQUIRED'));
+    assert.deepEqual(result.compileArgs, []);
+});
+
+test('missing metadata remains inspectable and reports compile blockers', (t) => {
+    const f = fixture(t);
+    const result = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.equal(result.canCompile, false);
+    assert.equal(result.sketchName, 'Blink');
+    assert.equal(result.buildPath, path.join(f.sketch, 'build'));
+    assert.ok(result.issues.some((issue) => issue.code === 'FQBN_REQUIRED'));
+    assert.match(result.fingerprint, /^[0-9a-f]{64}$/);
+});
+
+test('malformed JSON and YAML are reported without writes or parser-content disclosure', (t) => {
+    const f = fixture(t);
+    const secret = 'private-parse-content';
+    const config = f.config(`{"${secret}":`);
+    const yaml = f.yaml(`profiles: [\n${secret}`);
+    const originalConfig = fs.readFileSync(config, 'utf8');
+    const originalYaml = fs.readFileSync(yaml, 'utf8');
+    const result = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.equal(result.canCompile, false);
+    assert.ok(result.issues.some((issue) => issue.code === 'INVALID_CONFIGURATION'));
+    assert.ok(result.issues.some((issue) => issue.code === 'INVALID_YAML'));
+    assert.ok(!JSON.stringify(result).includes(secret));
+    assert.equal(fs.readFileSync(config, 'utf8'), originalConfig);
+    assert.equal(fs.readFileSync(yaml, 'utf8'), originalYaml);
+    assert.equal(fs.existsSync(`${yaml}.disabled`), false);
+});
+
+test('requires a matching primary sketch and explicitly scoped active directory', (t) => {
+    const f = fixture(t);
+    const other = path.join(f.temporary, 'Other');
+    fs.mkdirSync(other);
+    fs.writeFileSync(path.join(other, 'Other.ino'), '');
+    assert.throws(() => inspectProject({ sketchPath: other }, f.sketch), hasCode('OUT_OF_SCOPE'));
+    assert.throws(() => inspectProject({ sketchPath: 'Blink' }, f.sketch), hasCode('INVALID_ARGUMENT'));
+    fs.unlinkSync(path.join(f.sketch, 'Blink.ino'));
+    assert.throws(() => inspectProject({ sketchPath: f.sketch }, f.sketch), hasCode('INVALID_SKETCH'));
+});
+
+test('rejects relative/absolute build escapes and sketch-root output', (t) => {
+    const f = fixture(t);
+    for (const output of ['../outside', f.temporary, '.']) {
+        f.config({ board: 'arduino:avr:uno', output });
+        assert.throws(() => inspectProject({ sketchPath: f.sketch }, f.sketch), hasCode('OUT_OF_SCOPE'));
+    }
+    f.config({ board: 'arduino:avr:uno', output: 'Blink.ino' });
+    assert.throws(() => inspectProject({ sketchPath: f.sketch }, f.sketch), hasCode('INVALID_BUILD_PATH'));
+});
+
+test('rejects an output directory junction escaping the sketch, including missing descendants', (t) => {
+    const f = fixture(t);
+    const outside = path.join(f.temporary, 'outside');
+    fs.mkdirSync(outside);
+    try {
+        fs.symlinkSync(outside, path.join(f.sketch, 'linked'), process.platform === 'win32' ? 'junction' : 'dir');
+    } catch (error) {
+        if (['EPERM', 'EACCES'].includes((error as NodeJS.ErrnoException).code ?? '')) {
+            t.skip('The environment does not permit directory links.');
+            return;
+        }
+        throw error;
+    }
+    f.config({ board: 'arduino:avr:uno', output: 'linked/not-created-yet' });
+    assert.throws(() => inspectProject({ sketchPath: f.sketch }, f.sketch), hasCode('OUT_OF_SCOPE'));
+    assert.deepEqual(fs.readdirSync(outside), []);
+});
+
+test('rejects metadata junctions escaping the sketch', (t) => {
+    const f = fixture(t);
+    const outside = path.join(f.temporary, 'metadata');
+    fs.mkdirSync(outside);
+    fs.writeFileSync(path.join(outside, 'arduino.json'), '{"board":"arduino:avr:uno"}');
+    try {
+        fs.symlinkSync(outside, path.join(f.sketch, '.vscode'), process.platform === 'win32' ? 'junction' : 'dir');
+    } catch (error) {
+        if (['EPERM', 'EACCES'].includes((error as NodeJS.ErrnoException).code ?? '')) {
+            t.skip('The environment does not permit directory links.');
+            return;
+        }
+        throw error;
+    }
+    assert.throws(() => inspectProject({ sketchPath: f.sketch }, f.sketch), hasCode('OUT_OF_SCOPE'));
+});
+
+test('validates explicit arguments, saved profile names and missing selections', (t) => {
+    const f = fixture(t);
+    for (const profile of ['../escape', '.', '..', 'a'.repeat(65), '-bad']) {
+        assert.throws(() => inspectProject({ sketchPath: f.sketch, profile }, f.sketch), hasCode('INVALID_ARGUMENT'));
+    }
+    f.config({ compile_profile: 'default_profile' });
+    f.yaml('profiles:\n  valid:\n    fqbn: arduino:avr:uno\ndefault_profile: ../escape\n');
+    const badName = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.equal(badName.canCompile, false);
+    assert.ok(badName.issues.some((issue) => issue.code === 'INVALID_PROFILE'));
+    const missing = inspectProject({ sketchPath: f.sketch, profile: 'missing' }, f.sketch);
+    assert.equal(missing.canCompile, false);
+    assert.ok(missing.issues.some((issue) => issue.code === 'PROFILE_NOT_FOUND'));
+});
+
+test('fingerprint is stable but changes for raw configuration, YAML, profile and clean changes', (t) => {
+    const f = fixture(t);
+    f.config({ compile_profile: 'one' });
+    const initialYaml = 'profiles:\n  one:\n    fqbn: arduino:avr:uno\n    notes: private-notes\n  two:\n    fqbn: arduino:avr:nano\n';
+    f.yaml(initialYaml);
+    const initial = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.equal(inspectProject({ sketchPath: f.sketch }, f.sketch).fingerprint, initial.fingerprint);
+    assert.notEqual(inspectProject({ sketchPath: f.sketch, profile: 'two' }, f.sketch).fingerprint, initial.fingerprint);
+    assert.notEqual(inspectProject({ sketchPath: f.sketch, clean: true }, f.sketch).fingerprint, initial.fingerprint);
+    assert.ok(!JSON.stringify(initial).includes('private-notes'));
+    f.yaml(`${initialYaml}# formatting changes are fingerprinted too\n`);
+    assert.notEqual(inspectProject({ sketchPath: f.sketch }, f.sketch).fingerprint, initial.fingerprint);
+    f.yaml(initialYaml);
+    f.config({ compile_profile: 'one', board: 'arduino:avr:uno' });
+    assert.notEqual(inspectProject({ sketchPath: f.sketch }, f.sketch).fingerprint, initial.fingerprint);
+});
+
+test('invalid selected profile data cannot produce executable compile arguments', (t) => {
+    const f = fixture(t);
+    f.yaml('profiles:\n  invalid:\n    fqbn: not-an-fqbn\n    build_properties: [42]\ndefault_profile: invalid\n');
+    const result = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.equal(result.canCompile, false);
+    assert.ok(result.issues.some((issue) => issue.code === 'INVALID_FQBN'));
+    assert.ok(result.issues.some((issue) => issue.code === 'INVALID_BUILD_PROPERTIES'));
+    assert.deepEqual(result.compileArgs, []);
+});
+
+test('source metadata changes fingerprint for nested and case-insensitive compile sources', (t) => {
+    const f = fixture(t);
+    f.config({ board: 'arduino:avr:uno' });
+    const nested = path.join(f.sketch, 'src', 'build');
+    fs.mkdirSync(nested, { recursive: true });
+    const source = path.join(nested, 'helper.HPP');
+    fs.writeFileSync(source, 'void helper();\n');
+    fs.utimesSync(source, new Date('2025-01-01T00:00:00Z'), new Date('2025-01-01T00:00:00Z'));
+    const initial = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    fs.utimesSync(source, new Date('2025-01-02T00:00:00Z'), new Date('2025-01-02T00:00:00Z'));
+    const changed = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.equal(changed.canCompile, true);
+    assert.notEqual(changed.fingerprint, initial.fingerprint);
+    assert.equal(inspectProject({ sketchPath: f.sketch }, f.sketch).fingerprint, changed.fingerprint);
+    fs.writeFileSync(path.join(nested, 'start.S'), '');
+    assert.notEqual(inspectProject({ sketchPath: f.sketch }, f.sketch).fingerprint, changed.fingerprint);
+});
+
+test('additional Arduino source files are tracked through creation, edits and deletion', (t) => {
+    const f = fixture(t);
+    f.config({ board: 'arduino:avr:uno' });
+    const baseline = inspectProject({ sketchPath: f.sketch }, f.sketch).fingerprint;
+    for (const extension of ['hh', 'ipp', 'tpp', 'pde', 'HH', 'IpP', 'TPP', 'PDE']) {
+        const source = path.join(f.sketch, `helper.${extension}`);
+        fs.writeFileSync(source, 'before\n');
+        const created = inspectProject({ sketchPath: f.sketch }, f.sketch);
+        assert.equal(created.canCompile, true);
+        assert.notEqual(created.fingerprint, baseline, `${extension} creation must change the fingerprint`);
+        fs.appendFileSync(source, 'after\n');
+        assert.notEqual(inspectProject({ sketchPath: f.sketch }, f.sketch).fingerprint, created.fingerprint,
+            `${extension} edits must change the fingerprint`);
+        fs.unlinkSync(source);
+        assert.equal(inspectProject({ sketchPath: f.sketch }, f.sketch).fingerprint, baseline,
+            `${extension} deletion must remove it from the fingerprint`);
+    }
+});
+
+test('header edits during assistant approval or compilation reject stale builds', async (t) => {
+    const f = fixture(t);
+    f.config({ board: 'arduino:avr:uno' });
+    const source = path.join(f.sketch, 'helper.hh');
+    fs.writeFileSync(source, 'before\n');
+    let changeDuringApproval = true;
+    let compiles = 0;
+    let invalidations = 0;
+    const handler = createAiOperationHandler({
+        isTrusted: () => true, activeSketchPath: () => f.sketch, isReady: () => true,
+        inspect: inspectProject, cliInfo: () => ({ executable: 'simulated-arduino-cli', version: 'test' }),
+        hasUnsavedSketchDocuments: () => false, revision: () => 0,
+        confirmCompile: async () => {
+            if (changeDuringApproval) { fs.appendFileSync(source, 'changed during approval\n'); }
+            return true;
+        },
+        compile: async target => {
+            compiles++;
+            fs.appendFileSync(source, 'changed during compilation\n');
+            return {
+                schemaVersion: 1, operationId: 'simulated-operation', target, status: 'success',
+                exitCode: 0, stdout: '', stderr: '', durationMs: 1, truncated: false,
+            };
+        },
+        discover: async () => ({}), invalidateBuild: () => { invalidations++; },
+    });
+    const compile = () => handler('compile_sketch', { sketchPath: f.sketch }, new AbortController().signal, () => {});
+    await assert.rejects(compile(), hasCode('STALE_TARGET'));
+    assert.equal(compiles, 0, 'a changed header must require fresh approval before execution');
+
+    changeDuringApproval = false;
+    const result = await compile() as AiOperationResult;
+    assert.equal(result.status, 'failed');
+    assert.equal(result.error?.code, 'STALE_INPUT');
+    assert.equal(compiles, 1);
+    assert.equal(invalidations, 1, 'a header changed during compilation must invalidate its artifacts');
+});
+
+test('only current build output is excluded; old output directories become tracked sources', (t) => {
+    const f = fixture(t);
+    f.config({ board: 'arduino:avr:uno', output: 'previous-output' });
+    const oldOutput = path.join(f.sketch, 'previous-output');
+    fs.mkdirSync(oldOutput);
+    const source = path.join(oldOutput, 'helper.cpp');
+    fs.writeFileSync(source, 'void helper() {}\n');
+    fs.utimesSync(source, new Date('2025-01-01T00:00:00Z'), new Date('2025-01-01T00:00:00Z'));
+    f.config({ board: 'arduino:avr:uno', output: 'current-output' });
+    const initial = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    fs.utimesSync(source, new Date('2025-01-02T00:00:00Z'), new Date('2025-01-02T00:00:00Z'));
+    assert.notEqual(inspectProject({ sketchPath: f.sketch }, f.sketch).fingerprint, initial.fingerprint);
+});
+
+test('generated sources inside actual build output and excluded metadata do not change fingerprint', (t) => {
+    const f = fixture(t);
+    f.config({ board: 'arduino:avr:uno', output: 'generated' });
+    const initial = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    for (const directory of ['generated', '.git', '.vscode', 'node_modules']) {
+        fs.mkdirSync(path.join(f.sketch, directory), { recursive: true });
+        fs.writeFileSync(path.join(f.sketch, directory, 'helper.cpp'), 'generated\n');
+    }
+    assert.equal(inspectProject({ sketchPath: f.sketch }, f.sketch).fingerprint, initial.fingerprint);
+});
+
+test('rejects reserved source and metadata build outputs', (t) => {
+    const f = fixture(t);
+    for (const output of ['.git', '.vscode', 'node_modules', 'src', 'src/build', 'generated/.git/cache', 'generated/.vscode', 'generated/node_modules']) {
+        f.config({ board: 'arduino:avr:uno', output });
+        assert.throws(() => inspectProject({ sketchPath: f.sketch }, f.sketch), hasCode('INVALID_BUILD_PATH'));
+    }
+});
+
+test('source directory links are not followed and produce a generic incomplete-scan issue', (t) => {
+    const f = fixture(t);
+    f.config({ board: 'arduino:avr:uno' });
+    const outside = path.join(f.temporary, 'private-source');
+    fs.mkdirSync(outside);
+    fs.writeFileSync(path.join(outside, 'private.cpp'), 'private-source-content');
+    try {
+        fs.symlinkSync(outside, path.join(f.sketch, 'linked-source'), process.platform === 'win32' ? 'junction' : 'dir');
+    } catch (error) {
+        if (['EPERM', 'EACCES'].includes((error as NodeJS.ErrnoException).code ?? '')) {
+            t.skip('The environment does not permit directory links.');
+            return;
+        }
+        throw error;
+    }
+    const result = inspectProject({ sketchPath: f.sketch }, f.sketch);
+    assert.equal(result.canCompile, false);
+    assert.deepEqual(result.compileArgs, []);
+    assert.ok(result.issues.some((issue) => issue.code === 'SOURCE_SCAN_INCOMPLETE'));
+    assert.ok(!JSON.stringify(result).includes('private-source-content'));
+});

@@ -3,7 +3,6 @@ const fs = require('fs');
 import * as yaml from 'yaml';
 import { arduinoCLI, arduinoExtensionChannel, arduinoProject } from './extension';
 import { BUILD_NAME_PROFILE, BuildProfile, BuildProfileUpdate, DEFAULT_PROFILE, NO_DEFAULT_PROFILE, NO_PROGRAMMER, PROFILES_STATUS, SketchYaml, UNKNOWN_PROFILE, YAML_FILENAME, YAML_FILENAME_INACTIVE } from './shared/messages';
-import { window } from 'vscode';
 import { DataBit, LineEnding, Parity, StopBits } from '@microsoft/vscode-serial-monitor-api';
 import { sendBuildProfiles } from './VueWebviewPanel';
 
@@ -458,20 +457,17 @@ export class SketchProfileManager {
             try {
                 const content = fs.readFileSync(file, 'utf8');
                 const data = yaml.parse(content) as SketchYaml;
-                if (!this.verify(data) && this.status() == PROFILES_STATUS.ACTIVE) {
-                    this.setProfileStatus(PROFILES_STATUS.INACTIVE); // Set inactive if the yaml is malformed.
-                    window.showErrorMessage(`The ${YAML_FILENAME} has errors and is now inactive`);
-                    this.resetActiveProfileCache();
+                if (!this.verify(data)) {
+                    this.updateActiveProfileCache(undefined, fileIsActive);
                     return undefined;
                 }
+                // Arduino CLI permits defaults-only project files. Existing UI
+                // consumers expect a map, so supply one without rewriting YAML.
+                data.profiles ??= {};
                 this.updateActiveProfileCache(data, fileIsActive);
                 return data;
             } catch (error) {
-                if (this.status() == PROFILES_STATUS.ACTIVE) {
-                    this.setProfileStatus(PROFILES_STATUS.INACTIVE); // Set inactive if any error reading the yaml file.
-                    window.showErrorMessage(`The ${YAML_FILENAME} has errors and is now inactive`);
-                }
-                this.resetActiveProfileCache();
+                this.updateActiveProfileCache(undefined, fileIsActive);
                 this.setLastError(`Failed to read build profile: ${error}`);
                 return undefined;
             }
@@ -844,19 +840,27 @@ export class SketchProfileManager {
     verify(yaml: SketchYaml): boolean {
         this.clearError();
 
+        if (!yaml || typeof yaml !== 'object' || Array.isArray(yaml)) {
+            this.setLastError('YAML verification: expected a project object/map.');
+            return false;
+        }
+
         if (this.status() === PROFILES_STATUS.ACTIVE || this.status() === PROFILES_STATUS.INACTIVE) {
-            if (!yaml.profiles || typeof yaml.profiles !== 'object') {
-                this.setLastError(`YAML verification: missing or invalid "profiles" section.`);
+            if (yaml.profiles !== undefined && (!yaml.profiles || typeof yaml.profiles !== 'object' || Array.isArray(yaml.profiles))) {
+                this.setLastError(`YAML verification: invalid "profiles" section (must be an object/map).`);
                 return false;
             }
 
-            const profileKeys = Object.keys(yaml.profiles);
-            if (profileKeys.length === 0) {
-                this.setLastError(`YAML verification: No profiles defined in "profiles" section.`);
+            if (yaml.default_profile !== undefined && typeof yaml.default_profile !== 'string') {
+                this.setLastError('YAML verification: invalid "default_profile" (must be a string).');
                 return false;
             }
 
-            for (const [name, profile] of Object.entries(yaml.profiles)) {
+            for (const [name, profile] of Object.entries(yaml.profiles ?? {})) {
+                if (!profile || typeof profile !== 'object' || Array.isArray(profile)) {
+                    this.setLastError(`YAML verification: profile "${name}" must be an object/map.`);
+                    return false;
+                }
                 // Validate fqbn
                 if (!profile.fqbn || typeof profile.fqbn !== 'string') {
                     this.setLastError(`YAML verification: profile "${name}" is missing a valid "fqbn".`);

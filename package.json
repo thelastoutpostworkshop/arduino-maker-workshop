@@ -31,6 +31,12 @@
     "C++"
   ],
   "main": "./build/extension.js",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "Arduino builds execute board-package recipes. Trust this workspace before running Arduino or AI bridge operations."
+    }
+  },
   "activationEvents": [
     "onView:quickAccessView",
     "onView:arduinoMakerWorkshop.compileOutput",
@@ -72,6 +78,16 @@
       ]
     },
     "commands": [
+      {
+        "command": "arduinoMakerWorkshop.connectAiAssistant",
+        "title": "Connect AI Assistant (This Session)",
+        "category": "Arduino Maker Workshop"
+      },
+      {
+        "command": "arduinoMakerWorkshop.disconnectAiAssistant",
+        "title": "Disconnect AI Assistant",
+        "category": "Arduino Maker Workshop"
+      },
       {
         "command": "extension.openVueWebview",
         "title": "Arduino Home",
@@ -121,6 +137,12 @@
         "command": "arduinoMakerWorkshop.addSubfolderToWorkspace",
         "title": "Add as Active Workspace Folder",
         "category": "Arduino"
+      }
+    ],
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "arduinoMakerWorkshop.aiBridge",
+        "label": "Arduino Maker Workshop"
       }
     ],
     "menus": {
@@ -204,12 +226,15 @@
   ],
   "scripts": {
     "vscode:prepublish": "npm run compile && npm run build:vue",
-    "compile": "vite build",
-    "watch": "vite build --watch",
-    "package": "vite build --mode production",
+    "compile": "vite build && npm run build:ai",
+    "build:ai": "vite build --config vite.ai.config.ts",
+    "watch": "node scripts/watch.mjs",
+    "package": "vite build --mode production && vite build --config vite.ai.config.ts --mode production",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test",
+    "test:ai": "npm run build:ai && tsc -p tsconfig.ai-tests.json && node --test .ai-test-build/ai/tests/*.test.js",
+    "typecheck": "tsc --noEmit",
     "test:webview": "npm --prefix vue_webview run test:e2e",
     "build:vue": "cd vue_webview && npm run build"
   },

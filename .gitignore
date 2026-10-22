@@ -2,6 +2,7 @@ node_modules
 .vscode
 .vscode-test
 build
+.ai-test-build
 *.vsix
 .tool-versions
 playwright-report

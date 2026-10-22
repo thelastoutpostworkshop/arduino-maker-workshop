@@ -1,5 +1,6 @@
 .vscode/**
 .vscode-test/**
+.ai-test-build/**
 .github/**
 .readme/**
 src/**
@@ -7,6 +8,7 @@ src/**
 .yarnrc
 vsc-extension-quickstart.md
 **/tsconfig.json
+**/tsconfig.*.json
 **/.eslintrc.json
 **/*.map
 **/*.ts

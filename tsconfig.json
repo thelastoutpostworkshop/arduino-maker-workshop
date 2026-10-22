@@ -1,15 +1,17 @@
 {
 	"compilerOptions": {
-		"module": "Node16",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
 		"target": "ES2022",
 		"outDir": "build",
 		"lib": [
-			"ES2022"
+			"ES2022", "DOM"
 		],
 		"sourceMap": true,
 		"rootDir": "src",
 		"strict": true /* enable all strict type-checking options */
 		
 	},
+	"include": ["src/**/*.ts"],
 	"exclude": ["node_modules", ".vscode-test", "vue_webview"]
 }

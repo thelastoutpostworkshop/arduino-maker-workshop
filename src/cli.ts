@@ -8,10 +8,13 @@ import { ArduinoConfiguration } from "./config";
 import { CliCache } from "./cliCache";
 import { ArduinoDebugInfo, createCortexDebugConfiguration, findCortexDebugConfiguration, mergeCortexDebugConfiguration } from "./debugConfiguration";
 import type { CliOutputView } from "./cliOutputView";
+import { randomUUID } from 'node:crypto';
+import { runProcess } from './ai/processRunner';
+import { AiBridgeError, type AiOperationResult, type OperationProgress, type ProjectInspection } from './ai/contracts';
+import { collectSensitiveValues, redactText } from './ai/redaction';
 
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
 
-const cp = require('child_process');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
@@ -39,7 +42,6 @@ export class ArduinoCLI {
 	private _lastCLIError: string = "";
 	private cliStatus: ArduinoCLIStatus = { VersionString: "", Date: "" };
 	private arduinoConfig = new ArduinoConfiguration();
-	private activeProcess: any | null = null;
 	private cliCache: CliCache;
 
 	constructor(private context: ExtensionContext) {
@@ -419,19 +421,201 @@ export class ArduinoCLI {
 	}
 	// #endregion
 
+	/** Fixed discovery operations; no cache writes, setup changes, or UI prompts. */
+	public async discoverForAssistant(kind: 'boards' | 'ports', signal: AbortSignal): Promise<unknown> {
+		if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Trust this workspace before using Arduino CLI.'); }
+		if (signal.aborted) { throw new AiBridgeError('CANCELED', 'The request was canceled.'); }
+		if (!this.arduinoCLIPath) { throw new AiBridgeError('CLI_NOT_READY', 'Arduino CLI is not ready.'); }
+		if (kind !== 'boards' && kind !== 'ports') { throw new AiBridgeError('INVALID_ARGUMENT', 'Only boards and ports discovery are supported.'); }
+		const args = kind === 'boards' ? ['board', 'listall', '--json'] : ['board', 'list', '--json'];
+		const result = await runProcess(this.arduinoCLIPath, args, { signal, maxOutputBytes: 512 * 1024 });
+		if (result.canceled) { throw new AiBridgeError('CANCELED', 'Discovery was canceled.'); }
+		if (result.error || result.exitCode !== 0) {
+			throw new AiBridgeError(result.error?.code ?? 'CLI_FAILED', redactText(result.error?.message ?? `Arduino discovery exited with code ${result.exitCode}: ${result.stderr}`));
+		}
+		if (result.truncated) { throw new AiBridgeError('OUTPUT_LIMIT', 'Discovery output exceeded the bounded output or line limit. Use Arduino Home to inspect this result.'); }
+		try { return JSON.parse(result.stdout); } catch { throw new AiBridgeError('INVALID_CLI_OUTPUT', 'Arduino CLI discovery did not return valid JSON.'); }
+	}
+
+	/** The bridge passes an inspected plan, never client-provided executable/argv. */
+	public async compileForAssistant(target: ProjectInspection, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<AiOperationResult> {
+		const operationId = randomUUID();
+		const startedAt = Date.now();
+		const empty = (status: AiOperationResult['status'], code: string, message: string): AiOperationResult => ({
+			schemaVersion: 1, operationId, status, target, exitCode: null, stdout: '', stderr: '', truncated: false,
+			durationMs: Date.now() - startedAt, error: { code, message }
+		});
+		if (!workspace.isTrusted) { return empty('invalid', 'WORKSPACE_UNTRUSTED', 'Trust this workspace before compiling.'); }
+		if (signal.aborted) { return empty('canceled', 'CANCELED', 'Compilation was canceled before it started.'); }
+		if (!this.arduinoCLIPath) { return empty('invalid', 'CLI_NOT_READY', 'Arduino CLI is not ready.'); }
+		if (!target.canCompile || !this.isAssistantCompilePlan(target)) { return empty('invalid', 'INVALID_TARGET', 'The inspected compile plan is invalid. Request fresh project context.'); }
+		if (this.compileOrUploadRunning) { return empty('busy', 'BUSY', 'Another Arduino operation is running in this window.'); }
+		const dirtySketchDocument = workspace.textDocuments.some((document) => {
+			const relative = path.relative(target.sketchPath, document.uri.fsPath);
+			return document.isDirty && document.uri.scheme === 'file' && relative !== '..'
+				&& !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
+		});
+		if (dirtySketchDocument) { return empty('invalid', 'UNSAVED_DOCUMENTS', 'Save the sketch documents before compiling. Other files will not be saved.'); }
+
+		this.compileOrUploadRunning = true;
+		const controller = new AbortController();
+		const abort = () => controller.abort();
+		signal.addEventListener('abort', abort, { once: true });
+		const sensitiveValues = collectSensitiveValues(target.compileArgs);
+		const title = redactText(`Compiling ${target.sketchName}${target.resolvedProfile ? ` (profile ${target.resolvedProfile})` : ` (${target.fqbn})`} for assistant`, sensitiveValues);
+		try {
+			this.writeAssistantBuildResult(target, false);
+			await compileOutputView?.prepare(title);
+			compileOutputView?.setStatus('info', 'Starting assistant compilation...');
+			compileOutputView?.showCommand(this.arduinoCLIPath, target.compileArgs.map((arg) => redactText(arg, sensitiveValues)));
+			progress({ message: title });
+			const result = await window.withProgress(
+				{ location: ProgressLocation.Notification, title, cancellable: true },
+				async (_progress, token) => {
+					compileStatusBarItem.text = compileStatusBarExecuting;
+					const cancellation = token.onCancellationRequested(abort);
+					try {
+						if (signal.aborted || token.isCancellationRequested) { controller.abort(); }
+						// Recheck trust at the execution boundary after the asynchronous UI setup.
+						if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Workspace trust changed before compilation.'); }
+						let displayedBytes = 0;
+						let displayTruncated = false;
+						const append = (text: string) => {
+							const bytes = Buffer.from(text, 'utf8');
+							const remaining = Math.max(0, 128 * 1024 - displayedBytes);
+							if (remaining > 0) {
+								const visible = bytes.subarray(0, remaining).toString('utf8');
+								displayedBytes += Math.min(bytes.length, remaining);
+								this.arduinoCLIChannel.append(visible);
+								compileOutputView?.append(visible);
+							}
+							if (bytes.length > remaining && !displayTruncated) {
+								displayTruncated = true;
+								const notice = '\nAssistant compile display limit reached. The structured result retains the final output tail.\n';
+								this.arduinoCLIChannel.append(notice);
+								compileOutputView?.appendInfo(notice);
+							}
+						};
+						return await runProcess(this.arduinoCLIPath, target.compileArgs, {
+							cwd: target.sketchPath, signal: controller.signal, sensitiveValues, maxOutputBytes: 64 * 1024,
+							onStdout: append, onStderr: append
+						});
+					} finally { cancellation.dispose(); }
+				}
+			);
+			const status = result.canceled ? 'canceled' : result.error || result.exitCode !== 0 ? 'failed' : 'success';
+			this.writeAssistantBuildResult(target, status === 'success');
+			const message = status === 'success' ? 'Assistant compilation completed successfully.' : status === 'canceled' ? 'Assistant compilation canceled.' : 'Assistant compilation failed.';
+			compileOutputView?.setStatus(status === 'success' ? 'success' : status === 'canceled' ? 'canceled' : 'failure', message);
+			compileOutputView?.appendInfo(`${message}\n`);
+			progress({ message });
+			if (status === 'success' && this.isCurrentAssistantTarget(target)) {
+				try { this.createIntellisenseFile(result.stdout); } catch (error) {
+					arduinoExtensionChannel.appendLine(`Assistant compile: IntelliSense update failed: ${redactText(error instanceof Error ? error.message : String(error), sensitiveValues)}`);
+				}
+			}
+			return {
+				schemaVersion: 1, operationId, status, target, exitCode: result.exitCode, signal: result.signal,
+				stdout: result.stdout, stderr: result.stderr, truncated: result.truncated, durationMs: Date.now() - startedAt,
+				...(status === 'canceled' ? { error: { code: 'CANCELED', message } } : result.error ? { error: result.error }
+					: status === 'failed' ? { error: { code: 'CLI_FAILED', message: `Arduino CLI exited with code ${result.exitCode}. See stderr and Arduino CLI Output.` } } : {})
+			};
+		} catch (error) {
+			const message = redactText(error instanceof Error ? error.message : String(error), sensitiveValues);
+			compileOutputView?.setStatus(controller.signal.aborted ? 'canceled' : 'failure', message);
+			return empty(controller.signal.aborted ? 'canceled' : 'failed', controller.signal.aborted ? 'CANCELED' : error instanceof AiBridgeError ? error.code : 'COMPILE_FAILED', message);
+		} finally {
+			signal.removeEventListener('abort', abort);
+			compileStatusBarItem.text = compileStatusBarNotExecuting;
+			this.compileOrUploadRunning = false;
+			// The legacy state renderer may persist a default profile. An operation-
+			// local assistant target must never change the user's saved selection.
+		}
+	}
+
+	public invalidateAssistantBuild(target: ProjectInspection): void {
+		try {
+			this.writeAssistantBuildResult(target, false);
+		} finally {
+			const message = 'Inputs changed during compilation. Compile again before using the artifacts.';
+			compileOutputView?.setStatus('failure', message);
+			compileOutputView?.appendInfo(`${message}\n`);
+			this.arduinoCLIChannel.appendLine(message);
+		}
+	}
+
+	private isAssistantCompilePlan(target: ProjectInspection): boolean {
+		const args = target.compileArgs;
+		if (args[0] !== 'compile' || args.at(-1) !== target.sketchPath || !target.fqbn) { return false; }
+		const valueFlags = new Set(['--profile', '--fqbn', '--build-property', '--build-path', '--jobs']);
+		const booleanFlags = new Set(['--no-color', '--optimize-for-debug', '--clean']);
+		const seen = new Set<string>();
+		for (let index = 1; index < args.length - 1; index++) {
+			const flag = args[index];
+			if (booleanFlags.has(flag)) { continue; }
+			if (!valueFlags.has(flag) || index + 1 >= args.length - 1) { return false; }
+			const value = args[++index];
+			if (flag !== '--build-property' && seen.has(flag)) { return false; }
+			seen.add(flag);
+			if (flag === '--build-path' && value !== target.buildPath) { return false; }
+			if (flag === '--profile' && value !== target.resolvedProfile) { return false; }
+			if (flag === '--fqbn' && value !== target.fqbn) { return false; }
+			if (flag === '--jobs' && value !== '0') { return false; }
+			if (flag === '--build-property' && !target.buildProperties.includes(value)) { return false; }
+		}
+		return seen.has('--build-path') && seen.has('--jobs') && (target.resolvedProfile ? seen.has('--profile') && !seen.has('--fqbn') : seen.has('--fqbn') && !seen.has('--profile'));
+	}
+
+	private isCurrentAssistantTarget(target: ProjectInspection): boolean {
+		const currentProfile = arduinoYaml.status() === PROFILES_STATUS.ACTIVE ? arduinoYaml.getProfileName() : undefined;
+		return path.relative(arduinoProject.getProjectPath(), target.sketchPath) === ''
+			&& path.relative(this.getBuildPath(), target.buildPath) === ''
+			&& this.getDebugTarget().fqbn === target.fqbn && currentProfile === target.resolvedProfile
+			&& arduinoProject.optimizeForDebug() === target.compileArgs.includes('--optimize-for-debug')
+			&& JSON.stringify(currentProfile ? arduinoYaml.getProfileBuildProperties(currentProfile) : []) === JSON.stringify(target.buildProperties);
+	}
+
+	private writeAssistantBuildResult(target: ProjectInspection, result: boolean): void {
+		// Re-inspect existing ancestors at write time; never follow a marker symlink.
+		const root = fs.realpathSync.native(target.sketchPath);
+		let ancestor = path.resolve(target.buildPath);
+		const missing: string[] = [];
+		while (true) {
+			try { fs.lstatSync(ancestor); break; } catch (error) {
+				if ((error as NodeJS.ErrnoException).code !== 'ENOENT' || path.dirname(ancestor) === ancestor) {
+					throw new AiBridgeError('INVALID_BUILD_PATH', 'Build output cannot be resolved safely.');
+				}
+				missing.unshift(path.basename(ancestor));
+				ancestor = path.dirname(ancestor);
+			}
+		}
+		const buildPath = path.resolve(fs.realpathSync.native(ancestor), ...missing);
+		const relative = path.relative(root, buildPath);
+		if (!relative || relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+			throw new AiBridgeError('OUT_OF_SCOPE', 'Build output must remain inside the sketch directory.');
+		}
+		fs.mkdirSync(buildPath, { recursive: true });
+		const temporary = path.join(buildPath, `.compile-result-${randomUUID()}.tmp`);
+		try {
+			fs.writeFileSync(temporary, JSON.stringify({ result, fingerprint: target.fingerprint, completedAt: new Date().toISOString() }, null, 2), { encoding: 'utf8', flag: 'wx' });
+			fs.renameSync(temporary, path.join(buildPath, COMPILE_RESULT_FILE));
+		} finally { if (fs.existsSync(temporary)) { fs.unlinkSync(temporary); } }
+	}
+
 	public async compile(clean: boolean = false, createBuildProfile = false): Promise<string> {
 		if (this.compileOrUploadRunning) {
 			await compileOutputView?.prepare('Arduino CLI Output', false);
 			return "";
 		}
 		this.compileOrUploadRunning = true;
+		const controller = new AbortController();
 
 		let useBuildProfile: boolean;
 		let profileMsg = "";
 		let successMsg = "";
-		await workspace.saveAll();
 
 		try {
+			await workspace.saveAll();
 			if (createBuildProfile) {
 				useBuildProfile = true;
 				profileMsg = ", creating a build profile";
@@ -473,12 +657,11 @@ export class ArduinoCLI {
 					compileStatusBarItem.text = compileStatusBarExecuting;
 
 					token.onCancellationRequested(() => {
-						this.cancelExecution();
+						controller.abort();
 						compileStatusBarItem.text = compileStatusBarNotExecuting;
 						this.setBuildResult(false);
 						compileOutputView?.appendInfo("Compilation cancelled by user.\n");
 						compileOutputView?.setStatus('canceled', 'Compilation cancelled by user.');
-						throw new Error("Compilation cancelled by user.");
 					});
 
 					const output = await arduinoCLI.runArduinoCommand(
@@ -489,7 +672,8 @@ export class ArduinoCLI {
 						compileOutputView ? false : true,
 						this.arduinoCLIChannel,
 						successMsg,
-						compileOutputView
+						compileOutputView,
+						controller.signal
 					);
 
 					this.setBuildResult(true);
@@ -507,7 +691,7 @@ export class ArduinoCLI {
 			return output || "";
 		} catch (error) {
 			this.setBuildResult(false);
-			compileOutputView?.setStatus('failure', 'Compilation failed.');
+			compileOutputView?.setStatus(controller.signal.aborted ? 'canceled' : 'failure', controller.signal.aborted ? 'Compilation cancelled by user.' : 'Compilation failed.');
 		} finally {
 			compileStatusBarItem.text = compileStatusBarNotExecuting;
 			this.compileOrUploadRunning = false;
@@ -525,6 +709,7 @@ export class ArduinoCLI {
 		}
 		const useBuildProfile = arduinoYaml.status() == PROFILES_STATUS.ACTIVE;
 		this.compileOrUploadRunning = true;
+		const controller = new AbortController();
 		const uploadTitleBase = useBuildProfile
 			? `Uploading from profile ${arduinoYaml.getProfileName()}`
 			: `Uploading to ${arduinoProject.getBoard()} `;
@@ -570,10 +755,9 @@ export class ArduinoCLI {
 					uploadStatusBarItem.text = uploadStatusBarExecuting;
 					// If the token signals cancellation
 					token.onCancellationRequested(() => {
-						this.cancelExecution(); // Ensure the compilation process stops
+						controller.abort();
 						uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 						// this.setBuildResult(false);
-						throw new Error("Upload cancelled by user."); // Stop further execution
 					});
 
 					await arduinoCLI.runArduinoCommand(
@@ -584,7 +768,8 @@ export class ArduinoCLI {
 						compileOutputView ? false : true,
 						this.arduinoCLIChannel,
 						"Upload completed successfully.",
-						compileOutputView
+						compileOutputView,
+						controller.signal
 					);
 					uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 					if (this.serialMonitorAPI) {
@@ -619,9 +804,9 @@ export class ArduinoCLI {
 		} catch (error) {
 			uploadStatusBarItem.text = uploadStatusBarNotExecuting;
 			console.log(error);
-			if (error instanceof Error && error.message === "Upload cancelled by user.") {
-				compileOutputView?.setStatus('canceled', error.message);
-				compileOutputView?.appendInfo(`${error.message}\n`);
+			if (controller.signal.aborted || (error instanceof Error && error.message === "Upload cancelled by user.")) {
+				compileOutputView?.setStatus('canceled', 'Upload cancelled by user.');
+				compileOutputView?.appendInfo('Upload cancelled by user.\n');
 			} else {
 				compileOutputView?.setStatus('failure', 'Upload failed.');
 				compileOutputView?.appendInfo('Upload failed.\n');
@@ -665,6 +850,7 @@ export class ArduinoCLI {
 
 		const title = `Burning bootloader using ${programmer}${portDescription}`;
 		let cancelled = false;
+		const controller = new AbortController();
 		this.compileOrUploadRunning = true;
 
 		try {
@@ -681,7 +867,7 @@ export class ArduinoCLI {
 				async (_progress, token) => {
 					token.onCancellationRequested(() => {
 						cancelled = true;
-						this.cancelExecution();
+						controller.abort();
 					});
 
 					await this.runArduinoCommand(
@@ -692,7 +878,8 @@ export class ArduinoCLI {
 						compileOutputView ? false : true,
 						this.arduinoCLIChannel,
 						"Bootloader burned successfully.",
-						compileOutputView
+						compileOutputView,
+						controller.signal
 					);
 				}
 			);
@@ -732,15 +919,17 @@ export class ArduinoCLI {
 		}
 
 		this.compileOrUploadRunning = true;
+		const controller = new AbortController();
 		try {
 			const output = await window.withProgress(
 				{ location: ProgressLocation.Notification, title: "Generating Cortex-Debug configuration", cancellable: true },
 				async (_progress, token) => {
-					token.onCancellationRequested(() => this.cancelExecution());
+					token.onCancellationRequested(() => controller.abort());
 					return this.runArduinoCommand(
 						() => this.cliArgs.getDebugInfoArguments(),
 						"CLI: Failed to get debug configuration information",
-						{ caching: CacheState.NO, ttl: 0 }
+						{ caching: CacheState.NO, ttl: 0 },
+						true, false, this.arduinoCLIChannel, '', undefined, controller.signal
 					);
 				}
 			);
@@ -1012,12 +1201,13 @@ export class ArduinoCLI {
 		showOutput: boolean = false,
 		channel: OutputChannel = this.arduinoCLIChannel,
 		successMSG: string = "",
-		coloredOutputView?: CliOutputView
+		coloredOutputView?: CliOutputView,
+		signal?: AbortSignal
 	): Promise<string> {
 		try {
 			const args = getArguments();
 			if (args.length == 0) {
-				window.showErrorMessage(errorMessagePrefix);
+				throw new Error('Arduino CLI arguments are missing.');
 			}
 			if (coloredOutputView) {
 				const cliExecutable = this.arduinoCLIPath || 'arduino-cli';
@@ -1035,7 +1225,7 @@ export class ArduinoCLI {
 				} else {
 					this.arduinoCLIChannel.appendLine(`Cache miss, running command...`);
 
-					const result = await this.executeArduinoCommand(`${this.arduinoCLIPath}`, args, returnOutput, showOutput, channel, successMSG, coloredOutputView);
+					const result = await this.executeArduinoCommand(`${this.arduinoCLIPath}`, args, returnOutput, showOutput, channel, successMSG, coloredOutputView, signal);
 					if (!result && returnOutput) {
 						const errorMsg = `${errorMessagePrefix}: No result`;
 						window.showErrorMessage(errorMsg);
@@ -1047,7 +1237,7 @@ export class ArduinoCLI {
 			} else {
 				this.arduinoCLIChannel.appendLine(`No caching, running command...`);
 
-				const result = await this.executeArduinoCommand(`${this.arduinoCLIPath}`, args, returnOutput, showOutput, channel, successMSG, coloredOutputView);
+				const result = await this.executeArduinoCommand(`${this.arduinoCLIPath}`, args, returnOutput, showOutput, channel, successMSG, coloredOutputView, signal);
 				if (!result && returnOutput) {
 					const errorMsg = `${errorMessagePrefix}: No result`;
 					window.showErrorMessage(errorMsg);
@@ -1057,6 +1247,7 @@ export class ArduinoCLI {
 			}
 
 		} catch (error: any) {
+			if (signal?.aborted) { throw error; }
 			window.showErrorMessage(`${errorMessagePrefix}`);
 			coloredOutputView?.setStatus('failure', `${errorMessagePrefix}`);
 			throw error;
@@ -1216,7 +1407,7 @@ export class ArduinoCLI {
 		}
 	}
 
-	private executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = this.arduinoCLIChannel, successMsg: string = "", coloredOutputView?: CliOutputView): Promise<string | void> {
+	private async executeArduinoCommand(command: string, args: string[], returnOutput: boolean = false, showOutput = true, channel: OutputChannel = this.arduinoCLIChannel, successMsg: string = "", coloredOutputView?: CliOutputView, signal?: AbortSignal): Promise<string | void> {
 		if (showOutput) {
 			channel.show(true);
 		}
@@ -1229,83 +1420,38 @@ export class ArduinoCLI {
 			coloredOutputView.append(`$ ${command} ${displayArgs.join(' ')}\n`);
 		}
 
-		const child = cp.spawn(`${command}`, args);
-		this.activeProcess = child;
-		let outputBuffer = '';
-
-		return new Promise((resolve, reject) => {
-			// Stream stdout to the output channel and optionally to the buffer
-			child.stdout.on('data', (data: Buffer) => {
-				const output = this.redactSensitiveText(data.toString(), sensitiveValues);
-				if (showOutput) {
-					channel.append(output);
-				}
-				coloredOutputView?.append(output);
-
-				if (returnOutput) {
-					outputBuffer += output;
-				}
-			});
-
-			// Stream stderr to the output channel and optionally to the buffer
-			child.stderr.on('data', (data: Buffer) => {
-				const error = this.redactSensitiveText(data.toString(), sensitiveValues);
-				if (showOutput) {
-					channel.append(error);
-				}
-				coloredOutputView?.append(error);
-				if (returnOutput) {
-					outputBuffer += error;
-				}
-			});
-
-			child.on('close', (code: number) => {
-				this.activeProcess = null;
-				if (code === 0) {
-					if (showOutput) {
-						channel.appendLine('Command executed successfully.');
-					}
-					coloredOutputView?.append('Command executed successfully.\n');
-					if (successMsg) {
-						coloredOutputView?.setStatus('success', successMsg);
-					} else {
-						coloredOutputView?.setStatus('success', 'Command executed successfully.');
-					}
-					if (successMsg) {
-						window.showInformationMessage(successMsg);
-					}
-					resolve(returnOutput ? outputBuffer : undefined);
-				} else {
-					channel.appendLine(`Command failed with code ${code}.`);
-					coloredOutputView?.append(`Command failed with code ${code}.\n`);
-					coloredOutputView?.setStatus('failure', `Command failed with code ${code}.`);
-					reject(undefined);
-				}
-			});
-
-			child.on('error', (err: any) => {
-				this.activeProcess = null;
-				channel.appendLine(`Failed to run command: ${err.message}`);
-				coloredOutputView?.append(`Failed to run command: ${err.message}\n`);
-				coloredOutputView?.setStatus('failure', `Failed to run command: ${err.message}`);
-				reject(undefined);
-			});
-			this.arduinoCLIChannel.appendLine('');
+		const append = (text: string) => {
+			if (showOutput) { channel.append(text); }
+			coloredOutputView?.append(text);
+		};
+		const result = await runProcess(command, args, {
+			signal, sensitiveValues, maxOutputBytes: 8 * 1024 * 1024,
+			onStdout: append, onStderr: append
 		});
+		this.arduinoCLIChannel.appendLine('');
+		if (result.canceled) {
+			coloredOutputView?.setStatus('canceled', 'Command execution was canceled.');
+			throw new AiBridgeError('CANCELED', 'Command execution was canceled.');
+		}
+		if (result.error || result.exitCode !== 0) {
+			const message = result.error ? `Failed to run command: ${result.error.message}` : `Command failed with code ${result.exitCode}.`;
+			channel.appendLine(message);
+			coloredOutputView?.append(`${message}\n`);
+			coloredOutputView?.setStatus('failure', message);
+			throw new AiBridgeError(result.error?.code ?? 'CLI_FAILED', message);
+		}
+		if (result.truncated && returnOutput) {
+			throw new AiBridgeError('OUTPUT_LIMIT', 'Arduino CLI output exceeded the retained output limit.');
+		}
+		if (showOutput) { channel.appendLine('Command executed successfully.'); }
+		coloredOutputView?.append('Command executed successfully.\n');
+		coloredOutputView?.setStatus('success', successMsg || 'Command executed successfully.');
+		if (successMsg) { window.showInformationMessage(successMsg); }
+		return returnOutput ? result.output : undefined;
 	}
 
 	private getSensitiveValues(args: string[]): string[] {
-		const sensitiveValues: string[] = [];
-		for (let i = 0; i < args.length; i++) {
-			if (args[i] === "--upload-field") {
-				const uploadField = args[i + 1] ?? "";
-				const passwordMatch = uploadField.match(/^password=(.*)$/);
-				if (passwordMatch && passwordMatch[1]) {
-					sensitiveValues.push(passwordMatch[1]);
-				}
-			}
-		}
-		return sensitiveValues;
+		return collectSensitiveValues(args);
 	}
 
 	private redactSensitiveArgs(args: string[], sensitiveValues: string[]): string[] {
@@ -1313,35 +1459,7 @@ export class ArduinoCLI {
 	}
 
 	private redactSensitiveText(text: string, sensitiveValues: string[]): string {
-		if (sensitiveValues.length === 0) {
-			return text;
-		}
-
-		let redacted = text;
-		for (const value of sensitiveValues) {
-			redacted = redacted.replace(new RegExp(this.escapeRegExp(value), 'g'), '<redacted>');
-		}
-		return redacted
-			.replace(/(password=)([^\s"']+)/g, '$1<redacted>')
-			.replace(/("--auth=)([^"]*)(")/g, '$1<redacted>$3')
-			.replace(/(--auth=)([^\s"']+)/g, '$1<redacted>')
-			.replace(/(--auth\s+)([^\s"']+)/g, '$1<redacted>');
-	}
-
-	private escapeRegExp(value: string): string {
-		return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-	}
-
-	private cancelExecution() {
-		if (this.activeProcess) {
-			this.activeProcess.kill();
-			this.activeProcess = null;
-			this.arduinoCLIChannel.appendLine('Command execution was canceled.');
-			compileOutputView?.appendInfo('Command execution was canceled.\n');
-			compileOutputView?.setStatus('canceled', 'Command execution was canceled.');
-		} else {
-			window.showWarningMessage('No active command to cancel.');
-		}
+		return redactText(text, sensitiveValues);
 	}
 
 	public setBuildResult(result: boolean) {
