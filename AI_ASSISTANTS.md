@@ -8,6 +8,17 @@ existing compile output panel, status bar, and cancel control.
 This preview is disabled until you run **Arduino Maker Workshop: Connect AI
 Assistant (This Session)**. It does not install or configure any AI client.
 
+Choose your client, then copy its matching configuration from the Connect document:
+
+| Client | Primary setup | Destination |
+| --- | --- | --- |
+| Codex desktop, IDE, or CLI | TOML | `~/.codex/config.toml`; Windows: `%USERPROFILE%\.codex\config.toml` |
+| Claude Code | JSON with a `mcpServers` object | `~/.claude.json`; Windows: `%USERPROFILE%\.claude.json` |
+| Copilot / VS Code | Automatic extension provider, where supported | Select Arduino Maker Workshop in the MCP tools picker. For manual JSON with a `servers` object, run **MCP: Open User Configuration** to open the profile's `mcp.json`. |
+
+These clients use different configuration formats. Use the matching block below;
+there is no universal JSON import step.
+
 Each user runs Connect on their own computer. The command generates paths from
 that user's VS Code storage; the extension package contains
 no developer-specific connection paths. Copy the setup from your own generated
@@ -95,6 +106,15 @@ IntelliSense is refreshed only when the compiled target still matches Home's tar
 
 ## Client setup
 
+The simplest manual setup is to copy the complete matching TOML or JSON example
+from your generated Connect document. Copy its contents without the Markdown
+code fences. If the destination file already contains settings, preserve them
+and merge only the `arduino_maker_workshop` server entry. Replace an existing entry
+with that same name; do not add duplicate TOML tables, JSON keys, or root objects.
+Keep the generated quoting and escaping when editing a configuration file,
+including doubled Windows backslashes. The optional form fields described below
+use raw values instead.
+
 Use the paths in your own Connect document wherever a placeholder appears below.
 Do not copy another user's paths. If `node` is unavailable or a broken shim, use
 the absolute path of a working Node.js 20+ executable. This preview has been tested
@@ -112,8 +132,10 @@ uses the reusable arguments below.
 
 The extension keeps its VS Code `^1.93.0` baseline. Provider registration is guarded
 by runtime feature detection. Older VS Code versions retain the existing extension
-features but may not support MCP. Where manual MCP configuration is supported,
-merge the generated entry into your user/profile MCP configuration:
+features but may not support MCP. For manual setup, run **MCP: Open User
+Configuration** from VS Code's Command Palette. In the profile's `mcp.json`, merge
+the generated server entry into the existing `servers` object, replacing an entry
+with the same name if present. If the file is empty, paste the full JSON block:
 
 ```json
 {
@@ -127,15 +149,41 @@ merge the generated entry into your user/profile MCP configuration:
 }
 ```
 
-[Official VS Code MCP integration](https://code.visualstudio.com/api/extension-guides/ai/mcp).
+Save the file, then use **MCP: List Servers** to start or restart Arduino Maker
+Workshop. Ask the assistant to call `list_connected_sketches` first, then inspect
+the sketch you choose. See [official VS Code MCP configuration](https://code.visualstudio.com/docs/agents/reference/mcp-configuration).
 
 ### Codex desktop, IDE, and CLI
 
 The desktop app, IDE extension, and CLI share MCP configuration on the same Codex
 host. You do not need to add the same server separately in each one.
 
-For the desktop app, first run Connect in VS Code and keep its generated document
-open. Then:
+Open `~/.codex/config.toml` (`%USERPROFILE%\.codex\config.toml` on Windows) and
+paste the generated TOML block. If `[mcp_servers.arduino_maker_workshop]` already
+exists, replace that table instead of adding another one. Preserve unrelated
+settings and server tables. The example below contains placeholders; the Connect
+document supplies your actual paths:
+
+```toml
+[mcp_servers.arduino_maker_workshop]
+command = "node"
+args = ["<stable-launcher.cjs>", "--session-dir", "<private-ai-bridge-directory>"]
+tool_timeout_sec = 900
+```
+
+Save the file, then restart the MCP server or your Codex client. Ask it to call
+`list_connected_sketches` first, then inspect the sketch you choose. Verify the
+path and board or profile before requesting a compile.
+
+`tool_timeout_sec = 900` is a client setting, not a command argument. It allows
+time for VS Code approval and compilation; the default is 60 seconds. Keep
+client-side tool approval enabled. The extension also asks for its own compile
+approval. See [official OpenAI MCP setup](https://learn.chatgpt.com/docs/extend/mcp).
+
+#### Optional alternative: Codex desktop form
+
+Use this form instead of editing TOML if you prefer entering individual fields.
+First run Connect in VS Code and keep its generated document open. Then:
 
 1. Open **Settings > MCP servers** and choose **Add server**, or edit an existing
    Arduino Maker Workshop entry.
@@ -159,39 +207,17 @@ open. Then:
    I choose." Select the intended path and verify its board or profile before
    requesting a compile.
 
-For longer compilations, set `tool_timeout_sec = 900` in this server's
-`config.toml` section, as shown below. This is a separate client setting, not a
-fourth command argument. The default is 60 seconds, which can expire while waiting
-for VS Code approval or compiling. Restart the MCP server after changing its
-configuration. See [official OpenAI MCP setup](https://learn.chatgpt.com/docs/extend/mcp).
-
-You can also configure the desktop app, IDE, or CLI by adding the generated entry
-to `~/.codex/config.toml` (or an intentionally trusted project configuration).
-Use the generated TOML snippet as-is, including its quoting and escaping:
-
-```toml
-[mcp_servers.arduino_maker_workshop]
-command = "node"
-args = ["<stable-launcher.cjs>", "--session-dir", "<private-ai-bridge-directory>"]
-tool_timeout_sec = 900
-```
-
-Keep client-side tool approval enabled. The extension still requires its own compile
-approval. Longer builds or time spent awaiting that approval can exceed a client's
-tool timeout; cancellation propagates back to the owning subprocess.
-
-[Official Codex MCP configuration](https://learn.chatgpt.com/docs/extend/mcp).
+For compilation, also set `tool_timeout_sec = 900` in this server's `config.toml`
+table and restart it. Do not enter that setting as a fourth argument.
 
 ### Claude Code
 
-Use Claude Code's own MCP setup. You can add a local stdio entry using its CLI:
-
-```text
-claude mcp add --transport stdio arduino_maker_workshop -- node <stable-launcher.cjs> --session-dir <private-ai-bridge-directory>
-```
-
-Quote actual paths containing spaces for your shell, or use the generated JSON
-with Claude Code's MCP configuration tools:
+Close Claude Code, then open its user configuration, `~/.claude.json`
+(`%USERPROFILE%\.claude.json` on Windows). This file applies across projects.
+Merge the generated `arduino_maker_workshop` entry into its top-level `mcpServers`
+object, replacing an existing entry with the same name. Preserve all other
+settings and server entries. If the file is empty, paste the full generated JSON
+block. This is Claude Code's configuration, not Claude Desktop's settings file:
 
 ```json
 {
@@ -205,11 +231,19 @@ with Claude Code's MCP configuration tools:
 }
 ```
 
-[Official Claude Code MCP configuration](https://code.claude.com/docs/en/mcp).
+Save the file and restart Claude Code. Use `/mcp` to check the server, then ask it
+to call `list_connected_sketches` and inspect the sketch you choose. Claude Code
+also supports the alternative `claude mcp add-json --scope user` command; it takes
+one server's JSON object without the `mcpServers` wrapper and requires shell
+quoting. See [official Claude Code user configuration](https://code.claude.com/docs/en/mcp#user-scope)
+and [JSON configuration](https://code.claude.com/docs/en/mcp#add-mcp-servers-from-json-configuration).
 
-For an existing entry using `--sketch` or `--session`, replace all its arguments
-with the three values from the new Connect document, then save and restart the
-client's MCP server once. After that migration, the same entry works for any
+### Updating an existing AI connection
+
+For an existing entry using `--sketch` or `--session`, update that entry with the
+matching TOML or JSON block from the new Connect document. Save and restart the
+client's MCP server once. The new arguments contain only the launcher path,
+`--session-dir`, and the bridge storage folder. After that migration, the same entry works for any
 sketch you connect in this storage profile. Regenerate setup only when moving to
 another computer or VS Code storage profile, such as a separate development profile.
 

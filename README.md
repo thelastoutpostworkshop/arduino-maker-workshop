@@ -53,8 +53,9 @@ extension contains no developer-specific connection paths. Configure one server
 per computer and VS Code storage profile, then reuse it for any sketch you connect.
 After a reload or when opening another sketch, run Connect and keep the same client
 arguments. Ask the assistant to list connected sketches and inspect the one you choose.
-See [AI assistant setup and limitations](AI_ASSISTANTS.md) for Copilot, Codex, and
-Claude Code. The extension never edits client configuration automatically.
+See [AI assistant setup and limitations](AI_ASSISTANTS.md) for copy/paste Codex
+TOML, Claude Code JSON, and Copilot's automatic provider or manual JSON setup.
+The extension never edits client configuration automatically.
 
 ### Profiles Manager (Reproducible build profiles)
 
