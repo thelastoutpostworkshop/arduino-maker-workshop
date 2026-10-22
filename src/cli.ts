@@ -12,6 +12,8 @@ import { randomUUID } from 'node:crypto';
 import { runProcess } from './ai/processRunner';
 import { AiBridgeError, type AiDiscoveryQuery, type AiOperationResult, type OperationProgress, type ProjectInspection } from './ai/contracts';
 import { collectSensitiveValues, redactText } from './ai/redaction';
+import { CompileOutputCollector, unavailableCompileOutput } from './ai/compileOutput';
+import { snapshotCompileArtifacts, collectCompileArtifacts, unavailableCompileArtifacts, type CompileArtifactSnapshot } from './ai/compileArtifacts';
 
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
 
@@ -500,6 +502,7 @@ export class ArduinoCLI {
 		const startedAt = Date.now();
 		const empty = (status: AiOperationResult['status'], code: string, message: string): AiOperationResult => ({
 			schemaVersion: 1, operationId, status, target, exitCode: null, stdout: '', stderr: '', truncated: false,
+			...unavailableCompileOutput(message), artifacts: unavailableCompileArtifacts(message),
 			durationMs: Date.now() - startedAt, error: { code, message }
 		});
 		if (!workspace.isTrusted) { return empty('invalid', 'WORKSPACE_UNTRUSTED', 'Trust this workspace before compiling.'); }
@@ -525,6 +528,9 @@ export class ArduinoCLI {
 		signal.addEventListener('abort', abort, { once: true });
 		const sensitiveValues = collectSensitiveValues(target.compileArgs);
 		const title = redactText(`Compiling ${target.sketchName}${target.resolvedProfile ? ` (profile ${target.resolvedProfile})` : ` (${target.fqbn})`} for assistant`, sensitiveValues);
+		const output = new CompileOutputCollector(target.sketchPath);
+		let artifactSnapshot: CompileArtifactSnapshot | undefined;
+		let processResult: Awaited<ReturnType<typeof runProcess>> | undefined;
 		try {
 			this.writeAssistantBuildResult(target, false);
 			await compileOutputView?.prepare(title);
@@ -539,6 +545,8 @@ export class ArduinoCLI {
 					try {
 						if (signal.aborted || token.isCancellationRequested) { controller.abort(); }
 						// Recheck trust at the execution boundary after the asynchronous UI setup.
+						if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Workspace trust changed before compilation.'); }
+						artifactSnapshot = await snapshotCompileArtifacts(target);
 						if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Workspace trust changed before compilation.'); }
 						let displayedBytes = 0;
 						let displayTruncated = false;
@@ -560,12 +568,17 @@ export class ArduinoCLI {
 						};
 						return await runProcess(this.arduinoCLIPath, target.compileArgs, {
 							cwd: target.sketchPath, signal: controller.signal, sensitiveValues, maxOutputBytes: 64 * 1024,
-							onStdout: append, onStderr: append
+							onStdout: text => { output.stdout(text); append(text); },
+							onStderr: text => { output.stderr(text); append(text); }
 						});
 					} finally { cancellation.dispose(); }
 				}
 			);
+			processResult = result;
 			const status = result.canceled ? 'canceled' : result.error || result.exitCode !== 0 ? 'failed' : 'success';
+			const artifacts = status === 'success' && artifactSnapshot
+				? await collectCompileArtifacts(target, artifactSnapshot)
+				: unavailableCompileArtifacts('Artifacts are only reported after successful compilation.');
 			this.writeAssistantBuildResult(target, status === 'success');
 			const message = status === 'success' ? 'Assistant compilation completed successfully.' : status === 'canceled' ? 'Assistant compilation canceled.' : 'Assistant compilation failed.';
 			compileOutputView?.setStatus(status === 'success' ? 'success' : status === 'canceled' ? 'canceled' : 'failure', message);
@@ -579,13 +592,17 @@ export class ArduinoCLI {
 			return {
 				schemaVersion: 1, operationId, status, target, exitCode: result.exitCode, signal: result.signal,
 				stdout: result.stdout, stderr: result.stderr, truncated: result.truncated, durationMs: Date.now() - startedAt,
+				...output.finish({ status, truncated: result.truncated }), artifacts,
 				...(status === 'canceled' ? { error: { code: 'CANCELED', message } } : result.error ? { error: result.error }
 					: status === 'failed' ? { error: { code: 'CLI_FAILED', message: `Arduino CLI exited with code ${result.exitCode}. See stderr and Arduino CLI Output.` } } : {})
 			};
 		} catch (error) {
 			const message = redactText(error instanceof Error ? error.message : String(error), sensitiveValues);
 			compileOutputView?.setStatus(controller.signal.aborted ? 'canceled' : 'failure', message);
-			return empty(controller.signal.aborted ? 'canceled' : 'failed', controller.signal.aborted ? 'CANCELED' : error instanceof AiBridgeError ? error.code : 'COMPILE_FAILED', message);
+			const failure = empty(controller.signal.aborted ? 'canceled' : 'failed', controller.signal.aborted ? 'CANCELED' : error instanceof AiBridgeError ? error.code : 'COMPILE_FAILED', message);
+			return processResult ? { ...failure, exitCode: processResult.exitCode, signal: processResult.signal,
+				stdout: processResult.stdout, stderr: processResult.stderr, truncated: processResult.truncated,
+				...output.finish({ status: failure.status, truncated: processResult.truncated }) } : failure;
 		} finally {
 			signal.removeEventListener('abort', abort);
 			compileStatusBarItem.text = compileStatusBarNotExecuting;

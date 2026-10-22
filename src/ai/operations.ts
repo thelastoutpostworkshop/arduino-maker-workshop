@@ -3,6 +3,8 @@ import { collectSensitiveValues, redactForAssistant } from './redaction';
 import { buildDependencyReport } from './dependencies';
 import { buildBoardDetails, buildLibrarySearch, buildExamples } from './discovery';
 import { AI_TOOL_NAMES, validateToolCall } from './toolInputs';
+import { unavailableCompileArtifacts } from './compileArtifacts';
+import { unavailableCompileOutput } from './compileOutput';
 
 export interface AiOperationDependencies {
     isTrusted(): boolean;
@@ -133,8 +135,12 @@ export function createAiOperationHandler(dependencies: AiOperationDependencies):
                     }
                     result.status = 'failed';
                     result.error = { code: 'STALE_INPUT', message: 'Inputs changed during compilation. Compile again before using the artifacts.' };
+                    result.memory = unavailableCompileOutput(result.error.message).memory;
                     progress({ message: result.error.message });
                 }
+            }
+            if (result.status !== 'success') {
+                result.artifacts = unavailableCompileArtifacts(result.error?.message ?? 'Artifacts are only reported after successful compilation.');
             }
             return redactForAssistant(result, sensitiveValues);
         } finally {

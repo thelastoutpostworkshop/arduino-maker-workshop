@@ -16,6 +16,9 @@ function fixture(overrides: Partial<AiOperationDependencies> = {}) {
     const result = (): AiOperationResult => ({
         schemaVersion: 1, operationId: 'operation-1', status: 'success', target, exitCode: 0,
         stdout: 'value private password', stderr: '', truncated: false, durationMs: 1,
+        diagnostics: { status: 'available', items: [{ severity: 'warning', message: 'value private password', file: '/sketch/sketch.ino', line: 4 }], notes: [] },
+        memory: { status: 'available', flash: { usedBytes: 100, maxBytes: 1000, percent: 10 }, ram: { usedBytes: 20, maxBytes: 200, percent: 10 }, notes: [] },
+        artifacts: { status: 'available', files: [{ path: '/sketch/build/sketch.ino.elf', relativePath: 'sketch.ino.elf', kind: 'elf', sizeBytes: 42 }], notes: [] },
     });
     const dependencies: AiOperationDependencies = {
         isTrusted: () => true, activeSketchPath: () => '/sketch', isReady: () => true,
@@ -310,6 +313,9 @@ test('normal and clean compilation start automatically and return redacted compl
         const result = await compiling as AiOperationResult;
         assert.equal(result.status, 'success');
         assert.equal(result.exitCode, 0);
+        assert.equal(result.memory.status, 'available');
+        assert.equal(result.artifacts.files.length, 1);
+        assert.equal(result.diagnostics.items[0].message, 'value <redacted>');
         assert.ok(!JSON.stringify(result).includes('private password'));
     }
 });
@@ -372,6 +378,11 @@ test('source changes and invalid metadata during compilation invalidate successf
     f.dependencies.compile = async (...args) => { const result = await compile(...args); revision++; return result; };
     const result = await call(f) as AiOperationResult;
     assert.equal(result.error?.code, 'STALE_INPUT');
+    assert.equal(result.memory.status, 'unavailable');
+    assert.equal(result.memory.flash, undefined);
+    assert.equal(result.artifacts.status, 'unavailable');
+    assert.deepEqual(result.artifacts.files, []);
+    assert.equal(result.diagnostics.items.length, 1, 'diagnostics still describe the attempted build');
     assert.equal(f.invalidated(), 1);
     const missing = fixture();
     let compiled = false;

@@ -28,7 +28,7 @@ const descriptions: Record<AiToolName, string> = {
     get_board_details: 'Show the requested sketch/profile board, valid option values, defaults and current choices from its standard installed platform. Does not change board settings or install platforms. CLI initialization may download indexes and built-in tools.',
     search_libraries: 'Search the Arduino library index and return bounded results with available versions. May refresh the library index; does not install libraries or change profile declarations.',
     list_examples: 'List example locations from the selected board platform and/or standard installed libraries. Supports an exact library-name filter. Does not read, open, copy or run examples, install dependencies, or inspect isolated profile caches. CLI initialization may download indexes and built-in tools.',
-    compile_sketch: 'Compile the connected Arduino sketch automatically while AI integration is enabled in its trusted VS Code window. Runs board-package build tools and may download profile dependencies. Does not upload firmware or open a serial monitor.'
+    compile_sketch: 'Compile the connected Arduino sketch automatically while AI integration is enabled in its trusted VS Code window. Returns bounded logs, errors/warnings/notes with source locations when recognized, flash/RAM usage when available, and new or changed artifact paths only for a successful current build. Reports unavailable or partial details. Runs board-package build tools and may download profile dependencies. Does not upload firmware or open a serial monitor.'
 };
 
 const titles: Record<AiToolName, string> = {

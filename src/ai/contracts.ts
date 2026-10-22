@@ -1,3 +1,6 @@
+import type { CompileArtifactReport } from './compileArtifacts';
+import type { CompileDiagnostics, CompileMemory } from './compileOutput';
+
 /** Shared, transport-independent contracts for the local assistant bridge. */
 export interface AiIssue {
     code: string;
@@ -93,6 +96,9 @@ export interface AiOperationResult {
     stderr: string;
     truncated: boolean;
     durationMs: number;
+    diagnostics: CompileDiagnostics;
+    memory: CompileMemory;
+    artifacts: CompileArtifactReport;
     error?: AiIssue;
 }
 

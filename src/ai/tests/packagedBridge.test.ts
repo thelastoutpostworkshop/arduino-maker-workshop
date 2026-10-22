@@ -11,6 +11,8 @@ import { inspectProject } from '../projectInspection';
 import { runProcess } from '../processRunner';
 import { collectSensitiveValues } from '../redaction';
 import type { AiDiscoveryQuery } from '../contracts';
+import { CompileOutputCollector } from '../compileOutput';
+import { snapshotCompileArtifacts, collectCompileArtifacts, unavailableCompileArtifacts } from '../compileArtifacts';
 
 async function fixture() {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'amw-package-'));
@@ -57,19 +59,33 @@ async function fixture() {
         compile: async (target, signal, progress) => {
             compiles++;
             progress({ message: 'Simulated extension compiler starting.' });
-            const code = mode === 'success' ? 'console.log("compiled");' : mode === 'failure'
-                ? 'console.error("fixture compile failure"); process.exitCode=2;' : 'console.log("ready"); setInterval(()=>{},1000);';
-            const running = runProcess(process.execPath, ['-e', code], {
+            await fs.mkdir(target.buildPath, { recursive: true });
+            const snapshot = await snapshotCompileArtifacts(target);
+            const output = new CompileOutputCollector(target.sketchPath);
+            const code = mode === 'success' ? `
+                require('node:fs').writeFileSync(process.argv[1], 'firmware-${compiles}');
+                console.log('compiled');
+                console.log('Sketch uses 1000 bytes (10%) of program storage space. Maximum is 10000 bytes.');
+                console.log('Global variables use 100 bytes (5%) of dynamic memory, leaving 1900 bytes for local variables. Maximum is 2000 bytes.');
+                console.error('Blink.ino:3:2: warning: fixture warning [-Wunused-variable]');
+            ` : mode === 'failure'
+                ? 'console.error("Blink.ino:5: error: fixture compile failure"); process.exitCode=2;' : 'console.log("ready"); setInterval(()=>{},1000);';
+            const running = runProcess(process.execPath, ['-e', code, path.join(target.buildPath, 'Blink.ino.bin')], {
                 signal, maxOutputBytes: 64 * 1024, sensitiveValues: collectSensitiveValues(target.compileArgs),
-                onStdout: value => { if (value.includes('ready')) { started(); } },
+                onStdout: value => { output.stdout(value); if (value.includes('ready')) { started(); } },
+                onStderr: value => output.stderr(value),
             });
             activeCompile = running;
             const result = await running;
+            const status = result.canceled ? 'canceled' : result.exitCode === 0 ? 'success' : 'failed';
             return {
                 schemaVersion: 1, operationId: 'simulated-operation', target,
-                status: result.canceled ? 'canceled' : result.exitCode === 0 ? 'success' : 'failed',
+                status,
                 exitCode: result.exitCode, signal: result.signal, stdout: result.stdout, stderr: result.stderr,
                 durationMs: result.durationMs, truncated: result.truncated,
+                ...output.finish({ status, truncated: result.truncated }),
+                artifacts: status === 'success' ? await collectCompileArtifacts(target, snapshot)
+                    : unavailableCompileArtifacts('Compilation did not succeed.'),
             };
         },
     });
@@ -133,12 +149,22 @@ test('standalone packaged bridge reaches extension operations and reports compil
         const compile = await f.request(4, 'tools/call', { name: 'compile_sketch', arguments: { sketchPath: f.sketchPath }, _meta: { progressToken: 'compile-progress' } });
         assert.equal(compile.result.structuredContent.status, 'success');
         assert.equal(compile.result.structuredContent.exitCode, 0);
+        assert.equal(compile.result.structuredContent.diagnostics.items[0].line, 3);
+        assert.equal(compile.result.structuredContent.diagnostics.items[0].code, '-Wunused-variable');
+        assert.equal(compile.result.structuredContent.memory.flash.usedBytes, 1000);
+        assert.equal(compile.result.structuredContent.memory.ram.usedBytes, 100);
+        assert.equal(compile.result.structuredContent.artifacts.files[0].path, path.join(compile.result.structuredContent.target.buildPath, 'Blink.ino.bin'));
+        assert.deepEqual(JSON.parse(compile.result.content[0].text), compile.result.structuredContent);
         assert.ok(f.notifications.some(frame => frame.method === 'notifications/progress'));
         f.mode('failure');
         const failure = await f.request(5, 'tools/call', { name: 'compile_sketch', arguments: { sketchPath: f.sketchPath } });
         assert.equal(failure.result.isError, true);
         assert.equal(failure.result.structuredContent.exitCode, 2);
         assert.match(failure.result.structuredContent.stderr, /fixture compile failure/);
+        assert.equal(failure.result.structuredContent.diagnostics.items[0].line, 5);
+        assert.equal(failure.result.structuredContent.diagnostics.items[0].severity, 'error');
+        assert.equal(failure.result.structuredContent.memory.status, 'unavailable');
+        assert.deepEqual(failure.result.structuredContent.artifacts.files, []);
         f.mode('success');
         const clean = await f.request(6, 'tools/call', { name: 'compile_sketch', arguments: { sketchPath: f.sketchPath, clean: true } });
         assert.equal(clean.result.structuredContent.status, 'success');

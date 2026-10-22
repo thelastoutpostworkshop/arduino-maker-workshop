@@ -7,7 +7,7 @@ Complete each step with tests, user documentation, and a separate commit.
 
 - [x] 1. Project context and dependencies (completed)
 - [x] 2. Board and library discovery (completed)
-- [ ] 3. Better compile results
+- [ ] 3. Better compile results (in progress)
 - [ ] 4. ESP32 crash decoding
 - [ ] 5. Library installation
 - [ ] 6. Firmware upload
@@ -52,12 +52,13 @@ Suggested commit: `Add MCP board and library discovery`
 
 ## 3. Better compile results
 
-- [ ] Extend `compile_sketch` results with structured errors and warnings, including source locations when available.
-- [ ] Include flash/RAM usage and build artifact paths when available.
-- [ ] Preserve existing logs and report when structured details are unavailable.
-- [ ] Test successful and failed builds, different output formats, truncation, and stale artifacts.
-- [ ] Update the compilation prompts and expected results, then verify them in an AI client.
-- [ ] Update `AI_ASSISTANTS.md` and commit.
+- [x] Extend `compile_sketch` results with structured errors and warnings, including source locations when available.
+- [x] Include flash/RAM usage and build artifact paths when available.
+- [x] Preserve existing logs and report when structured details are unavailable.
+- [x] Test successful and failed builds, different output formats, truncation, and stale artifacts (238 AI bridge tests passing).
+- [x] Update the compilation prompts and expected results in `AI_ASSISTANTS.md`, including unavailable details and artifact freshness limits.
+- [ ] Verify the compilation prompts in an AI client, including memory usage, source locations on a failed build, and clean-build artifact paths.
+- [ ] Commit this step.
 
 Suggested commit: `Return richer MCP compile results`
 

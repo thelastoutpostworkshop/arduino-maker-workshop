@@ -6,6 +6,8 @@ import * as path from 'node:path';
 import { AiBridgeError, AiOperationResult } from '../contracts';
 import { createAiOperationHandler } from '../operations';
 import { inspectProject } from '../projectInspection';
+import { unavailableCompileOutput } from '../compileOutput';
+import { unavailableCompileArtifacts } from '../compileArtifacts';
 
 function fixture(t: { after: (fn: () => void) => void }, name = 'Blink') {
     const temporary = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'amw-inspection-')));
@@ -288,6 +290,7 @@ test('header edits during assistant preflight or compilation reject stale builds
             return {
                 schemaVersion: 1, operationId: 'simulated-operation', target, status: 'success',
                 exitCode: 0, stdout: '', stderr: '', durationMs: 1, truncated: false,
+                ...unavailableCompileOutput('Simulated compile.'), artifacts: unavailableCompileArtifacts('Simulated compile.'),
             };
         },
         discover: async () => ({}), query: async () => ({}), invalidateBuild: () => { invalidations++; },

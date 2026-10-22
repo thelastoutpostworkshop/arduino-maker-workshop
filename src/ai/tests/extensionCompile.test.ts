@@ -8,6 +8,8 @@ import { AiBridgeError, type AiDiscoveryQuery, type AiOperationResult, type Oper
 import { inspectProject } from '../projectInspection';
 import { runProcess, type ProcessOptions, type ProcessResult } from '../processRunner';
 import * as redaction from '../redaction';
+import * as compileOutput from '../compileOutput';
+import * as compileArtifacts from '../compileArtifacts';
 
 interface TestedCli {
     arduinoCLIPath: string;
@@ -108,6 +110,7 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
         './cliArgs': { CLIArguments }, './config': { ArduinoConfiguration: class {} },
         './cliCache': { CliCache: class {} }, './debugConfiguration': {},
         './ai/contracts': { AiBridgeError }, './ai/redaction': redaction,
+        './ai/compileOutput': compileOutput, './ai/compileArtifacts': compileArtifacts,
         './ai/processRunner': {
             runProcess: (executable: string, args: string[], options: ProcessOptions) => {
                 calls.push({ executable, args: [...args], options });
@@ -151,6 +154,9 @@ test('actual extension compile returns structured success, visible progress and 
     assert.equal(result.status, 'success', JSON.stringify(result));
     assert.equal(result.exitCode, 0);
     assert.equal(result.stdout, 'compiled\n');
+    assert.equal(result.diagnostics.status, 'unavailable');
+    assert.equal(result.memory.status, 'unavailable');
+    assert.equal(result.artifacts.status, 'unavailable');
     assert.match(result.operationId, /^[0-9a-f-]{36}$/);
     assert.equal(f.calls[0].executable, process.execPath);
     assert.deepEqual(f.calls[0].args, result.target.compileArgs);
@@ -187,6 +193,101 @@ test('actual extension compile follows the verbose preference for every request 
     }
 });
 
+test('actual extension reports warning locations, memory and only newly produced profile artifacts', async (t) => {
+    const compiler = `
+        const fs = require('node:fs'), path = require('node:path');
+        const output = process.argv[process.argv.indexOf('--build-path') + 1];
+        const firmware = path.join(output, 'Blink.ino.bin');
+        if (!fs.existsSync(firmware)) fs.writeFileSync(firmware, 'firmware');
+        console.error('Blink.ino:8:3: warning: unused variable [-Wunused-variable]');
+        console.log('Sketch uses 1000 bytes (10%) of program storage space. Maximum is 10000 bytes.');
+        console.log('Global variables use 100 bytes (5%) of dynamic memory, leaving 1900 bytes for local variables. Maximum is 2000 bytes.');
+    `;
+    const f = host(t, compiler);
+    fs.writeFileSync(path.join(f.sketch, 'sketch.yaml'), 'profiles:\n  nano:\n    fqbn: arduino:avr:nano\n');
+    const target = inspectProject({ sketchPath: f.sketch, profile: 'nano' }, f.sketch);
+    fs.mkdirSync(target.buildPath, { recursive: true });
+    fs.writeFileSync(path.join(target.buildPath, 'Blink.ino.elf'), 'old cached elf');
+    const result = await f.compile(undefined, target);
+    assert.equal(result.status, 'success');
+    assert.equal(result.diagnostics.status, 'available');
+    assert.deepEqual(result.diagnostics.items, [{ severity: 'warning', message: 'unused variable',
+        file: path.join(f.sketch, 'Blink.ino'), line: 8, column: 3, code: '-Wunused-variable' }]);
+    assert.equal(result.memory.status, 'available');
+    assert.deepEqual(result.memory.flash, { usedBytes: 1000, percent: 10, maxBytes: 10000 });
+    assert.deepEqual(result.memory.ram, { usedBytes: 100, percent: 5, maxBytes: 2000 });
+    assert.deepEqual(result.artifacts.files, [{ path: path.join(target.buildPath, 'Blink.ino.bin'),
+        relativePath: 'Blink.ino.bin', kind: 'bin', sizeBytes: 8 }]);
+    assert.match(result.artifacts.notes.join(' '), /cached/);
+    assert.match(result.stdout, /Sketch uses/);
+    assert.match(result.stderr, /unused variable/);
+    assert.match(f.displayed.join(''), /Sketch uses/);
+    assert.equal((await f.compile(undefined, target)).artifacts.status, 'unavailable', 'unchanged outputs must not be reported as freshly built');
+    assert.equal(f.calls.length, 2, 'structured reports must not launch extra compiler or size commands');
+    assert.ok(f.calls.every(call => !call.args.includes('--json')), 'compiler output must remain live');
+});
+
+test('actual extension retains early redacted diagnostics after verbose log truncation', async (t) => {
+    const f = host(t, `
+        console.log('Blink.ino:2:9: warning: password=dummy-value');
+        process.stdout.write(('verbose line '.repeat(20) + '\\n').repeat(1200));
+        console.log("Le croquis utilise 291184 octets (9%) de l'espace de stockage de programmes. Le maximum est de 3145728 octets.");
+        console.log('Les variables globales utilisent 29824 octets (9%) de m\\u00e9moire dynamique, ce qui laisse 297856 octets pour les variables locales. Le maximum est de 327680 octets.');
+    `);
+    const result = await f.compile();
+    assert.equal(result.status, 'success');
+    assert.equal(result.truncated, true);
+    assert.doesNotMatch(result.stdout, /Blink.ino:2/);
+    assert.equal(result.diagnostics.status, 'partial');
+    assert.equal(result.diagnostics.items[0].line, 2);
+    assert.match(result.diagnostics.items[0].message, /password=<redacted>/);
+    assert.doesNotMatch(JSON.stringify(result), /dummy-value/);
+    assert.equal(result.memory.flash?.usedBytes, 291184);
+    assert.equal(result.memory.ram?.usedBytes, 29824);
+    assert.equal(result.memory.status, 'partial');
+});
+
+test('actual extension reports fresh artifacts when a clean compile recreates its output directory', async (t) => {
+    const f = host(t, `
+        const fs = require('node:fs'), path = require('node:path');
+        const output = process.argv[process.argv.indexOf('--build-path') + 1];
+        if (!path.resolve(output).startsWith(path.resolve(process.cwd()) + path.sep)) throw new Error('Fixture output escaped sketch');
+        fs.rmSync(output, { recursive: true, force: true });
+        fs.mkdirSync(output, { recursive: true });
+        fs.writeFileSync(path.join(output, 'Blink.ino.elf'), 'new clean build');
+        console.log('compiled');
+    `);
+    const target = inspectProject({ sketchPath: f.sketch, clean: true }, f.sketch);
+    fs.mkdirSync(target.buildPath, { recursive: true });
+    fs.writeFileSync(path.join(target.buildPath, 'Blink.ino.elf'), 'old output');
+    const result = await f.compile(undefined, target);
+    assert.equal(result.status, 'success');
+    assert.equal(result.artifacts.status, 'available');
+    assert.equal(result.artifacts.files[0].sizeBytes, 15);
+    assert.equal(result.artifacts.files[0].path, path.join(target.buildPath, 'Blink.ino.elf'));
+    assert.equal(f.marker(target).result, true);
+});
+
+test('actual extension withholds artifact files from failed and canceled processes', async (t) => {
+    for (const mode of ['failed', 'canceled']) {
+        const f = host(t, `
+            const path = require('node:path');
+            const output = process.argv[process.argv.indexOf('--build-path') + 1];
+            require('node:fs').writeFileSync(path.join(output, 'Blink.ino.bin'), 'unfinished');
+            console.log('compiler ready');
+            ${mode === 'failed' ? 'process.exitCode = 1;' : 'setInterval(()=>{},1000);'}
+        `);
+        const controller = new AbortController();
+        t.after(() => controller.abort());
+        if (mode === 'canceled') { f.onViewText(text => { if (text.includes('compiler ready')) { controller.abort(); } }); }
+        const result = await f.compile(controller.signal);
+        assert.equal(result.status, mode);
+        assert.equal(result.artifacts.status, 'unavailable');
+        assert.deepEqual(result.artifacts.files, []);
+        assert.equal(f.marker().result, false);
+    }
+});
+
 test('actual extension compile preserves compiler errors and marks failure', async (t) => {
     const f = host(t, 'process.stdout.write("building\\n"); process.stderr.write("Blink.ino:4: error: simulated failure\\n"); process.exitCode=3;');
     const result = await f.compile();
@@ -194,6 +295,10 @@ test('actual extension compile preserves compiler errors and marks failure', asy
     assert.equal(result.exitCode, 3);
     assert.equal(result.error?.code, 'CLI_FAILED');
     assert.match(result.stderr, /simulated failure/);
+    assert.equal(result.diagnostics.items[0].severity, 'error');
+    assert.equal(result.diagnostics.items[0].line, 4);
+    assert.equal(result.diagnostics.items[0].file, path.join(f.sketch, 'Blink.ino'));
+    assert.deepEqual(result.artifacts.files, []);
     assert.equal(f.marker().result, false);
     assert.equal(f.statuses.at(-1)?.state, 'failure');
     assert.equal(f.cli.compileOrUploadRunning, false);
@@ -227,11 +332,15 @@ test('actual extension compile coordinates busy state and request cancellation',
     const busy = await f.compile();
     assert.equal(busy.status, 'busy');
     assert.equal(busy.error?.code, 'BUSY');
+    assert.equal(busy.diagnostics.status, 'unavailable');
+    assert.equal(busy.memory.status, 'unavailable');
+    assert.equal(busy.artifacts.status, 'unavailable');
     assert.equal(f.calls.length, 1);
     controller.abort();
     const canceled = await pending;
     assert.equal(canceled.status, 'canceled');
     assert.equal(canceled.error?.code, 'CANCELED');
+    assert.deepEqual(canceled.artifacts.files, []);
     assert.equal(f.marker().result, false);
     assert.equal(f.statuses.at(-1)?.state, 'canceled');
     assert.equal(f.cli.compileOrUploadRunning, false);
