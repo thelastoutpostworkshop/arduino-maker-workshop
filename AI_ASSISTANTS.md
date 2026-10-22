@@ -71,23 +71,8 @@ request it again; interrupted operations are never retried automatically.
 
 ## Compilation
 
-AI operations run without extension approval dialogs while AI integration is
-enabled in trusted local workspaces. This includes normal and clean compilation.
-Your AI client may still apply its own tool permissions.
-
 AI compilation follows the **Verbose Compile** setting
-(`arduinoMakerWorkshop.verboseCompile`), just like manual compilation. Changes
-apply to the next compile. Long output may be shortened in the assistant's response.
-
-Compilation writes build files and may download dependencies; clean builds may
-clear the output directory. Save your sketch files before asking for compilation.
-If the sketch or selected target changes during a
-build, request another compile before using its output.
-
-To use a particular profile, replace `[profile name]` with one of your profile names
-in this example: "Compile my current sketch using the [profile name] profile."
-This applies to that request and does not change the profile selected in Home.
-You can cancel compilation in VS Code.
+(`arduinoMakerWorkshop.verboseCompile`) and can be canceled in VS Code.
 
 ## What you can ask your assistant to do
 
@@ -121,7 +106,7 @@ Arduino CLI Output panel in VS Code.
 | Inspect a project | Inspect my current sketch, list its profiles, and check the dependencies for its selected profile. | Shows the board, profiles, and declared requirements compared with installed versions, without changing the selected profile. |
 | Find boards and ports | Show available boards and connected ports for my current sketch. | Lists boards and detected ports without changing your selections or opening a serial monitor. |
 | Compile | Compile my current sketch with its current board or profile and summarize the result. | Uses the current target and reports success or build errors consistent with Arduino CLI Output. |
-| Compile a profile | Compile my current sketch using the [profile name] profile. | Builds with the specified profile and reports the outcome; the profile selected in Home stays unchanged. |
+| Compile a profile | Compile my current sketch using the [profile name] profile. | Uses that profile only for this request and reports the outcome; the profile selected in Home stays unchanged. |
 | Clean compilation | Perform a clean compilation of my current sketch with its current board or profile. | Runs a clean build with the current target and reports the outcome in the response and Arduino CLI Output. |
 
 ### Profiles and dependencies
