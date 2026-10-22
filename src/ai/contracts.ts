@@ -77,6 +77,7 @@ export interface AiToolInput extends InspectionInput {
     limit?: number;
     source?: ExampleSource;
     library?: string;
+    version?: string;
     log?: string;
 }
 
@@ -112,7 +113,7 @@ export interface OperationProgress {
 }
 
 export type AiToolName = 'get_project_context' | 'list_boards' | 'list_ports' | 'list_dependencies' |
-    'get_board_details' | 'search_libraries' | 'list_examples' | 'compile_sketch' | 'decode_esp32_backtrace';
+    'get_board_details' | 'search_libraries' | 'list_examples' | 'compile_sketch' | 'decode_esp32_backtrace' | 'install_library';
 
 export type AiToolHandler = (
     name: AiToolName,

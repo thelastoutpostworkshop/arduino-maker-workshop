@@ -143,6 +143,16 @@ export async function activate(context: ExtensionContext) {
 		discover: (kind, signal) => arduinoCLI.discoverForAssistant(kind, signal),
 		query: (query, signal) => arduinoCLI.queryForAssistant(query, signal),
 		decode: (target, log, signal, progress) => arduinoCLI.decodeBacktraceForAssistant(target, log, signal, progress),
+		install: (target, library, version, signal, progress, assertCurrent) => arduinoCLI.installLibraryForAssistant(
+			target, library, version, signal, progress, assertCurrent, (inventory, outdated) => {
+				VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.CLI_LIBRARY_INSTALLED, errorMessage: '', payload: JSON.stringify(inventory ?? null) });
+				if (outdated !== undefined) {
+					VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.CLI_UPDATE_INDEX, errorMessage: '', payload: JSON.stringify(outdated) });
+				}
+				if (inventory === undefined) {
+					VueWebviewPanel.sendMessage({ command: ARDUINO_MESSAGES.CLI_BOARD_EXAMPLES, errorMessage: '', payload: 'null' });
+				}
+			}),
 		invalidateBuild: invalidateAssistantBuild,
 	});
 	const aiConnection = registerAiConnection(context, {

@@ -1,8 +1,8 @@
 # Use AI assistants with Arduino Maker Workshop (preview)
 
 Connect Codex, Claude Code, or Copilot to inspect your Arduino projects, discover
-boards, libraries, and examples, check dependencies, compile sketches, and decode
-ESP32 crash logs.
+boards, libraries, and examples, check dependencies, install indexed libraries,
+compile sketches, and decode ESP32 crash logs.
 Compile progress appears in VS Code's Arduino CLI Output panel and status bar,
 with the usual cancel control.
 
@@ -91,19 +91,23 @@ the appropriate tool; you do not need to enter tool arguments yourself.
 | `list_ports` | Lists connected ports without opening a serial monitor or changing your port selection. |
 | `get_board_details` | Shows the selected board or requested profile's board options, defaults, and current values. |
 | `search_libraries` | Searches the Arduino library index and shows available versions without installing libraries. |
+| `install_library` | Installs an exact indexed library version and its dependencies in the shared user libraries. Checks any selected profile's declaration first and reports the outcome. |
 | `list_examples` | Lists names and paths of board and installed-library examples, optionally filtered by library name. It does not open, copy, or run them. |
 | `compile_sketch` | Compiles the requested sketch and profile, returning errors and warnings with source locations, flash/RAM usage, libraries and board platforms used with their versions and paths, the Arduino CLI version, and build artifact paths when available. You can also request a clean build. |
 | `decode_esp32_backtrace` | Decodes a pasted ESP32 crash log using the matching sketch/profile build, returning functions, files, and line numbers where available. It does not compile or access your board. |
 
 This integration does not currently provide firmware upload, board reset or erase,
-bootloader flashing, serial monitoring, or package installation tools.
+bootloader flashing, serial monitoring, board-platform installation, or library
+installation from Git repositories, ZIP files, URLs, or local paths.
 
 ### Prompt examples
 
 Start by listing connected sketches. If more than one is listed, tell the assistant
 which one to use as "my current sketch." Replace `[profile name]` with one of that
 sketch's profile names, `[search term]` with a library name or search keywords,
-and `[library name]` with an exact installed library name. For crash decoding,
+and `[library name]` with an exact library name. For installation, first search
+the index and use a returned name and available version for `[library name]`
+and `[version]`; for library examples, use an installed library's name. For crash decoding,
 replace `[paste crash log here]` with the actual log text, including its backtrace
 or exception program-counter lines.
 
@@ -118,6 +122,10 @@ Arduino CLI Output panel in VS Code.
 | Inspect board options | Show the valid board options, defaults, and current values for my current sketch. | Shows metadata for the selected board or profile, without changing its settings. Requires a valid target and an installed board platform. |
 | Inspect a profile's board | Show the board options and current values for my current sketch using the [profile name] profile. | Uses that profile for this request; the profile selected in Home stays unchanged. |
 | Search libraries | Search for libraries matching [search term] for my current sketch and show their available versions. | Shows matching library names, latest versions, and available versions from the Arduino index; installs nothing. |
+| Install a library | Install [library name] version [version] for my current sketch. | Installs that exact indexed version and its dependencies in shared user libraries, or reports that it is already installed. May replace a different installed version. If a profile is selected, the library must be declared there and match any pinned version. |
+| Repeat an installation | Install [library name] version [version] for my current sketch again. | After the first installation succeeds, reports the existing matching version without reinstalling it. |
+| Install for a profile | Install [library name] version [version] for my current sketch using the [profile name] profile. | Checks that profile's declaration before installing in shared user libraries. Does not change the selected profile, edit sketch.yaml, or install into the profile's separate cache. |
+| Check a profile version conflict | Try installing [library name] version [version] for my current sketch using the [profile name] profile. Do not change its declaration. | Choose an available version that differs from the profile's pinned version. Reports the conflict and installs nothing. |
 | Find examples | List board and installed-library examples for my current sketch. | Shows example names, paths, and their library or platform. Requires a valid selected board or profile; opens and runs nothing. |
 | Filter library examples | List installed-library examples from [library name] for my current sketch. | Shows examples for that exact installed library, or an empty list if none are available. Does not require a selected board. |
 | Compile | Compile my current sketch with its current board or profile and show flash/RAM usage, generated file paths, and the Arduino CLI version. | Reports the outcome, available memory usage, files produced on success, and the known CLI version, consistent with Arduino CLI Output and the extension's CLI setup. |
@@ -177,6 +185,24 @@ up to 50 examples by default. You can request up to 100 of either. The assistant
 reports incomplete or shortened results, including omitted versions or board
 options. Refine a library search or ask for examples from one exact library to
 narrow a large result.
+
+### Library installation
+
+Search first, then request one exact indexed name and version. Installation uses
+the Arduino CLI user-library location shared by sketches using that toolchain;
+it is not a private copy for the current sketch. A different installed version
+can be replaced, and Arduino CLI also installs required dependencies. Network
+access may be needed. The assistant reports installation failures and any
+incomplete verification; interrupted requests are never retried automatically.
+
+With a selected or requested profile, the library must be declared as an indexed
+dependency, and the requested version must match any pin. Missing, local-only,
+conflicting, or incomplete declarations are rejected before installation. An
+unpinned declaration permits the requested version but remains unpinned.
+Installation does not edit `sketch.yaml` or populate the profile's separate
+dependency cache; compiling a profile lets Arduino CLI obtain its declared
+dependencies. Save your sketch files and wait for any compilation, upload, or
+other library operation to finish before installing.
 
 ### Profiles and dependencies
 

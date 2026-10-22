@@ -11,6 +11,7 @@ import * as redaction from '../redaction';
 import * as compileOutput from '../compileOutput';
 import * as compileArtifacts from '../compileArtifacts';
 import * as backtrace from '../backtrace';
+import * as libraryInstallation from '../libraryInstallation';
 
 interface TestedCli {
     arduinoCLIPath: string;
@@ -21,6 +22,9 @@ interface TestedCli {
     discoverForAssistant(kind: 'boards' | 'ports' | 'cores' | 'libraries', signal: AbortSignal): Promise<unknown>;
     queryForAssistant(query: AiDiscoveryQuery, signal: AbortSignal): Promise<unknown>;
     invalidateAssistantBuild(target: ProjectInspection): void;
+    installLibraryForAssistant(target: ProjectInspection, library: string, version: string, signal: AbortSignal,
+        progress: (value: OperationProgress) => void, assertCurrent: () => void, onInventory: (value: unknown, outdated?: unknown) => void): Promise<libraryInstallation.LibraryInstallationResult>;
+    runArduinoCommand(args: () => string[], prefix: string, cache: { caching: number; ttl: number }): Promise<string>;
 }
 
 const filename = path.resolve(__dirname, '../../../src/cli.ts');
@@ -54,6 +58,9 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
     const channel: string[] = [];
     const commands: string[][] = [];
     const calls: { executable: string; args: string[]; options: ProcessOptions }[] = [];
+    const cacheDeletes: string[] = [];
+    const inventories: unknown[] = [];
+    const outdatedInventories: unknown[] = [];
     const cancelListeners = new Set<() => void>();
     let cancellationRequested = false;
     let verboseCompile: boolean | undefined;
@@ -63,6 +70,7 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
     let onPrepare: (() => void) | undefined;
     let onDiscovery: (() => void) | undefined;
     let onDecode = backtrace.decodeEsp32Backtrace;
+    let processHandler: ((args: string[], options: ProcessOptions) => Promise<ProcessResult>) | undefined;
     let discovery: ProcessResult = { exitCode: 0, signal: null, stdout: '{"boards":[]}', stderr: '', output: '', truncated: false, canceled: false, durationMs: 1 };
     const workspace = {
         isTrusted: true,
@@ -92,12 +100,15 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
     class CLIArguments {
         getBuildPath() { return path.join(sketch, 'selected-ui-build'); }
         getVerboseOption() { return verboseCompile ?? true; }
+        getLibraryInstalledArguments() { return ['lib', 'list', '--json']; }
+        getLibrarySearchArguments() { return ['lib', 'search', '--omit-releases-details', '--json']; }
     }
     const dependencies: Record<string, unknown> = {
         vscode: {
             workspace, ProgressLocation: { Notification: 15 },
             window: {
                 createOutputChannel: () => outputChannel,
+                showErrorMessage: () => undefined,
                 withProgress: async (_options: unknown, work: (progress: unknown, token: unknown) => Promise<unknown>) => work({}, {
                     get isCancellationRequested() { return cancellationRequested; },
                     onCancellationRequested: (listener: () => void) => {
@@ -112,15 +123,20 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
         '@microsoft/vscode-serial-monitor-api': { getSerialMonitorApi: async () => undefined, Version: { latest: 1 } },
         './ArduinoProject': { COMPILE_RESULT_FILE: 'compile_result.json', VSCODE_FOLDER: '.vscode' },
         './cliArgs': { CLIArguments }, './config': { ArduinoConfiguration: class {} },
-        './cliCache': { CliCache: class {} }, './debugConfiguration': {},
+        './cliCache': { CliCache: class {
+            getCacheKeyFromArguments(args: string[]) { return args.slice(0, 2).join(''); }
+            delete(key: string) { cacheDeletes.push(key); }
+        } }, './debugConfiguration': {},
         './ai/contracts': { AiBridgeError }, './ai/redaction': redaction,
         './ai/compileOutput': compileOutput, './ai/compileArtifacts': compileArtifacts,
         './ai/backtrace': { ...backtrace, decodeEsp32Backtrace: (options: Parameters<typeof backtrace.decodeEsp32Backtrace>[0]) => onDecode(options) },
+        './ai/libraryInstallation': libraryInstallation,
         './ai/processRunner': {
             runProcess: (executable: string, args: string[], options: ProcessOptions) => {
                 calls.push({ executable, args: [...args], options });
-                if (['board', 'core', 'lib', 'config'].includes(args[0])) {
+                if (['board', 'core', 'lib', 'config', 'outdated'].includes(args[0])) {
                     onDiscovery?.();
+                    if (processHandler) { return processHandler(args, options); }
                     return Promise.resolve(discovery);
                 }
                 return runProcess(executable, args, options);
@@ -141,8 +157,10 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
     const target = () => inspectProject({ sketchPath: sketch }, sketch);
     const compile = (signal = new AbortController().signal, selected = target()) => cli.compileForAssistant(selected, signal, (value) => progress.push(value));
     return {
-        cli, sketch, configurationPath, configuration, workspace, statuses, progress, displayed, channel, commands, calls,
+        cli, sketch, configurationPath, configuration, workspace, statuses, progress, displayed, channel, commands, calls, cacheDeletes, inventories, outdatedInventories,
         compileStatusBarItem, target, compile,
+        install: (library = 'ArduinoJson', version = '7.3.0', signal = new AbortController().signal, guard = () => {}) =>
+            cli.installLibraryForAssistant(target(), library, version, signal, value => progress.push(value), guard, (value, outdated) => { inventories.push(value); outdatedInventories.push(outdated); }),
         marker: (selected = target()) => JSON.parse(fs.readFileSync(path.join(selected.buildPath, 'compile_result.json'), 'utf8')) as { result: boolean; fingerprint: string },
         invalidations: () => invalidations, saves: () => saves,
         onViewText: (callback: (text: string) => void) => { onViewText = callback; },
@@ -151,9 +169,148 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
         setDiscovery: (result: Partial<ProcessResult>) => { discovery = { ...discovery, ...result }; },
         onDiscovery: (callback: () => void) => { onDiscovery = callback; },
         onDecode: (callback: typeof backtrace.decodeEsp32Backtrace) => { onDecode = callback; },
+        onProcess: (callback: (args: string[], options: ProcessOptions) => Promise<ProcessResult>) => { processHandler = callback; },
         cancelUi: () => { cancellationRequested = true; for (const listener of [...cancelListeners]) { listener(); } }
     };
 }
+
+const installedUserLibrary = (name = 'ArduinoJson', version = '7.3.0') => ({ library: { name, version, location: 'user' } });
+const libraryProcessResult = (value: unknown, overrides: Partial<ProcessResult> = {}): ProcessResult => ({
+    exitCode: 0, signal: null, stdout: JSON.stringify(value), stderr: '', output: '',
+    truncated: false, canceled: false, durationMs: 1, ...overrides,
+});
+const indexedLibrary = { status: 'success', libraries: [{ name: 'ArduinoJson', available_versions: ['7.3.0'], latest: { version: '7.3.0' } }] };
+
+test('assistant library installation uses fixed argv, refreshes inventory and invalidates the ordinary build', async t => {
+    const f = host(t);
+    await f.compile();
+    f.calls.length = 0;
+    let installed = false;
+    f.onProcess(async (args, options) => {
+        if (args[0] === 'outdated') { return libraryProcessResult({ libraries: [], platforms: [] }); }
+        if (args[1] === 'search') { return libraryProcessResult(indexedLibrary); }
+        if (args[1] === 'install') {
+            assert.deepEqual(args, ['lib', 'install', '--', 'ArduinoJson@7.3.0']);
+            assert.equal(options.cwd, f.sketch);
+            assert.equal(options.maxOutputBytes, 64 * 1024);
+            installed = true;
+            options.onStdout?.('Downloaded ArduinoJson\n');
+            return libraryProcessResult(null, { stdout: 'Library installed\n' });
+        }
+        assert.deepEqual(args, ['lib', 'list', '--all', '--json']);
+        return libraryProcessResult({ installed_libraries: installed ? [installedUserLibrary(), { library: { name: 'SPI', version: '1.0.0', location: 'platform' } }] : [] });
+    });
+    const result = await f.install();
+    assert.equal(result.status, 'success', JSON.stringify(result));
+    assert.equal(result.scope, 'user_libraries');
+    assert.deepEqual(result.installedVersions, ['7.3.0']);
+    assert.deepEqual(f.calls.map(call => call.args[1]), ['list', 'search', 'install', 'list', '--json']);
+    assert.equal(f.marker().result, false);
+    assert.deepEqual(f.cacheDeletes, ['liblist', 'libsearch', 'liblist', 'libsearch']);
+    assert.equal(f.inventories[0], undefined);
+    assert.deepEqual(f.inventories.at(-1), { installed_libraries: [installedUserLibrary()] });
+    assert.deepEqual(f.outdatedInventories.at(-1), { libraries: [], platforms: [] });
+    assert.ok(f.displayed.join('').includes('Downloaded ArduinoJson'));
+    assert.ok(f.progress.some(value => value.message.includes('Downloaded ArduinoJson')));
+    assert.equal(f.cli.compileOrUploadRunning, false);
+    assert.equal(f.saves(), 0);
+    assert.equal(fs.readFileSync(f.configurationPath, 'utf8'), f.configuration);
+});
+
+test('already-installed user library leaves build readiness and caches unchanged', async t => {
+    const f = host(t);
+    await f.compile();
+    f.calls.length = 0;
+    const marker = fs.readFileSync(path.join(f.target().buildPath, 'compile_result.json'), 'utf8');
+    f.onProcess(async args => {
+        assert.equal(args[1], 'list');
+        return libraryProcessResult({ installed_libraries: [installedUserLibrary()] });
+    });
+    const result = await f.install();
+    assert.equal(result.outcome, 'already_installed');
+    assert.equal(result.changesMayHaveOccurred, false);
+    assert.equal(f.calls.length, 1);
+    assert.deepEqual(f.cacheDeletes, []);
+    assert.equal(fs.readFileSync(path.join(f.target().buildPath, 'compile_result.json'), 'utf8'), marker);
+    assert.equal(f.cli.compileOrUploadRunning, false);
+});
+
+test('failed installation retains observed partial changes and clears caches', async t => {
+    const f = host(t);
+    let attempted = false;
+    f.onProcess(async args => {
+        if (args[1] === 'search') { return libraryProcessResult(indexedLibrary); }
+        if (args[1] === 'install') {
+            attempted = true;
+            return libraryProcessResult(null, { exitCode: 1, stderr: 'Download failed\n', stdout: '' });
+        }
+        return libraryProcessResult({ installed_libraries: attempted ? [installedUserLibrary('Dependency', '1.0.0')] : [] });
+    });
+    const result = await f.install();
+    assert.equal(result.status, 'failed');
+    assert.equal(result.changesMayHaveOccurred, true);
+    assert.deepEqual(result.changes.added, [{ name: 'Dependency', version: '1.0.0' }]);
+    assert.equal(f.marker().result, false);
+    assert.equal(f.cacheDeletes.length, 4);
+    assert.equal(f.statuses.at(-1)?.state, 'failure');
+    assert.equal(f.cli.compileOrUploadRunning, false);
+});
+
+test('UI cancellation interrupts install, blocks concurrent operations and does not start a verification process', async t => {
+    const f = host(t);
+    let started!: () => void;
+    const entered = new Promise<void>(resolve => { started = resolve; });
+    f.onProcess(async (args, options) => {
+        if (args[1] === 'search') { return libraryProcessResult(indexedLibrary); }
+        if (args[1] === 'install') {
+            started();
+            await new Promise<void>(resolve => options.signal!.addEventListener('abort', () => resolve(), { once: true }));
+            return libraryProcessResult(null, { exitCode: null, stdout: '', canceled: true });
+        }
+        return libraryProcessResult({ installed_libraries: [] });
+    });
+    const installing = f.install();
+    await entered;
+    assert.equal((await f.compile()).status, 'busy');
+    await assert.rejects(f.install(), { code: 'BUSY' });
+    await assert.rejects(f.cli.runArduinoCommand(() => ['lib', 'uninstall', 'ArduinoJson'], 'Remove failed', { caching: 1, ttl: 0 }), { code: 'BUSY' });
+    await assert.rejects(f.cli.runArduinoCommand(() => ['config', 'set', 'directories.user', 'elsewhere'], 'Config failed', { caching: 1, ttl: 0 }), { code: 'BUSY' });
+    f.cancelUi();
+    const result = await installing;
+    assert.equal(result.status, 'canceled');
+    assert.equal(result.installedVersions, null);
+    assert.equal(result.changesMayHaveOccurred, true);
+    assert.deepEqual(f.calls.map(call => call.args[1]), ['list', 'search', 'install']);
+    assert.deepEqual(f.inventories, [undefined]);
+    assert.equal(f.cacheDeletes.length, 4);
+    assert.equal(f.cli.compileOrUploadRunning, false);
+});
+
+test('existing manual package operations prevent assistant installation until completion', async t => {
+    const f = host(t);
+    let finish!: () => void;
+    const pending = new Promise<void>(resolve => { finish = resolve; });
+    f.onProcess(async () => { await pending; return libraryProcessResult(null, { output: 'installed' }); });
+    const manual = f.cli.runArduinoCommand(() => ['lib', 'install', 'Other@1.0.0'], 'Install failed', { caching: 1, ttl: 0 });
+    await assert.rejects(f.install(), { code: 'BUSY' });
+    finish();
+    await manual;
+    f.onProcess(async () => libraryProcessResult({ installed_libraries: [installedUserLibrary()] }));
+    assert.equal((await f.install()).outcome, 'already_installed');
+});
+
+test('library installation rechecks cancellation and trust after asynchronous output setup', async t => {
+    for (const cancel of [false, true]) {
+        const f = host(t);
+        f.onProcess(async args => libraryProcessResult(args[1] === 'search' ? indexedLibrary : { installed_libraries: [] }));
+        f.onPrepare(() => { if (cancel) { f.cancelUi(); } else { f.workspace.isTrusted = false; } });
+        const result = await f.install();
+        assert.equal(result.status, cancel ? 'canceled' : 'failed');
+        assert.equal(result.error?.code, cancel ? 'CANCELED' : 'WORKSPACE_UNTRUSTED');
+        assert.ok(!f.calls.some(call => call.args[1] === 'install'));
+        assert.equal(f.cli.compileOrUploadRunning, false);
+    }
+});
 
 test('actual extension compile returns structured success, visible progress and a target-scoped marker', async (t) => {
     const f = host(t);

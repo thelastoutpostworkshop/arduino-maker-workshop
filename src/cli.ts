@@ -15,6 +15,7 @@ import { collectSensitiveValues, redactText } from './ai/redaction';
 import { CompileOutputCollector, unavailableCompileOutput } from './ai/compileOutput';
 import { snapshotCompileArtifacts, collectCompileArtifacts, unavailableCompileArtifacts, type CompileArtifactSnapshot } from './ai/compileArtifacts';
 import { createBacktraceBuildRecord, decodeEsp32Backtrace, type BacktraceBuildRecord, type BacktraceDecodeResult } from './ai/backtrace';
+import { installLibraryForTarget, type LibraryInstallationResult } from './ai/libraryInstallation';
 
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
 
@@ -39,6 +40,8 @@ interface CacheSettings {
 export class ArduinoCLI {
 	public arduinoCLIPath: string = "";
 	public compileOrUploadRunning: boolean = false;
+	private assistantLibraryInstallRunning = false;
+	private packageOperations = 0;
 	private serialMonitorAPI: SerialMonitorApi | undefined = undefined;
 	private arduinoCLIChannel: OutputChannel;
 	private cliArgs = new CLIArguments();
@@ -495,6 +498,113 @@ export class ArduinoCLI {
 			}
 			return data;
 		} catch { throw new AiBridgeError('INVALID_CLI_OUTPUT', 'Arduino CLI discovery did not return valid JSON.'); }
+	}
+
+	public async installLibraryForAssistant(target: ProjectInspection, library: string, version: string, signal: AbortSignal,
+		progress: (value: OperationProgress) => void, assertCurrent: () => void, onInventory: (value: unknown, outdated?: unknown) => void): Promise<LibraryInstallationResult> {
+		if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Trust this workspace before installing libraries.'); }
+		if (signal.aborted) { throw new AiBridgeError('CANCELED', 'Library installation was canceled.'); }
+		if (!this.arduinoCLIPath) { throw new AiBridgeError('CLI_NOT_READY', 'Arduino CLI is not ready.'); }
+		if (this.compileOrUploadRunning || this.packageOperations > 0) { throw new AiBridgeError('BUSY', 'Another Arduino operation is running in this window.'); }
+		assertCurrent();
+		this.compileOrUploadRunning = true;
+		this.assistantLibraryInstallRunning = true;
+		const controller = new AbortController();
+		const abort = () => controller.abort();
+		signal.addEventListener('abort', abort, { once: true });
+		let mutated = false;
+		let inventory: unknown;
+		const sensitiveValues = collectSensitiveValues(target.compileArgs);
+		const title = redactText(`Installing ${library} ${version} in shared Arduino libraries for assistant`, sensitiveValues);
+		const guard = () => {
+			if (!workspace.isTrusted) { throw new AiBridgeError('WORKSPACE_UNTRUSTED', 'Workspace trust changed during library installation.'); }
+			if (controller.signal.aborted) { throw new AiBridgeError('CANCELED', 'Library installation was canceled.'); }
+			assertCurrent();
+		};
+		try {
+			return await window.withProgress({ location: ProgressLocation.Notification, title, cancellable: true }, async (_progress, token) => {
+				const cancellation = token.onCancellationRequested(abort);
+				try {
+					if (signal.aborted || token.isCancellationRequested) { controller.abort(); }
+					const result = await installLibraryForTarget({
+						target, library, version, signal: controller.signal, progress, assertCurrent: guard,
+						query: async (args, querySignal) => {
+							const value = await this.runAssistantDiscovery(args, querySignal, target.sketchPath, 2 * 1024 * 1024);
+							if (args[0] === 'lib' && args[1] === 'list') { inventory = value; }
+							return value;
+						},
+						onMutationStarted: () => {
+							guard();
+							// User-library changes affect ordinary builds, including partial installs.
+							if (!target.resolvedProfile) { this.writeAssistantBuildResult(target, false); }
+							mutated = true;
+							inventory = undefined;
+							this.clearLibraryCache();
+							onInventory(undefined);
+						},
+						run: async (args, runSignal) => {
+							await compileOutputView?.prepare(title);
+							guard();
+							compileOutputView?.setStatus('info', 'Installing shared Arduino libraries...');
+							compileOutputView?.showCommand(this.arduinoCLIPath, args);
+							let displayedBytes = 0;
+							let displayTruncated = false;
+							let lastProgress = 0;
+							const append = (text: string) => {
+								const bytes = Buffer.from(text, 'utf8');
+								const remaining = Math.max(0, 128 * 1024 - displayedBytes);
+								if (remaining > 0) {
+									const visible = bytes.subarray(0, remaining).toString('utf8');
+									displayedBytes += Math.min(bytes.length, remaining);
+									this.arduinoCLIChannel.append(visible);
+									compileOutputView?.append(visible);
+								}
+								if (bytes.length > remaining && !displayTruncated) {
+									displayTruncated = true;
+									compileOutputView?.appendInfo('\nInstallation display limit reached. The result retains the final output tail.\n');
+								}
+								if (Date.now() - lastProgress >= 250) {
+									lastProgress = Date.now();
+									progress({ message: text.replace(/[\x00-\x1f\x7f]/g, ' ').trim().slice(0, 240) });
+								}
+							};
+							return runProcess(this.arduinoCLIPath, args, { cwd: target.sketchPath, signal: runSignal,
+								sensitiveValues, maxOutputBytes: 64 * 1024, onStdout: append, onStderr: append });
+						},
+					});
+					if (result.installedVersions !== null && inventory !== undefined) {
+						let outdated: unknown;
+						if (mutated) {
+							try {
+								guard();
+								outdated = await this.runAssistantDiscovery(['outdated', '--json'], controller.signal, target.sketchPath);
+								guard();
+							} catch {
+								outdated = undefined;
+								result.notes.push('The Library Manager update summary could not be refreshed.');
+							}
+						}
+						// Library Manager uses the normal library list, excluding board-bundled libraries.
+						const full = inventory as { installed_libraries: { library: { location: string } }[] };
+						onInventory({ ...full, installed_libraries: full.installed_libraries.filter(entry => !['platform', 'ref-platform'].includes(entry.library.location)) }, outdated);
+					}
+					if (mutated) {
+						const message = result.status === 'success' ? 'Shared Arduino library installation completed.'
+							: 'Library installation did not complete. Shared libraries may have changed; inspect dependencies before retrying.';
+						compileOutputView?.setStatus(result.status === 'success' ? 'success' : result.status === 'canceled' ? 'canceled' : 'failure', message);
+						compileOutputView?.appendInfo(`${message}\n`);
+					}
+					return result;
+				} finally { cancellation.dispose(); }
+			});
+		} finally {
+			try { if (mutated) { this.clearLibraryCache(); } }
+			finally {
+				signal.removeEventListener('abort', abort);
+				this.assistantLibraryInstallRunning = false;
+				this.compileOrUploadRunning = false;
+			}
+		}
 	}
 
 	public async decodeBacktraceForAssistant(target: ProjectInspection, log: string, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<BacktraceDecodeResult> {
@@ -1320,11 +1430,19 @@ export class ArduinoCLI {
 		coloredOutputView?: CliOutputView,
 		signal?: AbortSignal
 	): Promise<string> {
+		let packageOperation = false;
 		try {
 			const args = getArguments();
 			if (args.length == 0) {
 				throw new Error('Arduino CLI arguments are missing.');
 			}
+			packageOperation = ['lib', 'core'].includes(args[0]) && ['install', 'uninstall', 'upgrade', 'update-index'].includes(args[1])
+				|| args[0] === 'config' && ['set', 'add', 'delete', 'remove', 'init'].includes(args[1]);
+			if (packageOperation && this.assistantLibraryInstallRunning) {
+				packageOperation = false;
+				throw new AiBridgeError('BUSY', 'An assistant library installation is running in this window.');
+			}
+			if (packageOperation) { this.packageOperations++; }
 			if (coloredOutputView) {
 				const cliExecutable = this.arduinoCLIPath || 'arduino-cli';
 				coloredOutputView.showCommand(cliExecutable, this.redactSensitiveArgs(args, this.getSensitiveValues(args)));
@@ -1367,7 +1485,7 @@ export class ArduinoCLI {
 			window.showErrorMessage(`${errorMessagePrefix}`);
 			coloredOutputView?.setStatus('failure', `${errorMessagePrefix}`);
 			throw error;
-		}
+		} finally { if (packageOperation) { this.packageOperations--; } }
 	}
 
 	private filterBoardExamples(rawOutput: string): string {

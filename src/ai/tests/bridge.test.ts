@@ -188,7 +188,7 @@ test('descriptor validation refuses endpoint substitution without revealing its 
     } finally { await context.dispose(); }
 });
 
-test('MCP negotiates supported versions and offers discovery plus nine explicitly targeted tools', async () => {
+test('MCP negotiates supported versions and offers discovery plus ten explicitly targeted tools', async () => {
     const context = await fixture(async () => ({}));
     try {
         for (const version of ['2024-11-05', '2025-03-26', '2025-06-18', 'unsupported-version']) {
@@ -201,25 +201,157 @@ test('MCP negotiates supported versions and offers discovery plus nine explicitl
                 bridge.send({ jsonrpc: '2.0', id: 1, method: 'tools/list' });
                 const listed = await bridge.waitFor(message => message.id === 1);
                 assert.deepEqual(listed.result.tools.map((tool: Record<string, unknown>) => tool.name).sort(), [
-                    'compile_sketch', 'decode_esp32_backtrace', 'get_board_details', 'get_project_context', 'list_boards',
+                    'compile_sketch', 'decode_esp32_backtrace', 'get_board_details', 'get_project_context', 'install_library', 'list_boards',
                     'list_connected_sketches', 'list_dependencies', 'list_examples', 'list_ports', 'search_libraries'
                 ]);
                 for (const tool of listed.result.tools) {
                     assert.deepEqual(tool.inputSchema.required, tool.name === 'list_connected_sketches' ? undefined
                         : tool.name === 'search_libraries' ? ['sketchPath', 'query']
+                        : tool.name === 'install_library' ? ['sketchPath', 'library', 'version']
                         : tool.name === 'decode_esp32_backtrace' ? ['sketchPath', 'log'] : ['sketchPath']);
                     assert.equal(tool.inputSchema.additionalProperties, false);
-                    const initializesCli = ['compile_sketch', 'list_dependencies', 'get_board_details', 'search_libraries', 'list_examples'].includes(tool.name);
+                    const initializesCli = ['compile_sketch', 'list_dependencies', 'get_board_details', 'search_libraries', 'list_examples', 'install_library'].includes(tool.name);
                     assert.equal(tool.annotations.readOnlyHint, !initializesCli);
                     assert.equal(tool.annotations.idempotentHint, !initializesCli);
                     assert.equal(tool.annotations.openWorldHint, initializesCli);
-                    assert.equal(tool.annotations.destructiveHint, tool.name === 'compile_sketch');
+                    assert.equal(tool.annotations.destructiveHint, ['compile_sketch', 'install_library'].includes(tool.name));
                     assert.equal('clean' in tool.inputSchema.properties, tool.name === 'compile_sketch');
                 }
             } finally { await bridge.dispose(); }
         }
-        assert.equal(getMcpTools().length, 10);
+        assert.equal(getMcpTools().length, 11);
     } finally { await context.dispose(); }
+});
+
+test('MCP exposes only an exact indexed library and version for shared-library installation', () => {
+    const tool = (getMcpTools() as Record<string, any>[]).find(value => value.name === 'install_library');
+    assert.ok(tool);
+    assert.deepEqual(Object.keys(tool.inputSchema.properties).sort(), ['library', 'profile', 'sketchPath', 'version']);
+    assert.deepEqual(tool.inputSchema.required, ['sketchPath', 'library', 'version']);
+    assert.equal(tool.inputSchema.properties.library.maxLength, 256);
+    assert.equal(tool.inputSchema.properties.version.maxLength, 64);
+    assert.equal(tool.inputSchema.additionalProperties, false);
+    assert.deepEqual(tool.annotations, {
+        title: 'Install Arduino Library', readOnlyHint: false, destructiveHint: true,
+        idempotentHint: false, openWorldHint: true,
+    });
+    assert.match(tool.description, /shared user libraries/);
+    assert.match(tool.description, /version must match any pin/);
+    assert.match(tool.description, /Does not edit sketch.yaml or populate isolated profile caches/);
+});
+
+test('MCP and authenticated IPC reject malformed or injectable library installation inputs', async () => {
+    let calls = 0;
+    const context = await fixture(async () => { calls++; return {}; });
+    const bridge = await harness(context.sessionDirectory);
+    const client = await AiIpcClient.connect(context.server.sessionFile);
+    try {
+        await bridge.initialize();
+        const valid = { sketchPath: context.sketchPath, library: 'Adafruit NeoPixel', version: '1.12.0' };
+        const cases: { name: AiToolName; args: Record<string, unknown> }[] = [];
+        for (const library of [undefined, null, 42, [], '', ' ', 'x'.repeat(257), '--git-url', '-Library',
+            '../Library', 'C:\\libraries\\Library', '/tmp/Library', 'https://example.com/library.zip',
+            'git@example.com:Library', 'Library@1.2.3', 'Library;command', 'Library & command',
+            'Library$(command)', 'Library`command`', 'Library\nOther', 'Library\x00', 'Library\x7f',
+            'Library,Other', 'Library=Other']) {
+            cases.push({ name: 'install_library', args: { ...valid, library } });
+        }
+        for (const version of [undefined, null, 42, [], '', ' ', 'latest', '*', '^1.2.3', '~1.2.3',
+            '>=1.2.3', '1', '1.2', 'v1.2.3', '01.2.3', '1.02.3', '1.2.03', '1.2.3-01', '1.2.3-',
+            '1.2.3+', '1.2.3-a..b', '1.2.3+build..hash', ' 1.2.3', '1.2.3 ', '1.2.3\n',
+            '1.2.3\x00', '--no-deps', '1.2.3@Other', 'https://example.com/1.2.3',
+            '1.2.3;command', '1.2.3+build' + 'x'.repeat(60)]) {
+            cases.push({ name: 'install_library', args: { ...valid, version } });
+        }
+        for (const override of [{ sketchPath: undefined }, { sketchPath: 'relative' }, { profile: '../profile' },
+            { profile: '' }, { profile: 42 }, { command: 'install' }, { args: ['--no-deps'] },
+            { executable: 'shell' }, { path: context.root }, { url: 'https://example.com/library.zip' },
+            { zip: 'library.zip' }, { git: 'https://example.com/repo' }, { noDependencies: true },
+            { clean: true }, { query: 'sensor' }, { source: 'libraries' }, { limit: 1 }, { log: 'crash' }]) {
+            cases.push({ name: 'install_library', args: { ...valid, ...override } });
+        }
+        for (const name of ['get_project_context', 'compile_sketch', 'search_libraries', 'list_examples', 'decode_esp32_backtrace'] as const) {
+            cases.push({ name, args: { sketchPath: context.sketchPath, version: '1.12.0',
+                ...(name === 'search_libraries' ? { query: 'sensor' } : {}),
+                ...(name === 'list_examples' ? { library: 'Adafruit NeoPixel' } : {}),
+                ...(name === 'decode_esp32_backtrace' ? { log: 'crash' } : {}),
+            } });
+        }
+        let id = 1;
+        for (const { name, args } of cases) {
+            const requestId = id++;
+            bridge.send({ jsonrpc: '2.0', id: requestId, method: 'tools/call', params: { name, arguments: args } });
+            assert.equal((await bridge.waitFor(message => message.id === requestId)).error?.code, -32602, JSON.stringify(args));
+            await assert.rejects(client.call(name, args as unknown as Parameters<AiIpcClient['call']>[1],
+                new AbortController().signal, () => {}), { code: 'INVALID_ARGUMENTS' });
+        }
+        assert.equal(calls, 0, 'Invalid installation arguments must never reach the extension');
+    } finally { client.dispose(); await bridge.dispose(); await context.dispose(); }
+});
+
+test('MCP routes exact library names, versions and profiles with structured results and progress', async () => {
+    const received: unknown[] = [];
+    const context = await fixture(async (name, input, _signal, progress) => {
+        assert.equal(name, 'install_library');
+        received.push(input);
+        progress({ message: 'Installing indexed library' });
+        return { schemaVersion: 1, status: 'success', library: input.library, version: input.version, scope: 'user_libraries' };
+    });
+    const bridge = await harness(context.sessionDirectory);
+    try {
+        await bridge.initialize();
+        const cases = [
+            { library: '  Adafruit NeoPixel  ', version: '1.12.0', profile: 'release' },
+            { library: 'Library_Name-1.2', version: '0.1.0-rc.1+build.5' },
+            { library: 'L'.repeat(256), version: '1.2.3+' + 'a'.repeat(58) },
+        ];
+        for (let id = 0; id < cases.length; id++) {
+            const args = { sketchPath: context.sketchPath, ...cases[id] };
+            bridge.send({ jsonrpc: '2.0', id, method: 'tools/call', params: {
+                name: 'install_library', arguments: args, _meta: { progressToken: `install-${id}` },
+            } });
+            const response = await bridge.waitFor(message => message.id === id);
+            assert.equal(response.error, undefined);
+            assert.equal(response.result.isError, false);
+            assert.deepEqual(JSON.parse(response.result.content[0].text), response.result.structuredContent);
+            assert.equal(response.result.structuredContent.version, args.version);
+            assert.deepEqual(received[id], { ...args, library: args.library.trim() });
+            assert.ok(bridge.messages.some(message => message.method === 'notifications/progress' && message.params.progressToken === `install-${id}`));
+        }
+    } finally { await bridge.dispose(); await context.dispose(); }
+});
+
+test('library installation retains workspace, trust and MCP cancellation guards', async () => {
+    let calls = 0;
+    let trusted = true;
+    const started = deferred<void>();
+    const aborted = deferred<void>();
+    const context = await fixture(async (_name, _input, signal) => {
+        calls++;
+        started.resolve();
+        await new Promise<void>((_resolve, reject) => signal.addEventListener('abort', () => {
+            aborted.resolve(); reject(new AiBridgeError('CANCELED', 'Canceled'));
+        }, { once: true }));
+    }, () => trusted);
+    const client = await AiIpcClient.connect(context.server.sessionFile);
+    const bridge = await harness(context.sessionDirectory);
+    try {
+        const args = { sketchPath: context.sketchPath, library: 'Adafruit NeoPixel', version: '1.12.0' };
+        await assert.rejects(client.call('install_library', { ...args, sketchPath: context.root },
+            new AbortController().signal, () => {}), { code: 'WRONG_WORKSPACE' });
+        trusted = false;
+        await assert.rejects(client.call('install_library', args, new AbortController().signal,
+            () => {}), { code: 'WORKSPACE_UNTRUSTED' });
+        assert.equal(calls, 0);
+        trusted = true;
+        await bridge.initialize();
+        bridge.send({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'install_library', arguments: args } });
+        await started.promise;
+        bridge.send({ jsonrpc: '2.0', method: 'notifications/cancelled', params: { requestId: 1 } });
+        assert.equal((await bridge.waitFor(message => message.id === 1)).error?.code, -32800);
+        await aborted.promise;
+        assert.equal(calls, 1, 'Canceled installation is not replayed');
+    } finally { client.dispose(); await bridge.dispose(); await context.dispose(); }
 });
 
 test('MCP exposes only a sketch, optional profile and bounded log for read-only ESP32 decoding', () => {

@@ -12,6 +12,7 @@ import { runProcess } from '../processRunner';
 import { collectSensitiveValues } from '../redaction';
 import type { AiDiscoveryQuery, ProjectInspection } from '../contracts';
 import type { BacktraceDecodeResult } from '../backtrace';
+import type { LibraryInstallationResult } from '../libraryInstallation';
 import { CompileOutputCollector } from '../compileOutput';
 import { snapshotCompileArtifacts, collectCompileArtifacts, unavailableCompileArtifacts } from '../compileArtifacts';
 
@@ -28,6 +29,7 @@ async function fixture() {
     let activeCompile: ReturnType<typeof runProcess> | undefined;
     const queries: AiDiscoveryQuery[] = [];
     const decodes: { target: ProjectInspection; log: string }[] = [];
+    const installations: { target: ProjectInspection; library: string; version: string }[] = [];
     let partialDecode = false;
     let started!: () => void;
     const startedPromise = new Promise<void>(resolve => { started = resolve; });
@@ -73,6 +75,19 @@ async function fixture() {
                 ],
                 stdout: '0x40012345: readSensor() at Blink.ino:12\n', stderr: '', truncated: false, durationMs: 1,
                 notes: partialDecode ? ['One address has no available source symbols.'] : [],
+            };
+        },
+        install: async (target, library, version, _signal, progress, assertCurrent): Promise<LibraryInstallationResult> => {
+            assertCurrent();
+            installations.push({ target, library, version });
+            progress({ message: 'Installing the exact library version into user libraries.' });
+            return {
+                schemaVersion: 1, status: 'success', outcome: 'installed', scope: 'user_libraries',
+                target: { sketchPath: target.sketchPath, ...(target.resolvedProfile ? { profile: target.resolvedProfile } : {}) },
+                library, version, previousVersions: [], installedVersions: [version], changesMayHaveOccurred: true,
+                changes: { added: [{ name: library, version }], removed: [], complete: true },
+                exitCode: 0, stdout: 'Library installed.', stderr: '', truncated: false, durationMs: 1,
+                notes: ['Profile declarations and isolated profile dependencies are unchanged.'],
             };
         },
         compile: async (target, signal, progress) => {
@@ -139,7 +154,7 @@ async function fixture() {
     await request(1, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'simulated-client', version: 'test' } });
     send({ jsonrpc: '2.0', method: 'notifications/initialized' });
     return {
-        sketchPath, request, send, notifications, startedPromise, queries, decodes, input: child.stdin,
+        sketchPath, request, send, notifications, startedPromise, queries, decodes, installations, input: child.stdin,
         addProfile: () => fs.writeFile(path.join(sketchPath, 'sketch.yaml'), 'profiles:\n  release:\n    fqbn: arduino:avr:uno\n    platforms:\n      - platform: arduino:avr (1.8.6)\n    libraries:\n      - Missing (1.0.0)\n'),
         addEsp32Profile: () => fs.writeFile(path.join(sketchPath, 'sketch.yaml'), 'profiles:\n  debug:\n    fqbn: esp32:esp32:esp32\n    platforms:\n      - platform: esp32:esp32 (3.3.2)\n'),
         mode: (value: typeof mode) => { mode = value; },
@@ -170,7 +185,7 @@ test('standalone packaged bridge reaches extension operations and reports compil
     const f = await fixture();
     try {
         const tools = await f.request(2, 'tools/list');
-        assert.equal(tools.result.tools.length, 10);
+        assert.equal(tools.result.tools.length, 11);
         const context = await f.request(3, 'tools/call', { name: 'get_project_context', arguments: { sketchPath: f.sketchPath } });
         assert.equal(context.result.structuredContent.fqbn, 'arduino:avr:uno');
         const compile = await f.request(4, 'tools/call', { name: 'compile_sketch', arguments: { sketchPath: f.sketchPath }, _meta: { progressToken: 'compile-progress' } });
@@ -303,6 +318,38 @@ test('standalone packaged bridge routes ESP32 logs and profiles with decoded and
         assert.equal(invalid.error?.code, -32602);
         assert.equal(f.decodes.length, 2, 'Caller-selected ELF paths must never reach the extension decoder');
         assert.equal(f.compiles(), 0, 'Decoding must not compile or replace the firmware build');
+    } finally { await f.close(); }
+});
+
+test('standalone packaged bridge routes exact library installation, profile and progress without compiling', async () => {
+    const f = await fixture();
+    try {
+        await f.addProfile();
+        const args = { sketchPath: f.sketchPath, profile: 'release', library: 'Missing', version: '1.0.0' };
+        const response = await f.request(2, 'tools/call', {
+            name: 'install_library', arguments: args, _meta: { progressToken: 'install-progress' },
+        });
+        assert.equal(response.error, undefined, JSON.stringify(response));
+        assert.equal(response.result.isError, false);
+        const result = response.result.structuredContent;
+        assert.equal(result.status, 'success');
+        assert.equal(result.scope, 'user_libraries');
+        assert.equal(result.target.profile, 'release');
+        assert.equal(result.target.sketchPath, f.sketchPath);
+        assert.equal(result.library, 'Missing');
+        assert.equal(result.version, '1.0.0');
+        assert.deepEqual(result.installedVersions, ['1.0.0']);
+        assert.deepEqual(JSON.parse(response.result.content[0].text), result);
+        assert.ok(f.notifications.some(frame => frame.method === 'notifications/progress' && frame.params.progressToken === 'install-progress'));
+        assert.equal(f.installations.length, 1);
+        assert.equal(f.installations[0].target.resolvedProfile, 'release');
+        assert.equal(f.installations[0].library, 'Missing');
+        assert.equal(f.installations[0].version, '1.0.0');
+        const invalid = await f.request(3, 'tools/call', { name: 'install_library', arguments: { ...args, gitUrl: 'https://example.invalid/library.git' } });
+        assert.equal(invalid.error?.code, -32602);
+        assert.equal(f.installations.length, 1, 'Unsupported source options never reach the installer.');
+        assert.equal(f.compiles(), 0);
+        assert.equal(f.decodes.length, 0);
     } finally { await f.close(); }
 });
 

@@ -149,7 +149,7 @@ test('global packaged bridge lists and routes changing connected sketches withou
     const f = await fixture(t);
     const tools = await f.request('tools/list');
     assert.deepEqual(tools.result.tools.map((tool: any) => tool.name).sort(),
-        ['compile_sketch', 'decode_esp32_backtrace', 'get_board_details', 'get_project_context', 'list_boards', 'list_connected_sketches', 'list_dependencies', 'list_examples', 'list_ports', 'search_libraries']);
+        ['compile_sketch', 'decode_esp32_backtrace', 'get_board_details', 'get_project_context', 'install_library', 'list_boards', 'list_connected_sketches', 'list_dependencies', 'list_examples', 'list_ports', 'search_libraries']);
     assertSketches(await f.list(), []);
     assertSketches(await f.request('tools/call', { name: 'list_connected_sketches' }), []);
 
@@ -166,8 +166,12 @@ test('global packaged bridge lists and routes changing connected sketches withou
     const decoded = (await f.call(f.beta, 'decode_esp32_backtrace', decodeInput)).result.structuredContent;
     assert.equal(decoded.session, 'beta-window');
     assert.deepEqual(decoded.input, { sketchPath: f.beta, ...decodeInput });
+    const installInput = { library: 'Adafruit NeoPixel', version: '1.12.0' };
+    const installed = (await f.call(f.beta, 'install_library', installInput)).result.structuredContent;
+    assert.equal(installed.session, 'beta-window');
+    assert.deepEqual(installed.input, { sketchPath: f.beta, ...installInput });
     assert.deepEqual(alpha.calls, ['get_project_context', 'get_board_details']);
-    assert.deepEqual(beta.calls, ['list_ports', 'list_dependencies', 'search_libraries', 'list_examples', 'decode_esp32_backtrace']);
+    assert.deepEqual(beta.calls, ['list_ports', 'list_dependencies', 'search_libraries', 'list_examples', 'decode_esp32_backtrace', 'install_library']);
 
     // Simulate one window switching folders while a second window stays connected.
     await alpha.server.dispose();
@@ -223,8 +227,10 @@ test('global ambiguity is isolated to its sketch and discovery exposes no privat
     }
     assertToolError(await f.call(f.alpha, 'compile_sketch'), 'AMBIGUOUS_SESSION');
     assertToolError(await f.call(f.alpha, 'decode_esp32_backtrace', { log: 'Backtrace: 0x40012345' }), 'AMBIGUOUS_SESSION');
+    assertToolError(await f.call(f.alpha, 'install_library', { library: 'Adafruit NeoPixel', version: '1.12.0' }), 'AMBIGUOUS_SESSION');
     assertToolError(await f.call(f.unopened, 'compile_sketch'), 'SESSION_UNAVAILABLE');
     assertToolError(await f.call(f.unopened, 'decode_esp32_backtrace', { log: 'Backtrace: 0x40012345' }), 'SESSION_UNAVAILABLE');
+    assertToolError(await f.call(f.unopened, 'install_library', { library: 'Adafruit NeoPixel', version: '1.12.0' }), 'SESSION_UNAVAILABLE');
     assert.deepEqual(alpha.calls, []);
     assert.deepEqual(duplicate.calls, []);
     assert.deepEqual(beta.calls, []);
@@ -258,5 +264,29 @@ test('global packaged decoding keeps other sketches available and never replays 
     assert.equal((await f.call(f.alpha, 'decode_esp32_backtrace', { log: 'Backtrace: 0x40012345' })).result.structuredContent.session, 'replacement-alpha');
     assert.deepEqual(alpha.calls, ['decode_esp32_backtrace']);
     assert.deepEqual(replacement.calls, ['decode_esp32_backtrace']);
+    assert.deepEqual(beta.calls, ['get_project_context']);
+});
+
+test('global packaged installation stays on its sketch and never replays after session loss', { timeout: 25000 }, async t => {
+    const f = await fixture(t);
+    const alpha = await f.connect(f.alpha, 'installing-alpha', 'install_library');
+    const beta = await f.connect(f.beta, 'beta');
+    const args = { profile: 'release', library: 'Adafruit NeoPixel', version: '1.12.0' };
+    const pending = f.call(f.alpha, 'install_library', args);
+    await bounded(alpha.started, 'Installation never reached its selected window');
+    const [otherSketch, listing] = await Promise.all([f.call(f.beta), f.list()]);
+    assert.equal(otherSketch.result.structuredContent.session, 'beta');
+    assertSketches(listing, [{ sketchPath: f.alpha, sessionCount: 1 }, { sketchPath: f.beta, sessionCount: 1 }]);
+    assert.equal(alpha.wasAborted(), false);
+    const replacement = await f.connect(f.alpha, 'replacement-alpha');
+    await alpha.server.dispose();
+    await bounded(alpha.aborted, 'Disconnect did not abort installation');
+    assertToolError(await pending, 'SESSION_UNAVAILABLE');
+    assert.deepEqual(replacement.calls, [], 'An interrupted library mutation must not replay into another session');
+    const retried = await f.call(f.alpha, 'install_library', args);
+    assert.equal(retried.result.structuredContent.session, 'replacement-alpha');
+    assert.deepEqual(retried.result.structuredContent.input, { sketchPath: f.alpha, ...args });
+    assert.deepEqual(alpha.calls, ['install_library']);
+    assert.deepEqual(replacement.calls, ['install_library']);
     assert.deepEqual(beta.calls, ['get_project_context']);
 });

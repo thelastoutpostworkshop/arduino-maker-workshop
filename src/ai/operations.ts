@@ -7,6 +7,7 @@ import { unavailableCompileArtifacts } from './compileArtifacts';
 import { unavailableCompileOutput } from './compileOutput';
 import { unavailableCompileDependencies } from './compileDependencies';
 import type { BacktraceDecodeResult } from './backtrace';
+import type { LibraryInstallationResult } from './libraryInstallation';
 
 export interface AiOperationDependencies {
     isTrusted(): boolean;
@@ -18,6 +19,8 @@ export interface AiOperationDependencies {
     revision(): number;
     compile(target: ProjectInspection, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<AiOperationResult>;
     decode(target: ProjectInspection, log: string, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<BacktraceDecodeResult>;
+    install(target: ProjectInspection, library: string, version: string, signal: AbortSignal,
+        progress: (value: OperationProgress) => void, assertCurrent: () => void): Promise<LibraryInstallationResult>;
     discover(kind: 'boards' | 'ports' | 'cores' | 'libraries', signal: AbortSignal): Promise<unknown>;
     query(query: AiDiscoveryQuery, signal: AbortSignal): Promise<unknown>;
     invalidateBuild(target: ProjectInspection): void;
@@ -55,6 +58,46 @@ export function createAiOperationHandler(dependencies: AiOperationDependencies):
         }
         if (!dependencies.isReady()) {
             throw new AiBridgeError('CLI_NOT_READY', 'Arduino CLI is not ready. Resolve its setup in Arduino Home and reconnect.');
+        }
+        if (name === 'install_library') {
+            if (compilePending || discoveryPending) {
+                throw new AiBridgeError('BUSY', 'Another assistant operation is pending or running in this window.');
+            }
+            discoveryPending = true;
+            try {
+                const revision = dependencies.revision();
+                const toolchain = JSON.stringify(dependencies.cliInfo());
+                const assertCurrent = () => {
+                    assertAvailable();
+                    if (!dependencies.isReady()) {
+                        throw new AiBridgeError('CLI_NOT_READY', 'Arduino CLI is no longer ready. Resolve its setup before installing a library.');
+                    }
+                    if (dependencies.hasUnsavedSketchDocuments(target.sketchPath)) {
+                        throw new AiBridgeError('UNSAVED_DOCUMENTS', 'Save the sketch documents before installing a library.');
+                    }
+                    const currentPath = dependencies.activeSketchPath();
+                    let current: ProjectInspection | undefined;
+                    try { current = currentPath ? dependencies.inspect(inspectionInput, currentPath) : undefined; } catch { /* Changed or removed inputs are stale. */ }
+                    if (currentPath !== activePath || !current || current.fingerprint !== target.fingerprint ||
+                        dependencies.revision() !== revision || JSON.stringify(dependencies.cliInfo()) !== toolchain) {
+                        throw new AiBridgeError('STALE_INPUT', 'The sketch, profile or toolchain changed during library installation. Request fresh context before another operation.');
+                    }
+                };
+                progress({ message: 'Checking the requested library and installation scope...' });
+                assertCurrent();
+                const result = await dependencies.install(target, input.library!, input.version!, signal, progress, assertCurrent);
+                // Installation is not transactional. Preserve any observed changes even
+                // if context changes immediately after the service returns its result.
+                if (result.status === 'success') {
+                    try { assertCurrent(); } catch (error) {
+                        const issue = error instanceof AiBridgeError ? error : new AiBridgeError('STALE_INPUT', 'The installation context changed. Request fresh context before another operation.');
+                        result.status = issue.code === 'CANCELED' ? 'canceled' : 'failed';
+                        result.error = { code: issue.code, message: issue.message };
+                        result.notes.push('The reported installation state is retained; completed changes have not been rolled back.');
+                    }
+                }
+                return redactForAssistant(result, sensitiveValues);
+            } finally { discoveryPending = false; }
         }
         if (name === 'decode_esp32_backtrace') {
             if (compilePending || discoveryPending) {

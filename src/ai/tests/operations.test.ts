@@ -4,6 +4,7 @@ import { AiBridgeError, AiDiscoveryQuery, AiOperationResult, AiToolInput, AiTool
 import { AiOperationDependencies, createAiOperationHandler } from '../operations';
 import { collectSensitiveValues, redactForAssistant, redactText } from '../redaction';
 import type { BacktraceDecodeResult } from '../backtrace';
+import type { LibraryInstallationResult } from '../libraryInstallation';
 
 function fixture(overrides: Partial<AiOperationDependencies> = {}) {
     const target: ProjectInspection = {
@@ -29,6 +30,7 @@ function fixture(overrides: Partial<AiOperationDependencies> = {}) {
         hasUnsavedSketchDocuments: () => false, revision: () => 0,
         compile: async () => { compiles++; return result(); },
         decode: async () => { throw new Error('Unexpected decoder invocation.'); },
+        install: async () => { throw new Error('Unexpected library installation.'); },
         discover: async () => ({ boards: [], password: 'hidden' }),
         query: async () => ({ installed_libraries: [] }),
         invalidateBuild: () => { invalidated++; }, ...overrides,
@@ -413,6 +415,144 @@ function decoded(target: ProjectInspection): BacktraceDecodeResult {
         frames: [{ address: '0x40001234', functionName: 'private password', file: '/sketch/sketch.ino', line: 7 }],
         stdout: 'private password', stderr: '', truncated: false, durationMs: 1, notes: [] };
 }
+
+function installed(target: ProjectInspection): LibraryInstallationResult {
+    return {
+        schemaVersion: 1, status: 'success', outcome: 'installed', scope: 'user_libraries',
+        target: { sketchPath: target.sketchPath, ...(target.resolvedProfile ? { profile: target.resolvedProfile } : {}) },
+        library: 'Sensor Library', version: '2.0.0', previousVersions: ['1.0.0'], installedVersions: ['2.0.0'],
+        changesMayHaveOccurred: true,
+        changes: { added: [{ name: 'Sensor Library', version: '2.0.0' }], removed: [{ name: 'Sensor Library', version: '1.0.0' }], complete: true },
+        exitCode: 0, stdout: 'private password', stderr: '', truncated: false, durationMs: 1, notes: ['private password'],
+    };
+}
+
+const installationInput = { sketchPath: '/sketch', library: 'Sensor Library', version: '2.0.0' };
+
+test('installation routes exact package, version and profile and redacts structured completion', async () => {
+    let installs = 0;
+    const f = fixture({ install: async (target, library, version, _signal, progress, assertCurrent) => {
+        installs++;
+        assert.equal(library, 'Sensor Library');
+        assert.equal(version, '2.0.0');
+        assert.equal(target.resolvedProfile, 'release');
+        assertCurrent();
+        progress({ message: 'Installing the requested indexed library.' });
+        return installed(target);
+    } });
+    f.target.resolvedProfile = 'release';
+    const inspected: unknown[] = [];
+    f.dependencies.inspect = input => { inspected.push(input); return f.target; };
+    const messages: string[] = [];
+    const result = await f.handler('install_library', { ...installationInput, profile: 'release' }, new AbortController().signal,
+        value => messages.push(value.message)) as LibraryInstallationResult;
+    assert.equal(result.status, 'success');
+    assert.equal(result.target.profile, 'release');
+    assert.equal(result.scope, 'user_libraries');
+    assert.deepEqual(result.installedVersions, ['2.0.0']);
+    assert.equal(result.stdout, '<redacted>');
+    assert.deepEqual(result.notes, ['<redacted>']);
+    assert.ok(inspected.every(input => JSON.stringify(input) === JSON.stringify({ sketchPath: '/sketch', profile: 'release' })));
+    assert.ok(messages.includes('Installing the requested indexed library.'));
+    assert.equal(installs, 1);
+    assert.equal(f.compiles(), 0);
+});
+
+test('installation does not require a board but enforces readiness, trust, dirty files and cancellation', async () => {
+    const f = fixture({ install: async target => installed(target) });
+    f.target.fqbn = undefined;
+    f.target.canCompile = false;
+    f.target.issues = [{ code: 'FQBN_REQUIRED', message: 'Select a board before compiling.' }];
+    assert.equal((await f.handler('install_library', installationInput, new AbortController().signal, () => {}) as LibraryInstallationResult).status, 'success');
+    for (const [overrides, expected] of [
+        [{ isTrusted: () => false }, 'WORKSPACE_UNTRUSTED'], [{ isReady: () => false }, 'CLI_NOT_READY'],
+        [{ hasUnsavedSketchDocuments: () => true }, 'UNSAVED_DOCUMENTS'],
+    ] as [Partial<AiOperationDependencies>, string][]) {
+        const blocked = fixture({ ...overrides, install: async () => assert.fail('Installation must not execute.') });
+        await assert.rejects(blocked.handler('install_library', installationInput, new AbortController().signal, () => {}), code(expected));
+    }
+    const controller = new AbortController(); controller.abort();
+    await assert.rejects(f.handler('install_library', installationInput, controller.signal, () => {}), code('CANCELED'));
+});
+
+test('installation holds the shared operation lock until cancellation or failure completes', async () => {
+    let finish!: () => void;
+    const controller = new AbortController();
+    const f = fixture({ install: async target => {
+        await new Promise<void>(resolve => { finish = resolve; });
+        return installed(target);
+    } });
+    const pending = f.handler('install_library', installationInput, controller.signal, () => {});
+    await assert.rejects(call(f), code('BUSY'));
+    await assert.rejects(call(f, 'list_ports'), code('BUSY'));
+    await assert.rejects(f.handler('decode_esp32_backtrace', { sketchPath: '/sketch', log: 'PC: 0x40001234' }, new AbortController().signal, () => {}), code('BUSY'));
+    await assert.rejects(f.handler('install_library', installationInput, new AbortController().signal, () => {}), code('BUSY'));
+    await call(f, 'get_project_context');
+    controller.abort(); finish();
+    const canceled = await pending as LibraryInstallationResult;
+    assert.equal(canceled.status, 'canceled');
+    assert.equal(canceled.error?.code, 'CANCELED');
+    assert.deepEqual(canceled.installedVersions, ['2.0.0'], 'Cancellation cannot erase observed installed files.');
+    f.dependencies.install = async () => { throw new AiBridgeError('LIBRARY_NOT_FOUND', 'No indexed package matched.'); };
+    await assert.rejects(f.handler('install_library', installationInput, new AbortController().signal, () => {}), code('LIBRARY_NOT_FOUND'));
+    assert.equal((await call(f) as AiOperationResult).status, 'success');
+
+    const compile = f.dependencies.compile;
+    f.dependencies.compile = async (...args) => { await new Promise<void>(resolve => { finish = resolve; }); return compile(...args); };
+    const compiling = call(f);
+    await assert.rejects(f.handler('install_library', installationInput, new AbortController().signal, () => {}), code('BUSY'));
+    finish(); await compiling;
+});
+
+test('installation guard rejects context changes at asynchronous preflight boundaries before mutation', async () => {
+    for (const change of ['source', 'profile', 'toolchain', 'active', 'trust', 'dirty', 'readiness', 'cancellation']) {
+        let revision = 0, trusted = true, dirty = false, ready = true, version = 'initial', active = '/sketch', mutations = 0;
+        const controller = new AbortController();
+        const f = fixture({ revision: () => revision, isTrusted: () => trusted, hasUnsavedSketchDocuments: () => dirty,
+            cliInfo: () => ({ executable: '/tools/cli', version }), activeSketchPath: () => active, isReady: () => ready });
+        f.dependencies.inspect = () => ({ ...f.target });
+        f.dependencies.install = async (target, _library, _version, _signal, _progress, assertCurrent) => {
+            await Promise.resolve();
+            if (change === 'source') { revision++; }
+            if (change === 'profile') { f.target.fingerprint = 'changed'; }
+            if (change === 'toolchain') { version = 'changed'; }
+            if (change === 'active') { active = '/other-sketch'; }
+            if (change === 'trust') { trusted = false; }
+            if (change === 'dirty') { dirty = true; }
+            if (change === 'readiness') { ready = false; }
+            if (change === 'cancellation') { controller.abort(); }
+            assertCurrent();
+            mutations++;
+            return installed(target);
+        };
+        const expected = change === 'trust' ? 'WORKSPACE_UNTRUSTED' : change === 'dirty' ? 'UNSAVED_DOCUMENTS'
+            : change === 'readiness' ? 'CLI_NOT_READY' : change === 'cancellation' ? 'CANCELED' : 'STALE_INPUT';
+        await assert.rejects(f.handler('install_library', installationInput, controller.signal, () => {}), code(expected));
+        assert.equal(mutations, 0);
+    }
+});
+
+test('installation completion preserves mutation facts when source, trust or saved documents change', async () => {
+    for (const change of ['source', 'trust', 'dirty']) {
+        let revision = 0, trusted = true, dirty = false;
+        const f = fixture({ revision: () => revision, isTrusted: () => trusted, hasUnsavedSketchDocuments: () => dirty });
+        f.dependencies.install = async target => {
+            if (change === 'source') { revision++; }
+            if (change === 'trust') { trusted = false; }
+            if (change === 'dirty') { dirty = true; }
+            return installed(target);
+        };
+        const result = await f.handler('install_library', installationInput, new AbortController().signal, () => {}) as LibraryInstallationResult;
+        assert.equal(result.status, 'failed');
+        assert.equal(result.error?.code, change === 'trust' ? 'WORKSPACE_UNTRUSTED' : change === 'dirty' ? 'UNSAVED_DOCUMENTS' : 'STALE_INPUT');
+        assert.equal(result.outcome, 'installed');
+        assert.equal(result.changesMayHaveOccurred, true);
+        assert.deepEqual(result.changes.added, [{ name: 'Sensor Library', version: '2.0.0' }]);
+        assert.deepEqual(result.installedVersions, ['2.0.0']);
+        assert.match(result.notes.at(-1)!, /not been rolled back/);
+        assert.equal(f.compiles(), 0);
+    }
+});
 
 test('decoding uses the requested profile without compilation and redacts returned frame details', async () => {
     let decodedLog: string | undefined;
