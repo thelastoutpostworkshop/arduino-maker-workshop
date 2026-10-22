@@ -50,6 +50,7 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
     const calls: { executable: string; args: string[]; options: ProcessOptions }[] = [];
     const cancelListeners = new Set<() => void>();
     let cancellationRequested = false;
+    let verboseCompile: boolean | undefined;
     let invalidations = 0;
     let saves = 0;
     let onViewText: ((text: string) => void) | undefined;
@@ -80,7 +81,10 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
         },
         arduinoYaml: { status: () => 'inactive', getProfileName: () => 'uno' }
     };
-    class CLIArguments { getBuildPath() { return path.join(sketch, 'selected-ui-build'); } }
+    class CLIArguments {
+        getBuildPath() { return path.join(sketch, 'selected-ui-build'); }
+        getVerboseOption() { return verboseCompile ?? true; }
+    }
     const dependencies: Record<string, unknown> = {
         vscode: {
             workspace, ProgressLocation: { Notification: 15 },
@@ -128,6 +132,7 @@ function host(t: TestContext, compiler = 'process.stdout.write("compiled\\n");')
         invalidations: () => invalidations, saves: () => saves,
         onViewText: (callback: (text: string) => void) => { onViewText = callback; },
         onPrepare: (callback: () => void) => { onPrepare = callback; },
+        setVerboseCompile: (value: boolean | undefined) => { verboseCompile = value; },
         setDiscovery: (result: Partial<ProcessResult>) => { discovery = { ...discovery, ...result }; },
         cancelUi: () => { cancellationRequested = true; for (const listener of [...cancelListeners]) { listener(); } }
     };
@@ -141,7 +146,7 @@ test('actual extension compile returns structured success, visible progress and 
     assert.equal(result.stdout, 'compiled\n');
     assert.match(result.operationId, /^[0-9a-f-]{36}$/);
     assert.equal(f.calls[0].executable, process.execPath);
-    assert.deepEqual(f.calls[0].args, f.target().compileArgs);
+    assert.deepEqual(f.calls[0].args, result.target.compileArgs);
     assert.equal(f.marker().result, true);
     assert.equal(f.marker().fingerprint, f.target().fingerprint);
     assert.equal(f.statuses.at(-1)?.state, 'success');
@@ -152,6 +157,27 @@ test('actual extension compile returns structured success, visible progress and 
     assert.equal(f.invalidations(), 0, 'assistant completion must not invoke the legacy profile-persisting state renderer');
     assert.equal(fs.readFileSync(f.configurationPath, 'utf8'), f.configuration);
     assert.equal(fs.existsSync(path.join(f.sketch, '.vscode', 'c_cpp_properties.json')), false, 'different target must not update UI IntelliSense');
+});
+
+test('actual extension compile follows the verbose preference for every request without changing the inspected plan', async (t) => {
+    const f = host(t, 'process.stdout.write(JSON.stringify(process.argv.slice(2))+"\\n");');
+    const target = f.target();
+    const inspectedArgs = [...target.compileArgs];
+    const fingerprint = target.fingerprint;
+    for (const setting of [undefined, false, true, false]) {
+        f.setVerboseCompile(setting);
+        const result = await f.compile(undefined, target);
+        assert.equal(result.status, 'success', JSON.stringify(result));
+        const expectedArgs = [...inspectedArgs];
+        if (setting !== false) { expectedArgs.splice(1, 0, '-v'); }
+        assert.deepEqual(f.calls.at(-1)?.args, expectedArgs);
+        assert.deepEqual(f.commands.at(-1), expectedArgs);
+        assert.deepEqual(result.target.compileArgs, expectedArgs);
+        assert.deepEqual(JSON.parse(result.stdout), expectedArgs.slice(1));
+        assert.equal(result.target.fingerprint, fingerprint);
+        assert.deepEqual(target.compileArgs, inspectedArgs, 'execution options must not mutate the inspected plan');
+        assert.equal(target.fingerprint, fingerprint);
+    }
 });
 
 test('actual extension compile preserves compiler errors and marks failure', async (t) => {
@@ -174,7 +200,7 @@ test('actual extension compiles an explicit profile without persisting that sele
     const target = inspectProject({ sketchPath: f.sketch, profile: 'nano' }, f.sketch);
     const result = await f.compile(undefined, target);
     assert.equal(result.status, 'success');
-    assert.deepEqual(JSON.parse(result.stdout), target.compileArgs.slice(1));
+    assert.deepEqual(JSON.parse(result.stdout), result.target.compileArgs.slice(1));
     assert.equal(target.resolvedProfile, 'nano');
     assert.equal(f.marker(target).result, true);
     assert.equal(fs.readFileSync(f.configurationPath, 'utf8'), f.configuration);

@@ -76,6 +76,10 @@ automatically.
 
 ## Compilation approval
 
+AI compilation follows the **Verbose Compile** setting
+(`arduinoMakerWorkshop.verboseCompile`), just like manual compilation. Changes
+apply to the next compile. The AI bridge's output size limits still apply.
+
 **Ask before AI compilation** is on by default on the **AI integration** page.
 When on, each AI compile opens a VS Code approval dialog showing the sketch,
 FQBN, profile, output directory, and whether a clean build was requested.

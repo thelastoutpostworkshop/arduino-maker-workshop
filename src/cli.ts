@@ -457,6 +457,11 @@ export class ArduinoCLI {
 		});
 		if (dirtySketchDocument) { return empty('invalid', 'UNSAVED_DOCUMENTS', 'Save the sketch documents before compiling. Other files will not be saved.'); }
 
+		// Verbosity comes from the same VS Code setting as manual compilation.
+		// Apply it to a copy after validating the plan; it does not change build inputs.
+		target = { ...target, compileArgs: [...target.compileArgs] };
+		if (this.cliArgs.getVerboseOption()) { target.compileArgs.splice(1, 0, '-v'); }
+
 		this.compileOrUploadRunning = true;
 		const controller = new AbortController();
 		const abort = () => controller.abort();
