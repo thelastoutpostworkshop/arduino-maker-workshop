@@ -3,7 +3,6 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { AiIntegrationState, AiSetupClient } from '../shared/messages';
 import { setupAiClient } from './clientSetup';
-import { requiresAiCompileConfirmation } from './compileApproval';
 import { AiBridgeError, AiToolHandler } from './contracts';
 import { createAiIpcServer } from './ipcServer';
 
@@ -29,7 +28,6 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
     let disposed = false;
     let nativeMcpAvailable = false;
     let setupBusy = false;
-    let approvalWrites = 0;
     let disabledLocally = false;
     let pendingPreference: { enabled: boolean; id: number } | undefined;
     let preferenceId = 0;
@@ -39,15 +37,12 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
     const launcherArguments = () => [launcherPath, '--session-dir', path.dirname(launcherPath)];
     const changes = new vscode.EventEmitter<void>();
     const subscriptions: vscode.Disposable[] = [changes];
-    const confirmCompile = () => requiresAiCompileConfirmation(vscode.workspace.getConfiguration('arduinoMakerWorkshop'));
-    const readyMessage = () => confirmCompile()
-        ? 'AI integration is ready. VS Code will ask before AI compilation.'
-        : 'AI integration is ready. AI compilation can run without the extension confirmation dialog.';
-    let state: AiIntegrationState = { enabled: false, confirmCompile: confirmCompile(), status: 'disabled', message: 'AI integration is disabled.', nativeMcpAvailable };
+    const readyMessage = 'AI integration is ready. AI operations run without extension approval prompts.';
+    let state: AiIntegrationState = { enabled: false, status: 'disabled', message: 'AI integration is disabled.', nativeMcpAvailable };
     const getState = () => ({ ...state });
-    const publish = (next: Omit<AiIntegrationState, 'nativeMcpAvailable' | 'confirmCompile'>) => {
+    const publish = (next: Omit<AiIntegrationState, 'nativeMcpAvailable'>) => {
         if (disposed) { return; }
-        state = { ...next, confirmCompile: confirmCompile(), nativeMcpAvailable, busy: setupBusy || approvalWrites > 0 || next.status === 'connecting' };
+        state = { ...next, nativeMcpAvailable, busy: setupBusy || next.status === 'connecting' };
         options.onStateChanged?.(getState());
     };
     const configuredEnabled = () => !disabledLocally && (pendingPreference?.enabled ??
@@ -99,7 +94,7 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
                 if (disposed || revision !== generation) { continue; }
                 if (!current.sketchPath) { publish(current); continue; }
                 if (session && sessionSketch === current.sketchPath) {
-                    publish({ enabled: true, status: 'ready', message: readyMessage() });
+                    publish({ enabled: true, status: 'ready', message: readyMessage });
                     continue;
                 }
                 if (failedGeneration === revision) { continue; }
@@ -124,7 +119,7 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
                 session = created;
                 sessionSketch = current.sketchPath;
                 changes.fire();
-                publish({ enabled: true, status: 'ready', message: readyMessage() });
+                publish({ enabled: true, status: 'ready', message: readyMessage });
             } catch (error) {
                 if (!disposed && revision === generation) {
                     failedGeneration = revision;
@@ -194,7 +189,7 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
             '',
             'Enable AI Integration once on the AI Integration page in Arduino Maker Workshop. This computer remembers your choice and automatically connects trusted local sketch windows after Arduino CLI is ready. Disable AI Integration to revoke access and stop future automatic connections.',
             '',
-            `Ask before AI compilation is currently ${confirmCompile() ? 'on: VS Code asks before each AI compile' : 'off: AI compilation can run without the extension confirmation dialog'}. Change this remembered switch on the AI Integration page. It defaults to on. Turning it off permits installed board-package recipes to run and dependencies to download in trusted workspaces; AI client permissions still apply.`,
+            'AI operations run without extension approval prompts in trusted local workspaces. Compilation runs installed board-package recipes, writes build files, and may download dependencies. Your AI client controls its own tool permissions.',
             '',
             'Set up each AI client once using the buttons on the AI Integration page, or run Arduino Maker Workshop: Set Up AI Client from the Command Palette. The Codex and Claude Code buttons update only the Arduino Maker Workshop entry in your user configuration. Copilot uses the extension\'s native MCP registration on supported VS Code versions.',
             '',
@@ -223,7 +218,7 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
             '',
             '3. Save the file. In the desktop app, open Settings > MCP servers and restart Arduino Maker Workshop. Restart the IDE extension or CLI session if using those clients.',
             '',
-            'The block already includes tool_timeout_sec = 900 to allow time for approval and compilation. It is a separate configuration setting, not an argument. Do not paste this TOML block into an Arguments field.',
+            'The block already includes tool_timeout_sec = 900 to allow time for compilation. It is a separate configuration setting, not an argument. Do not paste this TOML block into an Arguments field.',
             '',
             '[Official OpenAI MCP setup instructions](https://learn.chatgpt.com/docs/extend/mcp#connect-an-existing-mcp-server)',
             '',
@@ -257,7 +252,7 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
             ...args.flatMap((argument, index) => [`Argument ${index + 1}:`, '', '```text', argument, '```', '']),
             'Save and restart the server. Set tool_timeout_sec = 900 separately in its config.toml table as shown in the Codex section; it is not a fourth argument.',
             '', '## Check the connection',
-            '', 'Ask the assistant: "List connected Arduino Maker Workshop sketches, then inspect the sketch I choose and report its selected board or profile." Once that works, ask it to compile. If Ask before AI compilation is on, approve the request in VS Code.',
+            '', 'Ask the assistant: "List connected Arduino Maker Workshop sketches, then inspect the sketch I choose and report its selected board or profile." Once that works, ask it to compile. Compilation starts without an extension approval prompt.',
             '', '## Updating an existing AI connection',
             '', 'If your saved entry uses --sketch or --session, update that entry using the matching configuration block above, then restart its MCP server once. The new args contain only the launcher path, --session-dir, and the bridge storage folder. Future sketch changes reuse this entry.',
             '', '## Next time you open a sketch',
@@ -299,32 +294,6 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
             if (pendingPreference === preference) { pendingPreference = undefined; }
             await refresh();
             if (failure) { publish({ ...state, message: failure.message }); }
-        }
-        return getState();
-    };
-    const setCompileApproval = async (enabled: unknown) => {
-        if (typeof enabled !== 'boolean') {
-            throw new AiBridgeError('INVALID_ARGUMENTS', 'Ask before AI compilation must be on or off.');
-        }
-        if (disposed) { return getState(); }
-        approvalWrites++;
-        publish(state);
-        // Read the persisted value throughout the write; a pending opt-out grants no permission.
-        const write = preferenceWrites.then(async () => {
-            if (!disposed) {
-                await vscode.workspace.getConfiguration('arduinoMakerWorkshop').update('ai.confirmCompile', enabled, vscode.ConfigurationTarget.Global);
-            }
-        });
-        preferenceWrites = write.catch(() => {});
-        let failure: AiBridgeError | undefined;
-        try {
-            await write;
-        } catch {
-            failure = new AiBridgeError('SETTINGS_UPDATE_FAILED', 'Could not save Ask before AI compilation. Check that your VS Code user settings are writable and retry. The saved preference is still in effect.');
-            throw failure;
-        } finally {
-            approvalWrites--;
-            publish({ ...state, message: failure?.message ?? (state.status === 'ready' ? readyMessage() : state.message) });
         }
         return getState();
     };
@@ -388,7 +357,6 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
     register('getAiIntegrationState', getState);
     register('enableAiIntegration', () => setEnabled(true));
     register('disableAiIntegration', () => setEnabled(false));
-    register('setAiCompileApproval', setCompileApproval);
     register('connectAiAssistant', () => setEnabled(true));
     register('disconnectAiAssistant', () => setEnabled(false));
     register('setupAiClient', setupClient);
@@ -397,9 +365,6 @@ export function registerAiConnection(context: vscode.ExtensionContext, options: 
         if (event.affectsConfiguration('arduinoMakerWorkshop.ai.enabled')) {
             if (!pendingPreference) { disabledLocally = false; }
             void refresh();
-        }
-        if (event.affectsConfiguration('arduinoMakerWorkshop.ai.confirmCompile')) {
-            publish({ ...state, message: state.status === 'ready' ? readyMessage() : state.message });
         }
     }));
     subscriptions.push(vscode.workspace.onDidGrantWorkspaceTrust(() => { void refresh(); }));

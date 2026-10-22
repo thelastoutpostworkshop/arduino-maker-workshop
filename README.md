@@ -60,10 +60,10 @@ Home shows a short status summary and a link to the AI integration page. Turn
 revoke access across windows in the same profile; saved client entries stay intact.
 
 Assistants can inspect projects, discover boards/ports, and request compilation.
-**Ask before AI compilation** is on by default. Turn it off on the AI integration
-page to run AI compilations automatically in trusted workspaces, including clean
-builds. This preference is remembered across restarts; your AI client may still
-ask for its own approval. Upload and serial tools are not exposed.
+AI operations run automatically in trusted local workspaces while the integration
+is enabled, including normal and clean compilation. The extension does not ask
+for approval; your AI client's own tool permissions still apply. Upload and
+serial tools are not exposed.
 Ask the assistant to list available sketches and inspect the one you choose.
 See [AI assistant setup and limitations](AI_ASSISTANTS.md) for details and manual
 configuration alternatives.

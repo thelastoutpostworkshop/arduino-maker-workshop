@@ -21,11 +21,6 @@ const aiAvailability = computed(() => {
     default: return 'Checking availability...';
   }
 });
-const aiApprovalSummary = computed(() => !store.aiIntegration ? 'Loading AI preferences...' :
-  store.aiIntegration.confirmCompile !== false
-    ? 'AI compile approval: ask each time in VS Code.'
-    : 'AI compile approval: automatic in trusted local workspaces.'
-);
 const portSelected = ref('');
 const shouldSyncPort = ref(false);
 const sketchName = ref("");
@@ -375,7 +370,7 @@ onMounted(() => {
               <v-icon icon="mdi-robot-outline" aria-hidden="true" />
               <div class="flex-grow-1">
                 <div class="text-subtitle-1">AI integration: {{ aiAvailability }}</div>
-                <div class="text-body-2 text-medium-emphasis">{{ aiApprovalSummary }}</div>
+                <div class="text-body-2 text-medium-emphasis">Let assistants inspect and compile your Arduino projects.</div>
               </div>
               <v-btn variant="text" :to="{ name: 'ai-integration' }" data-testid="ai-manage">
                 Manage AI integration

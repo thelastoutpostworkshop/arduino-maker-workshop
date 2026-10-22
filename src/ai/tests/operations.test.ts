@@ -19,7 +19,7 @@ function fixture(overrides: Partial<AiOperationDependencies> = {}) {
     const dependencies: AiOperationDependencies = {
         isTrusted: () => true, activeSketchPath: () => '/sketch', isReady: () => true,
         inspect: () => target, cliInfo: () => ({ executable: '/tools/arduino-cli', version: 'test' }),
-        hasUnsavedSketchDocuments: () => false, revision: () => 0, confirmCompile: async () => true,
+        hasUnsavedSketchDocuments: () => false, revision: () => 0,
         compile: async () => { compiles++; return result(); },
         discover: async () => ({ boards: [], password: 'hidden' }),
         invalidateBuild: () => { invalidated++; }, ...overrides,
@@ -53,77 +53,77 @@ test('backend allowlist, trust, readiness, scope and pre-cancellation reject bef
     await assert.rejects(call(fixture(), 'compile_sketch', abort.signal), code('CANCELED'));
 });
 
-test('discovery returns sanitized structured data and never requests compilation consent', async () => {
-    const f = fixture({ confirmCompile: async () => { throw new Error('must not prompt'); } });
+test('discovery returns sanitized structured data without starting compilation', async () => {
+    const f = fixture();
     assert.deepEqual(await call(f, 'list_ports'), { boards: [], password: '<redacted>' });
     assert.equal(f.compiles(), 0);
 });
 
-test('compile returns structured completion after approval with bounded output redaction', async () => {
-    const f = fixture();
-    const result = await call(f) as AiOperationResult;
-    assert.equal(result.status, 'success');
-    assert.equal(result.exitCode, 0);
-    assert.equal(f.compiles(), 1);
-    assert.ok(!JSON.stringify(result).includes('private password'));
+test('normal and clean compilation start automatically and return redacted completion', async () => {
+    for (const clean of [false, true]) {
+        const f = fixture();
+        const inspect = f.dependencies.inspect;
+        f.dependencies.inspect = (input, activePath) => {
+            assert.equal(input.clean, clean);
+            return inspect(input, activePath);
+        };
+        const compiling = f.handler('compile_sketch', { sketchPath: '/sketch', clean }, new AbortController().signal, () => {});
+        assert.equal(f.compiles(), 1, 'compilation must start without waiting for approval');
+        const result = await compiling as AiOperationResult;
+        assert.equal(result.status, 'success');
+        assert.equal(result.exitCode, 0);
+        assert.ok(!JSON.stringify(result).includes('private password'));
+    }
 });
 
-test('declined, dirty and invalid targets never execute', async () => {
-    const declined = fixture({ confirmCompile: async () => false });
-    await assert.rejects(call(declined), code('CANCELED'));
+test('dirty and invalid targets never execute', async () => {
     const dirty = fixture({ hasUnsavedSketchDocuments: () => true });
     await assert.rejects(call(dirty), code('UNSAVED_DOCUMENTS'));
     const invalid = fixture(); invalid.target.canCompile = false;
     await assert.rejects(call(invalid), code('INVALID_TARGET'));
-    assert.equal(declined.compiles() + dirty.compiles() + invalid.compiles(), 0);
+    assert.equal(dirty.compiles() + invalid.compiles(), 0);
 });
 
-test('target and executable changes while awaiting approval invalidate the request', async () => {
+test('target and executable changes during preflight invalidate the request', async () => {
     const changed = fixture();
-    changed.dependencies.confirmCompile = async () => { changed.target.fingerprint = 'changed'; return true; };
     // Return immutable inspection snapshots as the real inspector does.
     const original = { ...changed.target };
+    changed.target.fingerprint = 'changed';
     let inspections = 0;
     changed.dependencies.inspect = () => ++inspections === 1 ? original : changed.target;
     await assert.rejects(call(changed), code('STALE_TARGET'));
     const executable = fixture();
-    let approved = false;
-    executable.dependencies.confirmCompile = async () => { approved = true; return true; };
-    executable.dependencies.cliInfo = () => ({ executable: approved ? '/other' : '/tools', version: 'test' });
+    let toolchainReads = 0;
+    executable.dependencies.cliInfo = () => ({ executable: ++toolchainReads === 1 ? '/tools' : '/other', version: 'test' });
     await assert.rejects(call(executable), code('STALE_TARGET'));
+    assert.equal(changed.compiles() + executable.compiles(), 0);
 });
 
-test('cancellation and lost trust during approval cannot start compilation', async () => {
+test('cancellation and lost trust during preflight cannot start compilation', async () => {
     const abort = new AbortController();
-    const canceled = fixture({ confirmCompile: async () => { abort.abort(); return true; } });
-    await assert.rejects(call(canceled, 'compile_sketch', abort.signal), code('CANCELED'));
+    const canceled = fixture();
+    await assert.rejects(canceled.handler('compile_sketch', { sketchPath: '/sketch' }, abort.signal, () => abort.abort()), code('CANCELED'));
     let trusted = true;
-    const revoked = fixture({ isTrusted: () => trusted, confirmCompile: async () => { trusted = false; return true; } });
-    await assert.rejects(call(revoked), code('WORKSPACE_UNTRUSTED'));
+    const revoked = fixture({ isTrusted: () => trusted });
+    await assert.rejects(revoked.handler('compile_sketch', { sketchPath: '/sketch' }, new AbortController().signal, () => { trusted = false; }), code('WORKSPACE_UNTRUSTED'));
+    assert.equal(canceled.compiles() + revoked.compiles(), 0);
 });
 
-test('cancel settles an unresolved approval and a late approval never executes', async () => {
-    const abort = new AbortController();
-    let approve!: (value: boolean) => void;
-    const f = fixture({ confirmCompile: () => new Promise(resolve => { approve = resolve; }) });
-    const waiting = call(f, 'compile_sketch', abort.signal);
-    abort.abort();
-    await assert.rejects(waiting, code('CANCELED'));
-    approve(true);
-    await Promise.resolve();
-    assert.equal(f.compiles(), 0);
-    f.dependencies.confirmCompile = async () => true;
-    assert.equal((await call(f) as AiOperationResult).status, 'success');
-});
-
-test('concurrent compiles are rejected while consent is pending and lock is released', async () => {
-    let approve!: (value: boolean) => void;
-    const f = fixture({ confirmCompile: () => new Promise(resolve => { approve = resolve; }) });
+test('concurrent compiles are rejected while compilation is running and lock is released', async () => {
+    let finish!: () => void;
+    const f = fixture();
+    const compile = f.dependencies.compile;
+    f.dependencies.compile = async (...args) => {
+        await new Promise<void>(resolve => { finish = resolve; });
+        return compile(...args);
+    };
     const pending = call(f);
     await assert.rejects(call(f), code('BUSY'));
-    approve(false);
-    await assert.rejects(pending, code('CANCELED'));
-    f.dependencies.confirmCompile = async () => true;
+    finish();
+    assert.equal((await pending as AiOperationResult).status, 'success');
+    f.dependencies.compile = async () => { throw new Error('compiler failed'); };
+    await assert.rejects(call(f), /compiler failed/);
+    f.dependencies.compile = compile;
     assert.equal((await call(f) as AiOperationResult).status, 'success');
 });
 

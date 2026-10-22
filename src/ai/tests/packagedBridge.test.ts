@@ -19,7 +19,6 @@ async function fixture() {
     await fs.writeFile(path.join(sketchPath, '.vscode', 'arduino.json'), JSON.stringify({ board: 'arduino:avr:uno' }));
     const launcher = path.join(directory, 'standalone-launcher.cjs');
     await fs.copyFile(path.join(process.cwd(), 'build', 'aiBridge.cjs'), launcher);
-    let approval = true;
     let mode: 'success' | 'failure' | 'waiting' = 'success';
     let compiles = 0;
     let activeCompile: ReturnType<typeof runProcess> | undefined;
@@ -28,7 +27,7 @@ async function fixture() {
     const handler = createAiOperationHandler({
         isTrusted: () => true, activeSketchPath: () => sketchPath, isReady: () => true,
         inspect: inspectProject, cliInfo: () => ({ executable: 'simulated-arduino-cli', version: 'test' }),
-        hasUnsavedSketchDocuments: () => false, revision: () => 0, confirmCompile: async () => approval,
+        hasUnsavedSketchDocuments: () => false, revision: () => 0,
         discover: async kind => ({ kind, entries: [] }), invalidateBuild: () => {},
         compile: async (target, signal, progress) => {
             compiles++;
@@ -74,7 +73,7 @@ async function fixture() {
     send({ jsonrpc: '2.0', method: 'notifications/initialized' });
     return {
         sketchPath, request, send, notifications, startedPromise, input: child.stdin,
-        approval: (value: boolean) => { approval = value; }, mode: (value: typeof mode) => { mode = value; },
+        mode: (value: typeof mode) => { mode = value; },
         compiles: () => compiles,
         compileResult: () => activeCompile,
         waitForExit: async () => {
@@ -113,10 +112,11 @@ test('standalone packaged bridge reaches extension operations and reports compil
         assert.equal(failure.result.isError, true);
         assert.equal(failure.result.structuredContent.exitCode, 2);
         assert.match(failure.result.structuredContent.stderr, /fixture compile failure/);
-        f.approval(false);
-        const declined = await f.request(6, 'tools/call', { name: 'compile_sketch', arguments: { sketchPath: f.sketchPath } });
-        assert.equal(declined.result.structuredContent.error.code, 'CANCELED');
-        assert.equal(f.compiles(), 2);
+        f.mode('success');
+        const clean = await f.request(6, 'tools/call', { name: 'compile_sketch', arguments: { sketchPath: f.sketchPath, clean: true } });
+        assert.equal(clean.result.structuredContent.status, 'success');
+        assert.ok(clean.result.structuredContent.target.compileArgs.includes('--clean'));
+        assert.equal(f.compiles(), 3);
         assert.equal((await f.request(7, 'tools/call', { name: 'upload', arguments: { sketchPath: f.sketchPath } })).error.code, -32602);
     } finally { await f.close(); }
 });

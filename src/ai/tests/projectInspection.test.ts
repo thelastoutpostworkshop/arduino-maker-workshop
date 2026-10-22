@@ -270,22 +270,18 @@ test('additional Arduino source files are tracked through creation, edits and de
     }
 });
 
-test('header edits during assistant approval or compilation reject stale builds', async (t) => {
+test('header edits during assistant preflight or compilation reject stale builds', async (t) => {
     const f = fixture(t);
     f.config({ board: 'arduino:avr:uno' });
     const source = path.join(f.sketch, 'helper.hh');
     fs.writeFileSync(source, 'before\n');
-    let changeDuringApproval = true;
+    let changeDuringPreflight = true;
     let compiles = 0;
     let invalidations = 0;
     const handler = createAiOperationHandler({
         isTrusted: () => true, activeSketchPath: () => f.sketch, isReady: () => true,
         inspect: inspectProject, cliInfo: () => ({ executable: 'simulated-arduino-cli', version: 'test' }),
         hasUnsavedSketchDocuments: () => false, revision: () => 0,
-        confirmCompile: async () => {
-            if (changeDuringApproval) { fs.appendFileSync(source, 'changed during approval\n'); }
-            return true;
-        },
         compile: async target => {
             compiles++;
             fs.appendFileSync(source, 'changed during compilation\n');
@@ -296,11 +292,13 @@ test('header edits during assistant approval or compilation reject stale builds'
         },
         discover: async () => ({}), invalidateBuild: () => { invalidations++; },
     });
-    const compile = () => handler('compile_sketch', { sketchPath: f.sketch }, new AbortController().signal, () => {});
+    const compile = () => handler('compile_sketch', { sketchPath: f.sketch }, new AbortController().signal, () => {
+        if (changeDuringPreflight) { fs.appendFileSync(source, 'changed during preflight\n'); }
+    });
     await assert.rejects(compile(), hasCode('STALE_TARGET'));
-    assert.equal(compiles, 0, 'a changed header must require fresh approval before execution');
+    assert.equal(compiles, 0, 'a changed header must require fresh context before execution');
 
-    changeDuringApproval = false;
+    changeDuringPreflight = false;
     const result = await compile() as AiOperationResult;
     assert.equal(result.status, 'failed');
     assert.equal(result.error?.code, 'STALE_INPUT');

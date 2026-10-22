@@ -30,10 +30,6 @@ function setEnabled(enabled: boolean | null) {
   store.sendMessage({ command: ARDUINO_MESSAGES.AI_SET_ENABLED, errorMessage: '', payload: enabled === true });
 }
 
-function setCompileApproval(confirm: boolean | null) {
-  store.sendMessage({ command: ARDUINO_MESSAGES.AI_SET_COMPILE_APPROVAL, errorMessage: '', payload: confirm !== false });
-}
-
 function setup(client: AiSetupClient) {
   store.sendMessage({ command: ARDUINO_MESSAGES.AI_SETUP_CLIENT, errorMessage: '', payload: client });
 }
@@ -65,7 +61,7 @@ onMounted(() => {
       <v-card rounded="lg">
         <v-card-title>Assistant access</v-card-title>
         <v-card-text>
-          <p class="text-body-2">Let assistants inspect your Arduino projects and request compilation.</p>
+          <p class="text-body-2">Let assistants inspect and compile your Arduino projects without extension approval prompts.</p>
           <v-switch
             :model-value="state?.enabled ?? false"
             :disabled="busy || !state"
@@ -87,36 +83,11 @@ onMounted(() => {
       </v-card>
 
       <v-card rounded="lg" class="mt-6">
-        <v-card-title>Compilation approval</v-card-title>
-        <v-card-text>
-          <v-switch
-            :model-value="state?.confirmCompile ?? true"
-            :disabled="busy || !state"
-            color="success"
-            label="Ask before AI compilation"
-            hide-details
-            data-testid="ai-confirm-compile"
-            @update:model-value="setCompileApproval"
-          />
-          <p class="text-body-2">
-            On: VS Code asks before each AI compile. Off: normal and clean AI compilations run automatically in trusted local workspaces;
-            clean builds may clear build output.
-          </p>
-          <p class="text-body-2 mt-2">
-            Compilation runs installed board-package recipes, writes build files, and may download dependencies.
-          </p>
-          <p class="text-body-2 text-medium-emphasis mt-2">
-            This user preference is remembered across trusted local workspaces. Your AI client's own approval settings still apply.
-          </p>
-        </v-card-text>
-      </v-card>
-
-      <v-card rounded="lg" class="mt-6">
         <v-card-title>Client setup</v-card-title>
         <v-card-text>
           <p class="text-body-2 mb-3">
             Set up your client once. Codex or Claude Code setup updates the selected client's user configuration with automatically generated bridge paths.
-            Copilot uses VS Code's MCP support.
+            Copilot uses VS Code's MCP support. Your AI client's own tool approval settings still apply.
           </p>
           <div class="d-flex flex-wrap ga-2">
             <v-btn :disabled="setupDisabled" variant="tonal" data-testid="ai-setup-codex" @click="setup('codex')">

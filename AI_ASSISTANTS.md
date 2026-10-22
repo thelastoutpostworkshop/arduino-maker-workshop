@@ -74,30 +74,19 @@ them. After a debug restart, an already running client reconnects on its next to
 call once the extension is ready. It never retries an interrupted operation
 automatically.
 
-## Compilation approval
+## Compilation
+
+AI operations run without extension approval dialogs while AI integration is
+enabled in trusted local workspaces. This includes normal and clean compilation.
+Your AI client may still apply its own tool permissions.
 
 AI compilation follows the **Verbose Compile** setting
 (`arduinoMakerWorkshop.verboseCompile`), just like manual compilation. Changes
 apply to the next compile. The AI bridge's output size limits still apply.
 
-**Ask before AI compilation** is on by default on the **AI integration** page.
-When on, each AI compile opens a VS Code approval dialog showing the sketch,
-FQBN, profile, output directory, and whether a clean build was requested.
-
-Turn the switch off to compile automatically in trusted workspaces. This applies
-to normal and clean builds and is remembered across restarts for this computer
-and VS Code profile. Builds execute board-package recipes, write build files,
-and may download dependencies; clean builds may clear the output directory.
-Codex, Claude, or Copilot may still ask for their own tool approval.
-
-The user setting is `arduinoMakerWorkshop.ai.confirmCompile` (default `true`).
-Workspace settings cannot turn off approval. Changing this preference does not
-enable the bridge or affect manual compilation, upload, or serial tools.
-An approval dialog already open must still be answered or canceled; the switch
-applies to subsequent requests. Trust, sketch scope, unsaved-file checks, and
-cancellation checks apply in both modes. A canceled or disconnected request
-cannot execute if an earlier approval dialog is answered later; VS Code may
-leave that dialog visible until you dismiss it.
+Builds execute board-package recipes, write build files, and may download
+dependencies; clean builds may clear the output directory. Trust, sketch scope,
+unsaved-file checks, and cancellation checks still apply.
 
 ## Tools
 
@@ -116,28 +105,28 @@ the transport and extension backend.
 | `get_project_context` | Reads selected/resolved target, FQBN, build plan, CLI identity, and validation issues. Does not repair or rewrite project configuration. |
 | `list_boards` | Runs the extension's `arduino-cli board listall --json`. Does not install or select boards. |
 | `list_ports` | Runs `arduino-cli board list --json`. Does not open a monitor, select a port, or upload. |
-| `compile_sketch` | Executes the inspected compile plan after applying the user's compilation approval preference, and returns structured completion. |
+| `compile_sketch` | Executes the inspected compile plan automatically and returns structured completion. |
 
 There are no upload, reset, erase, bootloader, serial monitor, package installation,
 or arbitrary command tools. Compilation has `readOnlyHint: false`; tool hints are
-not the authorization boundary. Trust and consent are checked in the extension.
+not the authorization boundary. Trust and AI enablement are checked in the extension.
 
 Compile results include a schema version, operation ID, status, target, exit
 code/signal, separate stdout/stderr tails, duration, truncation flag, and a stable
 error code when available. Common statuses are `success`, `failed`, `canceled`,
-`busy`, and `invalid`. Transport or approval failures are MCP error results.
+`busy`, and `invalid`. Transport or operation validation failures are MCP error results.
 Progress is available through MCP progress notifications and the existing UI.
 
 The explicit profile applies only to this operation; it does not change Home's
 selection. The bridge refreshes metadata and checks source sizes/mtimes before and
-after compilation. Changes while approval/build is pending require a fresh request.
+after compilation. Changes while a build is pending require a fresh request.
 It never saves unrelated documents; save dirty sketch documents before compiling.
 IntelliSense is refreshed only when the compiled target still matches Home's target.
 
 ## Client setup
 
-Use the Home setup buttons for automatic configuration. These manual alternatives
-are also available through **Manual setup instructions**. Copy the matching TOML
+Use the AI integration page's setup buttons for automatic configuration. Manual
+alternatives are also available through **Manual setup instructions**. Copy the matching TOML
 or JSON example from your generated document, without the Markdown
 code fences. If the destination file already contains settings, preserve them
 and merge only the `arduino_maker_workshop` server entry. Replace an existing entry
@@ -208,9 +197,8 @@ Save the file, then restart the MCP server or your Codex client. Ask it to call
 path and board or profile before requesting a compile.
 
 `tool_timeout_sec = 900` is a client setting, not a command argument. It allows
-time for VS Code approval and compilation; the default is 60 seconds. Client-side
-tool approval is separate from the extension's **Ask before AI compilation**
-preference. See [official OpenAI MCP setup](https://learn.chatgpt.com/docs/extend/mcp).
+time for compilation; the default is 60 seconds. Codex's own tool permissions
+still apply. See [official OpenAI MCP setup](https://learn.chatgpt.com/docs/extend/mcp).
 
 #### Optional alternative: Codex desktop form
 
@@ -294,9 +282,8 @@ another computer or VS Code storage profile, such as a separate development prof
 - Windows uses a session-specific named pipe; Unix uses a short private temporary
   directory and socket. There is no HTTP listener, remote endpoint, OAuth account,
   or selection of an arbitrary window. Enablement is persistent user consent;
-  compilation approval is requested by default and can be disabled through the
-  user's **Ask before AI compilation** preference. Each project operation requires
-  exactly one live session for its explicit `sketchPath`.
+  AI operations run without additional extension approval. Each project operation
+  requires exactly one live session for its explicit `sketchPath`.
 - The launcher is copied from the package into extension global storage only on
   enabled startup. Its path remains stable across extension upgrades. Session
   descriptors and tokens intentionally change; closed-host descriptors grant no

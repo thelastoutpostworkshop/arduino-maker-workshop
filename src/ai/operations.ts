@@ -9,31 +9,12 @@ export interface AiOperationDependencies {
     cliInfo(): { executable: string; version: string };
     hasUnsavedSketchDocuments(sketchPath: string): boolean;
     revision(): number;
-    confirmCompile(target: ProjectInspection): Promise<boolean>;
     compile(target: ProjectInspection, signal: AbortSignal, progress: (value: OperationProgress) => void): Promise<AiOperationResult>;
     discover(kind: 'boards' | 'ports', signal: AbortSignal): Promise<unknown>;
     invalidateBuild(target: ProjectInspection): void;
 }
 
 const allowedTools: readonly AiToolName[] = ['get_project_context', 'list_boards', 'list_ports', 'compile_sketch'];
-
-function awaitApproval(approval: Promise<boolean>, signal: AbortSignal): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-        const abort = () => {
-            signal.removeEventListener('abort', abort);
-            reject(new AiBridgeError('CANCELED', 'Compilation was canceled before it started.'));
-        };
-        if (signal.aborted) { abort(); return; }
-        signal.addEventListener('abort', abort, { once: true });
-        void approval.then((value) => {
-            signal.removeEventListener('abort', abort);
-            resolve(value);
-        }, (error: unknown) => {
-            signal.removeEventListener('abort', abort);
-            reject(error);
-        });
-    });
-}
 
 /** Authorization is enforced here, independently of any client's tool annotations. */
 export function createAiOperationHandler(dependencies: AiOperationDependencies): AiToolHandler {
@@ -79,10 +60,7 @@ export function createAiOperationHandler(dependencies: AiOperationDependencies):
             if (dependencies.hasUnsavedSketchDocuments(target.sketchPath)) {
                 throw new AiBridgeError('UNSAVED_DOCUMENTS', 'Save the sketch documents in VS Code before compiling. Other files will not be saved.');
             }
-            progress({ message: 'Checking AI compile permissions...' });
-            if (!await awaitApproval(dependencies.confirmCompile(target), signal)) {
-                throw new AiBridgeError('CANCELED', 'Compilation was declined in VS Code.');
-            }
+            progress({ message: 'Preparing compilation...' });
             assertAvailable();
             const currentPath = dependencies.activeSketchPath();
             const currentTarget = currentPath && dependencies.inspect(input, currentPath);

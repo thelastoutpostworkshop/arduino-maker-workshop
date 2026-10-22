@@ -494,7 +494,6 @@ export interface BuildProfileUpdate {
 
 export interface AiIntegrationState {
   enabled: boolean;
-  confirmCompile: boolean;
   status: 'disabled' | 'waiting' | 'connecting' | 'ready' | 'error';
   message: string;
   nativeMcpAvailable: boolean;
@@ -508,7 +507,6 @@ export const ARDUINO_MESSAGES = {
   // AI integration requests and state updates
   AI_GET_STATE: 'aiGetState',
   AI_SET_ENABLED: 'aiSetEnabled',
-  AI_SET_COMPILE_APPROVAL: 'aiSetCompileApproval',
   AI_SETUP_CLIENT: 'aiSetupClient',
   AI_SHOW_SETUP: 'aiShowSetup',
 
