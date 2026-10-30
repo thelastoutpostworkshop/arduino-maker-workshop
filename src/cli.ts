@@ -9,6 +9,11 @@ import { CliCache } from "./cliCache";
 import { ArduinoDebugInfo, createCortexDebugConfiguration, findCortexDebugConfiguration, mergeCortexDebugConfiguration } from "./debugConfiguration";
 import type { CliOutputView } from "./cliOutputView";
 
+//* used for running a pre-compile script.
+import { execSync } from 'child_process';
+import * as path from 'path';
+import * as vscode from 'vscode';
+
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
 
 const cp = require('child_process');
@@ -457,6 +462,36 @@ export class ArduinoCLI {
 
 			if (createBuildProfile) {
 				compileTitle = "Compiling project to create a build profile..."
+			}
+
+			//* Run pre-compile script if it exists.
+			const workspaceFolder = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+			const preBuildScript = vscode.workspace
+			.getConfiguration('arduinoMakerWorkshop')
+			.get<string>('preCompileScript');
+
+			if (preBuildScript && preBuildScript.trim().length > 0 && workspaceFolder) {
+			try {
+				// Resolve relative paths against the current workspace root
+				const scriptPath = path.isAbsolute(preBuildScript)
+				? preBuildScript
+				: path.join(workspaceFolder, preBuildScript);
+
+				vscode.window.showInformationMessage(`Running pre-compile script: ${preBuildScript}`);
+
+				// Execute the script directly; the system will respect the #!/bin/bash shebang
+				execSync(`"${scriptPath}"`, {
+				cwd: workspaceFolder,
+				shell: '/bin/bash',
+				stdio: 'pipe'
+				});
+				
+
+			} catch (err: any) {
+				const errorDetails = err.stderr ? err.stderr.toString() : err.message;
+				vscode.window.showErrorMessage(`Pre-compile script failed: ${errorDetails}`);
+				return; // Abort compilation if the pre-build script fails
+			}
 			}
 
 			await compileOutputView?.prepare(compileTitle);
