@@ -312,9 +312,9 @@ export class CLIArguments {
     }
     public getBuildPath(): string {
         if (arduinoYaml.status() == PROFILES_STATUS.ACTIVE) {
-            return path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput(), arduinoYaml.getBuildFolderProfileName());
+            return path.join(arduinoProject.getOutputPath(), arduinoYaml.getBuildFolderProfileName());
         } else {
-            return path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput());
+            return arduinoProject.getOutputPath();
         }
     }
 
@@ -482,7 +482,7 @@ export class CLIArguments {
                 compileCommand.push(`${arduinoProject.getBoard()}`);
             }
             compileCommand.push(`${buildPathArduino}`);
-            compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput()));
+            compileCommand.push(arduinoProject.getOutputPath());
             compileCommand.push(arduinoProject.getProjectPath());
             return compileCommand;
         }
@@ -533,7 +533,7 @@ export class CLIArguments {
             compileCommand.push(`${arduinoProject.getBoard()}`);
         }
         compileCommand.push(`${buildPathArduino}`);
-        compileCommand.push(path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput()));
+        compileCommand.push(this.getBuildPath());
         compileCommand.push(arduinoProject.getProjectPath());
         if (jsonOutput) {
             compileCommand.push(`${jsonOutputArduino}`);

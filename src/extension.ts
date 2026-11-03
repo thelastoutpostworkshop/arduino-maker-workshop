@@ -419,13 +419,10 @@ function isWatchedExtension(filePath: string): boolean {
 }
 
 function isIgnoredPath(filePath: string): boolean {
-	const projectPath = arduinoProject.getProjectPath();
-	const outputPath = path.join(projectPath, arduinoProject.getOutput());
-	const normalizedPath = path.normalize(filePath);
-	const normalizedOutput = path.normalize(outputPath + path.sep);
-	if (normalizedPath.startsWith(normalizedOutput)) {
+	if (arduinoProject.isInOutputDirectory(filePath)) {
 		return true;
 	}
+	const normalizedPath = path.normalize(filePath);
 	const ignoredSegments = [".git", ".vscode", "node_modules"];
 	return ignoredSegments.some((segment) => normalizedPath.includes(`${path.sep}${segment}${path.sep}`));
 }

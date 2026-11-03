@@ -526,7 +526,7 @@ export class VueWebviewPanel {
             return directPath;
         }
 
-        const outputRoot = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput());
+        const outputRoot = arduinoProject.getOutputPath();
         if (!fs.existsSync(outputRoot)) {
             return undefined;
         }
@@ -773,7 +773,7 @@ export class VueWebviewPanel {
             return elfInBuild;
         }
 
-        const outputRoot = path.join(arduinoProject.getProjectPath(), arduinoProject.getOutput());
+        const outputRoot = arduinoProject.getOutputPath();
         return this.findNewestElfInFolder(outputRoot, true);
     }
 

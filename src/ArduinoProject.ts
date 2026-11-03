@@ -113,7 +113,6 @@ export class ArduinoProject {
 
     private getLatestSourceMtime(): number {
         const root = this.getProjectPath();
-        const outputDir = path.join(root, this.getOutput());
         const ignoredNames = new Set([".git", ".vscode", "node_modules"]);
         let latest = 0;
         const stack = [root];
@@ -131,7 +130,7 @@ export class ArduinoProject {
             }
             for (const entry of entries) {
                 const fullPath = path.join(current, entry.name);
-                if (fullPath.startsWith(outputDir + path.sep)) {
+                if (this.isInOutputDirectory(fullPath)) {
                     continue;
                 }
                 if (entry.isDirectory()) {
@@ -308,6 +307,15 @@ export class ArduinoProject {
     }
     public getOutput(): string {
         return this.configJson.output || ARDUINO_DEFAULT_OUTPUT;
+    }
+    public getOutputPath(): string {
+        return path.resolve(this.getProjectPath(), this.getOutput());
+    }
+    public isInOutputDirectory(filePath: string): boolean {
+        const relativePath = path.relative(this.getOutputPath(), filePath);
+        return !path.isAbsolute(relativePath)
+            && relativePath !== '..'
+            && !relativePath.startsWith(`..${path.sep}`);
     }
     public getBoardConfiguration(): string {
         return this.configJson.configuration || '';

@@ -41,6 +41,12 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 * You can opt in to an Arduino CLI network connection timeout override for slow board/tool downloads
 * You can enable or disable verbose compilation (default is verbose)
 
+### Build Output Directory
+
+The `output` field in `.vscode/arduino.json` accepts a relative or absolute path. The default, `"output": "build"`, stores build files inside the active sketch workspace folder. Relative paths are resolved from that folder.
+
+To build elsewhere, set an absolute path such as `"output": "E:/builds/MyProject"` on Windows or `"output": "/tmp/MyProject-build"` on macOS/Linux. No additional setting is required. Active build profiles use a `build_<profile>` subdirectory inside the selected output directory.
+
 ## Features
 
 ### Profiles Manager (Reproducible build profiles)
