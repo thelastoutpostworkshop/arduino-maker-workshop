@@ -462,7 +462,7 @@ export class ArduinoCLI {
 				compileTitle = "Compiling project to create a build profile..."
 			}
 
-//* Check for pre-compile script setting.
+			//* Check for pre-compile script setting.
             const workspaceFolder = workspace.workspaceFolders?.[0].uri.fsPath;
             const preBuildScript = workspace
             .getConfiguration('arduinoMakerWorkshop')
@@ -487,30 +487,42 @@ export class ArduinoCLI {
                     let shellArgs: string[];
                     let displayLabel: string;
 
-                    //* Check if an explicit interpreter is used at the start (e.g. python3, node, etc.)
+                    //* Check if an explicit interpreter is used at the start (e.g. python3, node, powershell, etc.)
                     const parts = expandedScript.trim().split(/\s+/);
                     const potentialInterpreter = parts[0]?.toLowerCase();
 
                     if (['python', 'python3', 'node', 'sh', 'bash', 'powershell', 'pwsh'].includes(potentialInterpreter)) {
-                        //* If a second part exists, resolve it if it's a relative path
+                        // If a second part exists, resolve and normalize it
                         if (parts[1]) {
-                            parts[1] = path.isAbsolute(parts[1])
-                                ? parts[1]
-                                : path.join(workspaceFolder, parts[1]);
+                            parts[1] = path.resolve(
+                                path.isAbsolute(parts[1]) ? parts[1] : path.join(workspaceFolder, parts[1])
+                            );
                         }
                         
                         const fullCommand = parts.join(' ');
-                        shellCommand = isWindows ? 'cmd.exe' : '/bin/bash';
-                        shellArgs = isWindows ? ['/c', fullCommand] : ['-c', fullCommand];
+                        
+                        if (isWindows && (potentialInterpreter === 'powershell' || potentialInterpreter === 'pwsh')) {
+                            shellCommand = potentialInterpreter;
+                            shellArgs = ['-File', parts[1], ...parts.slice(2)];
+                        } else {
+                            shellCommand = isWindows ? 'cmd.exe' : '/bin/bash';
+                            shellArgs = isWindows ? ['/c', fullCommand] : ['-c', fullCommand];
+                        }
                         displayLabel = path.basename(parts[1] || preBuildScript);
                     } else {
-                        //* Standard direct file execution
-                        const scriptPath = path.isAbsolute(expandedScript)
-                            ? expandedScript
-                            : path.join(workspaceFolder, expandedScript);
+                        //* Standard direct file execution (e.g. scripts/build.sh or batch/ps1 files)
+                        const scriptPath = path.resolve(
+                            path.isAbsolute(expandedScript) ? expandedScript : path.join(workspaceFolder, expandedScript)
+                        );
 
-                        shellCommand = isWindows ? 'cmd.exe' : '/bin/bash';
-                        shellArgs = isWindows ? ['/c', scriptPath] : [scriptPath];
+                        if (isWindows && scriptPath.toLowerCase().endsWith('.ps1')) {
+                            shellCommand = 'powershell.exe';
+                            shellArgs = ['-File', scriptPath];
+                        } else {
+                            shellCommand = isWindows ? 'cmd.exe' : '/bin/bash';
+                            // Wrap path in quotes on Windows to safely handle spaces in folder names
+                            shellArgs = isWindows ? ['/c', `"${scriptPath}"`] : [scriptPath];
+                        }
                         displayLabel = path.basename(scriptPath);
                     }
 
