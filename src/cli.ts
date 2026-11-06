@@ -468,9 +468,6 @@ export class ArduinoCLI {
 				.getConfiguration('arduinoMakerWorkshop')
 				.get<string>('preCompileScript');
 
-			/////* Clean up any leading/trailing quotes from the setting string itself
-			////const preBuildScript = rawPreBuildScript?.trim().replace(/^["']+|["']+$/g, '');
-
 			//* Run pre-compile script if configured.
 			if (preBuildScript && preBuildScript.length > 0 && workspaceFolder) {
 				try
