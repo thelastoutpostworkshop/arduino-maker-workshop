@@ -463,124 +463,86 @@ export class ArduinoCLI {
 			}
 
 			//* Check for pre-compile script setting.
-            const workspaceFolder = workspace.workspaceFolders?.[0].uri.fsPath;
-            const preBuildScript = workspace
-            .getConfiguration('arduinoMakerWorkshop')
-            .get<string>('preCompileScript');
+			const workspaceFolder = workspace.workspaceFolders?.[0].uri.fsPath;
+			const preBuildScript = workspace
+				.getConfiguration('arduinoMakerWorkshop')
+				.get<string>('preCompileScript');
 
-            //* Run pre-compile script if configured.
-            if (preBuildScript && preBuildScript.trim().length > 0 && workspaceFolder) {
+			/////* Clean up any leading/trailing quotes from the setting string itself
+			////const preBuildScript = rawPreBuildScript?.trim().replace(/^["']+|["']+$/g, '');
 
-                try
-                {
-                    await compileOutputView?.prepare('Running pre-compile script...');
-                    compileOutputView?.setStatus('info', 'Running pre-compile script...');
-                    compileOutputView?.appendInfo('Running pre-compile script.....\n');
+			//* Run pre-compile script if configured.
+			if (preBuildScript && preBuildScript.length > 0 && workspaceFolder) {
+				try
+				{
+					await compileOutputView?.prepare('Running pre-compile script...');
+					compileOutputView?.setStatus('info', 'Running pre-compile script...');
+					compileOutputView?.appendInfo('Running pre-compile script.....\n');
 
-                    //* Substitute VS Code workspace variables first
-                    const expandedScript = preBuildScript
-                        .replace(/\$\{workspaceFolder\}/g, workspaceFolder)
-                        .replace(/\$\{workspaceRoot\}/g, workspaceFolder); // legacy alias support
+					//* Substitute VS Code workspace variables
+					const expandedScript = preBuildScript
+						.replace(/\$\{?workspaceFolder\}/g, workspaceFolder)
+						.replace(/\$\{?workspaceRoot\}/g, workspaceFolder); // legacy alias support
 
-                    const isWindows = process.platform === 'win32';
-                    let shellCommand: string;
-                    let shellArgs: string[];
-                    let displayLabel: string;
+					// Extract a clean display label for the notification
+					const displayLabel = path.basename(expandedScript.split(' ')[0]);
 
-                    //* Check if an explicit interpreter is used at the start (e.g. python3, node, powershell, etc.)
-                    const parts = expandedScript.trim().split(/\s+/);
-                    const potentialInterpreter = parts[0]?.toLowerCase();
+					await window.withProgress(
+						{
+							location: ProgressLocation.Notification,
+							title: `Running pre-compile script: ${displayLabel}`,
+							cancellable: true
+						},
+						async (progress, token) => {
+							return new Promise<void>((resolve, reject) => {
+								// shell: true lets the OS shell (cmd.exe / /bin/sh) natively handle
+								// quotes, spaces, interpreters, and paths without manual escaping bugs.
+								const child = spawn(expandedScript, [], {
+									cwd: workspaceFolder,
+									shell: true,
+									stdio: ['ignore', 'pipe', 'pipe']
+								});
+								
+								let stderrOutput = '';
+								child.stderr?.on('data', (data) => {
+									//* Capture stderr output to provide error information if the script fails.
+									stderrOutput += data.toString();
+								});
+								
+								child.stdout?.on('data', (data) => {
+									//* Capture output to provide feedback in the compile output view.
+									compileOutputView?.appendInfo(data.toString());
+								});
 
-                    if (['python', 'python3', 'node', 'sh', 'bash', 'powershell', 'pwsh'].includes(potentialInterpreter)) {
-                        // If a second part exists, resolve and normalize it
-                        if (parts[1]) {
-                            parts[1] = path.resolve(
-                                path.isAbsolute(parts[1]) ? parts[1] : path.join(workspaceFolder, parts[1])
-                            );
-                        }
-                        
-                        const fullCommand = parts.join(' ');
-                        
-                        if (isWindows && (potentialInterpreter === 'powershell' || potentialInterpreter === 'pwsh')) {
-                            shellCommand = potentialInterpreter;
-                            shellArgs = ['-File', parts[1], ...parts.slice(2)];
-                        } else {
-                            shellCommand = isWindows ? 'cmd.exe' : '/bin/bash';
-                            shellArgs = isWindows ? ['/c', fullCommand] : ['-c', fullCommand];
-                        }
-                        displayLabel = path.basename(parts[1] || preBuildScript);
-                    } else {
-                        //* Standard direct file execution (e.g. scripts/build.sh or batch/ps1 files)
-                        const scriptPath = path.resolve(
-                            path.isAbsolute(expandedScript) ? expandedScript : path.join(workspaceFolder, expandedScript)
-                        );
+								token.onCancellationRequested(() => {
+									child.kill();
+									reject(new Error('Pre-compile script was cancelled by the user.'));
+								});
 
-                        if (isWindows && scriptPath.toLowerCase().endsWith('.ps1')) {
-                            shellCommand = 'powershell.exe';
-                            shellArgs = ['-File', scriptPath];
-                        } else {
-                            shellCommand = isWindows ? 'cmd.exe' : '/bin/bash';
-                            // Wrap path in quotes on Windows to safely handle spaces in folder names
-                            shellArgs = isWindows ? ['/c', `"${scriptPath}"`] : [scriptPath];
-                        }
-                        displayLabel = path.basename(scriptPath);
-                    }
+								child.on('error', (err) => {
+									reject(new Error(`pre-compile script failed: ${err.message}`));
+								});
 
-                    await window.withProgress(
-                        {
-                        location: ProgressLocation.Notification,
-                        title: `Running pre-compile script: ${displayLabel}`,
-                        cancellable: true
-                        },
-                        async (progress, token) => {
-                        return new Promise<void>((resolve, reject) => {
-                            const child = spawn(shellCommand, shellArgs, {
-                            cwd: workspaceFolder,
-                            shell: false,
-                            stdio: ['ignore', 'pipe', 'pipe']
-                            });
-                            
-                            let stderrOutput = '';
-                            child.stderr?.on('data', (data) => {
-                                //* Capture stderr output to provide error information if the script fails.
-                                stderrOutput += data.toString();
-                            });
-                            
-                            child.stdout?.on('data', (data) => {
-                                //* Capture output to provide feedback in the compile output view.
-                                compileOutputView?.appendInfo(data.toString());
-                            });
-
-                            token.onCancellationRequested(() => {
-                                child.kill();
-                                reject(new Error('Pre-compile script was cancelled by the user.'));
-                            });
-
-                            child.on('error', (err) => {
-                                reject(new Error(`pre-compile script failed: ${err.message}`));
-                            });
-
-                            child.on('close', (code) => {
-                                if (code === 0) {
-                                    resolve();
-                                } else {
-                                    reject(new Error(`Pre-compile script returned error code ${code}: ${stderrOutput.trim()}`));
-                                }
-                            });
-                        });
-                        }
-                    );
-                }
-                catch (error)
-                {
-                    //* Stop compilation if the pre-compile script fails or is cancelled.
-                    this.setBuildResult(false);
-                    compileOutputView?.appendInfo(`${error.message}\n`);
-                    compileOutputView?.setStatus('failure', `${error.message}`);
-                    return "";
-                }
-            
-            }
+								child.on('close', (code) => {
+									if (code === 0) {
+										resolve();
+									} else {
+										reject(new Error(`Pre-compile script returned error code ${code}: ${stderrOutput.trim()}`));
+									}
+								});
+							});
+						}
+					);
+				}
+				catch (error)
+				{
+					//* Stop compilation if the pre-compile script fails or is cancelled.
+					this.setBuildResult(false);
+					compileOutputView?.appendInfo(`${error.message}\n`);
+					compileOutputView?.setStatus('failure', `${error.message}`);
+					return "";
+				}
+			}
 
 			await compileOutputView?.prepare(compileTitle, false);
 			compileOutputView?.setStatus('info', 'Starting compilation...');
