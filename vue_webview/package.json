@@ -10,23 +10,23 @@
   "dependencies": {
     "@mdi/font": "7.4.47",
     "@vue/devtools-api": "^8.2.1",
-    "pinia": "^4.0.3",
+    "pinia": "^4.1.0",
     "roboto-fontface": "*",
-    "vue": "^3.5.11",
-    "vue-router": "^5.0.6",
-    "vuetify": "^4.0.6"
+    "vue": "^3.5.45",
+    "vue-router": "^5.5.0",
+    "vuetify": "^4.3.3"
   },
   "devDependencies": {
-    "@babel/types": "^7.24.7",
-    "@playwright/test": "^1.49.1",
-    "@types/node": "^26.1.1",
+    "@babel/types": "^8.1.2",
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^26.6.6",
     "@types/vscode-webview": "^1.57.5",
-    "@vitejs/plugin-vue": "^6.0.0",
-    "sass": "^1.83.0",
+    "@vitejs/plugin-vue": "^6.0.11",
+    "sass": "^1.108.2",
     "typescript": "^5.6.3",
-    "unplugin-vue-components": "^32.0.0",
-    "vite": "^8.0.11",
-    "vite-plugin-vuetify": "^2.0.3",
-    "vue-tsc": "^3.0.2"
+    "unplugin-vue-components": "^32.1.0",
+    "vite": "^8.3.8",
+    "vite-plugin-vuetify": "^2.1.3",
+    "vue-tsc": "^3.3.14"
   }
 }

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import projectStatus from '../public/mock/project_status.json';
 
 test.describe('webview dev server', () => {
   test('loads the home view with mock data', async ({ page }) => {
@@ -9,7 +10,7 @@ test.describe('webview dev server', () => {
     ).toBeVisible();
 
     await expect(page.getByTestId('cli-version')).toContainText(
-      'Built-in CLI v1.5.1 (2026-06-05T10:22:12Z)'
+      `Built-in CLI v${projectStatus.cli_status.VersionString} (${projectStatus.cli_status.Date})`
     );
 
     await expect(
