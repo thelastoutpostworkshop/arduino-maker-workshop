@@ -2,69 +2,12 @@
 import { ARDUINO_MESSAGES } from '@shared/messages';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { computed, onMounted } from 'vue';
+import { examplesItems } from '../utilities/examplePaths';
 
 const store = useVsCodeStore();
 
 function openExample(examplePath: string) {
   store.sendMessage({ command: ARDUINO_MESSAGES.OPEN_LIBRARY, errorMessage: "", payload: examplePath });
-}
-
-function examplesItems(examples: string[]): any[] {
-  const groupedItems: any[] = []; // Final array of grouped items
-  const groups: Record<string, any[]> = {}; // Groups to hold examples under subheaders
-  const noGroupItems: any[] = []; // Examples without subpaths
-
-  const sortedExamples = [...examples].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
-  sortedExamples.forEach((example) => {
-    // Extract the part after "examples\\"
-    const parts = example.split('examples\\');
-    const relevantPart = parts.length > 1 ? parts[1] : example;
-
-    // Split into hierarchical parts (e.g., "Smooth Fonts\\SPIFFS\\Font_Demo_1")
-    const pathParts = relevantPart.split('\\');
-
-    if (pathParts.length === 1) {
-      // No subpath, add directly to noGroupItems
-      noGroupItems.push({
-        title: pathParts[0],
-        value: example, // Full path as the value
-      });
-    } else {
-      // Has subpath, group by the top-level directory
-      const groupName = pathParts[0]; // Top-level group 
-      const title = pathParts.slice(1).join(' \\ '); // Remaining parts as the title
-
-      // Initialize group if it doesn't exist
-      if (!groups[groupName]) {
-        groups[groupName] = [];
-      }
-
-      // Add the example to its group
-      groups[groupName].push({
-        title,
-        value: example, // Full path as the value
-      });
-    }
-  });
-
-  noGroupItems.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
-  groupedItems.push(...noGroupItems);
-
-  const sortedGroups = Object.entries(groups)
-    .map(([groupName, items]) => ({
-      groupName,
-      items: items.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }))
-    }))
-    .sort((a, b) => a.groupName.localeCompare(b.groupName, undefined, { sensitivity: 'base' }));
-
-  // Convert groups into the required format
-  sortedGroups.forEach(({ groupName, items }) => {
-    groupedItems.push({ type: 'subheader', title: groupName }); // Add subheader
-    groupedItems.push(...items); // Add examples under this group
-    groupedItems.push({ type: 'divider' }); // Add a divider after each group
-  });
-
-  return groupedItems;
 }
 
 const sortedLibraries = computed(() => {
@@ -118,9 +61,16 @@ onMounted(() => {
                 Examples provided with the library:
               </div>
               <v-list v-if="library.library.examples" density="compact"
-                :items="examplesItems(library.library.examples)">
+                :items="examplesItems(library.library.examples, library.library.install_dir)">
+                <template v-slot:title="{ item }">
+                  <v-tooltip v-if="'value' in item" :text="item.value">
+                    <template v-slot:activator="{ props }">
+                      <span v-bind="props">{{ item.title }}</span>
+                    </template>
+                  </v-tooltip>
+                </template>
                 <template v-slot:append="{ item,isSelected }">
-                  <v-list-item-action v-if="isSelected" start >
+                  <v-list-item-action v-if="isSelected && 'value' in item" start >
                     <v-btn @click="openExample(item.value)">Open</v-btn>
                   </v-list-item-action>
                 </template>

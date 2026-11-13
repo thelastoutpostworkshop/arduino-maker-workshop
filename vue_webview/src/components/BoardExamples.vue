@@ -2,61 +2,12 @@
 import { ARDUINO_ERRORS, ARDUINO_MESSAGES } from '@shared/messages';
 import { useVsCodeStore } from '../stores/useVsCodeStore';
 import { computed, watch } from 'vue';
+import { examplesItems } from '../utilities/examplePaths';
 
 const store = useVsCodeStore();
 
 function openExample(examplePath: string) {
   store.sendMessage({ command: ARDUINO_MESSAGES.OPEN_LIBRARY, errorMessage: "", payload: examplePath });
-}
-
-function examplesItems(examples: string[]): any[] {
-  const groupedItems: any[] = [];
-  const groups: Record<string, any[]> = {};
-  const noGroupItems: any[] = [];
-
-  const sortedExamples = [...examples].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
-  sortedExamples.forEach((example) => {
-    const parts = example.split('examples\\');
-    const relevantPart = parts.length > 1 ? parts[1] : example;
-    const pathParts = relevantPart.split('\\');
-
-    if (pathParts.length === 1) {
-      noGroupItems.push({
-        title: pathParts[0],
-        value: example,
-      });
-    } else {
-      const groupName = pathParts[0];
-      const title = pathParts.slice(1).join(' \\ ');
-
-      if (!groups[groupName]) {
-        groups[groupName] = [];
-      }
-
-      groups[groupName].push({
-        title,
-        value: example,
-      });
-    }
-  });
-
-  noGroupItems.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
-  groupedItems.push(...noGroupItems);
-
-  const sortedGroups = Object.entries(groups)
-    .map(([groupName, items]) => ({
-      groupName,
-      items: items.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }))
-    }))
-    .sort((a, b) => a.groupName.localeCompare(b.groupName, undefined, { sensitivity: 'base' }));
-
-  sortedGroups.forEach(({ groupName, items }) => {
-    groupedItems.push({ type: 'subheader', title: groupName });
-    groupedItems.push(...items);
-    groupedItems.push({ type: 'divider' });
-  });
-
-  return groupedItems;
 }
 
 const boardExampleLibraries = computed(() => {
@@ -153,9 +104,16 @@ watch(() => store.projectInfo, (info) => {
                 Examples provided with the board platform:
               </div>
               <v-list v-if="library.library.examples" density="compact"
-                :items="examplesItems(library.library.examples)">
+                :items="examplesItems(library.library.examples, library.library.install_dir)">
+                <template v-slot:title="{ item }">
+                  <v-tooltip v-if="'value' in item" :text="item.value">
+                    <template v-slot:activator="{ props }">
+                      <span v-bind="props">{{ item.title }}</span>
+                    </template>
+                  </v-tooltip>
+                </template>
                 <template v-slot:append="{ item, isSelected }">
-                  <v-list-item-action v-if="isSelected" start>
+                  <v-list-item-action v-if="isSelected && 'value' in item" start>
                     <v-btn @click="openExample(item.value)">Open</v-btn>
                   </v-list-item-action>
                 </template>
