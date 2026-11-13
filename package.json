@@ -185,7 +185,7 @@
         "arduinoMakerWorkshop.preCompileScript": {
           "type": "string",
           "default": "",
-          "description": "Path to a script to run automatically before sketch compilation."
+          "description": "Shell command to run before each sketch compilation, from the active sketch workspace folder. Supports ${workspaceFolder} and ${workspaceRoot}. Quote paths containing spaces. Leave blank to disable."
         }
       }
     },

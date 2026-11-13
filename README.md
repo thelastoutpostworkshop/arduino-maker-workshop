@@ -41,6 +41,31 @@ All the platforms supported by the [Arduino CLI](https://arduino.github.io/ardui
 * You can opt in to an Arduino CLI network connection timeout override for slow board/tool downloads
 * You can enable or disable verbose compilation (default is verbose)
 
+### Pre-compile Command
+
+Set `arduinoMakerWorkshop.preCompileScript` in VS Code settings to run a shell command before compilation. Leave it blank to disable it. The command runs from the active sketch workspace folder (the first workspace folder), and `${workspaceFolder}` and the legacy `${workspaceRoot}` both expand to that folder.
+
+For example, add this to `.vscode/settings.json` to generate build metadata with Node.js:
+
+```json
+{
+  "arduinoMakerWorkshop.preCompileScript": "node \"${workspaceFolder}/scripts/update-version.js\""
+}
+```
+
+The value is a shell command, so quote paths containing spaces. Examples below are commands to enter in the Settings UI; escape backslashes and quotes when writing JSON.
+
+| Platform | Command example |
+| --- | --- |
+| Linux/macOS, executable script with a shebang | `./scripts/pre-build.sh` |
+| Linux/macOS, Bash script | `bash "./scripts/pre build.sh"` |
+| Windows, batch script (`.cmd` or `.bat`) | `".\scripts\pre build.cmd"` |
+| Windows, PowerShell script | `powershell -File ".\scripts\pre build.ps1"` |
+
+On Linux/macOS, use `./` for a script relative to the working directory and make it executable, or invoke it through its interpreter. Interpreters such as `bash`, `powershell`, `node`, `python`, or `python3` must be installed and available on `PATH`.
+
+The command runs asynchronously for normal, clean, and build-profile compilation, including profile creation. Standard output and error output appear in Arduino CLI Output, and the progress notification lets you cancel the command. A nonzero exit code or cancellation stops compilation and invalidates the previous build. Uploading an existing fresh build does not run the command again.
+
 ### Build Output Directory
 
 The `output` field in `.vscode/arduino.json` accepts a relative or absolute path. The default, `"output": "build"`, stores build files inside the active sketch workspace folder. Relative paths are resolved from that folder.
@@ -68,7 +93,7 @@ profiles:
 
 This is useful for compiling variants of the same sketch with different `#define` values. The extension also adds these defines to the generated C/C++ IntelliSense configuration.
 
-Only build properties are supported in profiles. Pre-build and post-build commands are not currently supported.
+Profile-specific pre-build and post-build commands are not supported. The `arduinoMakerWorkshop.preCompileScript` setting described above applies to all compilations, including those using a build profile.
 
 ### Arduino Code Snippets
 
