@@ -9,6 +9,9 @@ import { CliCache } from "./cliCache";
 import { ArduinoDebugInfo, createCortexDebugConfiguration, findCortexDebugConfiguration, mergeCortexDebugConfiguration } from "./debugConfiguration";
 import type { CliOutputView } from "./cliOutputView";
 
+//* used for running a pre-compile script.
+import { spawn } from 'child_process';
+
 const CPP_PROPERTIES: string = "c_cpp_properties.json";
 
 const cp = require('child_process');
@@ -459,7 +462,86 @@ export class ArduinoCLI {
 				compileTitle = "Compiling project to create a build profile..."
 			}
 
-			await compileOutputView?.prepare(compileTitle);
+			//* Check for pre-compile script setting.
+			const workspaceFolder = workspace.workspaceFolders?.[0].uri.fsPath;
+			const preBuildScript = workspace
+				.getConfiguration('arduinoMakerWorkshop')
+				.get<string>('preCompileScript');
+
+			//* Run pre-compile script if configured.
+			if (preBuildScript && preBuildScript.length > 0 && workspaceFolder) {
+				try
+				{
+					await compileOutputView?.prepare('Running pre-compile script...');
+					compileOutputView?.setStatus('info', 'Running pre-compile script...');
+					compileOutputView?.appendInfo('Running pre-compile script.....\n');
+
+					//* Substitute VS Code workspace variables
+					const expandedScript = preBuildScript
+						.replace(/\$\{?workspaceFolder\}/g, workspaceFolder)
+						.replace(/\$\{?workspaceRoot\}/g, workspaceFolder); // legacy alias support
+
+					// Extract a clean display label for the notification
+					const displayLabel = path.basename(expandedScript.split(' ')[0]);
+
+					await window.withProgress(
+						{
+							location: ProgressLocation.Notification,
+							title: `Running pre-compile script: ${displayLabel}`,
+							cancellable: true
+						},
+						async (progress, token) => {
+							return new Promise<void>((resolve, reject) => {
+								// shell: true lets the OS shell (cmd.exe / /bin/sh) natively handle
+								// quotes, spaces, interpreters, and paths without manual escaping bugs.
+								const child = spawn(expandedScript, [], {
+									cwd: workspaceFolder,
+									shell: true,
+									stdio: ['ignore', 'pipe', 'pipe']
+								});
+								
+								let stderrOutput = '';
+								child.stderr?.on('data', (data) => {
+									//* Capture stderr output to provide error information if the script fails.
+									stderrOutput += data.toString();
+								});
+								
+								child.stdout?.on('data', (data) => {
+									//* Capture output to provide feedback in the compile output view.
+									compileOutputView?.appendInfo(data.toString());
+								});
+
+								token.onCancellationRequested(() => {
+									child.kill();
+									reject(new Error('Pre-compile script was cancelled by the user.'));
+								});
+
+								child.on('error', (err) => {
+									reject(new Error(`pre-compile script failed: ${err.message}`));
+								});
+
+								child.on('close', (code) => {
+									if (code === 0) {
+										resolve();
+									} else {
+										reject(new Error(`Pre-compile script returned error code ${code}: ${stderrOutput.trim()}`));
+									}
+								});
+							});
+						}
+					);
+				}
+				catch (error)
+				{
+					//* Stop compilation if the pre-compile script fails or is cancelled.
+					this.setBuildResult(false);
+					compileOutputView?.appendInfo(`${error.message}\n`);
+					compileOutputView?.setStatus('failure', `${error.message}`);
+					return "";
+				}
+			}
+
+			await compileOutputView?.prepare(compileTitle, false);
 			compileOutputView?.setStatus('info', 'Starting compilation...');
 			compileOutputView?.appendInfo('Compile project starting...\n');
 

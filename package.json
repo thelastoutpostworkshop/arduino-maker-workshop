@@ -181,6 +181,11 @@
           "type": "boolean",
           "default": true,
           "description": "Enable verbose output during Arduino CLI compile."
+        },
+        "arduinoMakerWorkshop.preCompileScript": {
+          "type": "string",
+          "default": "",
+          "description": "Path to a script to run automatically before sketch compilation."
         }
       }
     },
