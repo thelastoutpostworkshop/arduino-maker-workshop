@@ -10,7 +10,7 @@
   "sponsor": {
     "url": "https://buymeacoffee.com/thelastoutpostworkshop"
   },
-  "icon": "resources/extension_icon.png",
+  "icon": "resources/extension_icon_marketplace.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/thelastoutpostworkshop/vscode-arduino"
