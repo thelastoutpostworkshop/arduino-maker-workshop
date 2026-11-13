@@ -1210,6 +1210,9 @@ export class ArduinoCLI {
 
 		switch (platform) {
 			case 'win32':
+				if (arch === 'arm64') {
+					return path.join(this.context.extensionPath, 'arduino_cli', 'win32', 'arm64', 'arduino-cli.exe');
+				}
 				return path.join(this.context.extensionPath, 'arduino_cli', 'win32', 'arduino-cli.exe');
 			case 'darwin':
 			case 'linux':

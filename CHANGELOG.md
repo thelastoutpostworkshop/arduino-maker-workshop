@@ -4,6 +4,7 @@ All notable changes to the Arduino Maker Workshop extension will be documented i
 
 ## Version 1.1.12
 
+- Updated the bundled Arduino CLI to 1.6.0, including a native Windows ARM64 executable
 - Added a configurable pre-compile shell command for generated headers and build metadata, with live output, cancellation, and build invalidation on failure. Thanks to [thecosmicslug](https://github.com/thecosmicslug) ([PR #127](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/pull/127))
 - Fixed `output` in `.vscode/arduino.json` to support both relative and absolute paths, including build directories on another drive, while preserving profile subdirectories ([issue #128](https://github.com/thelastoutpostworkshop/arduino-maker-workshop/issues/128))
 
